@@ -550,16 +550,15 @@ function scoreProduct(
 // ── Complementarity logic ──
 
 const COMPLEMENTARY_PAIRINGS: [string, string][] = [
-  ["Chairs", "Tables"],
-  ["Dining Seating", "Dining Tables"],
-  ["Lounge Seating", "Lounge Tables"],
-  ["Lounge Seating", "Parasols"],
-  ["Lounge Seating", "Shade"],
-  ["Armchairs", "Tables"],
-  ["Bar Stools", "Tables"],
-  ["Bar Stools", "High Tables"],
-  ["Chairs", "Parasols"],
-  ["Lounge Modules", "Parasols"],
+  ["chair", "table"],
+  ["armchair", "table"],
+  ["stool", "high_table"],
+  ["armchair", "parasol"],
+  ["chair", "parasol"],
+  ["sofa", "parasol"],
+  ["sun_lounger", "parasol"],
+  ["sofa", "table"],
+  ["armchair", "sofa"],
 ];
 
 function computeComplementarityBonus(
