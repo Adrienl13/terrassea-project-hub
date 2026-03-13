@@ -1,14 +1,14 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { Product } from "@/data/products";
+import type { DBProduct } from "@/lib/products";
 
 export interface CartItem {
-  product: Product;
+  product: DBProduct;
   quantity: number;
 }
 
 interface ProjectCartContextType {
   items: CartItem[];
-  addItem: (product: Product) => void;
+  addItem: (product: DBProduct) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   itemCount: number;
@@ -22,7 +22,7 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [notes, setNotes] = useState("");
 
-  const addItem = (product: Product) => {
+  const addItem = (product: DBProduct) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
       if (existing) {

@@ -1,19 +1,20 @@
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
+import type { DBProduct } from "@/lib/products";
 import ConceptCard from "./ConceptCard";
 
 interface ProjectResultsProps {
   parameters: ProjectParameters;
   concepts: ProjectConcept[];
   query: string;
+  products: DBProduct[];
 }
 
-const ProjectResults = ({ parameters, concepts, query }: ProjectResultsProps) => {
+const ProjectResults = ({ parameters, concepts, query, products }: ProjectResultsProps) => {
   return (
     <section className="py-16 px-6">
       <div className="container mx-auto">
-        {/* Detected Parameters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -52,10 +53,9 @@ const ProjectResults = ({ parameters, concepts, query }: ProjectResultsProps) =>
           </div>
         </motion.div>
 
-        {/* Concepts */}
         <div className="space-y-8">
           {concepts.map((concept, i) => (
-            <ConceptCard key={concept.id} concept={concept} index={i} />
+            <ConceptCard key={concept.id} concept={concept} index={i} products={products} />
           ))}
         </div>
       </div>
