@@ -1,11 +1,15 @@
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Compass, Layers, Send, Sparkles } from "lucide-react";
 import HeroSearch from "@/components/HeroSearch";
 import SpaceCard from "@/components/SpaceCard";
 import ProductCard from "@/components/ProductCard";
+import ProjectResults from "@/components/ProjectResults";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { products } from "@/data/products";
+import { generateProjectConcepts } from "@/engine/projectEngine";
+import { ProjectParameters, ProjectConcept } from "@/engine/types";
 
 import spaceRestaurant from "@/assets/space-restaurant.jpg";
 import spaceHotel from "@/assets/space-hotel.jpg";
@@ -29,6 +33,30 @@ const steps = [
 ];
 
 const Index = () => {
+  const [searchResults, setSearchResults] = useState<{
+    parameters: ProjectParameters;
+    concepts: ProjectConcept[];
+    query: string;
+  } | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const handleSearch = (query: string) => {
+    setIsSearching(true);
+
+    // Simulate brief processing delay for UX
+    setTimeout(() => {
+      const { parameters, concepts } = generateProjectConcepts(query);
+      setSearchResults({ parameters, concepts, query });
+      setIsSearching(false);
+
+      // Scroll to results
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }, 800);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -50,8 +78,19 @@ const Index = () => {
             The European project platform for restaurants, hotels and hospitality professionals
           </p>
         </motion.div>
-        <HeroSearch />
+        <HeroSearch onSearch={handleSearch} isLoading={isSearching} />
       </section>
+
+      {/* Project Results */}
+      {searchResults && (
+        <div ref={resultsRef}>
+          <ProjectResults
+            parameters={searchResults.parameters}
+            concepts={searchResults.concepts}
+            query={searchResults.query}
+          />
+        </div>
+      )}
 
       {/* How it Works */}
       <section className="py-24 px-6">

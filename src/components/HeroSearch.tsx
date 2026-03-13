@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search } from "lucide-react";
+import { Search, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const placeholders = [
@@ -10,7 +10,12 @@ const placeholders = [
   "Rooftop bar 40 seats industrial chic urban feel",
 ];
 
-const HeroSearch = () => {
+interface HeroSearchProps {
+  onSearch?: (query: string) => void;
+  isLoading?: boolean;
+}
+
+const HeroSearch = ({ onSearch, isLoading }: HeroSearchProps) => {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
@@ -45,6 +50,16 @@ const HeroSearch = () => {
     }
   }, [displayText, isTyping, currentPlaceholder, isFocused]);
 
+  const handleSubmit = () => {
+    if (inputValue.trim() && onSearch) {
+      onSearch(inputValue.trim());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSubmit();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -68,12 +83,28 @@ const HeroSearch = () => {
           onBlur={() => {
             if (!inputValue) setIsFocused(false);
           }}
+          onKeyDown={handleKeyDown}
           placeholder={isFocused ? "Describe your project..." : displayText}
           className="w-full bg-transparent text-sm font-body text-foreground placeholder:text-muted-foreground outline-none"
         />
+        {inputValue.trim() && (
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="flex-shrink-0 flex items-center gap-1.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full px-4 py-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {isLoading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <>
+                Design <ArrowRight className="h-3.5 w-3.5" />
+              </>
+            )}
+          </button>
+        )}
       </div>
       <p className="text-center text-xs text-muted-foreground mt-4 font-body">
-        Describe your space, style and needs — we'll guide you to the right solutions
+        Describe your space, style and needs — we'll generate 3 design concepts for you
       </p>
     </motion.div>
   );
