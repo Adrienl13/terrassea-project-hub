@@ -5,6 +5,7 @@ import HeroSearch from "@/components/HeroSearch";
 import SpaceCard from "@/components/SpaceCard";
 import ProductCard from "@/components/ProductCard";
 import ProjectResults from "@/components/ProjectResults";
+import ProjectDiscovery from "@/components/ProjectDiscovery";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useProducts } from "@/hooks/useProducts";
@@ -27,34 +28,58 @@ const spaces = [
 
 const steps = [
   { icon: Sparkles, title: "Describe", text: "Tell us about your space, style and needs" },
-  { icon: Compass, title: "Discover", text: "Explore curated products and inspirations" },
-  { icon: Layers, title: "Select", text: "Build your project selection" },
+  { icon: Compass, title: "Discover", text: "Answer a few questions to refine your brief" },
+  { icon: Layers, title: "Select", text: "Explore 3 curated concepts and pick products" },
   { icon: Send, title: "Submit", text: "Send your project for sourcing" },
 ];
 
+type FlowPhase = "idle" | "discovery" | "results";
+
 const Index = () => {
   const { data: products = [], isLoading: productsLoading } = useProducts();
+  const [phase, setPhase] = useState<FlowPhase>("idle");
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<{
     parameters: ProjectParameters;
     concepts: ProjectConcept[];
     query: string;
   } | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const discoveryRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = (query: string) => {
     if (products.length === 0) return;
-    setIsSearching(true);
+    setSearchQuery(query);
+    setPhase("discovery");
+    setSearchResults(null);
 
     setTimeout(() => {
-      const { parameters, concepts } = generateProjectConcepts(query, products);
-      setSearchResults({ parameters, concepts, query });
-      setIsSearching(false);
+      discoveryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const handleDiscoveryComplete = (params: ProjectParameters) => {
+    if (products.length === 0) return;
+    setIsGenerating(true);
+
+    setTimeout(() => {
+      const { parameters, concepts } = generateProjectConcepts(searchQuery, products, params);
+      setSearchResults({ parameters, concepts, query: searchQuery });
+      setPhase("results");
+      setIsGenerating(false);
 
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
     }, 800);
+  };
+
+  const handleReset = () => {
+    setPhase("idle");
+    setSearchQuery("");
+    setSearchResults(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -78,11 +103,42 @@ const Index = () => {
             The European project platform for restaurants, hotels and hospitality professionals
           </p>
         </motion.div>
-        <HeroSearch onSearch={handleSearch} isLoading={isSearching || productsLoading} />
+        <HeroSearch onSearch={handleSearch} isLoading={isGenerating || productsLoading} />
       </section>
 
+      {/* Discovery Phase */}
+      {phase === "discovery" && (
+        <section ref={discoveryRef} className="py-16 px-6">
+          <div className="container mx-auto flex justify-center">
+            <ProjectDiscovery
+              query={searchQuery}
+              onComplete={handleDiscoveryComplete}
+              onReset={handleReset}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Generating indicator */}
+      {isGenerating && (
+        <section className="py-16 px-6">
+          <div className="container mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-4"
+            >
+              <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-sm font-body text-muted-foreground">
+                Generating your project concepts...
+              </p>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
       {/* Project Results */}
-      {searchResults && (
+      {searchResults && phase === "results" && (
         <div ref={resultsRef}>
           <ProjectResults
             parameters={searchResults.parameters}
