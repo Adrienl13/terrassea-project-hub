@@ -168,91 +168,48 @@ export function parseProjectRequest(input: string): ProjectParameters {
 export function detectMissingFields(params: ProjectParameters): DiscoveryQuestion[] {
   const questions: DiscoveryQuestion[] = [];
 
-  if (!params.establishmentType) {
-    questions.push({
-      id: "establishment",
-      question: "What type of establishment is this for?",
-      options: ["Restaurant", "Hotel", "Bar / Lounge", "Beach Club", "Rooftop", "Camping / Glamping", "Event Space"],
-      field: "establishmentType",
-      priority: 10,
-    });
-  }
-
-  if (!params.projectZone || params.projectZone === "outdoor") {
-    questions.push({
-      id: "zone",
-      question: "Which area are you furnishing?",
-      options: ["Terrace", "Garden / Patio", "Poolside", "Rooftop", "Lobby / Interior", "Lounge area"],
-      field: "projectZone",
-      priority: 9,
-    });
-  }
-
-  if (!params.seatingCapacity) {
-    questions.push({
-      id: "capacity",
-      question: "What is the approximate seating capacity?",
-      options: ["Under 30 seats", "30–60 seats", "60–120 seats", "120+ seats"],
-      field: "seatingCapacity",
-      priority: 7,
-    });
-  }
-
   if (params.style.length === 0) {
     questions.push({
       id: "style",
-      question: "What design style do you prefer?",
-      options: ["Mediterranean / Coastal", "Modern / Minimal", "Natural / Organic", "Industrial / Urban", "Classic / Elegant", "Tropical / Bohemian"],
+      question: "What style defines your terrace?",
+      options: ["Bistro", "Mediterranean", "Natural / Wood", "Modern", "Lounge", "Coastal"],
       field: "style",
-      priority: 8,
-    });
-  }
-
-  if (params.ambience.length === 0) {
-    questions.push({
-      id: "ambience",
-      question: "What atmosphere are you looking for?",
-      options: ["Warm & Convivial", "Elegant & Refined", "Relaxed & Casual", "Festive & Energetic", "Intimate & Romantic"],
-      field: "ambience",
-      priority: 6,
-    });
-  }
-
-  if (params.colorPalette.length === 0) {
-    questions.push({
-      id: "palette",
-      question: "Any preferred color palette?",
-      options: ["Natural / Sand / Beige", "White / Bright", "Dark / Black / Anthracite", "Warm / Terracotta", "Green / Sage / Olive", "Wood tones"],
-      field: "colorPalette",
-      priority: 5,
+      priority: 10,
     });
   }
 
   if (params.materialPreferences.length === 0) {
     questions.push({
       id: "material",
-      question: "Any material preferences?",
-      options: ["Wood / Teak", "Aluminium", "Rope / Woven", "Synthetic Rattan", "Steel / Metal", "No preference"],
+      question: "What type of chair are you looking for?",
+      options: ["Professional polypropylene", "Aluminium + rope", "Bamboo bistro", "Aluminium + textilene", "Wood"],
       field: "materialPreferences",
-      priority: 4,
+      priority: 9,
     });
   }
 
   if (!params.budgetLevel) {
     questions.push({
       id: "budget",
-      question: "What is your budget level?",
-      options: ["Economy — best value", "Mid-range — quality & price balance", "Premium — invest in quality"],
+      question: "What is your budget per seat?",
+      options: ["€50–80", "€80–120", "€120–180", "€180+"],
       field: "budgetLevel",
-      priority: 3,
+      priority: 8,
     });
   }
 
-  // Sort by priority descending, take top 3-6 depending on how many are missing
+  if (params.colorPalette.length === 0) {
+    questions.push({
+      id: "palette",
+      question: "Which color palette do you prefer?",
+      options: ["Terracotta / natural", "Wood / beige", "Black / anthracite", "Blue / white", "Olive green"],
+      field: "colorPalette",
+      priority: 7,
+    });
+  }
+
   questions.sort((a, b) => b.priority - a.priority);
-  const totalMissing = questions.length;
-  const maxQuestions = totalMissing <= 3 ? totalMissing : Math.min(6, totalMissing);
-  return questions.slice(0, maxQuestions);
+  return questions;
 }
 
 export function isRequestComplete(params: ProjectParameters): boolean {
