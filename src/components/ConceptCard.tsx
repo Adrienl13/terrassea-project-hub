@@ -24,7 +24,7 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
   const isInCart = (productId: string) => items.some((i) => i.product.id === productId);
 
   const handleAddProduct = (product: DBProduct) => {
-    addItem(product);
+    addItem(product, concept.title);
     toast.success(`${product.name} added to your project`);
   };
 
@@ -32,7 +32,7 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
     let added = 0;
     conceptProducts.forEach((product) => {
       if (!isInCart(product.id)) {
-        addItem(product);
+        addItem(product, concept.title);
         added++;
       }
     });
@@ -97,7 +97,7 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
       </div>
 
       <div className="border-t border-border">
-        <div className="grid grid-cols-2 md:grid-cols-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
           {conceptProducts.map((product, i) => {
             const inCart = isInCart(product.id);
             return (
@@ -116,7 +116,7 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
                 <h4 className="font-display font-semibold text-xs text-foreground truncate">
                   {product.name}
                 </h4>
-                <p className="text-[10px] font-body text-muted-foreground mt-0.5 italic">
+                <p className="text-[10px] font-body text-muted-foreground mt-0.5 italic line-clamp-2">
                   {product.reason}
                 </p>
                 <div className="flex items-center justify-between mt-2">
