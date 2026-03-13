@@ -256,14 +256,17 @@ export function detectMissingFields(params: ProjectParameters): DiscoveryQuestio
 }
 
 export function isRequestComplete(params: ProjectParameters): boolean {
-  const filledCount = [
-    params.establishmentType,
-    params.projectZone !== "outdoor" ? params.projectZone : "",
-    params.seatingCapacity,
-    params.style.length > 0,
-    params.ambience.length > 0,
+  // Count how many "design" attributes are still missing
+  const missingDesignAttrs = [
+    params.style.length === 0,
+    params.ambience.length === 0,
+    params.colorPalette.length === 0,
+    params.materialPreferences.length === 0,
+    !params.budgetLevel,
   ].filter(Boolean).length;
-  return filledCount >= 4;
+
+  // If 3 or more design attributes are missing, the brief is incomplete
+  return missingDesignAttrs < 3;
 }
 
 export function applyAnswer(
