@@ -537,8 +537,10 @@ function scoreProduct(
   if (product.is_chr_heavy_use) score += WEIGHTS.chrBonus;
 
   // Availability bonus
-  if (product.availability_type === "available" || product.availability_type === "in-stock") {
+  if (product.availability_type === "stock") {
     score += WEIGHTS.availabilityBonus;
+  } else if (product.availability_type === "production") {
+    score += WEIGHTS.availabilityBonus * 0.5;
   }
 
   // Small controlled freshness
@@ -550,16 +552,15 @@ function scoreProduct(
 // ── Complementarity logic ──
 
 const COMPLEMENTARY_PAIRINGS: [string, string][] = [
-  ["Chairs", "Tables"],
-  ["Dining Seating", "Dining Tables"],
-  ["Lounge Seating", "Lounge Tables"],
-  ["Lounge Seating", "Parasols"],
-  ["Lounge Seating", "Shade"],
-  ["Armchairs", "Tables"],
-  ["Bar Stools", "Tables"],
-  ["Bar Stools", "High Tables"],
-  ["Chairs", "Parasols"],
-  ["Lounge Modules", "Parasols"],
+  ["chair", "table"],
+  ["armchair", "table"],
+  ["stool", "high_table"],
+  ["armchair", "parasol"],
+  ["chair", "parasol"],
+  ["sofa", "parasol"],
+  ["sun_lounger", "parasol"],
+  ["sofa", "table"],
+  ["armchair", "sofa"],
 ];
 
 function computeComplementarityBonus(
@@ -581,11 +582,11 @@ function computeComplementarityBonus(
 
     // Complementary pairings
     for (const [a, b] of COMPLEMENTARY_PAIRINGS) {
-      const candCat = candidate.category.toLowerCase();
-      const existCat = existing.category.toLowerCase();
+      const candCat = candidate.category;
+      const existCat = existing.category;
       if (
-        (candCat.includes(a.toLowerCase()) && existCat.includes(b.toLowerCase())) ||
-        (candCat.includes(b.toLowerCase()) && existCat.includes(a.toLowerCase()))
+        (candCat === a && existCat === b) ||
+        (candCat === b && existCat === a)
       ) {
         bonus += WEIGHTS.complementarityBonus;
       }
