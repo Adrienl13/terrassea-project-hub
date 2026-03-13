@@ -1,53 +1,61 @@
 import { ProjectParameters, ProjectConcept, RecommendedProduct } from "./types";
 import type { DBProduct } from "@/lib/products";
 
-// ─── Step 1 & 2: Parse natural language into structured parameters ───
+// ═══════════════════════════════════════════════════════════
+// STEP 1 & 2: Interpret project request → structured parameters
+// ═══════════════════════════════════════════════════════════
 
 const ESTABLISHMENT_KEYWORDS: Record<string, string[]> = {
-  restaurant: ["restaurant", "dining", "bistro", "brasserie", "trattoria", "cafe", "eatery"],
-  hotel: ["hotel", "resort", "boutique hotel", "lodge", "inn"],
-  rooftop: ["rooftop", "sky bar", "sky lounge", "rooftop bar"],
-  "beach-club": ["beach", "beach club", "beachfront", "seaside", "coastal"],
-  camping: ["camping", "glamping", "outdoor", "campsite"],
-  bar: ["bar", "lounge bar", "cocktail", "pub"],
+  restaurant: ["restaurant", "dining", "bistro", "brasserie", "trattoria", "cafe", "eatery", "pizzeria", "gastro"],
+  hotel: ["hotel", "resort", "boutique hotel", "lodge", "inn", "spa", "wellness"],
+  rooftop: ["rooftop", "sky bar", "sky lounge", "rooftop bar", "roof terrace"],
+  "beach-club": ["beach", "beach club", "beachfront", "seaside", "coastal", "plage"],
+  camping: ["camping", "glamping", "campsite", "caravan", "mobile home"],
+  bar: ["bar", "lounge bar", "cocktail", "pub", "wine bar", "tapas"],
+  event: ["event", "banquet", "wedding", "catering", "conference"],
 };
 
 const STYLE_KEYWORDS: Record<string, string[]> = {
-  mediterranean: ["mediterranean", "riviera", "greek", "italian", "provence", "south of france"],
-  modern: ["modern", "contemporary", "minimalist", "sleek", "clean"],
-  scandinavian: ["scandinavian", "nordic", "hygge", "scandi"],
-  industrial: ["industrial", "urban", "loft", "raw", "metal"],
-  bohemian: ["bohemian", "boho", "eclectic", "free-spirit"],
-  natural: ["natural", "organic", "earthy", "rustic", "raw"],
-  luxury: ["luxury", "premium", "high-end", "exclusive", "upscale", "chic"],
-  tropical: ["tropical", "exotic", "palm", "jungle", "caribbean"],
-  classic: ["classic", "timeless", "traditional", "elegant"],
+  mediterranean: ["mediterranean", "riviera", "greek", "italian", "provence", "south of france", "côte d'azur", "ibiza"],
+  modern: ["modern", "contemporary", "minimalist", "sleek", "clean", "design"],
+  scandinavian: ["scandinavian", "nordic", "hygge", "scandi", "danish"],
+  industrial: ["industrial", "urban", "loft", "raw", "metal", "factory"],
+  bohemian: ["bohemian", "boho", "eclectic", "free-spirit", "hippie"],
+  natural: ["natural", "organic", "earthy", "rustic", "raw wood", "nature"],
+  luxury: ["luxury", "premium", "high-end", "exclusive", "upscale", "chic", "5-star"],
+  tropical: ["tropical", "exotic", "palm", "jungle", "caribbean", "bali"],
+  classic: ["classic", "timeless", "traditional", "elegant", "french"],
+  coastal: ["coastal", "nautical", "maritime", "harbor", "port"],
 };
 
 const AMBIENCE_KEYWORDS: Record<string, string[]> = {
-  warm: ["warm", "cozy", "inviting", "sun", "golden"],
-  sophisticated: ["sophisticated", "refined", "elegant", "upscale"],
-  relaxed: ["relaxed", "casual", "laid-back", "chill", "easy"],
-  lively: ["lively", "vibrant", "energetic", "buzzing", "social"],
-  intimate: ["intimate", "romantic", "quiet", "private"],
+  warm: ["warm", "cozy", "inviting", "sun", "golden", "chaleureux"],
+  sophisticated: ["sophisticated", "refined", "elegant", "upscale", "chic"],
+  relaxed: ["relaxed", "casual", "laid-back", "chill", "easy", "décontracté"],
+  lively: ["lively", "vibrant", "energetic", "buzzing", "social", "festive"],
+  intimate: ["intimate", "romantic", "quiet", "private", "cosy"],
+  evening: ["evening", "night", "sunset", "cocktail hour", "after-dark"],
+  daytime: ["daytime", "brunch", "lunch", "morning", "breakfast"],
 };
 
 const COLOR_KEYWORDS: Record<string, string[]> = {
-  natural: ["natural", "beige", "sand", "cream", "earth", "terre"],
-  white: ["white", "bright", "light", "airy", "blanc"],
-  black: ["black", "dark", "noir", "charcoal"],
-  warm: ["warm", "terracotta", "rust", "amber", "honey", "ochre"],
-  cool: ["cool", "blue", "gray", "silver", "slate"],
-  green: ["green", "olive", "sage", "forest", "verdure"],
+  natural: ["natural", "beige", "sand", "cream", "earth", "terre", "nude"],
+  white: ["white", "bright", "light", "airy", "blanc", "pure"],
+  black: ["black", "dark", "noir", "charcoal", "anthracite"],
+  warm: ["warm", "terracotta", "rust", "amber", "honey", "ochre", "cognac"],
+  cool: ["cool", "blue", "gray", "silver", "slate", "steel"],
+  green: ["green", "olive", "sage", "forest", "verdure", "vert"],
+  wood: ["wood", "teak", "oak", "walnut", "timber", "bois"],
 };
 
 const MATERIAL_KEYWORDS: Record<string, string[]> = {
-  teak: ["teak", "wood", "timber", "bois"],
-  aluminum: ["aluminum", "aluminium", "metal", "steel"],
-  rattan: ["rattan", "wicker", "woven", "cane"],
-  marble: ["marble", "stone", "granite"],
-  rope: ["rope", "cord", "woven rope"],
-  fabric: ["fabric", "textile", "cushion", "upholstered"],
+  teak: ["teak", "wood", "timber", "bois", "oak", "walnut"],
+  aluminum: ["aluminum", "aluminium", "metal", "steel", "iron", "powder-coated"],
+  rattan: ["rattan", "wicker", "woven", "cane", "osier"],
+  marble: ["marble", "stone", "granite", "concrete", "terrazzo"],
+  rope: ["rope", "cord", "woven rope", "macramé"],
+  fabric: ["fabric", "textile", "cushion", "upholstered", "sunbrella"],
+  resin: ["resin", "plastic", "polypropylene", "composite"],
 };
 
 function matchKeywords(input: string, dict: Record<string, string[]>): string[] {
@@ -62,7 +70,7 @@ function matchKeywords(input: string, dict: Record<string, string[]>): string[] 
 }
 
 function extractCapacity(input: string): number | null {
-  const match = input.match(/(\d+)\s*(?:seats?|places?|covers?|pax|pers)/i);
+  const match = input.match(/(\d+)\s*(?:seats?|places?|covers?|pax|pers|couverts?)/i);
   if (match) return parseInt(match[1]);
   const standalone = input.match(/(\d{2,3})/);
   if (standalone) return parseInt(standalone[1]);
@@ -70,34 +78,39 @@ function extractCapacity(input: string): number | null {
 }
 
 function extractZone(input: string): string {
-  const zones = ["terrace", "terrasse", "patio", "garden", "pool", "deck", "lobby", "rooftop", "balcony", "courtyard"];
+  const zones: Record<string, string[]> = {
+    terrace: ["terrace", "terrasse", "patio"],
+    garden: ["garden", "jardin", "courtyard", "cour"],
+    pool: ["pool", "piscine", "pool deck"],
+    rooftop: ["rooftop", "roof", "toit"],
+    lobby: ["lobby", "hall", "entrance"],
+    deck: ["deck", "boardwalk", "plage"],
+    balcony: ["balcony", "balcon", "loggia"],
+    interior: ["interior", "indoor", "inside", "intérieur"],
+  };
   const lower = input.toLowerCase();
-  for (const z of zones) {
-    if (lower.includes(z)) return z;
+  for (const [zone, keywords] of Object.entries(zones)) {
+    if (keywords.some((k) => lower.includes(k))) return zone;
   }
   return "outdoor";
 }
 
 export function parseProjectRequest(input: string): ProjectParameters {
-  const establishments = matchKeywords(input, ESTABLISHMENT_KEYWORDS);
-  const styles = matchKeywords(input, STYLE_KEYWORDS);
-  const ambiences = matchKeywords(input, AMBIENCE_KEYWORDS);
-  const colors = matchKeywords(input, COLOR_KEYWORDS);
-  const materials = matchKeywords(input, MATERIAL_KEYWORDS);
-
   return {
-    establishmentType: establishments[0] || "restaurant",
+    establishmentType: matchKeywords(input, ESTABLISHMENT_KEYWORDS)[0] || "restaurant",
     projectZone: extractZone(input),
     seatingCapacity: extractCapacity(input),
-    style: styles.length ? styles : ["modern"],
-    ambience: ambiences.length ? ambiences : ["warm"],
-    colorPalette: colors.length ? colors : ["natural"],
-    materialPreferences: materials,
+    style: matchKeywords(input, STYLE_KEYWORDS) || ["modern"],
+    ambience: matchKeywords(input, AMBIENCE_KEYWORDS) || ["warm"],
+    colorPalette: matchKeywords(input, COLOR_KEYWORDS) || ["natural"],
+    materialPreferences: matchKeywords(input, MATERIAL_KEYWORDS),
     technicalConstraints: [],
   };
 }
 
-// ─── Step 3: Generate 3 distinct project concepts ───
+// ═══════════════════════════════════════════════════════════
+// STEP 3: Generate 3 distinct project concepts
+// ═══════════════════════════════════════════════════════════
 
 interface ConceptTemplate {
   titleTemplate: string;
@@ -140,6 +153,12 @@ const CONCEPT_LIBRARY: Record<string, ConceptTemplate[]> = {
   tropical: [
     { titleTemplate: "Island Resort", descTemplate: "Lush tropical vibes with woven rattan, teak and resort-style lounging. Designed for daytime relaxation and sunset cocktails.", styleBias: ["tropical", "natural", "bohemian"], ambienceBias: ["relaxed", "tropical", "lively"], colorHex: ["#6B7B5E", "#D4A574", "#F5E6D3", "#8B7355", "#A0856E"], colorNames: ["Palm", "Bamboo", "Coconut", "Teak", "Cinnamon"], mood: ["exotic", "resort", "lush"] },
   ],
+  coastal: [
+    { titleTemplate: "Harbor View", descTemplate: "Maritime elegance with weathered textures, nautical blues and durable materials. Designed for port-side dining and seaside venues.", styleBias: ["coastal", "classic", "natural"], ambienceBias: ["relaxed", "sophisticated", "daytime"], colorHex: ["#2C5F7C", "#F5E6D3", "#FFFFFF", "#8B7355", "#A8C5D6"], colorNames: ["Navy", "Sand", "White", "Rope", "Sky"], mood: ["maritime", "fresh", "harbour"] },
+  ],
+  classic: [
+    { titleTemplate: "Belle Époque", descTemplate: "Timeless European terrace design with elegant proportions and quality materials. Classic bistro charm for established venues.", styleBias: ["classic", "timeless", "elegant"], ambienceBias: ["sophisticated", "warm", "intimate"], colorHex: ["#8B7355", "#E8DDD3", "#333333", "#D4C5A9", "#C4956A"], colorNames: ["Bronze", "Cream", "Iron", "Linen", "Gold"], mood: ["timeless", "parisian", "elegant"] },
+  ],
 };
 
 function getConceptTemplates(params: ProjectParameters): ConceptTemplate[] {
@@ -159,6 +178,18 @@ function getConceptTemplates(params: ProjectParameters): ConceptTemplate[] {
     }
     for (const col of params.colorPalette) {
       if (t.colorNames.some((cn) => cn.toLowerCase().includes(col))) score += 1;
+    }
+    // Establishment affinity bonus
+    const estMap: Record<string, string[]> = {
+      restaurant: ["convivial", "daytime", "warm"],
+      hotel: ["sophisticated", "premium", "relaxing"],
+      rooftop: ["evening", "sophisticated", "energetic"],
+      "beach-club": ["relaxed", "tropical", "casual"],
+      bar: ["evening", "lively", "sophisticated"],
+    };
+    const estAmbiences = estMap[params.establishmentType] || [];
+    for (const amb of estAmbiences) {
+      if (t.ambienceBias.includes(amb)) score += 1;
     }
     score += Math.random() * 0.5;
     return { template: t, score };
@@ -190,7 +221,26 @@ function getConceptTemplates(params: ProjectParameters): ConceptTemplate[] {
   return selected.slice(0, 3);
 }
 
-// ─── Step 4: Score & recommend products for a concept ───
+// ═══════════════════════════════════════════════════════════
+// STEP 4: Weighted scoring & product recommendation
+// ═══════════════════════════════════════════════════════════
+
+// Scoring weights — relevance dominates, popularity amplifies,
+// diversity is controlled not forced.
+const WEIGHTS = {
+  styleConceptMatch: 4.0,    // product tag matches concept bias
+  styleParamMatch: 3.0,      // product tag matches user request
+  useCaseMatch: 3.5,         // product use-case matches establishment
+  zoneMatch: 2.5,            // product use-case matches zone
+  ambienceConceptMatch: 2.5, // ambience alignment with concept
+  ambienceParamMatch: 2.0,   // ambience alignment with user request
+  paletteMatch: 1.5,         // color palette fit
+  materialMatch: 1.5,        // material preference fit
+  popularityBoost: 3.0,      // popular products deserve visibility
+  priorityBoost: 2.0,        // editorial priority from admin
+  chrBonus: 1.0,             // heavy-use bonus for hospitality
+  freshness: 0.8,            // controlled randomness for variation
+};
 
 function scoreProduct(
   product: DBProduct,
@@ -199,42 +249,128 @@ function scoreProduct(
 ): number {
   let score = 0;
 
+  // Style relevance (strongest signal)
   for (const tag of product.style_tags) {
-    if (concept.styleBias.includes(tag)) score += 3;
-    if (params.style.includes(tag)) score += 2;
+    if (concept.styleBias.includes(tag)) score += WEIGHTS.styleConceptMatch;
+    if (params.style.includes(tag)) score += WEIGHTS.styleParamMatch;
   }
 
-  for (const tag of product.ambience_tags) {
-    if (concept.ambienceBias.includes(tag)) score += 2;
-    if (params.ambience.includes(tag)) score += 1.5;
-  }
-
-  for (const tag of product.palette_tags) {
-    if (params.colorPalette.includes(tag)) score += 1.5;
-  }
-
+  // Use-case relevance (very important for hospitality context)
   for (const tag of product.use_case_tags) {
-    if (tag.includes(params.establishmentType)) score += 3;
-    if (tag.includes(params.projectZone)) score += 2;
+    if (tag.includes(params.establishmentType)) score += WEIGHTS.useCaseMatch;
+    if (tag.includes(params.projectZone)) score += WEIGHTS.zoneMatch;
   }
 
+  // Ambience alignment
+  for (const tag of product.ambience_tags) {
+    if (concept.ambienceBias.includes(tag)) score += WEIGHTS.ambienceConceptMatch;
+    if (params.ambience.includes(tag)) score += WEIGHTS.ambienceParamMatch;
+  }
+
+  // Palette match
+  for (const tag of product.palette_tags) {
+    if (params.colorPalette.includes(tag)) score += WEIGHTS.paletteMatch;
+  }
+
+  // Material preference
   for (const tag of product.material_tags) {
     for (const pref of params.materialPreferences) {
-      if (tag.includes(pref)) score += 1.5;
+      if (tag.includes(pref)) score += WEIGHTS.materialMatch;
     }
   }
 
-  score += product.popularity_score * 2;
-  score += Math.random() * 1.5;
+  // Popularity boost — high-demand products stay visible
+  score += product.popularity_score * WEIGHTS.popularityBoost;
+
+  // Priority boost — admin-curated priority
+  score += product.priority_score * WEIGHTS.priorityBoost;
+
+  // CHR heavy-use bonus for professional hospitality projects
+  if (product.is_chr_heavy_use) score += WEIGHTS.chrBonus;
+
+  // Controlled freshness (small random variation, not enough to override relevance)
+  score += Math.random() * WEIGHTS.freshness;
 
   return score;
+}
+
+// ── Complementarity: score bonus when products work well together ──
+
+function computeComplementarityBonus(
+  selected: { product: DBProduct; score: number }[],
+  candidate: DBProduct
+): number {
+  if (selected.length === 0) return 0;
+
+  let bonus = 0;
+  const candidateFamily = candidate.product_family || candidate.category;
+
+  for (const { product: existing } of selected) {
+    const existingFamily = existing.product_family || existing.category;
+
+    // Same family = redundant (slight penalty)
+    if (candidateFamily === existingFamily) {
+      bonus -= 0.5;
+      continue;
+    }
+
+    // Complementary category pairings (tables + chairs, lounge + parasols, etc.)
+    const pairings: [string, string][] = [
+      ["Dining Seating", "Dining Tables"],
+      ["Lounge Seating", "Shade"],
+      ["Bar Seating", "Dining Tables"],
+      ["Dining Seating", "Shade"],
+      ["Lounge Seating", "Dining Tables"],
+    ];
+
+    for (const [a, b] of pairings) {
+      if (
+        (candidateFamily === a && existingFamily === b) ||
+        (candidateFamily === b && existingFamily === a)
+      ) {
+        bonus += 2.0;
+      }
+    }
+
+    // Shared style affinity (products that "go together")
+    const sharedStyles = candidate.style_tags.filter((t) =>
+      existing.style_tags.includes(t)
+    );
+    bonus += sharedStyles.length * 0.3;
+
+    // Shared material affinity
+    const sharedMaterials = candidate.material_tags.filter((t) =>
+      existing.material_tags.includes(t)
+    );
+    bonus += sharedMaterials.length * 0.2;
+  }
+
+  return bonus;
+}
+
+// ── Product family logic: find variant alternatives ──
+
+function findFamilyVariants(
+  product: DBProduct,
+  allProducts: DBProduct[],
+  excludeIds: Set<string>
+): DBProduct[] {
+  if (!product.product_family) return [];
+  return allProducts.filter(
+    (p) =>
+      p.id !== product.id &&
+      !excludeIds.has(p.id) &&
+      p.product_family === product.product_family
+  );
 }
 
 function selectProductsForConcept(
   concept: ConceptTemplate,
   params: ProjectParameters,
   products: DBProduct[],
+  usedProductIds: Set<string>
 ): RecommendedProduct[] {
+  // Score all products
   const scored = products
     .map((p) => ({
       product: p,
@@ -242,34 +378,89 @@ function selectProductsForConcept(
     }))
     .sort((a, b) => b.score - a.score);
 
-  const selected: RecommendedProduct[] = [];
+  const selected: { product: DBProduct; score: number }[] = [];
   const usedFamilies = new Set<string>();
-  const maxProducts = Math.min(4, scored.length);
+  const maxProducts = Math.min(5, scored.length);
+  const minProducts = Math.min(3, scored.length);
 
-  for (const { product, score } of scored) {
+  for (const item of scored) {
     if (selected.length >= maxProducts) break;
-    const family = product.product_family || product.category;
-    if (usedFamilies.has(family) && usedFamilies.size < 3) continue;
+
+    const family = item.product.product_family || item.product.category;
+
+    // Diversity control: allow max 1 product per family,
+    // but NEVER skip a high-relevance product just for diversity
+    // (only enforce diversity after we have the minimum)
+    if (usedFamilies.has(family) && selected.length >= minProducts) continue;
+
+    // If this exact product was already used in a previous concept,
+    // check if a family variant exists with decent score
+    if (usedProductIds.has(item.product.id)) {
+      const variants = findFamilyVariants(item.product, products, usedProductIds);
+      const scoredVariant = variants
+        .map((v) => ({ product: v, score: scoreProduct(v, concept, params) }))
+        .sort((a, b) => b.score - a.score)[0];
+
+      // Use variant if it has at least 60% of original's score
+      if (scoredVariant && scoredVariant.score >= item.score * 0.6) {
+        const compBonus = computeComplementarityBonus(selected, scoredVariant.product);
+        selected.push({ product: scoredVariant.product, score: scoredVariant.score + compBonus });
+        usedFamilies.add(scoredVariant.product.product_family || scoredVariant.product.category);
+        continue;
+      }
+    }
+
+    // Complementarity bonus
+    const compBonus = computeComplementarityBonus(selected, item.product);
+    selected.push({ product: item.product, score: item.score + compBonus });
     usedFamilies.add(family);
-
-    const matchedStyles = product.style_tags.filter(
-      (t) => concept.styleBias.includes(t) || params.style.includes(t)
-    );
-    const reason = matchedStyles.length
-      ? `Matches ${matchedStyles[0]} style with ${product.material_tags.join(" & ")}`
-      : `Complements the ${concept.titleTemplate} concept`;
-
-    selected.push({
-      productId: product.id,
-      relevanceScore: Math.min(score / 15, 1),
-      reason,
-    });
   }
 
-  return selected;
+  // Re-sort by final score (with complementarity)
+  selected.sort((a, b) => b.score - a.score);
+
+  // Build recommendation objects with rich reasons
+  return selected.map(({ product, score }) => {
+    const reason = generateReason(product, concept, params);
+    return {
+      productId: product.id,
+      relevanceScore: Math.min(score / 20, 1),
+      reason,
+    };
+  });
 }
 
-// ─── Step 5: Main engine function (now accepts products from DB) ───
+function generateReason(
+  product: DBProduct,
+  concept: ConceptTemplate,
+  params: ProjectParameters
+): string {
+  const matchedStyles = product.style_tags.filter(
+    (t) => concept.styleBias.includes(t) || params.style.includes(t)
+  );
+  const matchedUseCases = product.use_case_tags.filter(
+    (t) => t.includes(params.establishmentType) || t.includes(params.projectZone)
+  );
+  const materials = product.material_tags.join(" & ");
+
+  if (matchedUseCases.length > 0 && matchedStyles.length > 0) {
+    return `${matchedStyles[0]} style, ideal for ${params.establishmentType} ${params.projectZone}`;
+  }
+  if (matchedStyles.length > 0) {
+    return `${matchedStyles[0]} aesthetic in ${materials}`;
+  }
+  if (matchedUseCases.length > 0) {
+    return `Designed for ${params.establishmentType} spaces`;
+  }
+  if (product.is_chr_heavy_use) {
+    return `Professional-grade, built for ${concept.titleTemplate} concept`;
+  }
+  return `Complements the ${concept.titleTemplate} palette`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// STEP 5: Main engine function
+// ═══════════════════════════════════════════════════════════
 
 export function generateProjectConcepts(
   input: string,
@@ -281,8 +472,12 @@ export function generateProjectConcepts(
   const parameters = parseProjectRequest(input);
   const templates = getConceptTemplates(parameters);
 
+  const usedProductIds = new Set<string>();
   const concepts: ProjectConcept[] = templates.map((template, i) => {
-    const recommended = selectProductsForConcept(template, parameters, products);
+    const recommended = selectProductsForConcept(template, parameters, products, usedProductIds);
+
+    // Track used products for cross-concept family variant logic
+    recommended.forEach((r) => usedProductIds.add(r.productId));
 
     return {
       id: `concept-${i + 1}`,
