@@ -1,5 +1,5 @@
-import { ProjectParameters, ProjectConcept, RecommendedProduct } from "./types";
-import { enrichedProducts, EnrichedProduct } from "@/data/products";
+import { ProjectParameters, ProjectConcept, RecommendedProduct, EnrichedProduct } from "./types";
+import { enrichedProducts } from "@/data/products";
 
 // ─── Step 1 & 2: Parse natural language into structured parameters ───
 
