@@ -537,8 +537,10 @@ function scoreProduct(
   if (product.is_chr_heavy_use) score += WEIGHTS.chrBonus;
 
   // Availability bonus
-  if (product.availability_type === "available" || product.availability_type === "in-stock") {
+  if (product.availability_type === "stock") {
     score += WEIGHTS.availabilityBonus;
+  } else if (product.availability_type === "production") {
+    score += WEIGHTS.availabilityBonus * 0.5;
   }
 
   // Small controlled freshness
