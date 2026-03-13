@@ -1,11 +1,11 @@
 import { Plus } from "lucide-react";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
-import { Product } from "@/data/products";
+import type { DBProduct } from "@/lib/products";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 interface ProductCardProps {
-  product: Product;
+  product: DBProduct;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
@@ -26,7 +26,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     >
       <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4">
         <img
-          src={product.image}
+          src={product.image_url || "/placeholder.svg"}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           loading="lazy"
@@ -38,10 +38,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {product.name}
           </h3>
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-body">
-            {product.description}
+            {product.short_description}
           </p>
           <p className="text-sm font-display font-medium text-foreground mt-2">
-            {product.price}
+            {product.indicative_price}
           </p>
         </div>
         <button

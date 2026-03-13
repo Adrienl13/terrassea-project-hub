@@ -7,7 +7,7 @@ import ProductCard from "@/components/ProductCard";
 import ProjectResults from "@/components/ProjectResults";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { products } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import { generateProjectConcepts } from "@/engine/projectEngine";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
 
@@ -33,6 +33,7 @@ const steps = [
 ];
 
 const Index = () => {
+  const { data: products = [], isLoading: productsLoading } = useProducts();
   const [searchResults, setSearchResults] = useState<{
     parameters: ProjectParameters;
     concepts: ProjectConcept[];
@@ -42,15 +43,14 @@ const Index = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = (query: string) => {
+    if (products.length === 0) return;
     setIsSearching(true);
 
-    // Simulate brief processing delay for UX
     setTimeout(() => {
-      const { parameters, concepts } = generateProjectConcepts(query);
+      const { parameters, concepts } = generateProjectConcepts(query, products);
       setSearchResults({ parameters, concepts, query });
       setIsSearching(false);
 
-      // Scroll to results
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
@@ -78,7 +78,7 @@ const Index = () => {
             The European project platform for restaurants, hotels and hospitality professionals
           </p>
         </motion.div>
-        <HeroSearch onSearch={handleSearch} isLoading={isSearching} />
+        <HeroSearch onSearch={handleSearch} isLoading={isSearching || productsLoading} />
       </section>
 
       {/* Project Results */}
@@ -88,6 +88,7 @@ const Index = () => {
             parameters={searchResults.parameters}
             concepts={searchResults.concepts}
             query={searchResults.query}
+            products={products}
           />
         </div>
       )}
@@ -161,11 +162,23 @@ const Index = () => {
               View all <ArrowRight className="h-4 w-4" />
             </button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {productsLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="aspect-square bg-card rounded-sm mb-4" />
+                  <div className="h-4 bg-card rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-card rounded w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {products.slice(0, 8).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

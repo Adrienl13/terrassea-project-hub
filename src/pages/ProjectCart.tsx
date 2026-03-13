@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
@@ -14,15 +15,59 @@ const ProjectCart = () => {
     projectSize: "", budget: "", timeline: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) {
       toast.error("Add at least one product to your project");
       return;
     }
-    setSubmitted(true);
-    toast.success("Project submitted! Our team will contact you shortly.");
+
+    setSubmitting(true);
+    try {
+      // Create project request
+      const { data: projectRequest, error: prError } = await supabase
+        .from("project_requests")
+        .insert({
+          project_name: `${formData.company} - Project`,
+          contact_name: formData.name,
+          contact_company: formData.company,
+          contact_email: formData.email,
+          contact_phone: formData.phone,
+          city: formData.city,
+          country: formData.country,
+          budget_range: formData.budget,
+          timeline: formData.timeline,
+          free_text_request: notes,
+          detected_attributes: { projectSize: formData.projectSize },
+        })
+        .select("id")
+        .single();
+
+      if (prError) throw prError;
+
+      // Insert cart items
+      const cartItems = items.map((item) => ({
+        project_request_id: projectRequest.id,
+        product_id: item.product.id,
+        quantity: item.quantity,
+      }));
+
+      const { error: ciError } = await supabase
+        .from("project_cart_items")
+        .insert(cartItems);
+
+      if (ciError) throw ciError;
+
+      setSubmitted(true);
+      toast.success("Project submitted! Our team will contact you shortly.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -61,7 +106,6 @@ const ProjectCart = () => {
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
-            {/* Left: Product List */}
             <div className="lg:col-span-3">
               {items.length === 0 ? (
                 <div className="bg-card rounded-sm p-12 text-center">
@@ -79,10 +123,10 @@ const ProjectCart = () => {
                       animate={{ opacity: 1 }}
                       className="flex gap-4 p-4 bg-card rounded-sm"
                     >
-                      <img src={product.image} alt={product.name} className="w-20 h-20 object-cover rounded-sm flex-shrink-0" />
+                      <img src={product.image_url || "/placeholder.svg"} alt={product.name} className="w-20 h-20 object-cover rounded-sm flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-display font-semibold text-sm text-foreground">{product.name}</h3>
-                        <p className="text-xs text-muted-foreground font-body mt-0.5">{product.price}</p>
+                        <p className="text-xs text-muted-foreground font-body mt-0.5">{product.indicative_price}</p>
                         <div className="flex items-center gap-3 mt-3">
                           <button onClick={() => updateQuantity(product.id, quantity - 1)} className="h-7 w-7 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
                             <Minus className="h-3 w-3" />
@@ -101,7 +145,6 @@ const ProjectCart = () => {
                 </div>
               )}
 
-              {/* Project Notes */}
               <div className="mt-8">
                 <label className="font-display font-semibold text-sm text-foreground block mb-2">
                   Project notes
@@ -116,7 +159,6 @@ const ProjectCart = () => {
               </div>
             </div>
 
-            {/* Right: Lead Form */}
             <div className="lg:col-span-2">
               <div className="lg:sticky lg:top-28">
                 <h2 className="font-display font-bold text-lg text-foreground mb-6">Submit your project</h2>
@@ -145,9 +187,10 @@ const ProjectCart = () => {
                   ))}
                   <button
                     type="submit"
-                    className="w-full mt-4 px-6 py-3.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                    disabled={submitting}
+                    className="w-full mt-4 px-6 py-3.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-50"
                   >
-                    Submit project for sourcing
+                    {submitting ? "Submitting..." : "Submit project for sourcing"}
                   </button>
                   <p className="text-xs text-muted-foreground font-body text-center mt-3">
                     Our team will review and contact you within 48h

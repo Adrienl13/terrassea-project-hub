@@ -1,30 +1,30 @@
 import { motion } from "framer-motion";
 import { Plus, Check } from "lucide-react";
 import { ProjectConcept } from "@/engine/types";
-import { enrichedProducts } from "@/data/products";
+import type { DBProduct } from "@/lib/products";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { toast } from "sonner";
 
 interface ConceptCardProps {
   concept: ProjectConcept;
   index: number;
+  products: DBProduct[];
 }
 
-const ConceptCard = ({ concept, index }: ConceptCardProps) => {
+const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
   const { addItem, items } = useProjectCart();
 
   const conceptProducts = concept.products
     .map((rec) => {
-      const product = enrichedProducts.find((p) => p.id === rec.productId);
+      const product = products.find((p) => p.id === rec.productId);
       return product ? { ...product, relevance: rec.relevanceScore, reason: rec.reason } : null;
     })
-    .filter(Boolean) as (typeof enrichedProducts[0] & { relevance: number; reason: string })[];
+    .filter(Boolean) as (DBProduct & { relevance: number; reason: string })[];
 
   const isInCart = (productId: string) => items.some((i) => i.product.id === productId);
 
-  const handleAddProduct = (product: typeof enrichedProducts[0]) => {
-    const { tags, scoring, ...base } = product;
-    addItem(base);
+  const handleAddProduct = (product: DBProduct) => {
+    addItem(product);
     toast.success(`${product.name} added to your project`);
   };
 
@@ -32,8 +32,7 @@ const ConceptCard = ({ concept, index }: ConceptCardProps) => {
     let added = 0;
     conceptProducts.forEach((product) => {
       if (!isInCart(product.id)) {
-        const { tags, scoring, relevance, reason, ...base } = product as any;
-        addItem(base);
+        addItem(product);
         added++;
       }
     });
@@ -49,7 +48,6 @@ const ConceptCard = ({ concept, index }: ConceptCardProps) => {
       transition={{ duration: 0.6, delay: index * 0.15 }}
       className="border border-border rounded-sm bg-background overflow-hidden"
     >
-      {/* Concept Header */}
       <div className="p-6 md:p-8">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
@@ -72,7 +70,6 @@ const ConceptCard = ({ concept, index }: ConceptCardProps) => {
           {concept.description}
         </p>
 
-        {/* Color Palette */}
         <div className="flex items-center gap-3 mt-5">
           {concept.colorPalette.map((color, i) => (
             <div key={i} className="flex flex-col items-center gap-1.5">
@@ -87,7 +84,6 @@ const ConceptCard = ({ concept, index }: ConceptCardProps) => {
           ))}
         </div>
 
-        {/* Mood */}
         <div className="flex gap-2 mt-4">
           {concept.moodKeywords.map((keyword) => (
             <span
@@ -100,7 +96,6 @@ const ConceptCard = ({ concept, index }: ConceptCardProps) => {
         </div>
       </div>
 
-      {/* Product Grid */}
       <div className="border-t border-border">
         <div className="grid grid-cols-2 md:grid-cols-4">
           {conceptProducts.map((product, i) => {
@@ -112,7 +107,7 @@ const ConceptCard = ({ concept, index }: ConceptCardProps) => {
               >
                 <div className="aspect-square overflow-hidden bg-card rounded-sm mb-3">
                   <img
-                    src={product.image}
+                    src={product.image_url || "/placeholder.svg"}
                     alt={product.name}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                     loading="lazy"
@@ -126,7 +121,7 @@ const ConceptCard = ({ concept, index }: ConceptCardProps) => {
                 </p>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs font-display font-medium text-foreground">
-                    {product.price}
+                    {product.indicative_price}
                   </span>
                   <button
                     onClick={() => !inCart && handleAddProduct(product)}
