@@ -582,11 +582,11 @@ function computeComplementarityBonus(
 
     // Complementary pairings
     for (const [a, b] of COMPLEMENTARY_PAIRINGS) {
-      const candCat = candidate.category.toLowerCase();
-      const existCat = existing.category.toLowerCase();
+      const candCat = candidate.category;
+      const existCat = existing.category;
       if (
-        (candCat.includes(a.toLowerCase()) && existCat.includes(b.toLowerCase())) ||
-        (candCat.includes(b.toLowerCase()) && existCat.includes(a.toLowerCase()))
+        (candCat === a && existCat === b) ||
+        (candCat === b && existCat === a)
       ) {
         bonus += WEIGHTS.complementarityBonus;
       }
