@@ -1,16 +1,20 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Compass, Layers, Send, Sparkles } from "lucide-react";
-import HeroSearch from "@/components/HeroSearch";
+import SmartSearch from "@/components/SmartSearch";
+import QuickAccessCards from "@/components/QuickAccessCards";
 import SpaceCard from "@/components/SpaceCard";
 import ProductCard from "@/components/ProductCard";
+import ProductSearchResults from "@/components/ProductSearchResults";
 import ProjectResults from "@/components/ProjectResults";
 import ProjectDiscovery from "@/components/ProjectDiscovery";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useProducts } from "@/hooks/useProducts";
 import { generateProjectConcepts } from "@/engine/projectEngine";
+import { detectIntent, searchProducts } from "@/engine/intentDetector";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
+import type { DBProduct } from "@/lib/products";
 
 import spaceRestaurant from "@/assets/space-restaurant.jpg";
 import spaceHotel from "@/assets/space-hotel.jpg";
@@ -33,12 +37,17 @@ const steps = [
   { icon: Send, title: "Submit", text: "Send your project for sourcing" },
 ];
 
-type FlowPhase = "idle" | "discovery" | "results";
+type FlowPhase = "idle" | "product_search" | "discovery" | "results";
 
 const Index = () => {
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const [phase, setPhase] = useState<FlowPhase>("idle");
   const [searchQuery, setSearchQuery] = useState("");
+  const [productSearchData, setProductSearchData] = useState<{
+    recommended: DBProduct[];
+    similar: DBProduct[];
+    compatible: DBProduct[];
+  } | null>(null);
   const [searchResults, setSearchResults] = useState<{
     parameters: ProjectParameters;
     concepts: ProjectConcept[];
@@ -47,15 +56,60 @@ const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const discoveryRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const searchResultsRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = (query: string) => {
     if (products.length === 0) return;
     setSearchQuery(query);
-    setPhase("discovery");
-    setSearchResults(null);
 
+    const intent = detectIntent(query);
+
+    if (intent === "product_search") {
+      const results = searchProducts(query, products);
+      setProductSearchData(results);
+      setPhase("product_search");
+      setSearchResults(null);
+      setTimeout(() => {
+        searchResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } else {
+      setProductSearchData(null);
+      setPhase("discovery");
+      setSearchResults(null);
+      setTimeout(() => {
+        discoveryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  };
+
+  const handleCreateProjectFromProduct = (product: DBProduct) => {
+    // Build a query from the product to seed the project engine
+    const seedQuery = `${product.category} ${product.style_tags.join(" ")} ${product.main_color || ""}`.trim();
+    setSearchQuery(seedQuery);
+    setProductSearchData(null);
+    setPhase("discovery");
     setTimeout(() => {
       discoveryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const handleQuickCreateProject = () => {
+    setSearchQuery("restaurant terrace project");
+    setProductSearchData(null);
+    setPhase("discovery");
+    setTimeout(() => {
+      discoveryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const handleQuickExploreProducts = () => {
+    if (products.length === 0) return;
+    const results = searchProducts("chair table", products);
+    setProductSearchData(results);
+    setSearchQuery("chair table");
+    setPhase("product_search");
+    setTimeout(() => {
+      searchResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
 
@@ -79,6 +133,7 @@ const Index = () => {
     setPhase("idle");
     setSearchQuery("");
     setSearchResults(null);
+    setProductSearchData(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -95,16 +150,40 @@ const Index = () => {
           className="text-center mb-12"
         >
           <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground tracking-tight leading-tight">
-            Design your outdoor
+            What are you looking for
             <br />
-            hospitality space
+            for your establishment?
           </h1>
           <p className="text-muted-foreground font-body text-base md:text-lg mt-6 max-w-lg mx-auto">
-            The European project platform for restaurants, hotels and hospitality professionals
+            Search a product or describe your project — we adapt to your needs
           </p>
         </motion.div>
-        <HeroSearch onSearch={handleSearch} isLoading={isGenerating || productsLoading} />
+        <SmartSearch onSearch={handleSearch} isLoading={isGenerating || productsLoading} />
+        {phase === "idle" && (
+          <QuickAccessCards
+            onCreateProject={handleQuickCreateProject}
+            onExploreProducts={handleQuickExploreProducts}
+            onDiscover={() => {
+              const spacesSection = document.getElementById("explore-spaces");
+              spacesSection?.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
+        )}
       </section>
+
+      {/* Product Search Results */}
+      {phase === "product_search" && productSearchData && (
+        <div ref={searchResultsRef}>
+          <ProductSearchResults
+            recommended={productSearchData.recommended}
+            similar={productSearchData.similar}
+            compatible={productSearchData.compatible}
+            query={searchQuery}
+            allProducts={products}
+            onCreateProjectFromProduct={handleCreateProjectFromProduct}
+          />
+        </div>
+      )}
 
       {/* Discovery Phase */}
       {phase === "discovery" && (
@@ -182,7 +261,7 @@ const Index = () => {
       </section>
 
       {/* Explore Spaces */}
-      <section className="py-24 px-6 bg-surface">
+      <section id="explore-spaces" className="py-24 px-6 bg-surface">
         <div className="container mx-auto">
           <div className="flex items-end justify-between mb-12">
             <div>
@@ -252,7 +331,10 @@ const Index = () => {
             <p className="text-muted-foreground font-body mt-4 max-w-md mx-auto">
               Start your project and let our team connect you with the best sourcing solutions in Europe.
             </p>
-            <button className="mt-8 px-8 py-3.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
+            <button
+              onClick={handleQuickCreateProject}
+              className="mt-8 px-8 py-3.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+            >
               Launch my project
             </button>
           </motion.div>
