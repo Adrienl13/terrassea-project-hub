@@ -7,6 +7,9 @@ export interface ProjectParameters {
   colorPalette: string[];
   materialPreferences: string[];
   technicalConstraints: string[];
+  isOutdoor: boolean;
+  budgetLevel: string;
+  timeline: string;
 }
 
 export interface ProjectConcept {
@@ -23,6 +26,25 @@ export interface RecommendedProduct {
   productId: string;
   relevanceScore: number;
   reason: string;
+}
+
+export interface DiscoveryQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  field: keyof ProjectParameters | 'raw';
+  priority: number; // higher = more important to ask
+}
+
+export interface ProjectSummary {
+  establishment: string;
+  zone: string;
+  style: string;
+  ambience: string;
+  capacity: string;
+  palette: string;
+  materials: string;
+  constraints: string;
 }
 
 export interface EnrichedProduct {
@@ -47,7 +69,7 @@ export interface ProductTags {
 }
 
 export interface ProductScoring {
-  popularity: number;       // 0-1
-  complementarity: Record<string, number>; // productId -> score 0-1
-  diversityGroup: string;   // to ensure variety
+  popularity: number;
+  complementarity: Record<string, number>;
+  diversityGroup: string;
 }

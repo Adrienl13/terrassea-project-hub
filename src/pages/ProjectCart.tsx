@@ -169,10 +169,32 @@ const ProjectCart = () => {
 
               {/* Project Summary */}
               {items.length > 0 && (
-                <div className="mt-6 p-4 bg-card rounded-sm">
-                  <div className="flex justify-between text-xs font-body text-muted-foreground">
-                    <span>{items.length} product{items.length > 1 ? "s" : ""}</span>
-                    <span>{items.reduce((s, i) => s + i.quantity, 0)} total units</span>
+                <div className="mt-6 p-5 bg-card rounded-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="text-center">
+                      <span className="font-display font-bold text-lg text-foreground block">{items.length}</span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">
+                        distinct product{items.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <div className="w-px h-8 bg-border" />
+                    <div className="text-center">
+                      <span className="font-display font-bold text-lg text-foreground block">
+                        {items.reduce((s, i) => s + i.quantity, 0)}
+                      </span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">
+                        total units
+                      </span>
+                    </div>
+                    <div className="w-px h-8 bg-border" />
+                    <div className="text-center">
+                      <span className="font-display font-bold text-lg text-foreground block">
+                        {Object.keys(grouped).length}
+                      </span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">
+                        concept{Object.keys(grouped).length > 1 ? "s" : ""}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
