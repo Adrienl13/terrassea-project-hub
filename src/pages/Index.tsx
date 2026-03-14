@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, Compass, Layers, Send, Sparkles } from "lucide-react";
 import SmartSearch from "@/components/SmartSearch";
 import QuickAccessCards from "@/components/QuickAccessCards";
