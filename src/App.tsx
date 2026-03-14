@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProjectCartProvider } from "@/contexts/ProjectCartContext";
 import Index from "./pages/Index.tsx";
 import ProjectCart from "./pages/ProjectCart.tsx";
+import Partners from "./pages/Partners.tsx";
+import PartnerDetail from "./pages/PartnerDetail.tsx";
 import Admin from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
