@@ -770,12 +770,18 @@ export function generateProjectConcepts(
   if (overrideParams) {
     parameters = { ...parameters, ...overrideParams };
   }
+
+  // Generate layout recommendations
+  const layouts = generateLayouts(parameters);
   const templates = getConceptTemplates(parameters);
 
   const usedProductIds = new Set<string>();
   const concepts: ProjectConcept[] = templates.map((template, i) => {
     const recommended = selectProductsForConcept(template, parameters, products, usedProductIds);
     recommended.forEach((r) => usedProductIds.add(r.productId));
+
+    // Assign layout to concept (main, alt, flex)
+    const layout = layouts[i] || layouts[0];
 
     return {
       id: `concept-${i + 1}`,
@@ -785,6 +791,7 @@ export function generateProjectConcepts(
       colorNames: template.colorNames,
       moodKeywords: template.mood,
       products: recommended,
+      layout,
     };
   });
 
