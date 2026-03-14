@@ -53,6 +53,12 @@ export interface DBProduct {
   availability_type: string | null;
   supplier_internal: string | null;
   documents: any[];
+  table_shape: string | null;
+  default_seating_capacity: number | null;
+  recommended_seating_min: number | null;
+  recommended_seating_max: number | null;
+  combinable: boolean;
+  combined_capacity_if_joined: number | null;
 }
 
 export async function fetchProducts(): Promise<DBProduct[]> {
