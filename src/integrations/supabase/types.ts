@@ -14,6 +14,170 @@ export type Database = {
   }
   public: {
     Tables: {
+      partner_applications: {
+        Row: {
+          certifications: string | null
+          company_name: string
+          contact_email: string
+          contact_name: string | null
+          country: string
+          created_at: string
+          id: string
+          partner_type: Database["public"]["Enums"]["partner_type"]
+          product_category: string | null
+          status: string | null
+          website: string | null
+        }
+        Insert: {
+          certifications?: string | null
+          company_name: string
+          contact_email: string
+          contact_name?: string | null
+          country: string
+          created_at?: string
+          id?: string
+          partner_type: Database["public"]["Enums"]["partner_type"]
+          product_category?: string | null
+          status?: string | null
+          website?: string | null
+        }
+        Update: {
+          certifications?: string | null
+          company_name?: string
+          contact_email?: string
+          contact_name?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          partner_type?: Database["public"]["Enums"]["partner_type"]
+          product_category?: string | null
+          status?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      partner_contact_requests: {
+        Row: {
+          budget_range: string | null
+          contact_company: string | null
+          contact_country: string | null
+          contact_name: string
+          created_at: string
+          estimated_quantity: string | null
+          id: string
+          message: string | null
+          partner_id: string
+          project_date: string | null
+          project_type: string | null
+        }
+        Insert: {
+          budget_range?: string | null
+          contact_company?: string | null
+          contact_country?: string | null
+          contact_name: string
+          created_at?: string
+          estimated_quantity?: string | null
+          id?: string
+          message?: string | null
+          partner_id: string
+          project_date?: string | null
+          project_type?: string | null
+        }
+        Update: {
+          budget_range?: string | null
+          contact_company?: string | null
+          contact_country?: string | null
+          contact_name?: string
+          created_at?: string
+          estimated_quantity?: string | null
+          id?: string
+          message?: string | null
+          partner_id?: string
+          project_date?: string | null
+          project_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_contact_requests_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          certifications: string[] | null
+          city: string | null
+          country: string | null
+          coverage_zone: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_featured: boolean | null
+          is_public: boolean | null
+          logo_url: string | null
+          materials: string[] | null
+          name: string
+          partner_subtype: string | null
+          partner_type: Database["public"]["Enums"]["partner_type"]
+          priority_order: number | null
+          production_capacity: string | null
+          project_types: string[] | null
+          slug: string
+          specialties: string[] | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          certifications?: string[] | null
+          city?: string | null
+          country?: string | null
+          coverage_zone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          logo_url?: string | null
+          materials?: string[] | null
+          name: string
+          partner_subtype?: string | null
+          partner_type: Database["public"]["Enums"]["partner_type"]
+          priority_order?: number | null
+          production_capacity?: string | null
+          project_types?: string[] | null
+          slug: string
+          specialties?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          certifications?: string[] | null
+          city?: string | null
+          country?: string | null
+          coverage_zone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          logo_url?: string | null
+          materials?: string[] | null
+          name?: string
+          partner_subtype?: string | null
+          partner_type?: Database["public"]["Enums"]["partner_type"]
+          priority_order?: number | null
+          production_capacity?: string | null
+          project_types?: string[] | null
+          slug?: string
+          specialties?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           ambience_tags: string[] | null
@@ -223,7 +387,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      partner_type: "brand" | "manufacturer" | "reseller" | "designer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -350,6 +514,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      partner_type: ["brand", "manufacturer", "reseller", "designer"],
+    },
   },
 } as const
