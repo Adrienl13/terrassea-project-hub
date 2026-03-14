@@ -41,6 +41,7 @@ const steps = [
 type FlowPhase = "idle" | "product_search" | "discovery" | "results";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const [phase, setPhase] = useState<FlowPhase>("idle");
   const [searchQuery, setSearchQuery] = useState("");
