@@ -31,7 +31,10 @@ const ProjectBuilderModeSelect = ({ onSelect }: Props) => {
             Guided project
           </span>
           <span className="text-xs font-body text-muted-foreground block mt-1">
-            Recommended — We'll walk you through each step to build your project brief.
+            Recommended — Answer a few questions and we'll build your project brief for you.
+          </span>
+          <span className="mt-3 inline-block text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground/70 border border-border rounded-full px-2 py-0.5">
+            The system builds your project
           </span>
         </button>
 
