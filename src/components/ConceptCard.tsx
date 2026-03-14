@@ -95,9 +95,14 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
             </span>
           ))}
         </div>
-      </div>
 
-      <div className="border-t border-border">
+        {/* Layout recommendation */}
+        {concept.layout && (
+          <div className="mt-6">
+            <LayoutDisplay layout={concept.layout} />
+          </div>
+        )}
+      </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
           {conceptProducts.map((product, i) => {
             const inCart = isInCart(product.id);
