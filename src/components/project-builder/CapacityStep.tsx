@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProjectParameters } from "@/engine/types";
+import { getDensityInfo, getMaxSeats } from "@/engine/spatialEngine";
 
 interface Props {
   params: ProjectParameters;
@@ -18,18 +19,10 @@ const PRESETS = [
   { value: 150, label: "120+ seats", description: "High-volume venue" },
 ];
 
-function getDensityLabel(seats: number | null, surface: number | null): { label: string; color: string } | null {
-  if (!seats || !surface || surface <= 0) return null;
-  const density = seats / surface;
-  if (density <= 0.8) return { label: "Comfortable layout", color: "text-green-600" };
-  if (density <= 1.2) return { label: "Balanced layout", color: "text-amber-600" };
-  return { label: "Dense layout", color: "text-red-600" };
-}
-
 const CapacityStep = ({ params, onChange, onBack, onNext }: Props) => {
   const surface = params.terraceSurfaceM2 ??
     (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
-  const density = getDensityLabel(params.seatingCapacity, surface);
+  const density = getDensityInfo(params.seatingCapacity, surface);
 
   return (
     <motion.div
@@ -144,18 +137,35 @@ const CapacityStep = ({ params, onChange, onBack, onNext }: Props) => {
           </div>
         </div>
 
+        {/* Density & feasibility indicator */}
         {density && (
-          <div className="mt-3 flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${
-              density.label.includes("Comfortable") ? "bg-green-500" :
-              density.label.includes("Balanced") ? "bg-amber-500" : "bg-red-500"
-            }`} />
-            <span className={`text-xs font-body font-medium ${density.color}`}>
-              {density.label}
-            </span>
-            <span className="text-[10px] font-body text-muted-foreground">
-              ({(params.seatingCapacity! / surface!).toFixed(1)} seats/m²)
-            </span>
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${density.dotClass}`} />
+              <span className={`text-xs font-body font-medium ${density.textClass}`}>
+                {density.label}
+              </span>
+              <span className="text-[10px] font-body text-muted-foreground">
+                — {density.spacePerSeat} m²/seat
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                density.feasibility === "good" ? "bg-green-500" :
+                density.feasibility === "compact" ? "bg-amber-500" : "bg-red-500"
+              }`} />
+              <span className={`text-xs font-body font-medium ${
+                density.feasibility === "good" ? "text-green-600" :
+                density.feasibility === "compact" ? "text-amber-600" : "text-red-600"
+              }`}>
+                {density.feasibilityLabel}
+              </span>
+            </div>
+            {surface && (
+              <p className="text-[10px] font-body text-muted-foreground">
+                Recommended capacity for this area: {getMaxSeats(surface, "dense")}–{getMaxSeats(surface, "comfortable")} seats
+              </p>
+            )}
           </div>
         )}
       </div>

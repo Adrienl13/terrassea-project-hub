@@ -1,4 +1,5 @@
 import { ProjectParameters } from "@/engine/types";
+import { getDensityInfo } from "@/engine/spatialEngine";
 
 interface ProjectBuilderSummaryProps {
   params: ProjectParameters;
@@ -34,12 +35,19 @@ const ProjectBuilderSummary = ({ params }: ProjectBuilderSummaryProps) => {
   const surface = params.terraceSurfaceM2 ??
     (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
 
+  const density = getDensityInfo(params.seatingCapacity, surface);
+
   const rows = [
     { label: "Mode", value: params.builderMode === "expert" ? "Expert" : params.builderMode === "guided" ? "Guided" : "" },
     { label: "Project type", value: params.establishmentType },
     { label: "Zone", value: params.projectZone },
     { label: "Capacity", value: params.seatingCapacity ? `${params.seatingCapacity} seats` : "" },
     { label: "Terrace", value: surface ? `${surface} m²` : "" },
+    ...(density ? [
+      { label: "m²/seat", value: `${density.spacePerSeat} m²` },
+      { label: "Density", value: density.label },
+      { label: "Feasibility", value: density.feasibilityLabel },
+    ] : []),
     { label: "Layout", value: LAYOUT_LABELS[params.seatingLayout] || "" },
     { label: "Priority", value: PRIORITY_LABELS[params.layoutPriority] || "" },
     { label: "Style", value: params.style.join(", ") },

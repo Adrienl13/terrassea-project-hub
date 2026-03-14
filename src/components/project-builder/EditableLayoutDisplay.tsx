@@ -2,6 +2,7 @@ import { useState } from "react";
 import { LayoutRecommendation, TableGroup } from "@/engine/types";
 import { TableProperties, Pencil, Plus, Trash2, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import SpatialMetricsDisplay from "./SpatialMetricsDisplay";
 
 interface Props {
   layout: LayoutRecommendation;
@@ -174,6 +175,11 @@ const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props
           Chairs needed: <span className="font-semibold text-foreground">{editing ? displayTotal : layout.chairCount}</span>
         </span>
       </div>
+
+      {/* Spatial metrics */}
+      {layout.spatialMetrics && !editing && (
+        <SpatialMetricsDisplay metrics={layout.spatialMetrics} />
+      )}
 
       {/* Budget estimate */}
       {budgetEstimate && (

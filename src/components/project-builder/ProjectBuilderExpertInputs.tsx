@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProjectParameters } from "@/engine/types";
+import { getDensityInfo, getMaxSeats } from "@/engine/spatialEngine";
 
 interface Props {
   params: ProjectParameters;
@@ -31,14 +32,6 @@ const TABLE_FORMATS = [
 
 const ESTABLISHMENT_TYPES = ["restaurant", "hotel", "rooftop", "beach-club", "bar", "camping", "event", "pool"];
 
-function getDensityInfo(seats: number | null, surface: number | null) {
-  if (!seats || !surface || surface <= 0) return null;
-  const d = seats / surface;
-  if (d <= 0.8) return { label: "Comfortable", dotClass: "bg-green-500", textClass: "text-green-600", density: d };
-  if (d <= 1.2) return { label: "Balanced", dotClass: "bg-amber-500", textClass: "text-amber-600", density: d };
-  return { label: "Dense", dotClass: "bg-red-500", textClass: "text-red-600", density: d };
-}
-
 const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props) => {
   const [tableMix, setTableMix] = useState<TableMixEntry[]>([
     { format: "70×70", quantity: 10, seatsPerTable: 2 },
@@ -50,7 +43,8 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
 
   const totalSeatsFromMix = tableMix.reduce((sum, t) => sum + t.quantity * t.seatsPerTable, 0);
   const totalTables = tableMix.reduce((sum, t) => sum + t.quantity, 0);
-  const densityInfo = getDensityInfo(params.seatingCapacity ?? totalSeatsFromMix, surface);
+  const effectiveSeats = params.seatingCapacity ?? totalSeatsFromMix;
+  const densityInfo = getDensityInfo(effectiveSeats, surface);
 
   const updateTableMix = (index: number, updates: Partial<TableMixEntry>) => {
     setTableMix(prev => prev.map((entry, i) => i === index ? { ...entry, ...updates } : entry));
@@ -161,16 +155,35 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
             </div>
           </div>
 
-          {/* Density indicator */}
+          {/* Density & feasibility indicators */}
           {densityInfo && (
-            <div className="flex items-center gap-2 py-2 px-3 rounded-sm bg-muted/50">
-              <div className={`w-2 h-2 rounded-full ${densityInfo.dotClass}`} />
-              <span className={`text-xs font-body font-medium ${densityInfo.textClass}`}>
-                {densityInfo.label} layout
-              </span>
-              <span className="text-[10px] font-body text-muted-foreground">
-                — {densityInfo.density.toFixed(1)} seats/m²
-              </span>
+            <div className="space-y-2 py-2 px-3 rounded-sm bg-muted/50">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${densityInfo.dotClass}`} />
+                <span className={`text-xs font-body font-medium ${densityInfo.textClass}`}>
+                  {densityInfo.label}
+                </span>
+                <span className="text-[10px] font-body text-muted-foreground">
+                  — {densityInfo.spacePerSeat} m²/seat
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  densityInfo.feasibility === "good" ? "bg-green-500" :
+                  densityInfo.feasibility === "compact" ? "bg-amber-500" : "bg-red-500"
+                }`} />
+                <span className={`text-xs font-body font-medium ${
+                  densityInfo.feasibility === "good" ? "text-green-600" :
+                  densityInfo.feasibility === "compact" ? "text-amber-600" : "text-red-600"
+                }`}>
+                  {densityInfo.feasibilityLabel}
+                </span>
+              </div>
+              {surface && (
+                <p className="text-[10px] font-body text-muted-foreground">
+                  Recommended: {getMaxSeats(surface, "dense")}–{getMaxSeats(surface, "comfortable")} seats for {surface} m²
+                </p>
+              )}
             </div>
           )}
         </fieldset>
@@ -182,7 +195,6 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
           </legend>
 
           <div className="space-y-2">
-            {/* Header */}
             <div className="grid grid-cols-[1fr_80px_80px_80px_32px] gap-2 text-[10px] font-body text-muted-foreground uppercase tracking-wider">
               <span>Format</span>
               <span>Qty</span>
@@ -226,7 +238,6 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
             ))}
           </div>
 
-          {/* Add row */}
           {tableMix.length < TABLE_FORMATS.length && (
             <button
               onClick={addTableRow}
@@ -236,7 +247,6 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
             </button>
           )}
 
-          {/* Totals */}
           <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
             <span className="text-xs font-body text-muted-foreground">
               {totalTables} tables
@@ -308,7 +318,6 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
         </button>
         <button
           onClick={() => {
-            // Sync table mix total into seating capacity if user didn't set one
             if (!params.seatingCapacity && totalSeatsFromMix > 0) {
               onChange({ seatingCapacity: totalSeatsFromMix });
             }
