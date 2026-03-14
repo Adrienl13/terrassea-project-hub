@@ -3,17 +3,21 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Plus, FileText, Shield, Sun, CloudRain, Flame, Feather,
-  Wrench, Palette, Package, Truck, ChevronRight, Info,
+  Wrench, Palette, Package, Truck, ChevronRight, Info, BarChart3,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import VendorOffers from "@/components/products/VendorOffers";
 import { fetchProductById, fetchProducts, type DBProduct } from "@/lib/products";
+import { fetchProductOffers } from "@/lib/productOffers";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
+import { useCompare } from "@/contexts/CompareContext";
 import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { addItem } = useProjectCart();
+  const { addToCompare, isInCompare } = useCompare();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -25,6 +29,12 @@ const ProductDetail = () => {
     queryKey: ["products"],
     queryFn: fetchProducts,
     staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: offers = [] } = useQuery({
+    queryKey: ["product-offers", id],
+    queryFn: () => fetchProductOffers(id!),
+    enabled: !!id,
   });
 
   if (isLoading) {
@@ -204,6 +214,14 @@ const ProductDetail = () => {
                   <button className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold border border-foreground text-foreground rounded-full hover:bg-foreground hover:text-primary-foreground transition-all">
                     Request a quote
                   </button>
+                  <button
+                    onClick={() => addToCompare(product)}
+                    disabled={isInCompare(product.id)}
+                    className="flex items-center gap-2 px-4 py-3 text-sm font-display font-semibold border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all disabled:opacity-50"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    {isInCompare(product.id) ? "In compare" : "Compare"}
+                  </button>
                 </div>
 
                 {/* Tags */}
@@ -299,7 +317,14 @@ const ProductDetail = () => {
           </div>
         </section>
 
-        {/* Similar products */}
+        {/* Vendor offers */}
+        <section className="px-6 mt-4">
+          <div className="container mx-auto">
+            <VendorOffers offers={offers} productName={product.name} />
+          </div>
+        </section>
+
+
         {similar.length > 0 && (
           <section className="px-6 mt-20">
             <div className="container mx-auto">

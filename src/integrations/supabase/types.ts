@@ -178,6 +178,72 @@ export type Database = {
         }
         Relationships: []
       }
+      product_offers: {
+        Row: {
+          created_at: string
+          currency: string | null
+          delivery_delay_days: number | null
+          id: string
+          is_active: boolean | null
+          minimum_order: number | null
+          notes: string | null
+          partner_id: string
+          price: number | null
+          product_id: string
+          purchase_type: string | null
+          stock_quantity: number | null
+          stock_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          delivery_delay_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          minimum_order?: number | null
+          notes?: string | null
+          partner_id: string
+          price?: number | null
+          product_id: string
+          purchase_type?: string | null
+          stock_quantity?: number | null
+          stock_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          delivery_delay_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          minimum_order?: number | null
+          notes?: string | null
+          partner_id?: string
+          price?: number | null
+          product_id?: string
+          purchase_type?: string | null
+          stock_quantity?: number | null
+          stock_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_offers_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_offers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           ambience_tags: string[] | null
