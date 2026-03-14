@@ -1,25 +1,54 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Sparkles, RotateCcw } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, ArrowRight, Sparkles, RotateCcw } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProjectBuilderStepper from "@/components/project-builder/ProjectBuilderStepper";
 import ProjectBuilderSummary from "@/components/project-builder/ProjectBuilderSummary";
 import ProjectBuilderStep from "@/components/project-builder/ProjectBuilderStep";
 import ProjectBuilderReview from "@/components/project-builder/ProjectBuilderReview";
+import ProjectBuilderModeSelect from "@/components/project-builder/ProjectBuilderModeSelect";
+import ProjectBuilderExpertInputs from "@/components/project-builder/ProjectBuilderExpertInputs";
+import CapacityStep from "@/components/project-builder/CapacityStep";
 import ProjectResults from "@/components/ProjectResults";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
 import { useProducts } from "@/hooks/useProducts";
 import { generateProjectConcepts } from "@/engine/projectEngine";
 
-const STEPS = [
+const DEFAULT_PARAMS: ProjectParameters = {
+  builderMode: "",
+  establishmentType: "",
+  projectZone: "outdoor",
+  seatingCapacity: null,
+  seatingLayout: "",
+  layoutPriority: "",
+  style: [],
+  ambience: [],
+  colorPalette: [],
+  materialPreferences: [],
+  technicalConstraints: [],
+  isOutdoor: true,
+  budgetLevel: "",
+  timeline: "",
+  terraceSurfaceM2: null,
+  terraceLength: null,
+  terraceWidth: null,
+};
+
+const GUIDED_STEPS = [
+  { id: "mode", label: "Start", description: "How to begin?" },
   { id: "type", label: "Project type", description: "What type of establishment?" },
   { id: "capacity", label: "Capacity", description: "How many guests?" },
   { id: "layout", label: "Seating layout", description: "How to organize tables?" },
   { id: "priority", label: "Layout priority", description: "What matters most?" },
   { id: "style", label: "Style & materials", description: "Define the aesthetic" },
   { id: "budget", label: "Budget & timeline", description: "Practical details" },
+  { id: "review", label: "Review", description: "Confirm your brief" },
+];
+
+const EXPERT_STEPS = [
+  { id: "mode", label: "Start", description: "How to begin?" },
+  { id: "expert", label: "Requirements", description: "Define all parameters" },
   { id: "review", label: "Review", description: "Confirm your brief" },
 ];
 
@@ -35,15 +64,6 @@ const STEP_OPTIONS: Record<string, { question: string; options: { value: string;
       { value: "camping", label: "Camping", description: "Glamping & outdoor communal areas" },
       { value: "event", label: "Event Space", description: "Banquets, weddings & receptions" },
       { value: "pool", label: "Pool Area", description: "Poolside & deck furniture" },
-    ],
-  },
-  capacity: {
-    question: "What is your target seating capacity?",
-    options: [
-      { value: "20", label: "Under 30 seats", description: "Intimate space" },
-      { value: "45", label: "30–60 seats", description: "Medium terrace" },
-      { value: "90", label: "60–120 seats", description: "Large terrace" },
-      { value: "150", label: "120+ seats", description: "High-volume venue" },
     ],
   },
   layout: {
@@ -95,21 +115,7 @@ const STEP_OPTIONS: Record<string, { question: string; options: { value: string;
 const ProjectBuilder = () => {
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const [currentStep, setCurrentStep] = useState(0);
-  const [params, setParams] = useState<ProjectParameters>({
-    establishmentType: "",
-    projectZone: "outdoor",
-    seatingCapacity: null,
-    seatingLayout: "",
-    layoutPriority: "",
-    style: [],
-    ambience: [],
-    colorPalette: [],
-    materialPreferences: [],
-    technicalConstraints: [],
-    isOutdoor: true,
-    budgetLevel: "",
-    timeline: "",
-  });
+  const [params, setParams] = useState<ProjectParameters>({ ...DEFAULT_PARAMS });
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<{
     parameters: ProjectParameters;
@@ -117,37 +123,30 @@ const ProjectBuilder = () => {
     query: string;
   } | null>(null);
 
+  const isExpert = params.builderMode === "expert";
+  const steps = isExpert ? EXPERT_STEPS : GUIDED_STEPS;
+
   const handleSelectOption = useCallback((stepId: string, value: string) => {
     setParams((prev) => {
       const updated = { ...prev };
       switch (stepId) {
-        case "type":
-          updated.establishmentType = value;
-          break;
-        case "capacity":
-          updated.seatingCapacity = parseInt(value);
-          break;
-        case "layout":
-          updated.seatingLayout = value;
-          break;
-        case "priority":
-          updated.layoutPriority = value;
-          break;
-        case "style":
-          updated.style = [value];
-          break;
-        case "budget":
-          updated.budgetLevel = value;
-          break;
+        case "type": updated.establishmentType = value; break;
+        case "capacity": updated.seatingCapacity = parseInt(value); break;
+        case "layout": updated.seatingLayout = value; break;
+        case "priority": updated.layoutPriority = value; break;
+        case "style": updated.style = [value]; break;
+        case "budget": updated.budgetLevel = value; break;
       }
       return updated;
     });
-
-    // Auto-advance after selection (except review)
-    if (currentStep < STEPS.length - 1) {
+    if (currentStep < steps.length - 1) {
       setTimeout(() => setCurrentStep((s) => s + 1), 300);
     }
-  }, [currentStep]);
+  }, [currentStep, steps.length]);
+
+  const handleParamsChange = useCallback((updates: Partial<ProjectParameters>) => {
+    setParams((prev) => ({ ...prev, ...updates }));
+  }, []);
 
   const getSelectedValue = (stepId: string): string => {
     switch (stepId) {
@@ -161,12 +160,15 @@ const ProjectBuilder = () => {
     }
   };
 
+  const handleModeSelect = (mode: "guided" | "expert") => {
+    setParams((prev) => ({ ...prev, builderMode: mode }));
+    setTimeout(() => setCurrentStep(1), 200);
+  };
+
   const handleGenerate = () => {
     if (products.length === 0) return;
     setIsGenerating(true);
-
     const query = `${params.establishmentType} ${params.style.join(" ")} ${params.seatingCapacity || 60} seats`;
-
     setTimeout(() => {
       const { parameters, concepts } = generateProjectConcepts(query, products, params);
       setResults({ parameters, concepts, query });
@@ -176,26 +178,15 @@ const ProjectBuilder = () => {
 
   const handleReset = () => {
     setCurrentStep(0);
-    setParams({
-      establishmentType: "",
-      projectZone: "outdoor",
-      seatingCapacity: null,
-      seatingLayout: "",
-      layoutPriority: "",
-      style: [],
-      ambience: [],
-      colorPalette: [],
-      materialPreferences: [],
-      technicalConstraints: [],
-      isOutdoor: true,
-      budgetLevel: "",
-      timeline: "",
-    });
+    setParams({ ...DEFAULT_PARAMS });
     setResults(null);
   };
 
-  const stepId = STEPS[currentStep].id;
+  const stepId = steps[currentStep]?.id;
   const isReviewStep = stepId === "review";
+  const isModeStep = stepId === "mode";
+  const isExpertStep = stepId === "expert";
+  const isCapacityStep = stepId === "capacity";
 
   if (results) {
     return (
@@ -254,23 +245,24 @@ const ProjectBuilder = () => {
         </section>
 
         {/* Stepper */}
-        <section className="px-6 mb-12">
-          <div className="container mx-auto max-w-4xl">
-            <ProjectBuilderStepper
-              steps={STEPS}
-              currentStep={currentStep}
-              params={params}
-              onStepClick={(i) => setCurrentStep(i)}
-            />
-          </div>
-        </section>
+        {!isModeStep && (
+          <section className="px-6 mb-12">
+            <div className="container mx-auto max-w-4xl">
+              <ProjectBuilderStepper
+                steps={steps}
+                currentStep={currentStep}
+                params={params}
+                onStepClick={(i) => setCurrentStep(i)}
+              />
+            </div>
+          </section>
+        )}
 
-        {/* Main content: step + summary */}
+        {/* Main content */}
         <section className="px-6">
           <div className="container mx-auto max-w-6xl">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left: step content */}
-              <div className="lg:col-span-2">
+              <div className={isModeStep ? "lg:col-span-3" : "lg:col-span-2"}>
                 <AnimatePresence mode="wait">
                   {isGenerating ? (
                     <motion.div
@@ -285,6 +277,16 @@ const ProjectBuilder = () => {
                         Generating your project concepts...
                       </p>
                     </motion.div>
+                  ) : isModeStep ? (
+                    <ProjectBuilderModeSelect key="mode" onSelect={handleModeSelect} />
+                  ) : isExpertStep ? (
+                    <ProjectBuilderExpertInputs
+                      key="expert"
+                      params={params}
+                      onChange={handleParamsChange}
+                      onBack={() => setCurrentStep(0)}
+                      onNext={() => setCurrentStep(2)}
+                    />
                   ) : isReviewStep ? (
                     <ProjectBuilderReview
                       key="review"
@@ -294,6 +296,14 @@ const ProjectBuilder = () => {
                       onReset={handleReset}
                       isLoading={productsLoading}
                     />
+                  ) : isCapacityStep ? (
+                    <CapacityStep
+                      key="capacity"
+                      params={params}
+                      onChange={handleParamsChange}
+                      onBack={currentStep > 0 ? () => setCurrentStep(currentStep - 1) : undefined}
+                      onNext={currentStep < steps.length - 1 ? () => setCurrentStep(currentStep + 1) : undefined}
+                    />
                   ) : (
                     <ProjectBuilderStep
                       key={stepId}
@@ -302,20 +312,18 @@ const ProjectBuilder = () => {
                       selectedValue={getSelectedValue(stepId)}
                       onSelect={(val) => handleSelectOption(stepId, val)}
                       onBack={currentStep > 0 ? () => setCurrentStep(currentStep - 1) : undefined}
-                      onNext={
-                        currentStep < STEPS.length - 1
-                          ? () => setCurrentStep(currentStep + 1)
-                          : undefined
-                      }
+                      onNext={currentStep < steps.length - 1 ? () => setCurrentStep(currentStep + 1) : undefined}
                     />
                   )}
                 </AnimatePresence>
               </div>
 
               {/* Right: sticky summary */}
-              <div className="hidden lg:block">
-                <ProjectBuilderSummary params={params} currentStep={currentStep} />
-              </div>
+              {!isModeStep && (
+                <div className="hidden lg:block">
+                  <ProjectBuilderSummary params={params} currentStep={currentStep} />
+                </div>
+              )}
             </div>
           </div>
         </section>

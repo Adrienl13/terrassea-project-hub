@@ -35,11 +35,25 @@ const BUDGET_LABELS: Record<string, string> = {
   luxury: "€180+ per seat",
 };
 
+function getDensityLabel(seats: number | null, surface: number | null): string | null {
+  if (!seats || !surface || surface <= 0) return null;
+  const density = seats / surface;
+  if (density <= 0.8) return "Comfortable layout";
+  if (density <= 1.2) return "Balanced layout";
+  return "Dense layout";
+}
+
 const ProjectBuilderReview = ({ params, onGenerate, onBack, onReset, isLoading }: ProjectBuilderReviewProps) => {
+  const surface = params.terraceSurfaceM2 ??
+    (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
+  const densityLabel = getDensityLabel(params.seatingCapacity, surface);
+
   const rows = [
     { label: "Establishment", value: params.establishmentType || "Not specified" },
     { label: "Zone", value: params.projectZone || "outdoor" },
     { label: "Capacity", value: params.seatingCapacity ? `${params.seatingCapacity} seats` : "Not specified" },
+    ...(surface ? [{ label: "Terrace", value: `${surface} m²` }] : []),
+    ...(densityLabel ? [{ label: "Density", value: densityLabel }] : []),
     { label: "Layout strategy", value: LAYOUT_LABELS[params.seatingLayout] || "Not specified" },
     { label: "Layout priority", value: PRIORITY_LABELS[params.layoutPriority] || "Not specified" },
     { label: "Style", value: params.style.length > 0 ? params.style.join(", ") : "Not specified" },
