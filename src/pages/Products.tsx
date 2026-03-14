@@ -2,12 +2,14 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, SlidersHorizontal, X, ChevronDown, Plus, LayoutGrid, List,
+  Search, SlidersHorizontal, X, ChevronDown, Plus, LayoutGrid, List, BarChart3,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CompareBar from "@/components/products/CompareBar";
 import { useProducts } from "@/hooks/useProducts";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
+import { useCompare } from "@/contexts/CompareContext";
 import type { DBProduct } from "@/lib/products";
 import { toast } from "sonner";
 
