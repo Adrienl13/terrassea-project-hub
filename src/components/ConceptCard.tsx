@@ -4,6 +4,7 @@ import { ProjectConcept } from "@/engine/types";
 import type { DBProduct } from "@/lib/products";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { toast } from "sonner";
+import LayoutDisplay from "./LayoutDisplay";
 
 interface ConceptCardProps {
   concept: ProjectConcept;
