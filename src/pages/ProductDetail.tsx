@@ -214,6 +214,15 @@ const ProductDetail = () => {
                   <button className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold border border-foreground text-foreground rounded-full hover:bg-foreground hover:text-primary-foreground transition-all">
                     Request a quote
                   </button>
+                  <button
+                    onClick={() => addToCompare(product)}
+                    disabled={isInCompare(product.id)}
+                    className="flex items-center gap-2 px-4 py-3 text-sm font-display font-semibold border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all disabled:opacity-50"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    {isInCompare(product.id) ? "In compare" : "Compare"}
+                  </button>
+                  </button>
                 </div>
 
                 {/* Tags */}
