@@ -17,6 +17,7 @@ import { toast } from "sonner";
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { addItem } = useProjectCart();
+  const { addToCompare, isInCompare } = useCompare();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -28,6 +29,12 @@ const ProductDetail = () => {
     queryKey: ["products"],
     queryFn: fetchProducts,
     staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: offers = [] } = useQuery({
+    queryKey: ["product-offers", id],
+    queryFn: () => fetchProductOffers(id!),
+    enabled: !!id,
   });
 
   if (isLoading) {
