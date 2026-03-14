@@ -190,13 +190,49 @@ export function detectMissingFields(params: ProjectParameters): DiscoveryQuestio
     });
   }
 
+  // Seating layout distribution — always ask if not set
+  if (!params.seatingLayout) {
+    questions.push({
+      id: "seatingLayout",
+      question: "How do you want to organize your seating layout?",
+      options: [
+        "Mostly 2-seater tables",
+        "Balanced mix of 2 and 4-seater tables",
+        "Mostly 4-seater tables",
+        "Flexible modular layout",
+        "Group dining friendly",
+        "Custom mix",
+      ],
+      field: "seatingLayout",
+      priority: 8.5,
+    });
+  }
+
+  // Layout priority — always ask if not set
+  if (!params.layoutPriority) {
+    questions.push({
+      id: "layoutPriority",
+      question: "What matters most for your layout?",
+      options: [
+        "Maximize seating capacity",
+        "Balanced comfort and capacity",
+        "Spacious premium layout",
+        "Flexible tables for groups",
+        "Mostly couple seating",
+        "Mostly group seating",
+      ],
+      field: "layoutPriority",
+      priority: 8,
+    });
+  }
+
   if (!params.budgetLevel) {
     questions.push({
       id: "budget",
       question: "What is your budget per seat?",
       options: ["€50–80", "€80–120", "€120–180", "€180+"],
       field: "budgetLevel",
-      priority: 8,
+      priority: 7.5,
     });
   }
 
