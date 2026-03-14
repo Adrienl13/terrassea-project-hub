@@ -99,45 +99,75 @@ export function searchProducts(query: string, products: DBProduct[]): {
   const lower = query.toLowerCase();
   const terms = lower.split(/\s+/).filter(t => t.length > 2);
 
+  // Weight hierarchy: product_type > color > material > style > use_case > popularity
+  const WEIGHTS = {
+    category: 5.0,
+    color: 4.5,
+    material: 4.0,
+    style: 3.5,
+    use_case: 3.0,
+    name: 3.0,
+    subcategory: 2.5,
+    popularity: 2.0,
+    priority: 1.5,
+  };
+
   const scored = products.map(product => {
     let score = 0;
 
+    // Category match (strongest signal)
+    for (const term of terms) {
+      if (product.category.toLowerCase().includes(term)) score += WEIGHTS.category;
+      if (product.subcategory?.toLowerCase().includes(term)) score += WEIGHTS.subcategory;
+    }
+
     // Name match
     for (const term of terms) {
-      if (product.name.toLowerCase().includes(term)) score += 5;
-    }
-
-    // Category match
-    for (const term of terms) {
-      if (product.category.toLowerCase().includes(term)) score += 4;
-      if (product.subcategory?.toLowerCase().includes(term)) score += 3;
-    }
-
-    // Tag matches
-    const allTags = [
-      ...product.style_tags,
-      ...product.material_tags,
-      ...product.palette_tags,
-      ...product.ambience_tags,
-      ...product.use_case_tags,
-      ...product.technical_tags,
-    ];
-
-    for (const term of terms) {
-      for (const tag of allTags) {
-        if (tag.toLowerCase().includes(term)) score += 2;
-      }
+      if (product.name.toLowerCase().includes(term)) score += WEIGHTS.name;
     }
 
     // Color match
     for (const term of terms) {
-      if (product.main_color?.toLowerCase().includes(term)) score += 3;
-      if (product.secondary_color?.toLowerCase().includes(term)) score += 2;
+      if (product.main_color?.toLowerCase().includes(term)) score += WEIGHTS.color;
+      if (product.secondary_color?.toLowerCase().includes(term)) score += WEIGHTS.color * 0.6;
+    }
+
+    // Material tags
+    for (const term of terms) {
+      for (const tag of product.material_tags) {
+        if (tag.toLowerCase().includes(term)) score += WEIGHTS.material;
+      }
+    }
+
+    // Style tags
+    for (const term of terms) {
+      for (const tag of product.style_tags) {
+        if (tag.toLowerCase().includes(term)) score += WEIGHTS.style;
+      }
+    }
+
+    // Use case, ambience, palette tags
+    const contextTags = [
+      ...product.ambience_tags,
+      ...product.palette_tags,
+      ...product.use_case_tags,
+    ];
+    for (const term of terms) {
+      for (const tag of contextTags) {
+        if (tag.toLowerCase().includes(term)) score += WEIGHTS.use_case;
+      }
+    }
+
+    // Technical tags
+    for (const term of terms) {
+      for (const tag of product.technical_tags) {
+        if (tag.toLowerCase().includes(term)) score += WEIGHTS.use_case * 0.5;
+      }
     }
 
     // Boost by priority and popularity
-    score += product.priority_score * 0.5;
-    score += product.popularity_score * 0.3;
+    score += product.priority_score * (WEIGHTS.priority * 0.1);
+    score += product.popularity_score * (WEIGHTS.popularity * 0.1);
 
     return { product, score };
   });
