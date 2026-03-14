@@ -1,4 +1,5 @@
 import { LayoutRecommendation, TableGroup, ProjectParameters } from "./types";
+import { computeSpatialMetrics, getDensityLevelFromPriority } from "./spatialEngine";
 
 // ═══════════════════════════════════════════════════════════
 // LAYOUT ENGINE — generates realistic table/chair mixes
