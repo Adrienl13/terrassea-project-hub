@@ -31,10 +31,15 @@ const BUDGET_LABELS: Record<string, string> = {
 };
 
 const ProjectBuilderSummary = ({ params }: ProjectBuilderSummaryProps) => {
+  const surface = params.terraceSurfaceM2 ??
+    (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
+
   const rows = [
+    { label: "Mode", value: params.builderMode === "expert" ? "Expert" : params.builderMode === "guided" ? "Guided" : "" },
     { label: "Project type", value: params.establishmentType },
     { label: "Zone", value: params.projectZone },
     { label: "Capacity", value: params.seatingCapacity ? `${params.seatingCapacity} seats` : "" },
+    { label: "Terrace", value: surface ? `${surface} m²` : "" },
     { label: "Layout", value: LAYOUT_LABELS[params.seatingLayout] || "" },
     { label: "Priority", value: PRIORITY_LABELS[params.layoutPriority] || "" },
     { label: "Style", value: params.style.join(", ") },

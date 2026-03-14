@@ -1,19 +1,22 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Check } from "lucide-react";
-import { ProjectConcept } from "@/engine/types";
+import { ProjectConcept, LayoutRecommendation } from "@/engine/types";
 import type { DBProduct } from "@/lib/products";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { toast } from "sonner";
-import LayoutDisplay from "./LayoutDisplay";
+import EditableLayoutDisplay from "./project-builder/EditableLayoutDisplay";
 
 interface ConceptCardProps {
   concept: ProjectConcept;
   index: number;
   products: DBProduct[];
+  budgetEstimate?: { min: number; max: number; avgPerSeat: number } | null;
 }
 
-const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
+const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardProps) => {
   const { addItem, items } = useProjectCart();
+  const [layout, setLayout] = useState<LayoutRecommendation | undefined>(concept.layout);
 
   const conceptProducts = concept.products
     .map((rec) => {
@@ -96,15 +99,24 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
           ))}
         </div>
 
-        {/* Layout recommendation */}
-        {concept.layout && (
+        {/* Editable layout recommendation */}
+        {layout && (
           <div className="mt-6">
-            <LayoutDisplay layout={concept.layout} />
+            <EditableLayoutDisplay
+              layout={layout}
+              onLayoutChange={setLayout}
+              budgetEstimate={budgetEstimate}
+            />
           </div>
         )}
       </div>
 
       <div className="border-t border-border">
+        <div className="px-6 pt-4 pb-2">
+          <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground">
+            Matching products
+          </span>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
           {conceptProducts.map((product, i) => {
             const inCart = isInCart(product.id);
@@ -141,15 +153,9 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
                     }`}
                   >
                     {inCart ? (
-                      <>
-                        <Check className="h-3 w-3" />
-                        Added
-                      </>
+                      <><Check className="h-3 w-3" /> Added</>
                     ) : (
-                      <>
-                        <Plus className="h-3 w-3" />
-                        Add
-                      </>
+                      <><Plus className="h-3 w-3" /> Add</>
                     )}
                   </button>
                 </div>

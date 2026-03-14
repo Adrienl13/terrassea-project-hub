@@ -16,12 +16,14 @@ interface ProjectBuilderStepperProps {
 
 function isStepComplete(stepId: string, params: ProjectParameters): boolean {
   switch (stepId) {
+    case "mode": return !!params.builderMode;
     case "type": return !!params.establishmentType;
     case "capacity": return params.seatingCapacity !== null;
     case "layout": return !!params.seatingLayout;
     case "priority": return !!params.layoutPriority;
     case "style": return params.style.length > 0;
     case "budget": return !!params.budgetLevel;
+    case "expert": return !!params.establishmentType && params.seatingCapacity !== null;
     case "review": return false;
     default: return false;
   }
