@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, RotateCcw, Sparkles } from "lucide-react";
 import { ProjectParameters } from "@/engine/types";
+import { getDensityInfo, getMaxSeats } from "@/engine/spatialEngine";
 
 interface ProjectBuilderReviewProps {
   params: ProjectParameters;
