@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProjectParameters } from "@/engine/types";
@@ -11,19 +12,67 @@ interface Props {
   onNext: () => void;
 }
 
-function getDensityLabel(seats: number | null, surface: number | null): { label: string; color: string } | null {
+interface TableMixEntry {
+  format: string;
+  quantity: number;
+  seatsPerTable: number;
+}
+
+const TABLE_FORMATS = [
+  { format: "70×70", seats: 2, label: "70×70 cm — 2 seats" },
+  { format: "80×80", seats: 4, label: "80×80 cm — 4 seats" },
+  { format: "120×70", seats: 4, label: "120×70 cm — 4 seats" },
+  { format: "120×80", seats: 4, label: "120×80 cm — 4 seats" },
+  { format: "160×80", seats: 6, label: "160×80 cm — 6 seats" },
+  { format: "200×90", seats: 8, label: "200×90 cm — 8 seats" },
+  { format: "Ø80", seats: 4, label: "Ø80 cm round — 4 seats" },
+  { format: "Ø120", seats: 6, label: "Ø120 cm round — 6 seats" },
+];
+
+const ESTABLISHMENT_TYPES = ["restaurant", "hotel", "rooftop", "beach-club", "bar", "camping", "event", "pool"];
+
+function getDensityInfo(seats: number | null, surface: number | null) {
   if (!seats || !surface || surface <= 0) return null;
-  const density = seats / surface;
-  if (density <= 0.8) return { label: "Comfortable layout", color: "text-green-600" };
-  if (density <= 1.2) return { label: "Balanced layout", color: "text-amber-600" };
-  return { label: "Dense layout", color: "text-red-600" };
+  const d = seats / surface;
+  if (d <= 0.8) return { label: "Comfortable", dotClass: "bg-green-500", textClass: "text-green-600", density: d };
+  if (d <= 1.2) return { label: "Balanced", dotClass: "bg-amber-500", textClass: "text-amber-600", density: d };
+  return { label: "Dense", dotClass: "bg-red-500", textClass: "text-red-600", density: d };
 }
 
 const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props) => {
+  const [tableMix, setTableMix] = useState<TableMixEntry[]>([
+    { format: "70×70", quantity: 10, seatsPerTable: 2 },
+    { format: "120×70", quantity: 5, seatsPerTable: 4 },
+  ]);
+
   const surface = params.terraceSurfaceM2 ??
     (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
 
-  const density = getDensityLabel(params.seatingCapacity, surface);
+  const totalSeatsFromMix = tableMix.reduce((sum, t) => sum + t.quantity * t.seatsPerTable, 0);
+  const totalTables = tableMix.reduce((sum, t) => sum + t.quantity, 0);
+  const densityInfo = getDensityInfo(params.seatingCapacity ?? totalSeatsFromMix, surface);
+
+  const updateTableMix = (index: number, updates: Partial<TableMixEntry>) => {
+    setTableMix(prev => prev.map((entry, i) => i === index ? { ...entry, ...updates } : entry));
+  };
+
+  const addTableRow = () => {
+    const unused = TABLE_FORMATS.find(f => !tableMix.some(t => t.format === f.format));
+    if (unused) {
+      setTableMix(prev => [...prev, { format: unused.format, quantity: 1, seatsPerTable: unused.seats }]);
+    }
+  };
+
+  const removeTableRow = (index: number) => {
+    if (tableMix.length > 1) setTableMix(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFormatChange = (index: number, format: string) => {
+    const f = TABLE_FORMATS.find(t => t.format === format);
+    updateTableMix(index, { format, seatsPerTable: f?.seats ?? 2 });
+  };
+
+  const canProceed = params.establishmentType && (params.seatingCapacity || totalSeatsFromMix > 0);
 
   return (
     <motion.div
@@ -33,25 +82,25 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
       exit={{ opacity: 0, x: -30 }}
       transition={{ duration: 0.3 }}
     >
-      <h2 className="font-display text-xl md:text-2xl font-bold text-foreground mb-2">
-        Define your project parameters
+      <h2 className="font-display text-xl md:text-2xl font-bold text-foreground mb-1">
+        Technical configurator
       </h2>
       <p className="text-sm font-body text-muted-foreground mb-8">
-        Enter your exact requirements for a precise recommendation.
+        Enter your project specifications directly. All parameters in one view.
       </p>
 
-      <div className="space-y-8">
-        {/* Establishment type */}
-        <div>
-          <Label className="text-xs font-body uppercase tracking-[0.15em] text-muted-foreground mb-2 block">
-            Establishment type
-          </Label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {["restaurant", "hotel", "rooftop", "beach-club", "bar", "camping", "event", "pool"].map((type) => (
+      <div className="space-y-6">
+        {/* ── Section 1: Establishment ── */}
+        <fieldset className="border border-border rounded-sm p-4">
+          <legend className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground px-2">
+            Establishment
+          </legend>
+          <div className="flex flex-wrap gap-1.5">
+            {ESTABLISHMENT_TYPES.map(type => (
               <button
                 key={type}
                 onClick={() => onChange({ establishmentType: type })}
-                className={`px-3 py-2 text-xs font-display font-semibold rounded-sm border transition-all capitalize ${
+                className={`px-3 py-1.5 text-xs font-display font-semibold rounded-sm border transition-all capitalize ${
                   params.establishmentType === type
                     ? "border-foreground bg-foreground text-primary-foreground"
                     : "border-border bg-card text-foreground hover:border-foreground/30"
@@ -61,209 +110,192 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
               </button>
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        {/* Exact seating */}
-        <div>
-          <Label htmlFor="exact-seats" className="text-xs font-body uppercase tracking-[0.15em] text-muted-foreground mb-2 block">
-            Exact seating capacity
-          </Label>
-          <Input
-            id="exact-seats"
-            type="number"
-            min={1}
-            max={500}
-            placeholder="e.g. 60"
-            value={params.seatingCapacity ?? ""}
-            onChange={(e) => onChange({ seatingCapacity: e.target.value ? parseInt(e.target.value) : null })}
-            className="max-w-48"
-          />
-        </div>
+        {/* ── Section 2: Dimensions & Capacity ── */}
+        <fieldset className="border border-border rounded-sm p-4">
+          <legend className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground px-2">
+            Space & Capacity
+          </legend>
 
-        {/* Terrace surface */}
-        <div>
-          <Label className="text-xs font-body uppercase tracking-[0.15em] text-muted-foreground mb-2 block">
-            Terrace dimensions
-          </Label>
-          <div className="flex items-end gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
             <div>
-              <span className="text-[10px] font-body text-muted-foreground block mb-1">Length (m)</span>
+              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">Seats (target)</Label>
               <Input
-                type="number"
-                min={1}
-                placeholder="12"
+                type="number" min={1} max={500} placeholder="60"
+                value={params.seatingCapacity ?? ""}
+                onChange={e => onChange({ seatingCapacity: e.target.value ? parseInt(e.target.value) : null })}
+              />
+            </div>
+            <div>
+              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">Length (m)</Label>
+              <Input
+                type="number" min={1} placeholder="12"
                 value={params.terraceLength ?? ""}
-                onChange={(e) => {
+                onChange={e => {
                   const len = e.target.value ? parseFloat(e.target.value) : null;
                   const w = params.terraceWidth;
-                  onChange({
-                    terraceLength: len,
-                    terraceSurfaceM2: len && w ? Math.round(len * w) : params.terraceSurfaceM2,
-                  });
+                  onChange({ terraceLength: len, terraceSurfaceM2: len && w ? Math.round(len * w) : params.terraceSurfaceM2 });
                 }}
-                className="max-w-24"
               />
             </div>
-            <span className="text-muted-foreground font-body text-sm pb-2">×</span>
             <div>
-              <span className="text-[10px] font-body text-muted-foreground block mb-1">Width (m)</span>
+              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">Width (m)</Label>
               <Input
-                type="number"
-                min={1}
-                placeholder="8"
+                type="number" min={1} placeholder="8"
                 value={params.terraceWidth ?? ""}
-                onChange={(e) => {
+                onChange={e => {
                   const w = e.target.value ? parseFloat(e.target.value) : null;
                   const len = params.terraceLength;
-                  onChange({
-                    terraceWidth: w,
-                    terraceSurfaceM2: len && w ? Math.round(len * w) : params.terraceSurfaceM2,
-                  });
+                  onChange({ terraceWidth: w, terraceSurfaceM2: len && w ? Math.round(len * w) : params.terraceSurfaceM2 });
                 }}
-                className="max-w-24"
               />
             </div>
-            <span className="text-muted-foreground font-body text-sm pb-2">or</span>
             <div>
-              <span className="text-[10px] font-body text-muted-foreground block mb-1">Area (m²)</span>
+              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">Area (m²)</Label>
               <Input
-                type="number"
-                min={1}
-                placeholder="96"
-                value={params.terraceSurfaceM2 ?? ""}
-                onChange={(e) => onChange({
-                  terraceSurfaceM2: e.target.value ? parseFloat(e.target.value) : null,
-                  terraceLength: null,
-                  terraceWidth: null,
-                })}
-                className="max-w-24"
+                type="number" min={1} placeholder="96"
+                value={params.terraceSurfaceM2 ?? (params.terraceLength && params.terraceWidth ? Math.round(params.terraceLength * params.terraceWidth) : "")}
+                onChange={e => onChange({ terraceSurfaceM2: e.target.value ? parseFloat(e.target.value) : null, terraceLength: null, terraceWidth: null })}
               />
             </div>
           </div>
 
           {/* Density indicator */}
-          {density && (
-            <div className="mt-3 flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${
-                density.label.includes("Comfortable") ? "bg-green-500" :
-                density.label.includes("Balanced") ? "bg-amber-500" : "bg-red-500"
-              }`} />
-              <span className={`text-xs font-body font-medium ${density.color}`}>
-                {density.label}
+          {densityInfo && (
+            <div className="flex items-center gap-2 py-2 px-3 rounded-sm bg-muted/50">
+              <div className={`w-2 h-2 rounded-full ${densityInfo.dotClass}`} />
+              <span className={`text-xs font-body font-medium ${densityInfo.textClass}`}>
+                {densityInfo.label} layout
               </span>
               <span className="text-[10px] font-body text-muted-foreground">
-                ({(params.seatingCapacity! / surface!).toFixed(1)} seats/m²)
+                — {densityInfo.density.toFixed(1)} seats/m²
               </span>
             </div>
           )}
-        </div>
+        </fieldset>
 
-        {/* Layout strategy */}
-        <div>
-          <Label className="text-xs font-body uppercase tracking-[0.15em] text-muted-foreground mb-2 block">
-            Seating layout strategy
-          </Label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {[
-              { value: "mostly-2", label: "Mostly 2-seater" },
-              { value: "balanced-2-4", label: "Mix 2 & 4-seater" },
-              { value: "mostly-4", label: "Mostly 4-seater" },
-              { value: "modular", label: "Flexible modular" },
-              { value: "group", label: "Group dining" },
-              { value: "custom", label: "Custom mix" },
-            ].map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => onChange({ seatingLayout: opt.value })}
-                className={`px-3 py-2 text-xs font-display font-semibold rounded-sm border transition-all ${
-                  params.seatingLayout === opt.value
-                    ? "border-foreground bg-foreground text-primary-foreground"
-                    : "border-border bg-card text-foreground hover:border-foreground/30"
-                }`}
-              >
-                {opt.label}
-              </button>
+        {/* ── Section 3: Table Mix ── */}
+        <fieldset className="border border-border rounded-sm p-4">
+          <legend className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground px-2">
+            Table Mix Configuration
+          </legend>
+
+          <div className="space-y-2">
+            {/* Header */}
+            <div className="grid grid-cols-[1fr_80px_80px_80px_32px] gap-2 text-[10px] font-body text-muted-foreground uppercase tracking-wider">
+              <span>Format</span>
+              <span>Qty</span>
+              <span>Seats/tbl</span>
+              <span>Subtotal</span>
+              <span />
+            </div>
+
+            {tableMix.map((entry, i) => (
+              <div key={i} className="grid grid-cols-[1fr_80px_80px_80px_32px] gap-2 items-center">
+                <select
+                  value={entry.format}
+                  onChange={e => handleFormatChange(i, e.target.value)}
+                  className="h-9 rounded-sm border border-border bg-card px-2 text-xs font-body text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  {TABLE_FORMATS.map(f => (
+                    <option key={f.format} value={f.format}>{f.label}</option>
+                  ))}
+                </select>
+                <Input
+                  type="number" min={0} value={entry.quantity}
+                  onChange={e => updateTableMix(i, { quantity: parseInt(e.target.value) || 0 })}
+                  className="text-center text-xs"
+                />
+                <Input
+                  type="number" min={1} max={12} value={entry.seatsPerTable}
+                  onChange={e => updateTableMix(i, { seatsPerTable: parseInt(e.target.value) || 1 })}
+                  className="text-center text-xs"
+                />
+                <span className="text-xs font-body font-semibold text-foreground text-center">
+                  {entry.quantity * entry.seatsPerTable}
+                </span>
+                <button
+                  onClick={() => removeTableRow(i)}
+                  disabled={tableMix.length <= 1}
+                  className="p-1 text-muted-foreground hover:text-destructive disabled:opacity-30 transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
           </div>
-        </div>
 
-        {/* Layout priority */}
-        <div>
-          <Label className="text-xs font-body uppercase tracking-[0.15em] text-muted-foreground mb-2 block">
-            Layout priority
-          </Label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {[
-              { value: "max-capacity", label: "Max capacity" },
-              { value: "balanced", label: "Balanced" },
-              { value: "spacious", label: "Spacious premium" },
-              { value: "flexible-groups", label: "Flexible groups" },
-              { value: "couples", label: "Couples" },
-              { value: "groups", label: "Groups" },
-            ].map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => onChange({ layoutPriority: opt.value })}
-                className={`px-3 py-2 text-xs font-display font-semibold rounded-sm border transition-all ${
-                  params.layoutPriority === opt.value
-                    ? "border-foreground bg-foreground text-primary-foreground"
-                    : "border-border bg-card text-foreground hover:border-foreground/30"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
+          {/* Add row */}
+          {tableMix.length < TABLE_FORMATS.length && (
+            <button
+              onClick={addTableRow}
+              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors mt-3"
+            >
+              <Plus className="h-3.5 w-3.5" /> Add table format
+            </button>
+          )}
 
-        {/* Style */}
-        <div>
-          <Label className="text-xs font-body uppercase tracking-[0.15em] text-muted-foreground mb-2 block">
-            Style
-          </Label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {["mediterranean", "modern", "bistro", "natural", "industrial", "luxury", "coastal", "tropical"].map((s) => (
-              <button
-                key={s}
-                onClick={() => onChange({ style: [s] })}
-                className={`px-3 py-2 text-xs font-display font-semibold rounded-sm border transition-all capitalize ${
-                  params.style.includes(s)
-                    ? "border-foreground bg-foreground text-primary-foreground"
-                    : "border-border bg-card text-foreground hover:border-foreground/30"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
+          {/* Totals */}
+          <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+            <span className="text-xs font-body text-muted-foreground">
+              {totalTables} tables
+            </span>
+            <span className="text-sm font-display font-bold text-foreground">
+              {totalSeatsFromMix} seats from table mix
+            </span>
           </div>
-        </div>
+        </fieldset>
 
-        {/* Budget */}
-        <div>
-          <Label className="text-xs font-body uppercase tracking-[0.15em] text-muted-foreground mb-2 block">
-            Budget range per seat
-          </Label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[
-              { value: "economy", label: "€50–80" },
-              { value: "mid", label: "€80–120" },
-              { value: "premium", label: "€120–180" },
-              { value: "luxury", label: "€180+" },
-            ].map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => onChange({ budgetLevel: opt.value })}
-                className={`px-3 py-2 text-xs font-display font-semibold rounded-sm border transition-all ${
-                  params.budgetLevel === opt.value
-                    ? "border-foreground bg-foreground text-primary-foreground"
-                    : "border-border bg-card text-foreground hover:border-foreground/30"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+        {/* ── Section 4: Style & Budget ── */}
+        <fieldset className="border border-border rounded-sm p-4">
+          <legend className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground px-2">
+            Style & Budget
+          </legend>
+
+          <div className="mb-4">
+            <Label className="text-[10px] font-body text-muted-foreground mb-1.5 block">Style</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {["mediterranean", "modern", "bistro", "natural", "industrial", "luxury", "coastal", "tropical"].map(s => (
+                <button
+                  key={s}
+                  onClick={() => onChange({ style: params.style.includes(s) ? params.style.filter(x => x !== s) : [...params.style, s] })}
+                  className={`px-3 py-1.5 text-xs font-display font-semibold rounded-sm border transition-all capitalize ${
+                    params.style.includes(s)
+                      ? "border-foreground bg-foreground text-primary-foreground"
+                      : "border-border bg-card text-foreground hover:border-foreground/30"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+
+          <div>
+            <Label className="text-[10px] font-body text-muted-foreground mb-1.5 block">Budget per seat</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { value: "economy", label: "€50–80" },
+                { value: "mid", label: "€80–120" },
+                { value: "premium", label: "€120–180" },
+                { value: "luxury", label: "€180+" },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => onChange({ budgetLevel: opt.value })}
+                  className={`px-3 py-1.5 text-xs font-display font-semibold rounded-sm border transition-all ${
+                    params.budgetLevel === opt.value
+                      ? "border-foreground bg-foreground text-primary-foreground"
+                      : "border-border bg-card text-foreground hover:border-foreground/30"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </fieldset>
       </div>
 
       {/* Navigation */}
@@ -275,10 +307,16 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
         <button
-          onClick={onNext}
-          disabled={!params.establishmentType || !params.seatingCapacity}
+          onClick={() => {
+            // Sync table mix total into seating capacity if user didn't set one
+            if (!params.seatingCapacity && totalSeatsFromMix > 0) {
+              onChange({ seatingCapacity: totalSeatsFromMix });
+            }
+            onNext();
+          }}
+          disabled={!canProceed}
           className={`flex items-center gap-2 px-5 py-2.5 text-sm font-display font-semibold rounded-full transition-all ${
-            params.establishmentType && params.seatingCapacity
+            canProceed
               ? "bg-foreground text-primary-foreground hover:opacity-90"
               : "bg-border text-muted-foreground cursor-not-allowed"
           }`}

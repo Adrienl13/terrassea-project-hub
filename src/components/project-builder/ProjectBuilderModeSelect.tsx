@@ -44,10 +44,13 @@ const ProjectBuilderModeSelect = ({ onSelect }: Props) => {
         >
           <Wrench className="h-6 w-6 text-foreground mb-3" />
           <span className="font-display font-bold text-base text-foreground block">
-            I already know my requirements
+            Technical configurator
           </span>
           <span className="text-xs font-body text-muted-foreground block mt-1">
-            Enter exact seating capacity, terrace dimensions, layout strategy and more directly.
+            Define exact dimensions, table mix, seating density and specifications directly.
+          </span>
+          <span className="mt-3 inline-block text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground/70 border border-border rounded-full px-2 py-0.5">
+            You define the project parameters
           </span>
         </button>
       </div>
