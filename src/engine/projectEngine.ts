@@ -150,6 +150,8 @@ export function parseProjectRequest(input: string): ProjectParameters {
     establishmentType: matchKeywords(input, ESTABLISHMENT_KEYWORDS)[0] || "",
     projectZone: extractZone(input),
     seatingCapacity: extractCapacity(input),
+    seatingLayout: "",
+    layoutPriority: "",
     style: matchKeywords(input, STYLE_KEYWORDS),
     ambience: matchKeywords(input, AMBIENCE_KEYWORDS),
     colorPalette: matchKeywords(input, COLOR_KEYWORDS),
