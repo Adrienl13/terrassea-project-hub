@@ -317,7 +317,14 @@ const ProductDetail = () => {
           </div>
         </section>
 
-        {/* Similar products */}
+        {/* Vendor offers */}
+        <section className="px-6 mt-4">
+          <div className="container mx-auto">
+            <VendorOffers offers={offers} productName={product.name} />
+          </div>
+        </section>
+
+
         {similar.length > 0 && (
           <section className="px-6 mt-20">
             <div className="container mx-auto">
