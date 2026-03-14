@@ -230,12 +230,19 @@ export function generateLayouts(params: ProjectParameters): LayoutRecommendation
     sixSeatRatio: 0,
     preferredFormats: ["70×70", "80×80"],
   };
-  const flex = generateLayout(
-    totalSeats,
-    flexDist,
-    "Flexible layout"
-  );
+  const flex = generateLayout(totalSeats, flexDist, "Flexible layout");
   flex.notes = `${flex.chairCount} seats standard, expandable for larger groups by combining tables`;
+
+  // Attach spatial metrics if terrace area is known
+  const terraceArea = params.terraceSurfaceM2 ??
+    (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
+
+  if (terraceArea && terraceArea > 0) {
+    const densityLevel = getDensityLevelFromPriority(priority);
+    for (const layout of [main, alt, flex]) {
+      layout.spatialMetrics = computeSpatialMetrics(terraceArea, layout, densityLevel);
+    }
+  }
 
   return [main, alt, flex];
 }

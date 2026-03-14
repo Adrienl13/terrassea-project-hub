@@ -35,6 +35,23 @@ export interface LayoutRecommendation {
   tableGroups: TableGroup[];
   chairCount: number;
   notes: string;
+  spatialMetrics?: SpatialMetricsData;
+}
+
+export interface SpatialMetricsData {
+  terraceArea: number;
+  totalSeats: number;
+  spacePerSeat: number;
+  densityLevel: string;
+  densityLabel: string;
+  feasibility: string; // "good" | "compact" | "overcrowded"
+  feasibilityLabel: string;
+  feasibilityDescription: string;
+  maxSeatsComfortable: number;
+  maxSeatsBalanced: number;
+  maxSeatsDense: number;
+  estimatedOccupiedSurface: number;
+  remainingCirculationSpace: number;
 }
 
 export interface TableGroup {
