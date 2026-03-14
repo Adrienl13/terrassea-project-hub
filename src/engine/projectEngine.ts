@@ -148,6 +148,7 @@ function detectIsOutdoor(input: string): boolean {
 
 export function parseProjectRequest(input: string): ProjectParameters {
   return {
+    builderMode: "",
     establishmentType: matchKeywords(input, ESTABLISHMENT_KEYWORDS)[0] || "",
     projectZone: extractZone(input),
     seatingCapacity: extractCapacity(input),
@@ -161,6 +162,9 @@ export function parseProjectRequest(input: string): ProjectParameters {
     isOutdoor: detectIsOutdoor(input),
     budgetLevel: matchKeywords(input, BUDGET_KEYWORDS)[0] || "",
     timeline: matchKeywords(input, TIMELINE_KEYWORDS)[0] || "",
+    terraceSurfaceM2: null,
+    terraceLength: null,
+    terraceWidth: null,
   };
 }
 
