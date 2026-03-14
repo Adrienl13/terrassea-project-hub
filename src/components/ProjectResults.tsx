@@ -50,6 +50,12 @@ const ProjectResults = ({ parameters, concepts, query, products }: ProjectResult
             {parameters.materialPreferences.map((m) => (
               <ParameterPill key={m} label="Material" value={m} />
             ))}
+            {parameters.seatingLayout && (
+              <ParameterPill label="Layout" value={parameters.seatingLayout.replace(/-/g, " ")} />
+            )}
+            {parameters.layoutPriority && (
+              <ParameterPill label="Priority" value={parameters.layoutPriority.replace(/-/g, " ")} />
+            )}
           </div>
         </motion.div>
 

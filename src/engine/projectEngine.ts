@@ -1,4 +1,5 @@
 import { ProjectParameters, ProjectConcept, RecommendedProduct, DiscoveryQuestion, ProjectSummary } from "./types";
+import { generateLayouts } from "./layoutEngine";
 import type { DBProduct } from "@/lib/products";
 
 // ═══════════════════════════════════════════════════════════
@@ -150,6 +151,8 @@ export function parseProjectRequest(input: string): ProjectParameters {
     establishmentType: matchKeywords(input, ESTABLISHMENT_KEYWORDS)[0] || "",
     projectZone: extractZone(input),
     seatingCapacity: extractCapacity(input),
+    seatingLayout: "",
+    layoutPriority: "",
     style: matchKeywords(input, STYLE_KEYWORDS),
     ambience: matchKeywords(input, AMBIENCE_KEYWORDS),
     colorPalette: matchKeywords(input, COLOR_KEYWORDS),
@@ -188,13 +191,49 @@ export function detectMissingFields(params: ProjectParameters): DiscoveryQuestio
     });
   }
 
+  // Seating layout distribution — always ask if not set
+  if (!params.seatingLayout) {
+    questions.push({
+      id: "seatingLayout",
+      question: "How do you want to organize your seating layout?",
+      options: [
+        "Mostly 2-seater tables",
+        "Balanced mix of 2 and 4-seater tables",
+        "Mostly 4-seater tables",
+        "Flexible modular layout",
+        "Group dining friendly",
+        "Custom mix",
+      ],
+      field: "seatingLayout",
+      priority: 8.5,
+    });
+  }
+
+  // Layout priority — always ask if not set
+  if (!params.layoutPriority) {
+    questions.push({
+      id: "layoutPriority",
+      question: "What matters most for your layout?",
+      options: [
+        "Maximize seating capacity",
+        "Balanced comfort and capacity",
+        "Spacious premium layout",
+        "Flexible tables for groups",
+        "Mostly couple seating",
+        "Mostly group seating",
+      ],
+      field: "layoutPriority",
+      priority: 8,
+    });
+  }
+
   if (!params.budgetLevel) {
     questions.push({
       id: "budget",
       question: "What is your budget per seat?",
       options: ["€50–80", "€80–120", "€120–180", "€180+"],
       field: "budgetLevel",
-      priority: 8,
+      priority: 7.5,
     });
   }
 
@@ -270,17 +309,65 @@ export function applyAnswer(
     case "budget":
       updated.budgetLevel = matchKeywords(lower, BUDGET_KEYWORDS)[0] || "mid";
       break;
+    case "seatingLayout": {
+      const layoutMap: Record<string, string> = {
+        "mostly 2": "mostly-2",
+        "balanced mix": "balanced-2-4",
+        "mostly 4": "mostly-4",
+        "flexible modular": "modular",
+        "group dining": "group",
+        "custom mix": "custom",
+      };
+      for (const [key, val] of Object.entries(layoutMap)) {
+        if (lower.includes(key)) { updated.seatingLayout = val; break; }
+      }
+      if (!updated.seatingLayout) updated.seatingLayout = "balanced-2-4";
+      break;
+    }
+    case "layoutPriority": {
+      const priorityMap: Record<string, string> = {
+        "maximize": "max-capacity",
+        "balanced comfort": "balanced",
+        "spacious": "spacious",
+        "flexible": "flexible-groups",
+        "couple": "couples",
+        "group": "groups",
+      };
+      for (const [key, val] of Object.entries(priorityMap)) {
+        if (lower.includes(key)) { updated.layoutPriority = val; break; }
+      }
+      if (!updated.layoutPriority) updated.layoutPriority = "balanced";
+      break;
+    }
   }
   return updated;
 }
 
 export function generateProjectSummary(params: ProjectParameters): ProjectSummary {
+  const layoutLabels: Record<string, string> = {
+    "mostly-2": "Mostly 2-seater tables",
+    "balanced-2-4": "Balanced mix of 2 & 4-seaters",
+    "mostly-4": "Mostly 4-seater tables",
+    modular: "Flexible modular layout",
+    group: "Group dining friendly",
+    custom: "Custom mix",
+  };
+  const priorityLabels: Record<string, string> = {
+    "max-capacity": "Maximize capacity",
+    balanced: "Balanced comfort & capacity",
+    spacious: "Spacious premium layout",
+    "flexible-groups": "Flexible for groups",
+    couples: "Mostly couple seating",
+    groups: "Mostly group seating",
+  };
   return {
     establishment: params.establishmentType || "hospitality space",
     zone: params.projectZone || "outdoor",
     style: params.style.join(", ") || "to be defined",
     ambience: params.ambience.join(", ") || "to be defined",
     capacity: params.seatingCapacity ? `${params.seatingCapacity} seats` : "to be defined",
+    layout: layoutLabels[params.seatingLayout] || "to be defined",
+    layoutPriority: priorityLabels[params.layoutPriority] || "to be defined",
     palette: params.colorPalette.join(", ") || "open",
     materials: params.materialPreferences.join(", ") || "open",
     constraints: [
@@ -683,12 +770,18 @@ export function generateProjectConcepts(
   if (overrideParams) {
     parameters = { ...parameters, ...overrideParams };
   }
+
+  // Generate layout recommendations
+  const layouts = generateLayouts(parameters);
   const templates = getConceptTemplates(parameters);
 
   const usedProductIds = new Set<string>();
   const concepts: ProjectConcept[] = templates.map((template, i) => {
     const recommended = selectProductsForConcept(template, parameters, products, usedProductIds);
     recommended.forEach((r) => usedProductIds.add(r.productId));
+
+    // Assign layout to concept (main, alt, flex)
+    const layout = layouts[i] || layouts[0];
 
     return {
       id: `concept-${i + 1}`,
@@ -698,6 +791,7 @@ export function generateProjectConcepts(
       colorNames: template.colorNames,
       moodKeywords: template.mood,
       products: recommended,
+      layout,
     };
   });
 

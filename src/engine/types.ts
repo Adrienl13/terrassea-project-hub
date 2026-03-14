@@ -2,6 +2,8 @@ export interface ProjectParameters {
   establishmentType: string;
   projectZone: string;
   seatingCapacity: number | null;
+  seatingLayout: string; // "mostly-2" | "balanced-2-4" | "mostly-4" | "modular" | "group" | "custom"
+  layoutPriority: string; // "max-capacity" | "balanced" | "spacious" | "flexible-groups" | "couples" | "groups"
   style: string[];
   ambience: string[];
   colorPalette: string[];
@@ -20,12 +22,30 @@ export interface ProjectConcept {
   colorNames: string[];
   moodKeywords: string[];
   products: RecommendedProduct[];
+  layout?: LayoutRecommendation;
+}
+
+export interface LayoutRecommendation {
+  label: string; // "Suggested layout" | "Alternative layout" | "Flexible layout"
+  totalSeats: number;
+  tableGroups: TableGroup[];
+  chairCount: number;
+  notes: string;
+}
+
+export interface TableGroup {
+  tableFormat: string; // e.g. "70×70", "120×70", "120×80"
+  shape: string;
+  quantity: number;
+  seatsPerTable: number;
+  totalSeats: number;
 }
 
 export interface RecommendedProduct {
   productId: string;
   relevanceScore: number;
   reason: string;
+  suggestedQuantity?: number;
 }
 
 export interface DiscoveryQuestion {
@@ -42,6 +62,8 @@ export interface ProjectSummary {
   style: string;
   ambience: string;
   capacity: string;
+  layout: string;
+  layoutPriority: string;
   palette: string;
   materials: string;
   constraints: string;

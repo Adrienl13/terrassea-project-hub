@@ -252,9 +252,12 @@ export type Database = {
           brand_source: string | null
           category: string
           collection: string | null
+          combinable: boolean | null
+          combined_capacity_if_joined: number | null
           country_of_manufacture: string | null
           created_at: string
           customizable: boolean | null
+          default_seating_capacity: number | null
           dimensions_height_cm: number | null
           dimensions_length_cm: number | null
           dimensions_width_cm: number | null
@@ -284,6 +287,8 @@ export type Database = {
           price_min: number | null
           priority_score: number | null
           product_family: string | null
+          recommended_seating_max: number | null
+          recommended_seating_min: number | null
           requires_assembly: boolean | null
           seat_height_cm: number | null
           secondary_color: string | null
@@ -293,6 +298,7 @@ export type Database = {
           style_tags: string[] | null
           subcategory: string | null
           supplier_internal: string | null
+          table_shape: string | null
           technical_tags: string[] | null
           updated_at: string
           use_case_tags: string[] | null
@@ -308,9 +314,12 @@ export type Database = {
           brand_source?: string | null
           category: string
           collection?: string | null
+          combinable?: boolean | null
+          combined_capacity_if_joined?: number | null
           country_of_manufacture?: string | null
           created_at?: string
           customizable?: boolean | null
+          default_seating_capacity?: number | null
           dimensions_height_cm?: number | null
           dimensions_length_cm?: number | null
           dimensions_width_cm?: number | null
@@ -340,6 +349,8 @@ export type Database = {
           price_min?: number | null
           priority_score?: number | null
           product_family?: string | null
+          recommended_seating_max?: number | null
+          recommended_seating_min?: number | null
           requires_assembly?: boolean | null
           seat_height_cm?: number | null
           secondary_color?: string | null
@@ -349,6 +360,7 @@ export type Database = {
           style_tags?: string[] | null
           subcategory?: string | null
           supplier_internal?: string | null
+          table_shape?: string | null
           technical_tags?: string[] | null
           updated_at?: string
           use_case_tags?: string[] | null
@@ -364,9 +376,12 @@ export type Database = {
           brand_source?: string | null
           category?: string
           collection?: string | null
+          combinable?: boolean | null
+          combined_capacity_if_joined?: number | null
           country_of_manufacture?: string | null
           created_at?: string
           customizable?: boolean | null
+          default_seating_capacity?: number | null
           dimensions_height_cm?: number | null
           dimensions_length_cm?: number | null
           dimensions_width_cm?: number | null
@@ -396,6 +411,8 @@ export type Database = {
           price_min?: number | null
           priority_score?: number | null
           product_family?: string | null
+          recommended_seating_max?: number | null
+          recommended_seating_min?: number | null
           requires_assembly?: boolean | null
           seat_height_cm?: number | null
           secondary_color?: string | null
@@ -405,6 +422,7 @@ export type Database = {
           style_tags?: string[] | null
           subcategory?: string | null
           supplier_internal?: string | null
+          table_shape?: string | null
           technical_tags?: string[] | null
           updated_at?: string
           use_case_tags?: string[] | null

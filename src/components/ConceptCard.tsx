@@ -4,6 +4,7 @@ import { ProjectConcept } from "@/engine/types";
 import type { DBProduct } from "@/lib/products";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { toast } from "sonner";
+import LayoutDisplay from "./LayoutDisplay";
 
 interface ConceptCardProps {
   concept: ProjectConcept;
@@ -94,6 +95,13 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
             </span>
           ))}
         </div>
+
+        {/* Layout recommendation */}
+        {concept.layout && (
+          <div className="mt-6">
+            <LayoutDisplay layout={concept.layout} />
+          </div>
+        )}
       </div>
 
       <div className="border-t border-border">

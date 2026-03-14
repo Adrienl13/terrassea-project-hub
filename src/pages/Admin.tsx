@@ -61,6 +61,12 @@ const emptyProduct: ProductFormData = {
   brand_source: "",
   supplier_internal: "",
   documents: [],
+  table_shape: null,
+  default_seating_capacity: null,
+  recommended_seating_min: null,
+  recommended_seating_max: null,
+  combinable: false,
+  combined_capacity_if_joined: null,
 };
 
 const CATEGORIES = ["Chairs", "Armchairs", "Tables", "Bar Stools", "Parasols", "Lounge Seating"];
