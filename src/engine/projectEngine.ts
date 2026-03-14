@@ -308,6 +308,36 @@ export function applyAnswer(
     case "budget":
       updated.budgetLevel = matchKeywords(lower, BUDGET_KEYWORDS)[0] || "mid";
       break;
+    case "seatingLayout": {
+      const layoutMap: Record<string, string> = {
+        "mostly 2": "mostly-2",
+        "balanced mix": "balanced-2-4",
+        "mostly 4": "mostly-4",
+        "flexible modular": "modular",
+        "group dining": "group",
+        "custom mix": "custom",
+      };
+      for (const [key, val] of Object.entries(layoutMap)) {
+        if (lower.includes(key)) { updated.seatingLayout = val; break; }
+      }
+      if (!updated.seatingLayout) updated.seatingLayout = "balanced-2-4";
+      break;
+    }
+    case "layoutPriority": {
+      const priorityMap: Record<string, string> = {
+        "maximize": "max-capacity",
+        "balanced comfort": "balanced",
+        "spacious": "spacious",
+        "flexible": "flexible-groups",
+        "couple": "couples",
+        "group": "groups",
+      };
+      for (const [key, val] of Object.entries(priorityMap)) {
+        if (lower.includes(key)) { updated.layoutPriority = val; break; }
+      }
+      if (!updated.layoutPriority) updated.layoutPriority = "balanced";
+      break;
+    }
   }
   return updated;
 }
