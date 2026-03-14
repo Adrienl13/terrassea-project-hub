@@ -109,3 +109,4 @@ function normalizeProduct(raw: any): DBProduct {
     priority_score: raw.priority_score ?? 0,
     combinable: raw.combinable ?? false,
   };
+}
