@@ -277,12 +277,30 @@ export function applyAnswer(
 }
 
 export function generateProjectSummary(params: ProjectParameters): ProjectSummary {
+  const layoutLabels: Record<string, string> = {
+    "mostly-2": "Mostly 2-seater tables",
+    "balanced-2-4": "Balanced mix of 2 & 4-seaters",
+    "mostly-4": "Mostly 4-seater tables",
+    modular: "Flexible modular layout",
+    group: "Group dining friendly",
+    custom: "Custom mix",
+  };
+  const priorityLabels: Record<string, string> = {
+    "max-capacity": "Maximize capacity",
+    balanced: "Balanced comfort & capacity",
+    spacious: "Spacious premium layout",
+    "flexible-groups": "Flexible for groups",
+    couples: "Mostly couple seating",
+    groups: "Mostly group seating",
+  };
   return {
     establishment: params.establishmentType || "hospitality space",
     zone: params.projectZone || "outdoor",
     style: params.style.join(", ") || "to be defined",
     ambience: params.ambience.join(", ") || "to be defined",
     capacity: params.seatingCapacity ? `${params.seatingCapacity} seats` : "to be defined",
+    layout: layoutLabels[params.seatingLayout] || "to be defined",
+    layoutPriority: priorityLabels[params.layoutPriority] || "to be defined",
     palette: params.colorPalette.join(", ") || "open",
     materials: params.materialPreferences.join(", ") || "open",
     constraints: [
