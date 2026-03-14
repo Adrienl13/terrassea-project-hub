@@ -222,7 +222,6 @@ const ProductDetail = () => {
                     <BarChart3 className="h-4 w-4" />
                     {isInCompare(product.id) ? "In compare" : "Compare"}
                   </button>
-                  </button>
                 </div>
 
                 {/* Tags */}
