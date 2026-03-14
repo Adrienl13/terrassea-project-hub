@@ -406,13 +406,23 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
               </p>
             )}
           </div>
-          <button
-            onClick={(e) => { e.preventDefault(); onAdd(product); }}
-            className="flex-shrink-0 mt-0.5 border border-border hover:border-foreground rounded-full p-1.5 transition-colors"
-            title="Add to project"
-          >
-            <Plus className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground" />
-          </button>
+          <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+            <button
+              onClick={(e) => { e.preventDefault(); addToCompare(product); }}
+              disabled={inCompare}
+              className={`border rounded-full p-1.5 transition-colors ${inCompare ? "border-foreground bg-foreground" : "border-border hover:border-foreground"}`}
+              title={inCompare ? "In compare" : "Compare"}
+            >
+              <BarChart3 className={`h-3 w-3 ${inCompare ? "text-primary-foreground" : "text-muted-foreground"}`} />
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); onAdd(product); }}
+              className="border border-border hover:border-foreground rounded-full p-1.5 transition-colors"
+              title="Add to project"
+            >
+              <Plus className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground" />
+            </button>
+          </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-body">
           {product.short_description}
