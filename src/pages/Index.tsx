@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, Compass, Layers, Send, Sparkles } from "lucide-react";
 import SmartSearch from "@/components/SmartSearch";
 import QuickAccessCards from "@/components/QuickAccessCards";
@@ -40,6 +41,7 @@ const steps = [
 type FlowPhase = "idle" | "product_search" | "discovery" | "results";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const [phase, setPhase] = useState<FlowPhase>("idle");
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,12 +96,7 @@ const Index = () => {
   };
 
   const handleQuickCreateProject = () => {
-    setSearchQuery("restaurant terrace project");
-    setProductSearchData(null);
-    setPhase("discovery");
-    setTimeout(() => {
-      discoveryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
+    navigate("/projects/new");
   };
 
   const handleQuickExploreProducts = () => {
@@ -332,7 +329,7 @@ const Index = () => {
               Start your project and let our team connect you with the best sourcing solutions in Europe.
             </p>
             <button
-              onClick={handleQuickCreateProject}
+              onClick={() => navigate("/projects/new")}
               className="mt-8 px-8 py-3.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
             >
               Launch my project

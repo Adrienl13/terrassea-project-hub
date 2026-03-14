@@ -47,7 +47,7 @@ const Header = () => {
             )}
           </Link>
           <Link
-            to="/"
+            to="/projects/new"
             className="hidden sm:inline-flex px-5 py-2.5 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
           >
             Launch my project
