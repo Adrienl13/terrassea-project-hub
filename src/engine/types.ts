@@ -1,9 +1,10 @@
 export interface ProjectParameters {
+  builderMode: "guided" | "expert" | "";
   establishmentType: string;
   projectZone: string;
   seatingCapacity: number | null;
-  seatingLayout: string; // "mostly-2" | "balanced-2-4" | "mostly-4" | "modular" | "group" | "custom"
-  layoutPriority: string; // "max-capacity" | "balanced" | "spacious" | "flexible-groups" | "couples" | "groups"
+  seatingLayout: string;
+  layoutPriority: string;
   style: string[];
   ambience: string[];
   colorPalette: string[];
@@ -12,6 +13,9 @@ export interface ProjectParameters {
   isOutdoor: boolean;
   budgetLevel: string;
   timeline: string;
+  terraceSurfaceM2: number | null;
+  terraceLength: number | null;
+  terraceWidth: number | null;
 }
 
 export interface ProjectConcept {
