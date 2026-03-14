@@ -96,12 +96,7 @@ const Index = () => {
   };
 
   const handleQuickCreateProject = () => {
-    setSearchQuery("restaurant terrace project");
-    setProductSearchData(null);
-    setPhase("discovery");
-    setTimeout(() => {
-      discoveryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
+    navigate("/projects/new");
   };
 
   const handleQuickExploreProducts = () => {
