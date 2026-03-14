@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
@@ -9,6 +10,25 @@ interface ProjectResultsProps {
   concepts: ProjectConcept[];
   query: string;
   products: DBProduct[];
+}
+
+function estimateBudget(
+  totalSeats: number,
+  budgetLevel: string
+): { min: number; max: number; avgPerSeat: number } | null {
+  const ranges: Record<string, [number, number]> = {
+    economy: [50, 80],
+    mid: [80, 120],
+    premium: [120, 180],
+    luxury: [180, 300],
+  };
+  const range = ranges[budgetLevel];
+  if (!range) return null;
+  return {
+    min: totalSeats * range[0],
+    max: totalSeats * range[1],
+    avgPerSeat: Math.round((range[0] + range[1]) / 2),
+  };
 }
 
 const ProjectResults = ({ parameters, concepts, query, products }: ProjectResultsProps) => {
@@ -38,17 +58,11 @@ const ProjectResults = ({ parameters, concepts, query, products }: ProjectResult
             {parameters.seatingCapacity && (
               <ParameterPill label="Capacity" value={`${parameters.seatingCapacity} seats`} />
             )}
+            {parameters.terraceSurfaceM2 && (
+              <ParameterPill label="Terrace" value={`${parameters.terraceSurfaceM2} m²`} />
+            )}
             {parameters.style.map((s) => (
               <ParameterPill key={s} label="Style" value={s} />
-            ))}
-            {parameters.ambience.map((a) => (
-              <ParameterPill key={a} label="Ambience" value={a} />
-            ))}
-            {parameters.colorPalette.map((c) => (
-              <ParameterPill key={c} label="Color" value={c} />
-            ))}
-            {parameters.materialPreferences.map((m) => (
-              <ParameterPill key={m} label="Material" value={m} />
             ))}
             {parameters.seatingLayout && (
               <ParameterPill label="Layout" value={parameters.seatingLayout.replace(/-/g, " ")} />
@@ -60,9 +74,20 @@ const ProjectResults = ({ parameters, concepts, query, products }: ProjectResult
         </motion.div>
 
         <div className="space-y-8">
-          {concepts.map((concept, i) => (
-            <ConceptCard key={concept.id} concept={concept} index={i} products={products} />
-          ))}
+          {concepts.map((concept, i) => {
+            const budget = concept.layout
+              ? estimateBudget(concept.layout.totalSeats, parameters.budgetLevel)
+              : null;
+            return (
+              <ConceptCard
+                key={concept.id}
+                concept={concept}
+                index={i}
+                products={products}
+                budgetEstimate={budget}
+              />
+            );
+          })}
         </div>
       </div>
     </section>
