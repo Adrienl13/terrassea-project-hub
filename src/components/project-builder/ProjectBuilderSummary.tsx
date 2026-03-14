@@ -1,4 +1,5 @@
 import { ProjectParameters } from "@/engine/types";
+import { getDensityInfo } from "@/engine/spatialEngine";
 
 interface ProjectBuilderSummaryProps {
   params: ProjectParameters;
