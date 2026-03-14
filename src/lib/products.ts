@@ -107,5 +107,5 @@ function normalizeProduct(raw: any): DBProduct {
     requires_assembly: raw.requires_assembly ?? false,
     popularity_score: raw.popularity_score ?? 0,
     priority_score: raw.priority_score ?? 0,
+    combinable: raw.combinable ?? false,
   };
-}
