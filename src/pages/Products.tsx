@@ -307,9 +307,10 @@ const Products = () => {
                 ))}
               </div>
             )}
-          </div>
+           </div>
         </section>
       </main>
+      <CompareBar />
       <Footer />
     </div>
   );
