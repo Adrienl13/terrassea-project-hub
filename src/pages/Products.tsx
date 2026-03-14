@@ -369,6 +369,8 @@ function StockBadge({ status }: { status: string | null }) {
 }
 
 function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DBProduct) => void }) {
+  const { addToCompare, isInCompare } = useCompare();
+  const inCompare = isInCompare(product.id);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
