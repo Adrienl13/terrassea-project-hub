@@ -166,6 +166,8 @@ const ProjectDiscovery = ({ query, onComplete, onReset }: ProjectDiscoveryProps)
               <SummaryRow label="Style" value={summary.style} />
               <SummaryRow label="Ambience" value={summary.ambience} />
               <SummaryRow label="Capacity" value={summary.capacity} />
+              <SummaryRow label="Layout" value={summary.layout} />
+              <SummaryRow label="Priority" value={summary.layoutPriority} />
               <SummaryRow label="Palette" value={summary.palette} />
               <SummaryRow label="Materials" value={summary.materials} />
               <SummaryRow label="Constraints" value={summary.constraints} />
