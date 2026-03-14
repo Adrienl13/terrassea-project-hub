@@ -329,7 +329,7 @@ const Index = () => {
               Start your project and let our team connect you with the best sourcing solutions in Europe.
             </p>
             <button
-              onClick={handleQuickCreateProject}
+              onClick={() => navigate("/projects/new")}
               className="mt-8 px-8 py-3.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
             >
               Launch my project
