@@ -8,6 +8,7 @@ import {
   Palette, Shield, Wrench, ArrowRightLeft,
 } from "lucide-react";
 import type { DBProduct } from "@/lib/products";
+import SupplierRecommendations from "./SupplierRecommendations";
 
 interface ProductDetailDrawerProps {
   product: DBProduct | null;
