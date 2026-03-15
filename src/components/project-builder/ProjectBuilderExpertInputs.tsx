@@ -317,6 +317,8 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
             if (!params.seatingCapacity && totalSeatsFromMix > 0) {
               onChange({ seatingCapacity: totalSeatsFromMix });
             }
+            // Pass table mix to params so layout engine respects user formats
+            onChange({ tableMix: tableMix.filter(t => t.quantity > 0) });
             onNext();
           }}
           disabled={!canProceed}

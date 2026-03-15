@@ -16,6 +16,13 @@ export interface ProjectParameters {
   terraceSurfaceM2: number | null;
   terraceLength: number | null;
   terraceWidth: number | null;
+  tableMix?: TableMixEntry[];
+}
+
+export interface TableMixEntry {
+  format: string;
+  quantity: number;
+  seatsPerTable: number;
 }
 
 export interface ProjectConcept {
