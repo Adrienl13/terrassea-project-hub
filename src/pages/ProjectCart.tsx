@@ -146,10 +146,11 @@ const ProjectCart = () => {
                               <p className="text-xs text-muted-foreground font-body mt-0.5">
                                 {product.category} · {product.indicative_price}
                               </p>
-                              <p className="text-[10px] text-muted-foreground font-body mt-1">
-                                Requirement: {layoutRequirementType || "manual"}
-                                {layoutRequirementLabel ? ` (${layoutRequirementLabel})` : ""} · Suggested: {layoutSuggestedQuantity ?? "—"} · Stored: {quantity}
-                              </p>
+                              {layoutRequirementLabel && (
+                                <p className="text-[10px] text-muted-foreground font-body mt-1">
+                                  {layoutRequirementLabel}
+                                </p>
+                              )}
                               <div className="flex items-center gap-3 mt-3">
                                 <button onClick={() => updateQuantity(product.id, quantity - 1)} className="h-7 w-7 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
                                   <Minus className="h-3 w-3" />
