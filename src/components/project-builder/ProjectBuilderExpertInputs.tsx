@@ -27,10 +27,12 @@ const TABLE_FORMATS = [
 const ESTABLISHMENT_TYPES = ["restaurant", "hotel", "rooftop", "beach-club", "bar", "camping", "event", "pool"];
 
 const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props) => {
-  const [tableMix, setTableMix] = useState<TableMixEntry[]>([
-    { format: "70×70", quantity: 10, seatsPerTable: 2 },
-    { format: "120×70", quantity: 5, seatsPerTable: 4 },
-  ]);
+  const [tableMix, setTableMix] = useState<TableMixEntry[]>(
+    params.tableMix?.length ? params.tableMix : [
+      { format: "70×70", quantity: 10, seatsPerTable: 2 },
+      { format: "120×70", quantity: 5, seatsPerTable: 4 },
+    ]
+  );
 
   const surface = params.terraceSurfaceM2 ??
     (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
