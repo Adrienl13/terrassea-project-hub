@@ -199,16 +199,22 @@ const ProductDetail = () => {
                   )}
                   <div className="flex items-center gap-3 mt-3">
                     <span className="text-lg font-display font-bold text-foreground">
-                      {product.indicative_price || "Price on request"}
+                      {lowestOfferPrice !== null
+                        ? `Starting from €${lowestOfferPrice.toFixed(2)}`
+                        : product.indicative_price || "Price on request"}
                     </span>
                     <StockBadge status={product.stock_status} />
                   </div>
-                  {product.estimated_delivery_days && (
-                    <p className="text-xs text-muted-foreground font-body mt-1 flex items-center gap-1">
-                      <Truck className="h-3 w-3" />
-                      Estimated delivery: {product.estimated_delivery_days} days
-                    </p>
-                  )}
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground font-body">
+                    {offersCount > 0 && (
+                      <span>{offersCount} seller{offersCount !== 1 ? "s" : ""}</span>
+                    )}
+                    {fastestDelivery !== null && (
+                      <span className="flex items-center gap-1">
+                        <Truck className="h-3 w-3" /> From {fastestDelivery} days
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Description */}
