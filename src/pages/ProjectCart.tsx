@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler, Truck, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,10 +9,12 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import ProductDetailDrawer from "@/components/project/ProductDetailDrawer";
 import AvailabilityBadge from "@/components/project/AvailabilityBadge";
+import SourcingSummary from "@/components/project/SourcingSummary";
+import SourcingAlerts from "@/components/project/SourcingAlerts";
 import type { DBProduct } from "@/lib/products";
 
 const ProjectCart = () => {
-  const { items, removeItem, updateQuantity, notes, setNotes } = useProjectCart();
+  const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus } = useProjectCart();
   const [formData, setFormData] = useState({
     name: "", company: "", email: "", phone: "", city: "", country: "",
     projectSize: "", budget: "", timeline: "",
@@ -114,7 +116,6 @@ const ProjectCart = () => {
     );
   }
 
-  // Format dimensions for compact card display
   const formatDimsCompact = (p: DBProduct) => {
     if (p.dimensions_length_cm && p.dimensions_width_cm) {
       return `${p.dimensions_length_cm}×${p.dimensions_width_cm}${p.dimensions_height_cm ? `×${p.dimensions_height_cm}` : ""} cm`;
@@ -131,9 +132,17 @@ const ProjectCart = () => {
             <ArrowLeft className="h-4 w-4" /> Back to explore
           </Link>
           <h1 className="font-display text-3xl font-bold text-foreground mb-2">My Project</h1>
-          <p className="text-sm text-muted-foreground font-body mb-12">
+          <p className="text-sm text-muted-foreground font-body mb-8">
             Review your design selection, verify availability and submit for sourcing
           </p>
+
+          {/* Sourcing summary + alerts */}
+          {items.length > 0 && (
+            <>
+              <SourcingSummary items={items} quotationStatus={quotationStatus} />
+              <SourcingAlerts items={items} />
+            </>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
             <div className="lg:col-span-3">
@@ -155,7 +164,7 @@ const ProjectCart = () => {
                         </span>
                       </div>
                       <div className="space-y-3">
-                        {conceptItems.map(({ product, quantity, layoutRequirementLabel }) => {
+                        {conceptItems.map(({ product, quantity, layoutRequirementLabel, selectedSupplier }) => {
                           const dims = formatDimsCompact(product);
                           return (
                             <motion.div
@@ -176,7 +185,7 @@ const ProjectCart = () => {
                                 />
                               </button>
 
-                              {/* Clickable info area */}
+                              {/* Info area */}
                               <div className="flex-1 min-w-0">
                                 <button
                                   onClick={() => openProductDetail(product)}
@@ -192,7 +201,6 @@ const ProjectCart = () => {
                                   </p>
                                 </button>
 
-                                {/* Dimensions */}
                                 {dims && (
                                   <p className="text-[10px] text-muted-foreground font-body mt-1 flex items-center gap-1">
                                     <Ruler className="h-2.5 w-2.5" />
@@ -200,7 +208,6 @@ const ProjectCart = () => {
                                   </p>
                                 )}
 
-                                {/* Layout requirement label */}
                                 {layoutRequirementLabel && (
                                   <p className="text-[10px] text-muted-foreground font-body mt-0.5">
                                     {layoutRequirementLabel}
@@ -211,6 +218,30 @@ const ProjectCart = () => {
                                 <div className="mt-2">
                                   <AvailabilityBadge product={product} compact />
                                 </div>
+
+                                {/* Selected supplier chip */}
+                                {selectedSupplier && (
+                                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/5 border border-primary/20 text-[10px] font-display font-semibold text-foreground">
+                                      {selectedSupplier.partnerName}
+                                      {selectedSupplier.partnerCountry ? ` · ${selectedSupplier.partnerCountry}` : ""}
+                                      {selectedSupplier.price != null ? ` · €${selectedSupplier.price.toFixed(2)}` : ""}
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); clearSupplier(product.id); }}
+                                        className="ml-1 hover:text-destructive transition-colors"
+                                        title="Remove supplier"
+                                      >
+                                        <X className="h-2.5 w-2.5" />
+                                      </button>
+                                    </span>
+                                    {selectedSupplier.deliveryDelayDays != null && (
+                                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                        <Truck className="h-2.5 w-2.5" />
+                                        {selectedSupplier.deliveryDelayDays}d
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
 
                                 {/* Quantity controls */}
                                 <div className="flex items-center gap-3 mt-3">
@@ -245,7 +276,7 @@ const ProjectCart = () => {
                 </div>
               )}
 
-              {/* Project Summary */}
+              {/* Project Stats */}
               {items.length > 0 && (
                 <div className="mt-6 p-5 bg-card rounded-sm">
                   <div className="flex items-center justify-between">

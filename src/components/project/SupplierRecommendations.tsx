@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   CheckCircle2, Zap, Star, Package, Truck, FileText, MessageSquare,
-  ShoppingCart, ChevronDown, ChevronUp, TrendingUp,
+  ChevronDown, ChevronUp, TrendingUp,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { scoreSupplierOffers, type ScoredOffer, type SupplierBadge } from "@/engine/supplierEngine";
-import { useProjectCart } from "@/contexts/ProjectCartContext";
+import { useProjectCart, type SelectedSupplier } from "@/contexts/ProjectCartContext";
+import { toast } from "sonner";
 
 interface SupplierRecommendationsProps {
   productId: string;
@@ -46,12 +46,28 @@ const STOCK_DOT: Record<string, string> = {
   out_of_stock: "bg-destructive",
 };
 
+function offerToSelectedSupplier(offer: ScoredOffer): SelectedSupplier {
+  return {
+    offerId: offer.id,
+    partnerId: offer.partner_id,
+    partnerName: offer.partner?.name || "Unknown",
+    partnerCountry: offer.partner?.country,
+    price: offer.price,
+    stockStatus: offer.stock_status,
+    stockQuantity: offer.stock_quantity,
+    deliveryDelayDays: offer.delivery_delay_days,
+    purchaseType: offer.purchase_type,
+    score: offer.scores.total,
+  };
+}
+
 const SupplierRecommendations = ({ productId, productName }: SupplierRecommendationsProps) => {
-  const { items } = useProjectCart();
+  const { items, selectSupplier } = useProjectCart();
   const [offers, setOffers] = useState<ScoredOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
 
+  const currentItem = items.find((i) => i.product.id === productId);
   const projectProductIds = items.map((i) => i.product.id);
 
   useEffect(() => {
@@ -70,6 +86,11 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId, items.length]);
+
+  const handleSelectSupplier = (offer: ScoredOffer) => {
+    selectSupplier(productId, offerToSelectedSupplier(offer));
+    toast.success(`${offer.partner?.name} selected for ${productName}`);
+  };
 
   if (loading) {
     return (
@@ -91,6 +112,29 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
   const recommended = offers.find((o) => o.isRecommended);
   const others = offers.filter((o) => !o.isRecommended);
   const visibleOthers = expanded ? others : others.slice(0, 1);
+  const isSelected = (offerId: string) => currentItem?.selectedSupplier?.offerId === offerId;
+
+  const renderSelectButton = (offer: ScoredOffer) => {
+    const selected = isSelected(offer.id);
+    return (
+      <button
+        onClick={() => handleSelectSupplier(offer)}
+        className={`flex items-center gap-1.5 text-[10px] font-display font-semibold rounded-full px-3 py-1.5 transition-all ${
+          selected
+            ? "bg-primary text-primary-foreground"
+            : offer.isRecommended
+              ? "bg-foreground text-primary-foreground hover:opacity-90"
+              : "border border-foreground text-foreground hover:bg-foreground hover:text-primary-foreground"
+        }`}
+      >
+        {selected ? (
+          <><CheckCircle2 className="h-3 w-3" /> Selected</>
+        ) : (
+          <><FileText className="h-3 w-3" /> {offer.purchase_type === "direct" ? "Select supplier" : "Select for quote"}</>
+        )}
+      </button>
+    );
+  };
 
   return (
     <div className="mb-6">
@@ -103,7 +147,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
 
       {/* Recommended supplier */}
       {recommended && (
-        <div className="border border-primary/20 bg-primary/5 rounded-sm p-3 mb-2">
+        <div className={`border rounded-sm p-3 mb-2 ${isSelected(recommended.id) ? "border-primary bg-primary/5" : "border-primary/20 bg-primary/5"}`}>
           <div className="flex items-start gap-3">
             {recommended.partner?.logo_url ? (
               <img src={recommended.partner.logo_url} alt="" className="w-8 h-8 rounded-full object-cover bg-card flex-shrink-0" />
@@ -138,14 +182,12 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                 {recommended.partner?.partner_type} · {recommended.partner?.country}
               </p>
 
-              {/* Recommendation reason */}
               {recommended.recommendationReason && (
                 <p className="text-[10px] font-body text-muted-foreground mt-1.5 italic leading-snug">
                   {recommended.recommendationReason}
                 </p>
               )}
 
-              {/* Offer details */}
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <span className="font-display font-bold text-sm text-foreground">
                   {recommended.price ? `€${recommended.price.toFixed(2)}` : "On request"}
@@ -162,7 +204,6 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                 )}
               </div>
 
-              {/* Score bar */}
               <div className="mt-2 flex items-center gap-2">
                 <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
                   <div
@@ -175,12 +216,8 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                 </span>
               </div>
 
-              {/* CTA */}
               <div className="flex gap-2 mt-2.5">
-                <button className="flex items-center gap-1.5 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full px-3 py-1.5 hover:opacity-90 transition-opacity">
-                  <FileText className="h-3 w-3" />
-                  {recommended.purchase_type === "direct" ? "Add to cart" : "Request quote"}
-                </button>
+                {renderSelectButton(recommended)}
                 <button className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title="Contact supplier">
                   <MessageSquare className="h-3 w-3 text-muted-foreground" />
                 </button>
@@ -192,7 +229,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
 
       {/* Other suppliers */}
       {visibleOthers.map((offer) => (
-        <div key={offer.id} className="border border-border rounded-sm p-3 mb-2">
+        <div key={offer.id} className={`border rounded-sm p-3 mb-2 ${isSelected(offer.id) ? "border-primary bg-primary/5" : "border-border"}`}>
           <div className="flex items-start gap-3">
             <div className="w-7 h-7 rounded-full bg-card flex items-center justify-center text-[10px] font-display font-bold text-muted-foreground flex-shrink-0">
               {offer.partner?.name?.charAt(0) || "?"}
@@ -238,10 +275,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                 </span>
               </div>
               <div className="flex gap-2 mt-2">
-                <button className="flex items-center gap-1.5 text-[10px] font-display font-semibold border border-foreground text-foreground rounded-full px-3 py-1.5 hover:bg-foreground hover:text-primary-foreground transition-all">
-                  <FileText className="h-3 w-3" />
-                  {offer.purchase_type === "direct" ? "Add to cart" : "Request quote"}
-                </button>
+                {renderSelectButton(offer)}
               </div>
             </div>
           </div>
@@ -261,6 +295,10 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
           )}
         </button>
       )}
+
+      <p className="text-[9px] font-body text-muted-foreground italic mt-3">
+        Recommended based on current project configuration · Availability subject to supplier confirmation
+      </p>
 
       <Separator className="mt-4" />
     </div>
