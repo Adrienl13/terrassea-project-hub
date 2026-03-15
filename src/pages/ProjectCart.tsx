@@ -341,6 +341,7 @@ const ProjectCart = () => {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         quantity={selectedItem?.quantity}
+        showSuppliers
         onAddToQuotation={() => {
           toast.success(`${selectedProduct?.name} confirmed in quotation`);
           setDrawerOpen(false);
