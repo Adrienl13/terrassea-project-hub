@@ -9,7 +9,7 @@ export interface CartItem {
 
 interface ProjectCartContextType {
   items: CartItem[];
-  addItem: (product: DBProduct, conceptName?: string) => void;
+  addItem: (product: DBProduct, conceptName?: string, quantity?: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   itemCount: number;
