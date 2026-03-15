@@ -312,17 +312,15 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1 }: VendorOffersProp
                   <td className="py-4 text-xs text-muted-foreground">
                     {offer.delivery_delay_days ? `${offer.delivery_delay_days} days` : "—"}
                   </td>
-                  <td className="py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleAddToCart(offer)}
-                        className="flex items-center gap-1.5 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full px-3 py-1.5 hover:opacity-90 transition-opacity"
-                      >
-                        <ShoppingCart className="h-3 w-3" /> Add {quantity}×
-                      </button>
-                      <button className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title="Contact seller">
-                        <MessageSquare className="h-3 w-3 text-muted-foreground" />
-                      </button>
+                  <td className="py-4">
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2">
+                        <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={handleAddToCart} />
+                        <button className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title="Contact seller">
+                          <MessageSquare className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                      </div>
+                      <FitHelperText fit={fit} offer={offer} quantity={quantity} />
                     </div>
                   </td>
                 </tr>
