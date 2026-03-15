@@ -110,7 +110,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
             {stats.maxLeadTime !== null ? `${stats.maxLeadTime}d` : "—"}
           </span>
           <span className="text-[9px] font-body uppercase tracking-wider text-muted-foreground">
-            Max lead time
+            Estimate lead time
           </span>
         </div>
 
