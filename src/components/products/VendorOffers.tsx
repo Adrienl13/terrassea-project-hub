@@ -78,14 +78,9 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1 }: VendorOffersProp
   const [quantity, setQuantity] = useState(defaultQuantity);
   const { addItem, selectSupplier } = useProjectCart();
 
-  if (offers.length === 0) return null;
-
-  const handleQuantityChange = (val: number) => {
-    setQuantity(Math.max(1, val));
-  };
-
-  // Summary computations
+  // Summary computations (hooks before early return)
   const summary = useMemo(() => {
+    if (offers.length === 0) return { lowestTotal: null, fastestDelivery: null, bestStockOffer: null };
     const priced = offers.filter((o) => o.price !== null);
     const lowestPrice = priced.length > 0
       ? Math.min(...priced.map((o) => o.price!))
