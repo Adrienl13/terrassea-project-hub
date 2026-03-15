@@ -8,6 +8,7 @@ import {
   Palette, Shield, Wrench, ArrowRightLeft,
 } from "lucide-react";
 import type { DBProduct } from "@/lib/products";
+import SupplierRecommendations from "./SupplierRecommendations";
 
 interface ProductDetailDrawerProps {
   product: DBProduct | null;
@@ -16,6 +17,7 @@ interface ProductDetailDrawerProps {
   quantity?: number;
   onAddToQuotation?: () => void;
   onReplaceVariant?: () => void;
+  showSuppliers?: boolean;
 }
 
 // ── Availability logic ──
@@ -98,6 +100,7 @@ const ProductDetailDrawer = ({
   quantity,
   onAddToQuotation,
   onReplaceVariant,
+  showSuppliers = false,
 }: ProductDetailDrawerProps) => {
   if (!product) return null;
 
@@ -201,6 +204,14 @@ const ProductDetailDrawer = ({
                 Availability subject to final confirmation
               </p>
             </div>
+
+            {/* ── Supplier Recommendations ── */}
+            {showSuppliers && (
+              <SupplierRecommendations
+                productId={product.id}
+                productName={product.name}
+              />
+            )}
 
             {/* ── Description ── */}
             {(product.short_description || product.long_description) && (
