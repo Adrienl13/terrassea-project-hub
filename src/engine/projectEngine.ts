@@ -768,6 +768,153 @@ function generateReason(
 }
 
 // ═══════════════════════════════════════════════════════════
+// Layout requirement mapping
+// ═══════════════════════════════════════════════════════════
+
+function normalizeLookupValue(value: string | null | undefined): string {
+  return (value ?? "").toLowerCase().replace(/[_\s-]/g, "");
+}
+
+function inferRequirementType(product: DBProduct): LayoutRequirementType {
+  const category = normalizeLookupValue(product.category);
+  const subcategory = normalizeLookupValue(product.subcategory);
+
+  if (category.includes("armchair") || subcategory.includes("armchair")) return "armchair";
+  if (category.includes("chair") || category.includes("stool") || subcategory.includes("chair")) return "chair";
+  if (category.includes("parasol") || subcategory.includes("parasol")) return "parasol";
+
+  if (category.includes("table")) {
+    if (subcategory.includes("tablebase") || subcategory.includes("bartablebase")) return "table_base";
+    if (subcategory.includes("tabletop")) return "tabletop";
+    return "complete_table";
+  }
+
+  return "other";
+}
+
+function buildLayoutRequirements(layout: LayoutRecommendation): LayoutRequirement[] {
+  const requirements: LayoutRequirement[] = [];
+
+  requirements.push({
+    id: "chairs-main",
+    type: "chair",
+    label: "Chair seating",
+    requiredQuantity: Math.max(layout.chairCount, 1),
+  });
+
+  requirements.push({
+    id: "armchairs-main",
+    type: "armchair",
+    label: "Armchair seating",
+    requiredQuantity: Math.max(1, Math.round(layout.chairCount * 0.25)),
+  });
+
+  requirements.push({
+    id: "parasols-main",
+    type: "parasol",
+    label: "Parasol coverage",
+    requiredQuantity: Math.max(1, Math.round(layout.totalSeats / 4)),
+  });
+
+  layout.tableGroups.forEach((group, index) => {
+    const suffix = `${group.tableFormat} (${group.quantity})`;
+
+    requirements.push({
+      id: `complete-table-${index}`,
+      type: "complete_table",
+      label: `Complete table ${suffix}`,
+      requiredQuantity: group.quantity,
+      tableFormat: group.tableFormat,
+    });
+
+    requirements.push({
+      id: `table-base-${index}`,
+      type: "table_base",
+      label: `Table base ${suffix}`,
+      requiredQuantity: group.quantity,
+      tableFormat: group.tableFormat,
+    });
+
+    requirements.push({
+      id: `tabletop-${index}`,
+      type: "tabletop",
+      label: `Tabletop ${suffix}`,
+      requiredQuantity: group.quantity,
+      tableFormat: group.tableFormat,
+    });
+  });
+
+  return requirements;
+}
+
+function assignLayoutRequirementsToRecommendations(
+  recommended: RecommendedProduct[],
+  products: DBProduct[],
+  requirements: LayoutRequirement[]
+) {
+  const requirementsByType = requirements.reduce<Record<LayoutRequirementType, LayoutRequirement[]>>(
+    (acc, requirement) => {
+      acc[requirement.type].push(requirement);
+      return acc;
+    },
+    {
+      chair: [],
+      armchair: [],
+      complete_table: [],
+      table_base: [],
+      tabletop: [],
+      parasol: [],
+      other: [],
+    }
+  );
+
+  const typeCursors: Partial<Record<LayoutRequirementType, number>> = {};
+
+  for (const rec of recommended) {
+    const product = products.find((p) => p.id === rec.productId);
+    if (!product) continue;
+
+    const inferredType = inferRequirementType(product);
+    const typedRequirements = requirementsByType[inferredType];
+    const cursor = typeCursors[inferredType] || 0;
+
+    let matchedRequirement = typedRequirements[cursor] || typedRequirements[typedRequirements.length - 1];
+
+    if (!matchedRequirement && inferredType === "armchair") {
+      matchedRequirement = requirementsByType.armchair[0] || requirementsByType.chair[0];
+    }
+
+    if (
+      !matchedRequirement &&
+      (inferredType === "table_base" || inferredType === "tabletop" || inferredType === "complete_table")
+    ) {
+      matchedRequirement =
+        requirementsByType[inferredType][0] ||
+        requirementsByType.complete_table[0] ||
+        requirementsByType.table_base[0] ||
+        requirementsByType.tabletop[0];
+    }
+
+    if (!matchedRequirement && inferredType === "chair") {
+      matchedRequirement = requirementsByType.chair[0];
+    }
+
+    if (!matchedRequirement && inferredType === "parasol") {
+      matchedRequirement = requirementsByType.parasol[0];
+    }
+
+    rec.layoutRequirementType = matchedRequirement?.type ?? inferredType;
+    rec.layoutRequirementLabel = matchedRequirement?.label ?? "Manual sourcing";
+    rec.layoutRequirementId = matchedRequirement?.id;
+    rec.suggestedQuantity = matchedRequirement?.requiredQuantity ?? 1;
+
+    if (matchedRequirement && typedRequirements.length > 0) {
+      typeCursors[inferredType] = cursor + 1;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 // STEP 5: Main engine function
 // ═══════════════════════════════════════════════════════════
 
