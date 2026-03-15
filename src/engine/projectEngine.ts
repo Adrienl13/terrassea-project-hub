@@ -942,30 +942,10 @@ export function generateProjectConcepts(
 
     // Assign layout to concept (main, alt, flex)
     const layout = layouts[i] || layouts[0];
+    const requirements = layout ? buildLayoutRequirements(layout) : [];
 
-    // Populate suggestedQuantity from layout for each recommended product
-    if (layout) {
-      const totalTables = layout.tableGroups.reduce((s, g) => s + g.quantity, 0);
-      for (const rec of recommended) {
-        const product = products.find((p) => p.id === rec.productId);
-        if (!product) continue;
-        const cat = product.category?.toLowerCase() || "";
-        if (cat === "chair" || cat === "chaise") {
-          rec.suggestedQuantity = layout.chairCount;
-        } else if (cat === "armchair" || cat === "fauteuil") {
-          // Armchairs get a portion of seating (e.g. 25% or at least the table count)
-          rec.suggestedQuantity = Math.max(Math.round(layout.chairCount * 0.25), totalTables);
-        } else if (cat === "table") {
-          rec.suggestedQuantity = totalTables;
-        } else if (cat === "stool" || cat === "tabouret") {
-          rec.suggestedQuantity = layout.chairCount;
-        } else if (cat === "parasol") {
-          // Roughly 1 parasol per 4 seats
-          rec.suggestedQuantity = Math.max(1, Math.round(layout.totalSeats / 4));
-        } else {
-          rec.suggestedQuantity = 1;
-        }
-      }
+    if (requirements.length > 0) {
+      assignLayoutRequirementsToRecommendations(recommended, products, requirements);
     }
 
     return {
@@ -976,7 +956,7 @@ export function generateProjectConcepts(
       colorNames: template.colorNames,
       moodKeywords: template.mood,
       products: recommended,
-      layout,
+      layout: layout ? { ...layout, requirements } : layout,
     };
   });
 
