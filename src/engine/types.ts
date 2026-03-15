@@ -29,6 +29,23 @@ export interface ProjectConcept {
   layout?: LayoutRecommendation;
 }
 
+export type LayoutRequirementType =
+  | "chair"
+  | "armchair"
+  | "complete_table"
+  | "table_base"
+  | "tabletop"
+  | "parasol"
+  | "other";
+
+export interface LayoutRequirement {
+  id: string;
+  type: LayoutRequirementType;
+  label: string;
+  requiredQuantity: number;
+  tableFormat?: string;
+}
+
 export interface LayoutRecommendation {
   label: string; // "Suggested layout" | "Alternative layout" | "Flexible layout"
   totalSeats: number;
@@ -36,6 +53,7 @@ export interface LayoutRecommendation {
   chairCount: number;
   notes: string;
   spatialMetrics?: SpatialMetricsData;
+  requirements?: LayoutRequirement[];
 }
 
 export interface SpatialMetricsData {
@@ -67,6 +85,9 @@ export interface RecommendedProduct {
   relevanceScore: number;
   reason: string;
   suggestedQuantity?: number;
+  layoutRequirementType?: LayoutRequirementType;
+  layoutRequirementLabel?: string;
+  layoutRequirementId?: string;
 }
 
 export interface DiscoveryQuestion {
