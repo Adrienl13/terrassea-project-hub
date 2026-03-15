@@ -21,9 +21,9 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
   const conceptProducts = concept.products
     .map((rec) => {
       const product = products.find((p) => p.id === rec.productId);
-      return product ? { ...product, relevance: rec.relevanceScore, reason: rec.reason } : null;
+      return product ? { ...product, relevance: rec.relevanceScore, reason: rec.reason, suggestedQuantity: rec.suggestedQuantity } : null;
     })
-    .filter(Boolean) as (DBProduct & { relevance: number; reason: string })[];
+    .filter(Boolean) as (DBProduct & { relevance: number; reason: string; suggestedQuantity?: number })[];
 
   const isInCart = (productId: string) => items.some((i) => i.product.id === productId);
 
