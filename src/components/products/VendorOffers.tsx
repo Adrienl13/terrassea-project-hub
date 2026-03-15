@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Package, Truck, ShoppingCart, FileText, MessageSquare,
-  Minus, Plus, Zap, AlertTriangle, CheckCircle2, XCircle,
+  Minus, Plus, Zap, AlertTriangle, CheckCircle2, XCircle, Clock,
 } from "lucide-react";
 import type { ProductOffer } from "@/lib/productOffers";
 import type { DBProduct } from "@/lib/products";
@@ -71,6 +71,58 @@ function FitBadge({ fit }: { fit: QuantityFit }) {
       <Icon className="h-3 w-3" />
       {config.label}
     </span>
+  );
+}
+
+function FitHelperText({ fit, offer, quantity }: { fit: QuantityFit; offer: ProductOffer; quantity: number }) {
+  if (fit === "full_match") return null;
+  const stockQty = offer.stock_quantity ?? 0;
+  const remaining = quantity - stockQty;
+
+  return (
+    <div className="text-[10px] text-muted-foreground leading-relaxed mt-1 text-right">
+      {fit === "partial_stock" && (
+        <>
+          <p>Only {stockQty} in stock</p>
+          <p>{remaining} require restock</p>
+        </>
+      )}
+      {fit === "production_required" && (
+        <p className="flex items-center justify-end gap-1">
+          <Clock className="h-3 w-3" />
+          Requires production{offer.delivery_delay_days ? ` · ${offer.delivery_delay_days}d` : ""}
+        </p>
+      )}
+      {fit === "moq_not_met" && <p>Min. order: {offer.minimum_order} units</p>}
+      {fit === "out_of_stock" && <p>Currently unavailable</p>}
+    </div>
+  );
+}
+
+function OfferAction({ fit, offer, quantity, onAddToCart }: {
+  fit: QuantityFit; offer: ProductOffer; quantity: number; onAddToCart: (o: ProductOffer) => void;
+}) {
+  if (fit === "full_match") {
+    return (
+      <button onClick={() => onAddToCart(offer)}
+        className="flex items-center gap-1.5 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full px-3 py-1.5 hover:opacity-90 transition-opacity">
+        <ShoppingCart className="h-3 w-3" /> Add {quantity}×
+      </button>
+    );
+  }
+  if (fit === "out_of_stock" || fit === "moq_not_met") {
+    return (
+      <button disabled
+        className="flex items-center gap-1.5 text-[10px] font-display font-semibold bg-muted text-muted-foreground rounded-full px-3 py-1.5 cursor-not-allowed opacity-60">
+        <XCircle className="h-3 w-3" /> Unavailable
+      </button>
+    );
+  }
+  const label = fit === "production_required" ? "Request production quote" : `Request quote for ${quantity}`;
+  return (
+    <button className="flex items-center gap-1.5 text-[10px] font-display font-semibold border border-foreground text-foreground rounded-full px-3 py-1.5 hover:bg-foreground hover:text-primary-foreground transition-colors">
+      <FileText className="h-3 w-3" /> {label}
+    </button>
   );
 }
 
@@ -260,17 +312,15 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1 }: VendorOffersProp
                   <td className="py-4 text-xs text-muted-foreground">
                     {offer.delivery_delay_days ? `${offer.delivery_delay_days} days` : "—"}
                   </td>
-                  <td className="py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleAddToCart(offer)}
-                        className="flex items-center gap-1.5 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full px-3 py-1.5 hover:opacity-90 transition-opacity"
-                      >
-                        <ShoppingCart className="h-3 w-3" /> Add {quantity}×
-                      </button>
-                      <button className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title="Contact seller">
-                        <MessageSquare className="h-3 w-3 text-muted-foreground" />
-                      </button>
+                  <td className="py-4">
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2">
+                        <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={handleAddToCart} />
+                        <button className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title="Contact seller">
+                          <MessageSquare className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                      </div>
+                      <FitHelperText fit={fit} offer={offer} quantity={quantity} />
                     </div>
                   </td>
                 </tr>
@@ -319,13 +369,11 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1 }: VendorOffersProp
                 <FitBadge fit={fit} />
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => handleAddToCart(offer)}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full px-3 py-2 hover:opacity-90 transition-opacity"
-                >
-                  <ShoppingCart className="h-3 w-3" /> Add {quantity}× to project
-                </button>
-                <button className="p-2 border border-border rounded-full hover:border-foreground transition-colors">
+                <div className="flex-1 flex flex-col gap-1">
+                  <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={handleAddToCart} />
+                  <FitHelperText fit={fit} offer={offer} quantity={quantity} />
+                </div>
+                <button className="p-2 border border-border rounded-full hover:border-foreground transition-colors self-start">
                   <MessageSquare className="h-3 w-3 text-muted-foreground" />
                 </button>
               </div>
