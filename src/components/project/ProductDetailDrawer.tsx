@@ -205,6 +205,14 @@ const ProductDetailDrawer = ({
               </p>
             </div>
 
+            {/* ── Supplier Recommendations ── */}
+            {showSuppliers && (
+              <SupplierRecommendations
+                productId={product.id}
+                productName={product.name}
+              />
+            )}
+
             {/* ── Description ── */}
             {(product.short_description || product.long_description) && (
               <>
