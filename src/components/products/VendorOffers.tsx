@@ -106,6 +106,11 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1 }: VendorOffersProp
 
     return { lowestTotal, fastestDelivery, bestStockOffer };
   }, [offers, quantity]);
+  if (offers.length === 0) return null;
+
+  const handleQuantityChange = (val: number) => {
+    setQuantity(Math.max(1, val));
+  };
 
   const handleAddToCart = (offer: ProductOffer) => {
     addItem(product, undefined, quantity);
