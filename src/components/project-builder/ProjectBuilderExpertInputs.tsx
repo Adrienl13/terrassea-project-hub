@@ -13,12 +13,6 @@ interface Props {
   onNext: () => void;
 }
 
-interface TableMixEntry {
-  format: string;
-  quantity: number;
-  seatsPerTable: number;
-}
-
 const TABLE_FORMATS = [
   { format: "70×70", seats: 2, label: "70×70 cm — 2 seats" },
   { format: "80×80", seats: 4, label: "80×80 cm — 4 seats" },
