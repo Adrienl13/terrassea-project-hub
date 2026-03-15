@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ProjectParameters } from "@/engine/types";
+import { ProjectParameters, TableMixEntry } from "@/engine/types";
 import { getDensityInfo, getMaxSeats } from "@/engine/spatialEngine";
 
 interface Props {
