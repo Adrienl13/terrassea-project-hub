@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -16,7 +17,7 @@ import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { addItem } = useProjectCart();
+  const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
 
   const { data: product, isLoading } = useQuery({
@@ -36,6 +37,26 @@ const ProductDetail = () => {
     queryFn: () => fetchProductOffers(id!),
     enabled: !!id,
   });
+
+  // Compute offer-based stats (hooks before early returns)
+  const lowestOfferPrice = useMemo(() => {
+    const priced = offers.filter((o) => o.price !== null);
+    if (priced.length === 0) return null;
+    return Math.min(...priced.map((o) => o.price!));
+  }, [offers]);
+
+  const offersCount = offers.length;
+  const fastestDelivery = useMemo(() => {
+    const withDel = offers.filter((o) => o.delivery_delay_days !== null);
+    if (withDel.length === 0) return null;
+    return Math.min(...withDel.map((o) => o.delivery_delay_days!));
+  }, [offers]);
+
+  // Project-aware default quantity
+  const projectQuantity = useMemo(() => {
+    const cartItem = items.find((i) => i.product.id === id);
+    return cartItem?.layoutSuggestedQuantity ?? cartItem?.quantity ?? 1;
+  }, [items, id]);
 
   if (isLoading) {
     return (
@@ -178,16 +199,22 @@ const ProductDetail = () => {
                   )}
                   <div className="flex items-center gap-3 mt-3">
                     <span className="text-lg font-display font-bold text-foreground">
-                      {product.indicative_price || "Price on request"}
+                      {lowestOfferPrice !== null
+                        ? `Starting from €${lowestOfferPrice.toFixed(2)}`
+                        : product.indicative_price || "Price on request"}
                     </span>
                     <StockBadge status={product.stock_status} />
                   </div>
-                  {product.estimated_delivery_days && (
-                    <p className="text-xs text-muted-foreground font-body mt-1 flex items-center gap-1">
-                      <Truck className="h-3 w-3" />
-                      Estimated delivery: {product.estimated_delivery_days} days
-                    </p>
-                  )}
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground font-body">
+                    {offersCount > 0 && (
+                      <span>{offersCount} seller{offersCount !== 1 ? "s" : ""}</span>
+                    )}
+                    {fastestDelivery !== null && (
+                      <span className="flex items-center gap-1">
+                        <Truck className="h-3 w-3" /> From {fastestDelivery} days
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Description */}
@@ -323,7 +350,7 @@ const ProductDetail = () => {
         {/* Vendor offers */}
         <section className="px-6 mt-4">
           <div className="container mx-auto">
-            <VendorOffers offers={offers} productName={product.name} />
+            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} />
           </div>
         </section>
 
