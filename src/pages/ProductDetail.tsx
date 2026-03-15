@@ -17,7 +17,7 @@ import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { addItem } = useProjectCart();
+  const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
 
   const { data: product, isLoading } = useQuery({
