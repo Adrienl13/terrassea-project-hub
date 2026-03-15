@@ -369,13 +369,11 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1 }: VendorOffersProp
                 <FitBadge fit={fit} />
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => handleAddToCart(offer)}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full px-3 py-2 hover:opacity-90 transition-opacity"
-                >
-                  <ShoppingCart className="h-3 w-3" /> Add {quantity}× to project
-                </button>
-                <button className="p-2 border border-border rounded-full hover:border-foreground transition-colors">
+                <div className="flex-1 flex flex-col gap-1">
+                  <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={handleAddToCart} />
+                  <FitHelperText fit={fit} offer={offer} quantity={quantity} />
+                </div>
+                <button className="p-2 border border-border rounded-full hover:border-foreground transition-colors self-start">
                   <MessageSquare className="h-3 w-3 text-muted-foreground" />
                 </button>
               </div>
