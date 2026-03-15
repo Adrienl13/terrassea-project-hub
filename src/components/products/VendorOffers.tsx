@@ -74,6 +74,58 @@ function FitBadge({ fit }: { fit: QuantityFit }) {
   );
 }
 
+function FitHelperText({ fit, offer, quantity }: { fit: QuantityFit; offer: ProductOffer; quantity: number }) {
+  if (fit === "full_match") return null;
+  const stockQty = offer.stock_quantity ?? 0;
+  const remaining = quantity - stockQty;
+
+  return (
+    <div className="text-[10px] text-muted-foreground leading-relaxed mt-1 text-right">
+      {fit === "partial_stock" && (
+        <>
+          <p>Only {stockQty} in stock</p>
+          <p>{remaining} require restock</p>
+        </>
+      )}
+      {fit === "production_required" && (
+        <p className="flex items-center justify-end gap-1">
+          <Clock className="h-3 w-3" />
+          Requires production{offer.delivery_delay_days ? ` · ${offer.delivery_delay_days}d` : ""}
+        </p>
+      )}
+      {fit === "moq_not_met" && <p>Min. order: {offer.minimum_order} units</p>}
+      {fit === "out_of_stock" && <p>Currently unavailable</p>}
+    </div>
+  );
+}
+
+function OfferAction({ fit, offer, quantity, onAddToCart }: {
+  fit: QuantityFit; offer: ProductOffer; quantity: number; onAddToCart: (o: ProductOffer) => void;
+}) {
+  if (fit === "full_match") {
+    return (
+      <button onClick={() => onAddToCart(offer)}
+        className="flex items-center gap-1.5 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full px-3 py-1.5 hover:opacity-90 transition-opacity">
+        <ShoppingCart className="h-3 w-3" /> Add {quantity}×
+      </button>
+    );
+  }
+  if (fit === "out_of_stock" || fit === "moq_not_met") {
+    return (
+      <button disabled
+        className="flex items-center gap-1.5 text-[10px] font-display font-semibold bg-muted text-muted-foreground rounded-full px-3 py-1.5 cursor-not-allowed opacity-60">
+        <XCircle className="h-3 w-3" /> Unavailable
+      </button>
+    );
+  }
+  const label = fit === "production_required" ? "Request production quote" : `Request quote for ${quantity}`;
+  return (
+    <button className="flex items-center gap-1.5 text-[10px] font-display font-semibold border border-foreground text-foreground rounded-full px-3 py-1.5 hover:bg-foreground hover:text-primary-foreground transition-colors">
+      <FileText className="h-3 w-3" /> {label}
+    </button>
+  );
+}
+
 const VendorOffers = ({ offers, product, defaultQuantity = 1 }: VendorOffersProps) => {
   const [quantity, setQuantity] = useState(defaultQuantity);
   const { addItem, selectSupplier } = useProjectCart();
