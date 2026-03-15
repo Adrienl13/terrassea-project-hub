@@ -1,100 +1,52 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  Search, SlidersHorizontal, X, ChevronDown, Plus, LayoutGrid, List, BarChart3,
+  Search, SlidersHorizontal, X, Plus, LayoutGrid, List, BarChart3, ChevronDown,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CompareBar from "@/components/products/CompareBar";
+import ProductFilterSidebar, {
+  type FilterState,
+  EMPTY_FILTERS,
+  SORT_OPTIONS,
+} from "@/components/products/ProductFilterSidebar";
+import ActiveFilters from "@/components/products/ActiveFilters";
 import { useProducts } from "@/hooks/useProducts";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { DBProduct } from "@/lib/products";
 import { toast } from "sonner";
-
-/* ─── filter config ─── */
-const CATEGORY_OPTIONS = [
-  "Chairs", "Armchairs", "Stools", "Tables", "Coffee Tables",
-  "High Tables", "Sofas", "Sun Loungers", "Parasols", "Benches",
-];
-
-const USAGE_OPTIONS = [
-  "restaurant", "café", "hotel", "beach", "pool", "rooftop",
-  "community", "camping", "indoor", "outdoor",
-];
-
-const MATERIAL_OPTIONS = [
-  "aluminium", "polypropylene", "wood", "bamboo", "HPL", "steel",
-  "rope", "synthetic rattan", "textile", "technical fabric",
-];
-
-const STYLE_OPTIONS = [
-  "bistro", "contemporary", "mediterranean", "design", "natural",
-  "chic", "minimalist", "contract", "traditional",
-];
-
-const COLOR_OPTIONS = [
-  "black", "white", "blue", "green", "terracotta", "beige",
-  "grey", "wood effect", "custom",
-];
-
-const FEATURE_OPTIONS = [
-  { key: "is_stackable", label: "Stackable" },
-  { key: "is_chr_heavy_use", label: "Heavy-duty CHR" },
-  { key: "uv_resistant", label: "UV Resistant" },
-  { key: "weather_resistant", label: "Weather Resistant" },
-  { key: "lightweight", label: "Lightweight" },
-  { key: "easy_maintenance", label: "Easy Maintenance" },
-  { key: "fire_retardant", label: "Fire Retardant" },
-  { key: "customizable", label: "Customizable" },
-];
-
-const STOCK_OPTIONS = [
-  "available", "low_stock", "production", "on_order", "to_confirm",
-];
-
-const STOCK_LABELS: Record<string, string> = {
-  available: "In stock",
-  low_stock: "Low stock",
-  production: "Quick production",
-  on_order: "On order",
-  to_confirm: "To confirm",
-};
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 type ViewMode = "grid" | "list";
+type SortKey = typeof SORT_OPTIONS[number]["key"];
 
 const Products = () => {
   const { data: products = [], isLoading } = useProducts();
   const { addItem } = useProjectCart();
+  const isMobile = useIsMobile();
 
   const [search, setSearch] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-
-  // Filters state
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedUsage, setSelectedUsage] = useState<string[]>([]);
-  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
-  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [selectedStock, setSelectedStock] = useState<string[]>([]);
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [sortKey, setSortKey] = useState<SortKey>("popular");
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const activeFilterCount =
-    selectedCategories.length + selectedUsage.length + selectedMaterials.length +
-    selectedStyles.length + selectedColors.length + selectedFeatures.length +
-    selectedStock.length;
+    filters.categories.length + filters.usage.length + filters.materials.length +
+    filters.styles.length + filters.colors.length + filters.features.length +
+    filters.stock.length +
+    (filters.priceRange[0] > 0 || filters.priceRange[1] < 500 ? 1 : 0);
 
-  const clearAllFilters = () => {
-    setSelectedCategories([]);
-    setSelectedUsage([]);
-    setSelectedMaterials([]);
-    setSelectedStyles([]);
-    setSelectedColors([]);
-    setSelectedFeatures([]);
-    setSelectedStock([]);
-  };
+  const clearAllFilters = () => setFilters(EMPTY_FILTERS);
 
   const filtered = useMemo(() => {
     let result = products;
@@ -106,44 +58,41 @@ const Products = () => {
           p.name, p.category, p.subcategory, p.short_description,
           p.main_color, p.product_family, p.collection, p.brand_source,
           ...p.style_tags, ...p.material_tags, ...p.use_case_tags,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
+        ].filter(Boolean).join(" ").toLowerCase();
         return q.split(/\s+/).every((word) => haystack.includes(word));
       });
     }
 
-    if (selectedCategories.length > 0)
+    if (filters.categories.length > 0)
       result = result.filter((p) =>
-        selectedCategories.some(
+        filters.categories.some(
           (c) => p.category.toLowerCase() === c.toLowerCase() ||
             p.subcategory?.toLowerCase() === c.toLowerCase()
         )
       );
 
-    if (selectedUsage.length > 0)
+    if (filters.usage.length > 0)
       result = result.filter((p) =>
-        p.use_case_tags.some((t) => selectedUsage.includes(t.toLowerCase()))
+        p.use_case_tags.some((t) => filters.usage.includes(t.toLowerCase()))
       );
 
-    if (selectedMaterials.length > 0)
+    if (filters.materials.length > 0)
       result = result.filter((p) =>
         p.material_tags.some((t) =>
-          selectedMaterials.some((m) => t.toLowerCase().includes(m.toLowerCase()))
+          filters.materials.some((m) => t.toLowerCase().includes(m.toLowerCase()))
         )
       );
 
-    if (selectedStyles.length > 0)
+    if (filters.styles.length > 0)
       result = result.filter((p) =>
         p.style_tags.some((t) =>
-          selectedStyles.some((s) => t.toLowerCase().includes(s.toLowerCase()))
+          filters.styles.some((s) => t.toLowerCase().includes(s.toLowerCase()))
         )
       );
 
-    if (selectedColors.length > 0)
+    if (filters.colors.length > 0)
       result = result.filter((p) =>
-        selectedColors.some(
+        filters.colors.some(
           (c) =>
             p.main_color?.toLowerCase().includes(c.toLowerCase()) ||
             p.secondary_color?.toLowerCase().includes(c.toLowerCase()) ||
@@ -151,18 +100,48 @@ const Products = () => {
         )
       );
 
-    if (selectedFeatures.length > 0)
+    if (filters.features.length > 0)
       result = result.filter((p) =>
-        selectedFeatures.every((f) => (p as any)[f] === true)
+        filters.features.every((f) => (p as any)[f] === true)
       );
 
-    if (selectedStock.length > 0)
+    if (filters.stock.length > 0)
       result = result.filter((p) =>
-        selectedStock.includes(p.stock_status || "available")
+        filters.stock.includes(p.stock_status || "available")
       );
+
+    // Price filter
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
+      result = result.filter((p) => {
+        const price = p.price_min ?? 0;
+        return price >= filters.priceRange[0] && (filters.priceRange[1] >= 500 || price <= filters.priceRange[1]);
+      });
+    }
+
+    // Sorting
+    result = [...result];
+    switch (sortKey) {
+      case "price_asc":
+        result.sort((a, b) => (a.price_min ?? 0) - (b.price_min ?? 0));
+        break;
+      case "price_desc":
+        result.sort((a, b) => (b.price_min ?? 0) - (a.price_min ?? 0));
+        break;
+      case "newest":
+        result.sort((a, b) => b.id.localeCompare(a.id));
+        break;
+      case "in_stock":
+        result.sort((a, b) => {
+          const order: Record<string, number> = { available: 0, low_stock: 1, production: 2, on_order: 3, to_confirm: 4 };
+          return (order[a.stock_status || "available"] ?? 5) - (order[b.stock_status || "available"] ?? 5);
+        });
+        break;
+      default: // popular
+        break;
+    }
 
     return result;
-  }, [products, search, selectedCategories, selectedUsage, selectedMaterials, selectedStyles, selectedColors, selectedFeatures, selectedStock]);
+  }, [products, search, filters, sortKey]);
 
   const handleAdd = (product: DBProduct) => {
     addItem(product);
@@ -174,7 +153,7 @@ const Products = () => {
       <Header />
       <main className="pt-24 pb-16">
         {/* Hero */}
-        <section className="px-6 mb-10">
+        <section className="px-6 mb-8">
           <div className="container mx-auto">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
               Product Hub
@@ -199,158 +178,146 @@ const Products = () => {
                 </button>
               )}
             </div>
+          </div>
+        </section>
 
-            {/* Controls bar */}
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 text-xs font-display font-semibold border border-border rounded-full px-4 py-2 hover:border-foreground transition-colors"
-                >
-                  <SlidersHorizontal className="h-3.5 w-3.5" />
-                  Filters
-                  {activeFilterCount > 0 && (
-                    <span className="bg-foreground text-primary-foreground text-[10px] rounded-full w-5 h-5 flex items-center justify-center">
-                      {activeFilterCount}
+        {/* Main content with sidebar */}
+        <section className="px-6">
+          <div className="container mx-auto">
+            <div className="flex gap-8">
+              {/* Desktop sidebar */}
+              {!isMobile && (
+                <aside className="w-60 flex-shrink-0">
+                  <div className="sticky top-24">
+                    <ProductFilterSidebar filters={filters} onChange={setFilters} />
+                  </div>
+                </aside>
+              )}
+
+              {/* Products area */}
+              <div className="flex-1 min-w-0">
+                {/* Controls bar */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    {isMobile && (
+                      <button
+                        onClick={() => setMobileFilterOpen(true)}
+                        className="flex items-center gap-2 text-xs font-display font-semibold border border-border rounded-full px-4 py-2 hover:border-foreground transition-colors"
+                      >
+                        <SlidersHorizontal className="h-3.5 w-3.5" />
+                        Filters
+                        {activeFilterCount > 0 && (
+                          <span className="bg-foreground text-primary-foreground text-[10px] rounded-full w-5 h-5 flex items-center justify-center">
+                            {activeFilterCount}
+                          </span>
+                        )}
+                      </button>
+                    )}
+                    <span className="text-xs text-muted-foreground font-body">
+                      {filtered.length} product{filtered.length !== 1 ? "s" : ""}
                     </span>
-                  )}
-                </button>
-                {activeFilterCount > 0 && (
-                  <button
-                    onClick={clearAllFilters}
-                    className="flex items-center gap-1 text-xs font-body text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-3 w-3" /> Clear all
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-muted-foreground font-body">
-                  {filtered.length} product{filtered.length !== 1 ? "s" : ""}
-                </span>
-                <div className="flex items-center border border-border rounded-full overflow-hidden">
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`p-2 transition-colors ${viewMode === "grid" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    <LayoutGrid className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`p-2 transition-colors ${viewMode === "list" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    <List className="h-3.5 w-3.5" />
-                  </button>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {/* Sort */}
+                    <div className="relative">
+                      <select
+                        value={sortKey}
+                        onChange={(e) => setSortKey(e.target.value as SortKey)}
+                        className="appearance-none text-xs font-body bg-card border border-border rounded-full pl-3 pr-8 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 cursor-pointer"
+                      >
+                        {SORT_OPTIONS.map((opt) => (
+                          <option key={opt.key} value={opt.key}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+                    </div>
+
+                    {/* View toggle */}
+                    <div className="flex items-center border border-border rounded-full overflow-hidden">
+                      <button
+                        onClick={() => setViewMode("grid")}
+                        className={`p-2 transition-colors ${viewMode === "grid" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                      >
+                        <LayoutGrid className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setViewMode("list")}
+                        className={`p-2 transition-colors ${viewMode === "list" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                      >
+                        <List className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Active filters */}
+                {activeFilterCount > 0 && (
+                  <div className="mb-5">
+                    <ActiveFilters filters={filters} onChange={setFilters} onClearAll={clearAllFilters} />
+                  </div>
+                )}
+
+                {/* Product grid / list */}
+                {isLoading ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="aspect-square bg-card rounded-sm mb-4" />
+                        <div className="h-4 bg-card rounded w-3/4 mb-2" />
+                        <div className="h-3 bg-card rounded w-1/2" />
+                      </div>
+                    ))}
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <div className="text-center py-20">
+                    <p className="text-sm text-muted-foreground font-body">
+                      No products match your criteria. Try adjusting your filters.
+                    </p>
+                  </div>
+                ) : viewMode === "grid" ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+                    {filtered.map((product) => (
+                      <ProductGridCard key={product.id} product={product} onAdd={handleAdd} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filtered.map((product) => (
+                      <ProductListCard key={product.id} product={product} onAdd={handleAdd} />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </section>
-
-        {/* Filters panel */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.section
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="px-6 mb-8 overflow-hidden"
-            >
-              <div className="container mx-auto space-y-4 pb-6 border-b border-border">
-                <FilterRow label="Type" options={CATEGORY_OPTIONS} active={selectedCategories} onToggle={(v) => toggle(selectedCategories, setSelectedCategories, v)} />
-                <FilterRow label="Usage" options={USAGE_OPTIONS} active={selectedUsage} onToggle={(v) => toggle(selectedUsage, setSelectedUsage, v)} />
-                <FilterRow label="Material" options={MATERIAL_OPTIONS} active={selectedMaterials} onToggle={(v) => toggle(selectedMaterials, setSelectedMaterials, v)} />
-                <FilterRow label="Style" options={STYLE_OPTIONS} active={selectedStyles} onToggle={(v) => toggle(selectedStyles, setSelectedStyles, v)} />
-                <FilterRow label="Color" options={COLOR_OPTIONS} active={selectedColors} onToggle={(v) => toggle(selectedColors, setSelectedColors, v)} />
-                <FilterRow label="Features" options={FEATURE_OPTIONS.map((f) => f.label)} active={selectedFeatures.map((k) => FEATURE_OPTIONS.find((f) => f.key === k)?.label || k)} onToggle={(label) => {
-                  const feat = FEATURE_OPTIONS.find((f) => f.label === label);
-                  if (feat) toggle(selectedFeatures, setSelectedFeatures, feat.key);
-                }} />
-                <FilterRow label="Stock" options={STOCK_OPTIONS.map((s) => STOCK_LABELS[s] || s)} active={selectedStock.map((s) => STOCK_LABELS[s] || s)} onToggle={(label) => {
-                  const key = Object.entries(STOCK_LABELS).find(([, v]) => v === label)?.[0];
-                  if (key) toggle(selectedStock, setSelectedStock, key);
-                }} />
-              </div>
-            </motion.section>
-          )}
-        </AnimatePresence>
-
-        {/* Product grid / list */}
-        <section className="px-6">
-          <div className="container mx-auto">
-            {isLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="aspect-square bg-card rounded-sm mb-4" />
-                    <div className="h-4 bg-card rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-card rounded w-1/2" />
-                  </div>
-                ))}
-              </div>
-            ) : filtered.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="text-sm text-muted-foreground font-body">
-                  No products match your criteria. Try adjusting your filters.
-                </p>
-              </div>
-            ) : viewMode === "grid" ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-                {filtered.map((product) => (
-                  <ProductGridCard key={product.id} product={product} onAdd={handleAdd} />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filtered.map((product) => (
-                  <ProductListCard key={product.id} product={product} onAdd={handleAdd} />
-                ))}
-              </div>
-            )}
-           </div>
-        </section>
       </main>
+
+      {/* Mobile filter drawer */}
+      <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+        <SheetContent side="left" className="w-full sm:w-80 p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Filters</SheetTitle>
+          </SheetHeader>
+          <ProductFilterSidebar
+            filters={filters}
+            onChange={setFilters}
+            onClose={() => setMobileFilterOpen(false)}
+            showHeader
+          />
+        </SheetContent>
+      </Sheet>
+
       <CompareBar />
       <Footer />
     </div>
   );
 };
 
-/* ─── helpers ─── */
-function toggle(arr: string[], setter: (v: string[]) => void, value: string) {
-  setter(arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value]);
-}
-
 /* ─── sub-components ─── */
-function FilterRow({
-  label, options, active, onToggle,
-}: {
-  label: string; options: string[]; active: string[]; onToggle: (v: string) => void;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0 pt-2">
-        {label}
-      </span>
-      <div className="flex flex-wrap gap-2">
-        {options.map((option) => (
-          <button
-            key={option}
-            onClick={() => onToggle(option)}
-            className={`text-xs font-body px-3 py-1.5 rounded-full border transition-all capitalize ${
-              active.includes(option)
-                ? "border-foreground bg-foreground text-primary-foreground"
-                : "border-border bg-card text-foreground hover:border-foreground/30"
-            }`}
-          >
-            {option}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function StockBadge({ status }: { status: string | null }) {
   const s = status || "available";
   const config: Record<string, { bg: string; text: string; label: string }> = {
@@ -427,23 +394,9 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
         <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-body">
           {product.short_description}
         </p>
-        <div className="flex items-center gap-2 mt-2">
-          <p className="text-sm font-display font-medium text-foreground">
-            {product.indicative_price || "On request"}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-1 mt-2">
-          {product.style_tags.slice(0, 2).map((tag) => (
-            <span key={tag} className="text-[10px] font-body text-muted-foreground bg-card border border-border rounded-full px-2 py-0.5 capitalize">
-              {tag}
-            </span>
-          ))}
-          {product.material_tags.slice(0, 1).map((tag) => (
-            <span key={tag} className="text-[10px] font-body text-muted-foreground bg-card border border-border rounded-full px-2 py-0.5 capitalize">
-              {tag}
-            </span>
-          ))}
-        </div>
+        <p className="text-sm font-display font-medium text-foreground mt-2">
+          {product.indicative_price || "On request"}
+        </p>
       </div>
     </motion.div>
   );
@@ -487,18 +440,9 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
         <p className="text-xs text-muted-foreground mt-1 line-clamp-1 font-body">
           {product.short_description}
         </p>
-        <div className="flex items-center gap-3 mt-2">
-          <span className="text-sm font-display font-medium text-foreground">
-            {product.indicative_price || "On request"}
-          </span>
-          <div className="flex flex-wrap gap-1">
-            {product.style_tags.slice(0, 2).map((tag) => (
-              <span key={tag} className="text-[10px] font-body text-muted-foreground bg-card border border-border rounded-full px-2 py-0.5 capitalize">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
+        <span className="text-sm font-display font-medium text-foreground mt-2 inline-block">
+          {product.indicative_price || "On request"}
+        </span>
       </div>
       <button
         onClick={() => onAdd(product)}
