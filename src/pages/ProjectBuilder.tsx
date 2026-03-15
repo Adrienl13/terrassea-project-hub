@@ -33,6 +33,7 @@ const DEFAULT_PARAMS: ProjectParameters = {
   terraceSurfaceM2: null,
   terraceLength: null,
   terraceWidth: null,
+  tableMix: [],
 };
 
 const GUIDED_STEPS = [

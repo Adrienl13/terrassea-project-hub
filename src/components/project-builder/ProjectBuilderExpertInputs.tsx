@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ProjectParameters } from "@/engine/types";
+import { ProjectParameters, TableMixEntry } from "@/engine/types";
 import { getDensityInfo, getMaxSeats } from "@/engine/spatialEngine";
 
 interface Props {
@@ -11,12 +11,6 @@ interface Props {
   onChange: (updates: Partial<ProjectParameters>) => void;
   onBack: () => void;
   onNext: () => void;
-}
-
-interface TableMixEntry {
-  format: string;
-  quantity: number;
-  seatsPerTable: number;
 }
 
 const TABLE_FORMATS = [
@@ -33,10 +27,12 @@ const TABLE_FORMATS = [
 const ESTABLISHMENT_TYPES = ["restaurant", "hotel", "rooftop", "beach-club", "bar", "camping", "event", "pool"];
 
 const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props) => {
-  const [tableMix, setTableMix] = useState<TableMixEntry[]>([
-    { format: "70×70", quantity: 10, seatsPerTable: 2 },
-    { format: "120×70", quantity: 5, seatsPerTable: 4 },
-  ]);
+  const [tableMix, setTableMix] = useState<TableMixEntry[]>(
+    params.tableMix?.length ? params.tableMix : [
+      { format: "70×70", quantity: 10, seatsPerTable: 2 },
+      { format: "120×70", quantity: 5, seatsPerTable: 4 },
+    ]
+  );
 
   const surface = params.terraceSurfaceM2 ??
     (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
@@ -321,6 +317,8 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
             if (!params.seatingCapacity && totalSeatsFromMix > 0) {
               onChange({ seatingCapacity: totalSeatsFromMix });
             }
+            // Pass table mix to params so layout engine respects user formats
+            onChange({ tableMix: tableMix.filter(t => t.quantity > 0) });
             onNext();
           }}
           disabled={!canProceed}

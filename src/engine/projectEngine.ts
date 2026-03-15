@@ -174,6 +174,7 @@ export function parseProjectRequest(input: string): ProjectParameters {
     terraceSurfaceM2: null,
     terraceLength: null,
     terraceWidth: null,
+    tableMix: [],
   };
 }
 

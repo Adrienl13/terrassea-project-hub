@@ -202,49 +202,140 @@ function findFormat(preferred: string[], targetSeats: number): TableFormat | und
 
 // ── Public API ──
 
+// ── Locked-format layout generator ──
+// When the user has defined specific table formats, generate layouts using ONLY those formats
+
+function generateLockedLayout(
+  totalSeats: number,
+  lockedFormats: { format: string; seats: number }[],
+  ratios: number[],
+  label: string
+): LayoutRecommendation {
+  // Distribute totalSeats across locked formats using the given ratios
+  const groups: TableGroup[] = [];
+  let remaining = totalSeats;
+
+  for (let i = 0; i < lockedFormats.length; i++) {
+    const fmt = lockedFormats[i];
+    const ratio = ratios[i] ?? (1 / lockedFormats.length);
+    const seatsForFormat = i === lockedFormats.length - 1
+      ? remaining
+      : Math.round(totalSeats * ratio);
+    const qty = Math.max(1, Math.round(seatsForFormat / fmt.seats));
+    const actualSeats = qty * fmt.seats;
+    remaining -= actualSeats;
+
+    const shape = fmt.format.startsWith("Ø") ? "round"
+      : fmt.format.includes("×") && parseInt(fmt.format.split("×")[0]) !== parseInt(fmt.format.split("×")[1]) ? "rectangular"
+      : "square";
+
+    groups.push({
+      tableFormat: fmt.format,
+      shape,
+      quantity: qty,
+      seatsPerTable: fmt.seats,
+      totalSeats: actualSeats,
+    });
+  }
+
+  const actualTotal = groups.reduce((s, g) => s + g.totalSeats, 0);
+  const combinableCount = groups.filter((g) => {
+    const f = TABLE_FORMATS.find((tf) => tf.format === g.tableFormat);
+    return f?.combinable;
+  }).reduce((s, g) => s + g.quantity, 0);
+
+  return {
+    label,
+    totalSeats: actualTotal,
+    tableGroups: groups,
+    chairCount: actualTotal,
+    notes: combinableCount > 0
+      ? `${combinableCount} combinable tables allow flexible group configurations`
+      : "Fixed layout optimized for the selected table formats",
+  };
+}
+
 export function generateLayouts(params: ProjectParameters): LayoutRecommendation[] {
   const totalSeats = params.seatingCapacity || 40;
-  const layoutPref = params.seatingLayout || "balanced-2-4";
   const priority = params.layoutPriority || "balanced";
 
-  const baseDist = LAYOUT_DISTRIBUTIONS[layoutPref] || LAYOUT_DISTRIBUTIONS["balanced-2-4"];
-  const adjustedDist = applyPriorityAdjustment(baseDist, priority);
-
-  // Generate main recommended layout
-  const main = generateLayout(totalSeats, adjustedDist, "Suggested layout");
-
-  // Generate alternative with shifted ratios
-  const altDist: DistributionRule = {
-    ...adjustedDist,
-    twoSeatRatio: Math.max(adjustedDist.twoSeatRatio - 0.15, 0.1),
-    fourSeatRatio: adjustedDist.fourSeatRatio + 0.1,
-    sixSeatRatio: Math.min(adjustedDist.sixSeatRatio + 0.05, 0.4),
-    preferredFormats: adjustedDist.preferredFormats,
-  };
-  const alt = generateLayout(totalSeats, altDist, "Alternative layout");
-
-  // Generate flexible/modular option if applicable
-  const flexDist: DistributionRule = {
-    twoSeatRatio: 0.6,
-    fourSeatRatio: 0.4,
-    sixSeatRatio: 0,
-    preferredFormats: ["70×70", "80×80"],
-  };
-  const flex = generateLayout(totalSeats, flexDist, "Flexible layout");
-  flex.notes = `${flex.chairCount} seats standard, expandable for larger groups by combining tables`;
-
-  // Attach spatial metrics if terrace area is known
   const terraceArea = params.terraceSurfaceM2 ??
     (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
 
+  // Check if user has defined specific table formats
+  const hasLockedFormats = params.tableMix && params.tableMix.length > 0 &&
+    params.tableMix.some(t => t.quantity > 0);
+
+  let layouts: LayoutRecommendation[];
+
+  if (hasLockedFormats) {
+    // User-defined formats: lock dimensions, vary only ratios
+    const lockedFormats = params.tableMix!
+      .filter(t => t.quantity > 0)
+      .map(t => ({ format: t.format, seats: t.seatsPerTable }));
+
+    // Calculate user's original ratios based on seat contribution
+    const totalMixSeats = params.tableMix!.reduce((s, t) => s + t.quantity * t.seatsPerTable, 0);
+    const userRatios = lockedFormats.map(f => {
+      const entry = params.tableMix!.find(t => t.format === f.format);
+      return entry ? (entry.quantity * entry.seatsPerTable) / (totalMixSeats || 1) : 1 / lockedFormats.length;
+    });
+
+    // Concept 1: Suggested — use user's exact ratios
+    const main = generateLockedLayout(totalSeats, lockedFormats, userRatios, "Suggested layout");
+
+    // Concept 2: Alternative — shift ratio toward larger formats
+    const altRatios = userRatios.map((r, i) =>
+      i < lockedFormats.length - 1 ? Math.max(r - 0.1, 0.05) : r
+    );
+    const altSum = altRatios.reduce((s, r) => s + r, 0);
+    const normalizedAlt = altRatios.map(r => r / altSum);
+    const alt = generateLockedLayout(totalSeats, lockedFormats, normalizedAlt, "Alternative layout");
+
+    // Concept 3: Flexible — more even distribution across formats
+    const evenRatios = lockedFormats.map(() => 1 / lockedFormats.length);
+    const flex = generateLockedLayout(totalSeats, lockedFormats, evenRatios, "Flexible layout");
+    flex.notes = `${flex.chairCount} seats with even distribution across your selected formats`;
+
+    layouts = [main, alt, flex];
+  } else {
+    // No locked formats: use existing distribution-based logic
+    const layoutPref = params.seatingLayout || "balanced-2-4";
+    const baseDist = LAYOUT_DISTRIBUTIONS[layoutPref] || LAYOUT_DISTRIBUTIONS["balanced-2-4"];
+    const adjustedDist = applyPriorityAdjustment(baseDist, priority);
+
+    const main = generateLayout(totalSeats, adjustedDist, "Suggested layout");
+
+    const altDist: DistributionRule = {
+      ...adjustedDist,
+      twoSeatRatio: Math.max(adjustedDist.twoSeatRatio - 0.15, 0.1),
+      fourSeatRatio: adjustedDist.fourSeatRatio + 0.1,
+      sixSeatRatio: Math.min(adjustedDist.sixSeatRatio + 0.05, 0.4),
+      preferredFormats: adjustedDist.preferredFormats,
+    };
+    const alt = generateLayout(totalSeats, altDist, "Alternative layout");
+
+    const flexDist: DistributionRule = {
+      twoSeatRatio: 0.6,
+      fourSeatRatio: 0.4,
+      sixSeatRatio: 0,
+      preferredFormats: ["70×70", "80×80"],
+    };
+    const flex = generateLayout(totalSeats, flexDist, "Flexible layout");
+    flex.notes = `${flex.chairCount} seats standard, expandable for larger groups by combining tables`;
+
+    layouts = [main, alt, flex];
+  }
+
+  // Attach spatial metrics if terrace area is known
   if (terraceArea && terraceArea > 0) {
     const densityLevel = getDensityLevelFromPriority(priority);
-    for (const layout of [main, alt, flex]) {
+    for (const layout of layouts) {
       layout.spatialMetrics = computeSpatialMetrics(terraceArea, layout, densityLevel);
     }
   }
 
-  return [main, alt, flex];
+  return layouts;
 }
 
 export function getChairQuantityFromLayout(layout: LayoutRecommendation): number {
