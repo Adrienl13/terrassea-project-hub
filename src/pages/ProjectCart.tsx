@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Minus, Plus, Trash2, ArrowLeft, Layers } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import ProductDetailDrawer from "@/components/project/ProductDetailDrawer";
+import AvailabilityBadge from "@/components/project/AvailabilityBadge";
+import type { DBProduct } from "@/lib/products";
 
 const ProjectCart = () => {
   const { items, removeItem, updateQuantity, notes, setNotes } = useProjectCart();
@@ -16,6 +19,12 @@ const ProjectCart = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<DBProduct | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const selectedItem = selectedProduct
+    ? items.find((i) => i.product.id === selectedProduct.id)
+    : null;
 
   // Group items by concept
   const grouped = items.reduce<Record<string, typeof items>>((acc, item) => {
@@ -24,6 +33,11 @@ const ProjectCart = () => {
     acc[key].push(item);
     return acc;
   }, {});
+
+  const openProductDetail = (product: DBProduct) => {
+    setSelectedProduct(product);
+    setDrawerOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +114,14 @@ const ProjectCart = () => {
     );
   }
 
+  // Format dimensions for compact card display
+  const formatDimsCompact = (p: DBProduct) => {
+    if (p.dimensions_length_cm && p.dimensions_width_cm) {
+      return `${p.dimensions_length_cm}×${p.dimensions_width_cm}${p.dimensions_height_cm ? `×${p.dimensions_height_cm}` : ""} cm`;
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -110,7 +132,7 @@ const ProjectCart = () => {
           </Link>
           <h1 className="font-display text-3xl font-bold text-foreground mb-2">My Project</h1>
           <p className="text-sm text-muted-foreground font-body mb-12">
-            Review your design selection and submit your project for sourcing
+            Review your design selection, verify availability and submit for sourcing
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
@@ -133,39 +155,90 @@ const ProjectCart = () => {
                         </span>
                       </div>
                       <div className="space-y-3">
-                        {conceptItems.map(({ product, quantity, layoutRequirementType, layoutRequirementLabel, layoutSuggestedQuantity }) => (
-                          <motion.div
-                            key={product.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flex gap-4 p-4 bg-card rounded-sm"
-                          >
-                            <img src={product.image_url || "/placeholder.svg"} alt={product.name} className="w-20 h-20 object-cover rounded-sm flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-display font-semibold text-sm text-foreground">{product.name}</h3>
-                              <p className="text-xs text-muted-foreground font-body mt-0.5">
-                                {product.category} · {product.indicative_price}
-                              </p>
-                              {layoutRequirementLabel && (
-                                <p className="text-[10px] text-muted-foreground font-body mt-1">
-                                  {layoutRequirementLabel}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-3 mt-3">
-                                <button onClick={() => updateQuantity(product.id, quantity - 1)} className="h-7 w-7 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
-                                  <Minus className="h-3 w-3" />
+                        {conceptItems.map(({ product, quantity, layoutRequirementLabel }) => {
+                          const dims = formatDimsCompact(product);
+                          return (
+                            <motion.div
+                              key={product.id}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className="flex gap-4 p-4 bg-card rounded-sm group"
+                            >
+                              {/* Clickable image */}
+                              <button
+                                onClick={() => openProductDetail(product)}
+                                className="flex-shrink-0 focus:outline-none"
+                              >
+                                <img
+                                  src={product.image_url || "/placeholder.svg"}
+                                  alt={product.name}
+                                  className="w-20 h-20 object-cover rounded-sm transition-opacity group-hover:opacity-80 cursor-pointer"
+                                />
+                              </button>
+
+                              {/* Clickable info area */}
+                              <div className="flex-1 min-w-0">
+                                <button
+                                  onClick={() => openProductDetail(product)}
+                                  className="text-left w-full focus:outline-none"
+                                >
+                                  <h3 className="font-display font-semibold text-sm text-foreground hover:underline cursor-pointer">
+                                    {product.name}
+                                  </h3>
+                                  <p className="text-xs text-muted-foreground font-body mt-0.5">
+                                    {product.category}
+                                    {product.main_color ? ` · ${product.main_color}` : ""}
+                                    {product.indicative_price ? ` · ${product.indicative_price}` : ""}
+                                  </p>
                                 </button>
-                                <span className="text-sm font-display font-medium w-6 text-center">{quantity}</span>
-                                <button onClick={() => updateQuantity(product.id, quantity + 1)} className="h-7 w-7 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
-                                  <Plus className="h-3 w-3" />
-                                </button>
+
+                                {/* Dimensions */}
+                                {dims && (
+                                  <p className="text-[10px] text-muted-foreground font-body mt-1 flex items-center gap-1">
+                                    <Ruler className="h-2.5 w-2.5" />
+                                    {dims}
+                                  </p>
+                                )}
+
+                                {/* Layout requirement label */}
+                                {layoutRequirementLabel && (
+                                  <p className="text-[10px] text-muted-foreground font-body mt-0.5">
+                                    {layoutRequirementLabel}
+                                  </p>
+                                )}
+
+                                {/* Availability badge */}
+                                <div className="mt-2">
+                                  <AvailabilityBadge product={product} compact />
+                                </div>
+
+                                {/* Quantity controls */}
+                                <div className="flex items-center gap-3 mt-3">
+                                  <button
+                                    onClick={() => updateQuantity(product.id, quantity - 1)}
+                                    className="h-7 w-7 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors"
+                                  >
+                                    <Minus className="h-3 w-3" />
+                                  </button>
+                                  <span className="text-sm font-display font-medium w-6 text-center">{quantity}</span>
+                                  <button
+                                    onClick={() => updateQuantity(product.id, quantity + 1)}
+                                    className="h-7 w-7 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                            <button onClick={() => removeItem(product.id)} className="text-muted-foreground hover:text-foreground transition-colors self-start">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </motion.div>
-                        ))}
+
+                              <button
+                                onClick={() => removeItem(product.id)}
+                                className="text-muted-foreground hover:text-foreground transition-colors self-start"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </motion.div>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -261,6 +334,18 @@ const ProjectCart = () => {
         </div>
       </div>
       <Footer />
+
+      {/* Product detail drawer */}
+      <ProductDetailDrawer
+        product={selectedProduct}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        quantity={selectedItem?.quantity}
+        onAddToQuotation={() => {
+          toast.success(`${selectedProduct?.name} confirmed in quotation`);
+          setDrawerOpen(false);
+        }}
+      />
     </div>
   );
 };
