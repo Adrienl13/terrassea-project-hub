@@ -201,9 +201,6 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
                 <p className="text-[10px] font-body text-muted-foreground mt-0.5 italic line-clamp-2">
                   {product.reason}
                 </p>
-                <p className="text-[9px] font-body text-muted-foreground mt-1.5">
-                  Requirement: {product.layoutRequirementType ?? "other"} · Suggested: {suggestedQty} · Stored: {storedQty ?? "—"}
-                </p>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs font-display font-medium text-foreground">
                     {product.indicative_price}
