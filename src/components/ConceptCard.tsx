@@ -21,27 +21,33 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
   const conceptProducts = concept.products
     .map((rec) => {
       const product = products.find((p) => p.id === rec.productId);
-      return product ? { ...product, relevance: rec.relevanceScore, reason: rec.reason } : null;
+      return product ? { ...product, relevance: rec.relevanceScore, reason: rec.reason, suggestedQuantity: rec.suggestedQuantity } : null;
     })
-    .filter(Boolean) as (DBProduct & { relevance: number; reason: string })[];
+    .filter(Boolean) as (DBProduct & { relevance: number; reason: string; suggestedQuantity?: number })[];
 
   const isInCart = (productId: string) => items.some((i) => i.product.id === productId);
 
-  const handleAddProduct = (product: DBProduct) => {
-    addItem(product, concept.title);
-    toast.success(`${product.name} added to your project`);
+  const handleAddProduct = (product: DBProduct & { suggestedQuantity?: number }) => {
+    const qty = product.suggestedQuantity || 1;
+    addItem(product, concept.title, qty);
+    if (qty > 1) {
+      toast.success(`${product.name} added — quantity automatically set to ${qty} based on your project layout`);
+    } else {
+      toast.success(`${product.name} added to your project`);
+    }
   };
 
   const handleAddAll = () => {
     let added = 0;
     conceptProducts.forEach((product) => {
       if (!isInCart(product.id)) {
-        addItem(product, concept.title);
+        const qty = product.suggestedQuantity || 1;
+        addItem(product, concept.title, qty);
         added++;
       }
     });
     if (added > 0) {
-      toast.success(`${added} products added to your project`);
+      toast.success(`${added} products added with layout quantities`);
     }
   };
 
@@ -143,6 +149,11 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
                   <span className="text-xs font-display font-medium text-foreground">
                     {product.indicative_price}
                   </span>
+                  {product.suggestedQuantity && product.suggestedQuantity > 1 && !inCart && (
+                    <span className="text-[9px] font-body text-muted-foreground bg-accent/50 px-1.5 py-0.5 rounded">
+                      ×{product.suggestedQuantity}
+                    </span>
+                  )}
                   <button
                     onClick={() => !inCart && handleAddProduct(product)}
                     disabled={inCart}
