@@ -27,21 +27,27 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
 
   const isInCart = (productId: string) => items.some((i) => i.product.id === productId);
 
-  const handleAddProduct = (product: DBProduct) => {
-    addItem(product, concept.title);
-    toast.success(`${product.name} added to your project`);
+  const handleAddProduct = (product: DBProduct & { suggestedQuantity?: number }) => {
+    const qty = product.suggestedQuantity || 1;
+    addItem(product, concept.title, qty);
+    if (qty > 1) {
+      toast.success(`${product.name} added — quantity automatically set to ${qty} based on your project layout`);
+    } else {
+      toast.success(`${product.name} added to your project`);
+    }
   };
 
   const handleAddAll = () => {
     let added = 0;
     conceptProducts.forEach((product) => {
       if (!isInCart(product.id)) {
-        addItem(product, concept.title);
+        const qty = product.suggestedQuantity || 1;
+        addItem(product, concept.title, qty);
         added++;
       }
     });
     if (added > 0) {
-      toast.success(`${added} products added to your project`);
+      toast.success(`${added} products added with layout quantities`);
     }
   };
 
