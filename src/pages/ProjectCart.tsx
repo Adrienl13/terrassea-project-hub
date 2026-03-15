@@ -133,7 +133,7 @@ const ProjectCart = () => {
                         </span>
                       </div>
                       <div className="space-y-3">
-                        {conceptItems.map(({ product, quantity }) => (
+                        {conceptItems.map(({ product, quantity, layoutRequirementType, layoutRequirementLabel, layoutSuggestedQuantity }) => (
                           <motion.div
                             key={product.id}
                             initial={{ opacity: 0 }}
@@ -145,6 +145,10 @@ const ProjectCart = () => {
                               <h3 className="font-display font-semibold text-sm text-foreground">{product.name}</h3>
                               <p className="text-xs text-muted-foreground font-body mt-0.5">
                                 {product.category} · {product.indicative_price}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-body mt-1">
+                                Requirement: {layoutRequirementType || "manual"}
+                                {layoutRequirementLabel ? ` (${layoutRequirementLabel})` : ""} · Suggested: {layoutSuggestedQuantity ?? "—"} · Stored: {quantity}
                               </p>
                               <div className="flex items-center gap-3 mt-3">
                                 <button onClick={() => updateQuantity(product.id, quantity - 1)} className="h-7 w-7 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">

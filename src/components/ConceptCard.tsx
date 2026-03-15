@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Check } from "lucide-react";
-import { ProjectConcept, LayoutRecommendation } from "@/engine/types";
+import { ProjectConcept, LayoutRecommendation, LayoutRequirementType } from "@/engine/types";
 import type { DBProduct } from "@/lib/products";
-import { useProjectCart } from "@/contexts/ProjectCartContext";
+import { useProjectCart, type CartItemLayoutMeta } from "@/contexts/ProjectCartContext";
 import { toast } from "sonner";
 import EditableLayoutDisplay from "./project-builder/EditableLayoutDisplay";
 
@@ -14,22 +14,58 @@ interface ConceptCardProps {
   budgetEstimate?: { min: number; max: number; avgPerSeat: number } | null;
 }
 
+type ConceptProduct = DBProduct & {
+  relevance: number;
+  reason: string;
+  suggestedQuantity?: number;
+  layoutRequirementType?: LayoutRequirementType;
+  layoutRequirementLabel?: string;
+};
+
 const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardProps) => {
-  const { addItem, items } = useProjectCart();
+  const { addItem, items, updateQuantity } = useProjectCart();
   const [layout, setLayout] = useState<LayoutRecommendation | undefined>(concept.layout);
 
-  const conceptProducts = concept.products
-    .map((rec) => {
-      const product = products.find((p) => p.id === rec.productId);
-      return product ? { ...product, relevance: rec.relevanceScore, reason: rec.reason, suggestedQuantity: rec.suggestedQuantity } : null;
-    })
-    .filter(Boolean) as (DBProduct & { relevance: number; reason: string; suggestedQuantity?: number })[];
+  const conceptProducts = useMemo(
+    () =>
+      concept.products
+        .map((rec) => {
+          const product = products.find((p) => p.id === rec.productId);
+          return product
+            ? {
+                ...product,
+                relevance: rec.relevanceScore,
+                reason: rec.reason,
+                suggestedQuantity: rec.suggestedQuantity,
+                layoutRequirementType: rec.layoutRequirementType,
+                layoutRequirementLabel: rec.layoutRequirementLabel,
+              }
+            : null;
+        })
+        .filter(Boolean) as ConceptProduct[],
+    [concept.products, products]
+  );
 
-  const isInCart = (productId: string) => items.some((i) => i.product.id === productId);
+  const getCartItem = (productId: string) => items.find((i) => i.product.id === productId);
 
-  const handleAddProduct = (product: DBProduct & { suggestedQuantity?: number }) => {
-    const qty = product.suggestedQuantity || 1;
-    addItem(product, concept.title, qty);
+  const getLayoutMeta = (product: ConceptProduct): CartItemLayoutMeta => ({
+    requirementType: product.layoutRequirementType,
+    requirementLabel: product.layoutRequirementLabel,
+    suggestedQuantity: product.suggestedQuantity,
+  });
+
+  const handleAddProduct = (product: ConceptProduct) => {
+    const qty = product.suggestedQuantity ?? 1;
+    const layoutMeta = getLayoutMeta(product);
+    const existing = getCartItem(product.id);
+
+    if (existing) {
+      updateQuantity(product.id, qty, layoutMeta);
+      toast.success(`Updated in project cart — quantity set to ${qty} based on your project layout`);
+      return;
+    }
+
+    addItem(product, concept.title, qty, layoutMeta);
     if (qty > 1) {
       toast.success(`${product.name} added — quantity automatically set to ${qty} based on your project layout`);
     } else {
@@ -39,15 +75,31 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
 
   const handleAddAll = () => {
     let added = 0;
+    let updated = 0;
+
     conceptProducts.forEach((product) => {
-      if (!isInCart(product.id)) {
-        const qty = product.suggestedQuantity || 1;
-        addItem(product, concept.title, qty);
-        added++;
+      const qty = product.suggestedQuantity ?? 1;
+      const layoutMeta = getLayoutMeta(product);
+      const existing = getCartItem(product.id);
+
+      if (existing) {
+        if (
+          existing.quantity !== qty ||
+          existing.layoutSuggestedQuantity !== qty ||
+          existing.layoutRequirementType !== product.layoutRequirementType
+        ) {
+          updateQuantity(product.id, qty, layoutMeta);
+          updated++;
+        }
+        return;
       }
+
+      addItem(product, concept.title, qty, layoutMeta);
+      added++;
     });
-    if (added > 0) {
-      toast.success(`${added} products added with layout quantities`);
+
+    if (added > 0 || updated > 0) {
+      toast.success(`${added} added · ${updated} synced with layout quantities`);
     }
   };
 
@@ -105,7 +157,6 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
           ))}
         </div>
 
-        {/* Editable layout recommendation */}
         {layout && (
           <div className="mt-6">
             <EditableLayoutDisplay
@@ -125,7 +176,12 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
           {conceptProducts.map((product, i) => {
-            const inCart = isInCart(product.id);
+            const cartItem = getCartItem(product.id);
+            const inCart = Boolean(cartItem);
+            const storedQty = cartItem?.quantity;
+            const suggestedQty = product.suggestedQuantity ?? 1;
+            const needsSync = inCart && storedQty !== suggestedQty;
+
             return (
               <div
                 key={product.id}
@@ -145,26 +201,31 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
                 <p className="text-[10px] font-body text-muted-foreground mt-0.5 italic line-clamp-2">
                   {product.reason}
                 </p>
+                <p className="text-[9px] font-body text-muted-foreground mt-1.5">
+                  Requirement: {product.layoutRequirementType ?? "other"} · Suggested: {suggestedQty} · Stored: {storedQty ?? "—"}
+                </p>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs font-display font-medium text-foreground">
                     {product.indicative_price}
                   </span>
-                  {product.suggestedQuantity && product.suggestedQuantity > 1 && !inCart && (
+                  {suggestedQty > 1 && (
                     <span className="text-[9px] font-body text-muted-foreground bg-accent/50 px-1.5 py-0.5 rounded">
-                      ×{product.suggestedQuantity}
+                      ×{suggestedQty}
                     </span>
                   )}
                   <button
-                    onClick={() => !inCart && handleAddProduct(product)}
-                    disabled={inCart}
+                    onClick={() => handleAddProduct(product)}
+                    disabled={inCart && !needsSync}
                     className={`flex items-center gap-1 text-[10px] font-body rounded-full px-2.5 py-1 transition-all ${
-                      inCart
+                      inCart && !needsSync
                         ? "text-muted-foreground bg-card cursor-default"
                         : "text-muted-foreground hover:text-foreground border border-border hover:border-foreground"
                     }`}
                   >
-                    {inCart ? (
+                    {inCart && !needsSync ? (
                       <><Check className="h-3 w-3" /> Added</>
+                    ) : needsSync ? (
+                      <><Plus className="h-3 w-3" /> Sync qty</>
                     ) : (
                       <><Plus className="h-3 w-3" /> Add</>
                     )}
