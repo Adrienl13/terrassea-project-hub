@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Package, Truck, ShoppingCart, FileText, MessageSquare,
-  Minus, Plus, Zap, AlertTriangle, CheckCircle2, XCircle,
+  Minus, Plus, Zap, AlertTriangle, CheckCircle2, XCircle, Clock,
 } from "lucide-react";
 import type { ProductOffer } from "@/lib/productOffers";
 import type { DBProduct } from "@/lib/products";
