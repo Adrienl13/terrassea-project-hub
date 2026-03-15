@@ -100,6 +100,7 @@ const ProductDetailDrawer = ({
   quantity,
   onAddToQuotation,
   onReplaceVariant,
+  showSuppliers = false,
 }: ProductDetailDrawerProps) => {
   if (!product) return null;
 
