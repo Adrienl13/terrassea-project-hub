@@ -17,6 +17,7 @@ interface ProductDetailDrawerProps {
   quantity?: number;
   onAddToQuotation?: () => void;
   onReplaceVariant?: () => void;
+  showSuppliers?: boolean;
 }
 
 // ── Availability logic ──
