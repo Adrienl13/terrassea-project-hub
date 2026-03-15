@@ -91,26 +91,6 @@ const ProductDetail = () => {
     );
   }
 
-  // Compute "Starting from" price from offers
-  const lowestOfferPrice = useMemo(() => {
-    const priced = offers.filter((o) => o.price !== null);
-    if (priced.length === 0) return null;
-    return Math.min(...priced.map((o) => o.price!));
-  }, [offers]);
-
-  const offersCount = offers.length;
-  const fastestDelivery = useMemo(() => {
-    const withDel = offers.filter((o) => o.delivery_delay_days !== null);
-    if (withDel.length === 0) return null;
-    return Math.min(...withDel.map((o) => o.delivery_delay_days!));
-  }, [offers]);
-
-  // Project-aware default quantity
-  const projectQuantity = useMemo(() => {
-    const cartItem = items.find((i) => i.product.id === id);
-    return cartItem?.layoutSuggestedQuantity ?? cartItem?.quantity ?? 1;
-  }, [items, id]);
-
   const handleAdd = () => {
     addItem(product);
     toast.success(`${product.name} added to your project`);
