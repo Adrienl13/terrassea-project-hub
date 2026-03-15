@@ -1,4 +1,13 @@
-import { ProjectParameters, ProjectConcept, RecommendedProduct, DiscoveryQuestion, ProjectSummary } from "./types";
+import {
+  ProjectParameters,
+  ProjectConcept,
+  RecommendedProduct,
+  DiscoveryQuestion,
+  ProjectSummary,
+  LayoutRecommendation,
+  LayoutRequirement,
+  LayoutRequirementType,
+} from "./types";
 import { generateLayouts } from "./layoutEngine";
 import type { DBProduct } from "@/lib/products";
 
