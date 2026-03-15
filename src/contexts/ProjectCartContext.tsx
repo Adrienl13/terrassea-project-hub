@@ -149,8 +149,20 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const FALLBACK_CONTEXT: ProjectCartContextType = {
+  items: [],
+  addItem: () => {},
+  removeItem: () => {},
+  updateQuantity: () => {},
+  selectSupplier: () => {},
+  clearSupplier: () => {},
+  itemCount: 0,
+  notes: "",
+  setNotes: () => {},
+  quotationStatus: "draft",
+};
+
 export function useProjectCart() {
   const context = useContext(ProjectCartContext);
-  if (!context) throw new Error("useProjectCart must be used within ProjectCartProvider");
-  return context;
+  return context ?? FALLBACK_CONTEXT;
 }
