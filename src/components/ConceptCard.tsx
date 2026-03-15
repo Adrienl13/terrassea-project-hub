@@ -149,6 +149,11 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
                   <span className="text-xs font-display font-medium text-foreground">
                     {product.indicative_price}
                   </span>
+                  {product.suggestedQuantity && product.suggestedQuantity > 1 && !inCart && (
+                    <span className="text-[9px] font-body text-muted-foreground bg-accent/50 px-1.5 py-0.5 rounded">
+                      ×{product.suggestedQuantity}
+                    </span>
+                  )}
                   <button
                     onClick={() => !inCart && handleAddProduct(product)}
                     disabled={inCart}
