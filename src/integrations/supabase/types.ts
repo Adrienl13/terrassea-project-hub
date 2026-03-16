@@ -547,6 +547,116 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_requests: {
+        Row: {
+          company: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          fit_status: string | null
+          id: string
+          last_name: string | null
+          message: string | null
+          offer_id: string | null
+          partner_id: string | null
+          partner_name: string | null
+          product_id: string | null
+          product_name: string | null
+          quantity: number | null
+          siren: string | null
+          status: string | null
+          total_price: number | null
+          unit_price: number | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          fit_status?: string | null
+          id?: string
+          last_name?: string | null
+          message?: string | null
+          offer_id?: string | null
+          partner_id?: string | null
+          partner_name?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          quantity?: number | null
+          siren?: string | null
+          status?: string | null
+          total_price?: number | null
+          unit_price?: number | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          fit_status?: string | null
+          id?: string
+          last_name?: string | null
+          message?: string | null
+          offer_id?: string | null
+          partner_id?: string | null
+          partner_name?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          quantity?: number | null
+          siren?: string | null
+          status?: string | null
+          total_price?: number | null
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_requests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          company: string | null
+          country: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          siren: string | null
+          user_type: string
+        }
+        Insert: {
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          siren?: string | null
+          user_type?: string
+        }
+        Update: {
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          siren?: string | null
+          user_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
