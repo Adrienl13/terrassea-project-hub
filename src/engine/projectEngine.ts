@@ -496,7 +496,6 @@ function getConceptTemplates(params: ProjectParameters): ConceptTemplate[] {
     for (const amb of estAmbiences) {
       if (t.ambienceBias.includes(amb)) score += 1.5;
     }
-    score += Math.random() * 0.5;
     return { template: t, score };
   });
 
@@ -534,8 +533,8 @@ const WEIGHTS = {
   styleMatch: 4.0,
   useCaseMatch: 3.5,
   ambienceMatch: 2.5,
-  paletteMatch: 2.0,
-  materialMatch: 1.5,
+  paletteMatch: 3.5,
+  materialMatch: 2.0,
   technicalMatch: 2.0,
   popularityScore: 3.0,
   adminPriorityScore: 2.0,
@@ -603,9 +602,6 @@ function scoreProduct(
   } else if (product.availability_type === "production") {
     score += WEIGHTS.availabilityBonus * 0.5;
   }
-
-  // Small controlled freshness
-  score += Math.random() * 0.5;
 
   return score;
 }
@@ -687,7 +683,20 @@ function selectProductsForConcept(
   products: DBProduct[],
   usedProductIds: Set<string>
 ): RecommendedProduct[] {
-  const scored = products
+  const BUDGET_MAX_PER_UNIT: Record<string, number> = {
+    economy: 80,
+    mid: 120,
+    premium: 180,
+    luxury: 99999,
+  };
+  const budgetMax = params.budgetLevel ? (BUDGET_MAX_PER_UNIT[params.budgetLevel] ?? 99999) : 99999;
+
+  const eligibleProducts = products.filter((p) => {
+    if (p.price_min == null) return true;
+    return p.price_min <= budgetMax;
+  });
+
+  const scored = eligibleProducts
     .map((p) => ({
       product: p,
       score: scoreProduct(p, concept, params),
