@@ -401,33 +401,89 @@ const Index = () => {
       </section>
 
       {/* ── VALUE PROP ──────────────────────────────────────────────── */}
-      <section className="py-24 px-6 bg-card">
-        <div className="container mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="grid md:grid-cols-3 gap-12">
+      <section className="py-20 px-6 bg-card border-t border-border">
+        <div className="container mx-auto max-w-4xl">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
+            <div>
+              <p className="text-[10px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Why Terrassea
+              </p>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                Built for hospitality professionals
+              </h2>
+            </div>
+            <p className="text-sm font-body text-muted-foreground max-w-xs leading-relaxed">
+              Everything you need to source, compare and order outdoor furniture — in one place.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               {
-                icon: "○",
+                number: "01",
                 title: "Simplified sourcing",
-                text: "Compare offers from multiple suppliers on a single product. Price, stock, delivery — all at a glance.",
+                text: "Compare offers from multiple suppliers on a single product. Price, stock, delivery times — all at a glance.",
+                accent: "#D4603A",
+                tag: "Multi-supplier",
               },
               {
-                icon: "◇",
+                number: "02",
                 title: "Tailored projects",
-                text: "Our engine generates curated selections adapted to your establishment, style and budget.",
+                text: "Our engine generates curated selections adapted to your establishment type, style and budget.",
+                accent: "#4A90A4",
+                tag: "AI-powered",
               },
               {
-                icon: "△",
+                number: "03",
                 title: "Verified partners",
-                text: "Every supplier is selected for CHR quality, delivery reliability and professional service.",
+                text: "Every supplier is selected for CHR-grade quality, delivery reliability and professional service across Europe.",
+                accent: "#6B7B5E",
+                tag: "Europe-wide",
               },
             ].map((item, i) => (
-              <motion.div key={item.title} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="space-y-4">
-                <span className="text-2xl text-foreground/30">{item.icon}</span>
-                <h3 className="font-display font-semibold text-foreground">{item.title}</h3>
-                <p className="text-sm text-muted-foreground font-body leading-relaxed">{item.text}</p>
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="relative p-6 rounded-sm border border-border bg-background overflow-hidden group hover:border-foreground/30 transition-colors"
+              >
+                {/* Accent top border */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-0.5"
+                  style={{ background: item.accent }}
+                />
+                {/* Number + tag */}
+                <div className="flex items-center justify-between mb-6">
+                  <span className="text-[10px] font-display font-semibold uppercase tracking-[0.15em] text-muted-foreground/40">
+                    {item.number}
+                  </span>
+                  <span
+                    className="text-[9px] font-display font-semibold uppercase tracking-[0.12em] px-2 py-1 rounded-full"
+                    style={{
+                      background: `${item.accent}15`,
+                      color: item.accent,
+                    }}
+                  >
+                    {item.tag}
+                  </span>
+                </div>
+                {/* Content */}
+                <h3 className="font-display font-bold text-base text-foreground mb-3">
+                  {item.title}
+                </h3>
+                <p className="text-xs font-body text-muted-foreground leading-relaxed">
+                  {item.text}
+                </p>
+                {/* Decorative corner accent */}
+                <div
+                  className="absolute bottom-0 right-0 w-16 h-16 rounded-full opacity-[0.07] -mb-6 -mr-6"
+                  style={{ background: item.accent }}
+                />
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
