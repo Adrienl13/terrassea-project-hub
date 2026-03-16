@@ -338,6 +338,21 @@ function StockBadge({ status }: { status: string | null }) {
 function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DBProduct) => void }) {
   const { addToCompare, isInCompare } = useCompare();
   const inCompare = isInCompare(product.id);
+
+  const priceDisplay = product.price_min != null
+    ? `From €${product.price_min.toFixed(2)}`
+    : product.indicative_price || null;
+
+  const STOCK_DOT: Record<string, { dot: string; label: string }> = {
+    available:    { dot: "bg-green-500",         label: "In stock"     },
+    low_stock:    { dot: "bg-amber-500",          label: "Low stock"    },
+    production:   { dot: "bg-blue-500",           label: "Production"   },
+    on_order:     { dot: "bg-muted-foreground",   label: "On order"     },
+    to_confirm:   { dot: "bg-muted-foreground",   label: "To confirm"   },
+    out_of_stock: { dot: "bg-red-500",            label: "Out of stock" },
+  };
+  const stock = STOCK_DOT[product.stock_status || "available"] ?? STOCK_DOT.available;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -347,56 +362,60 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
       className="group"
     >
       <Link to={`/products/${product.id}`} className="block">
-        <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4 relative">
+        <div className="aspect-square overflow-hidden bg-card rounded-sm mb-3 relative">
           <img
             src={product.image_url || "/placeholder.svg"}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
-          <div className="absolute top-2 right-2">
-            <StockBadge status={product.stock_status} />
-          </div>
-        </div>
-      </Link>
-      <div>
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <Link to={`/products/${product.id}`}>
-              <h3 className="font-display font-semibold text-sm text-foreground truncate hover:underline">
-                {product.name}
-              </h3>
-            </Link>
-            {product.brand_source && (
-              <p className="text-[10px] text-muted-foreground font-body uppercase tracking-wider mt-0.5">
-                {product.brand_source}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+          <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={(e) => { e.preventDefault(); addToCompare(product); }}
               disabled={inCompare}
-              className={`border rounded-full p-1.5 transition-colors ${inCompare ? "border-foreground bg-foreground" : "border-border hover:border-foreground"}`}
+              className={`border rounded-full p-1.5 backdrop-blur-sm transition-colors ${
+                inCompare
+                  ? "border-foreground bg-foreground"
+                  : "border-border bg-background/80 hover:border-foreground"
+              }`}
               title={inCompare ? "In compare" : "Compare"}
             >
               <BarChart3 className={`h-3 w-3 ${inCompare ? "text-primary-foreground" : "text-muted-foreground"}`} />
             </button>
             <button
               onClick={(e) => { e.preventDefault(); onAdd(product); }}
-              className="border border-border hover:border-foreground rounded-full p-1.5 transition-colors"
+              className="border border-border bg-background/80 backdrop-blur-sm hover:border-foreground rounded-full p-1.5 transition-colors"
               title="Add to project"
             >
-              <Plus className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground" />
+              <Plus className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-body">
-          {product.short_description}
-        </p>
-        <p className="text-sm font-display font-medium text-foreground mt-2">
-          {product.indicative_price || "On request"}
-        </p>
+      </Link>
+      <div>
+        <Link to={`/products/${product.id}`}>
+          <h3 className="font-display font-semibold text-xs text-foreground truncate hover:underline leading-tight">
+            {product.name}
+          </h3>
+        </Link>
+        {product.brand_source && (
+          <p className="text-[10px] text-muted-foreground font-body uppercase tracking-wider mt-0.5 truncate">
+            {product.brand_source}
+          </p>
+        )}
+        <div className="flex items-center justify-between mt-2 gap-1">
+          <p className="text-xs font-display font-semibold text-foreground">
+            {priceDisplay ?? (
+              <span className="text-muted-foreground font-normal">On request</span>
+            )}
+          </p>
+          <span className="flex items-center gap-1 flex-shrink-0">
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${stock.dot}`} />
+            <span className="text-[10px] font-body text-muted-foreground whitespace-nowrap">
+              {stock.label}
+            </span>
+          </span>
+        </div>
       </div>
     </motion.div>
   );
