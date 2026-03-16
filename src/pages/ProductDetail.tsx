@@ -361,7 +361,7 @@ const ProductDetail = () => {
               <h2 className="font-display text-lg font-bold text-foreground mb-6">
                 Similar products
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 {similar.map((p) => (
                   <RelatedCard key={p.id} product={p} onAdd={() => { addItem(p); toast.success(`${p.name} added`); }} />
                 ))}
