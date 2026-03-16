@@ -378,7 +378,8 @@ function DetailPanel({ board, onClose }: { board: Moodboard; onClose: () => void
 
 const Inspirations = () => {
   const navigate = useNavigate();
-  const [activeSpace,    setActiveSpace]    = useState("all");
+  const [searchParams] = useSearchParams();
+  const [activeSpace, setActiveSpace] = useState(searchParams.get("space") || "all");
   const [activeStyle,    setActiveStyle]    = useState("Tous les styles");
   const [selectedBoard,  setSelectedBoard]  = useState<Moodboard | null>(null);
 
