@@ -409,12 +409,7 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
               <span className="text-muted-foreground font-normal">On request</span>
             )}
           </p>
-          <span className="flex items-center gap-1 flex-shrink-0">
-            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${stock.dot}`} />
-            <span className="text-[10px] font-body text-muted-foreground whitespace-nowrap">
-              {stock.label}
-            </span>
-          </span>
+          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stock.dot}`} title={stock.label} />
         </div>
       </div>
     </motion.div>
@@ -465,7 +460,7 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
               ? `From €${product.price_min.toFixed(2)}`
               : product.indicative_price || "On request"}
           </span>
-          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
             ({
               available: "bg-green-500",
               low_stock: "bg-amber-500",
@@ -473,7 +468,7 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
               on_order: "bg-muted-foreground",
               to_confirm: "bg-muted-foreground",
             } as Record<string, string>)[product.stock_status || "available"] ?? "bg-green-500"
-          }`} />
+          }`} title={product.stock_status || "available"} />
         </div>
       </div>
       <button
