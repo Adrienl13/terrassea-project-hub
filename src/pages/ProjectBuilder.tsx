@@ -1,6 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Sparkles, RotateCcw } from "lucide-react";
+import { RotateCcw, Sparkles } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProjectBuilderStepper from "@/components/project-builder/ProjectBuilderStepper";
@@ -21,8 +22,8 @@ const DEFAULT_PARAMS: ProjectParameters = {
   establishmentType: "",
   projectZone: "outdoor",
   seatingCapacity: null,
-  seatingLayout: "",
-  layoutPriority: "",
+  seatingLayout: "balanced-2-4",
+  layoutPriority: "balanced",
   style: [],
   ambience: [],
   colorPalette: [],
@@ -38,86 +39,89 @@ const DEFAULT_PARAMS: ProjectParameters = {
 };
 
 const GUIDED_STEPS = [
-  { id: "mode", label: "Start", description: "How to begin?" },
-  { id: "type", label: "Project type", description: "What type of establishment?" },
-  { id: "capacity", label: "Capacity", description: "How many guests?" },
-  { id: "layout", label: "Seating layout", description: "How to organize tables?" },
-  { id: "priority", label: "Layout priority", description: "What matters most?" },
-  { id: "style", label: "Style & materials", description: "Define the aesthetic" },
-  { id: "budget", label: "Budget & timeline", description: "Practical details" },
-  { id: "review", label: "Review", description: "Confirm your brief" },
+  { id: "mode",     label: "Start",    description: "How to begin?" },
+  { id: "type",     label: "Type",     description: "Establishment type" },
+  { id: "budget",   label: "Budget",   description: "Budget per seat" },
+  { id: "capacity", label: "Capacity", description: "Guests & space" },
+  { id: "style",    label: "Style",    description: "Aesthetic direction" },
+  { id: "review",   label: "Review",   description: "Confirm brief" },
 ];
 
 const EXPERT_STEPS = [
-  { id: "mode", label: "Start", description: "How to begin?" },
+  { id: "mode",   label: "Start",        description: "How to begin?" },
   { id: "expert", label: "Requirements", description: "Define all parameters" },
-  { id: "review", label: "Review", description: "Confirm your brief" },
+  { id: "review", label: "Review",       description: "Confirm your brief" },
 ];
 
 const STEP_OPTIONS: Record<string, { question: string; options: { value: string; label: string; description?: string }[] }> = {
   type: {
-    question: "What type of establishment is this project for?",
+    question: "What type of establishment?",
     options: [
-      { value: "restaurant", label: "Restaurant", description: "Terraces, patios & outdoor dining" },
-      { value: "hotel", label: "Hotel", description: "Lobbies, pool decks & garden lounges" },
-      { value: "rooftop", label: "Rooftop", description: "Sky bars & urban terraces" },
-      { value: "beach-club", label: "Beach Club", description: "Beachfront lounges & daybeds" },
-      { value: "bar", label: "Bar / Lounge", description: "Cocktail bars & wine bars" },
-      { value: "camping", label: "Camping", description: "Glamping & outdoor communal areas" },
-      { value: "event", label: "Event Space", description: "Banquets, weddings & receptions" },
-      { value: "pool", label: "Pool Area", description: "Poolside & deck furniture" },
-    ],
-  },
-  layout: {
-    question: "How do you want to organize your seating layout?",
-    options: [
-      { value: "mostly-2", label: "Mostly 2-seater tables", description: "Ideal for cafés & couple dining" },
-      { value: "balanced-2-4", label: "Balanced mix of 2 and 4-seater", description: "Most common restaurant setup" },
-      { value: "mostly-4", label: "Mostly 4-seater tables", description: "Family & group oriented" },
-      { value: "modular", label: "Flexible modular layout", description: "Combinable tables for any group size" },
-      { value: "group", label: "Group dining friendly", description: "Large tables for sharing" },
-      { value: "custom", label: "Custom mix", description: "Specific requirements" },
-    ],
-  },
-  priority: {
-    question: "What matters most for your layout?",
-    options: [
-      { value: "max-capacity", label: "Maximize seating capacity", description: "Fit as many guests as possible" },
-      { value: "balanced", label: "Balanced comfort and capacity", description: "Best of both worlds" },
-      { value: "spacious", label: "Spacious premium layout", description: "Generous spacing between tables" },
-      { value: "flexible-groups", label: "Flexible tables for groups", description: "Adapt to varying group sizes" },
-      { value: "couples", label: "Mostly couple seating", description: "Intimate two-person tables" },
-      { value: "groups", label: "Mostly group seating", description: "Large communal tables" },
-    ],
-  },
-  style: {
-    question: "What style defines your project?",
-    options: [
-      { value: "mediterranean", label: "Mediterranean", description: "Riviera, earthy tones, natural textures" },
-      { value: "modern", label: "Modern", description: "Clean lines, contemporary design" },
-      { value: "bistro", label: "Bistro / Parisian", description: "Classic French terrace charm" },
-      { value: "natural", label: "Natural / Wood", description: "Organic materials, earthy palette" },
-      { value: "industrial", label: "Industrial", description: "Metal, raw finishes, urban" },
-      { value: "luxury", label: "Luxury / Premium", description: "High-end materials, exclusive feel" },
-      { value: "coastal", label: "Coastal", description: "Nautical, maritime elegance" },
-      { value: "tropical", label: "Tropical", description: "Exotic, resort-style" },
+      { value: "restaurant", label: "Restaurant",   description: "Terraces, patios & outdoor dining" },
+      { value: "hotel",      label: "Hotel",         description: "Lobbies, pool decks & garden lounges" },
+      { value: "rooftop",    label: "Rooftop",       description: "Sky bars & urban terraces" },
+      { value: "beach-club", label: "Beach Club",    description: "Beachfront lounges & daybeds" },
+      { value: "bar",        label: "Bar / Lounge",  description: "Cocktail bars & wine bars" },
+      { value: "camping",    label: "Camping",       description: "Glamping & outdoor communal areas" },
+      { value: "event",      label: "Event Space",   description: "Banquets, weddings & receptions" },
+      { value: "pool",       label: "Pool Area",     description: "Poolside & deck furniture" },
     ],
   },
   budget: {
-    question: "What is your budget range per seat?",
+    question: "What is your budget per seat?",
     options: [
-      { value: "economy", label: "€50–80 per seat", description: "Economic, functional" },
-      { value: "mid", label: "€80–120 per seat", description: "Mid-range, good quality" },
-      { value: "premium", label: "€120–180 per seat", description: "Premium materials & design" },
-      { value: "luxury", label: "€180+ per seat", description: "Luxury, bespoke" },
+      { value: "economy", label: "€50–80",   description: "Functional & cost-effective" },
+      { value: "mid",     label: "€80–120",  description: "Mid-range, solid quality" },
+      { value: "premium", label: "€120–180", description: "Premium materials & design" },
+      { value: "luxury",  label: "€180+",    description: "Luxury & bespoke" },
     ],
   },
 };
 
+const STYLE_INFERENCE: Record<string, { ambience: string[]; colorPalette: string[] }> = {
+  mediterranean: { ambience: ["warm", "convivial", "relaxed"], colorPalette: ["warm", "natural", "cool"] },
+  bistro:        { ambience: ["convivial", "warm", "authentic"], colorPalette: ["black", "warm"] },
+  natural:       { ambience: ["relaxed", "authentic", "warm"], colorPalette: ["natural", "wood", "green"] },
+  modern:        { ambience: ["refined", "design-forward"], colorPalette: ["black", "white", "cool"] },
+  luxury:        { ambience: ["elegant", "refined", "evening"], colorPalette: ["warm", "black"] },
+  industrial:    { ambience: ["festive", "convivial", "design-forward"], colorPalette: ["black", "cool"] },
+  coastal:       { ambience: ["relaxed", "bright", "elegant"], colorPalette: ["cool", "white", "natural"] },
+  tropical:      { ambience: ["relaxed", "festive", "warm"], colorPalette: ["green", "warm", "cool"] },
+};
+
+function inferFromStyles(styles: string[]) {
+  const ambience = new Set<string>();
+  const palette = new Set<string>();
+  for (const s of styles) {
+    STYLE_INFERENCE[s]?.ambience.forEach((a) => ambience.add(a));
+    STYLE_INFERENCE[s]?.colorPalette.forEach((p) => palette.add(p));
+  }
+  return {
+    ambience: Array.from(ambience),
+    colorPalette: Array.from(palette),
+  };
+}
+
 const ProjectBuilder = () => {
+  const [searchParams] = useSearchParams();
   const { data: products = [], isLoading: productsLoading } = useProducts();
+
+  const urlStyle = searchParams.get("style");
+  const urlFrom  = searchParams.get("from");
+
   const [currentStep, setCurrentStep] = useState(0);
-  const [params, setParams] = useState<ProjectParameters>({ ...DEFAULT_PARAMS });
+  const [params, setParams] = useState<ProjectParameters>(() => {
+    const initial = { ...DEFAULT_PARAMS };
+    if (urlStyle) {
+      initial.style = [urlStyle];
+      initial.builderMode = "guided";
+      const inferred = inferFromStyles([urlStyle]);
+      initial.ambience = inferred.ambience;
+      initial.colorPalette = inferred.colorPalette;
+    }
+    return initial;
+  });
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<{
     parameters: ProjectParameters;
@@ -125,52 +129,73 @@ const ProjectBuilder = () => {
     query: string;
   } | null>(null);
 
-  const isExpert = params.builderMode === "expert";
-  const steps = isExpert ? EXPERT_STEPS : GUIDED_STEPS;
+  useEffect(() => {
+    if (urlStyle && urlFrom === "inspirations") {
+      setCurrentStep(3);
+    }
+  }, [urlStyle, urlFrom]);
 
-  const handleSelectOption = useCallback((stepId: string, value: string) => {
+  const isExpert     = params.builderMode === "expert";
+  const steps        = isExpert ? EXPERT_STEPS : GUIDED_STEPS;
+  const stepId       = steps[currentStep]?.id;
+  const isModeStep   = stepId === "mode";
+  const isReviewStep = stepId === "review";
+  const isExpertStep = stepId === "expert";
+  const isCapacityStep = stepId === "capacity";
+  const isStyleStep  = stepId === "style";
+
+  const handleModeSelect = (mode: "guided" | "expert") => {
+    setParams((p) => ({ ...p, builderMode: mode }));
+    setTimeout(() => setCurrentStep(1), 200);
+  };
+
+  const handleSelectOption = useCallback((id: string, value: string) => {
     setParams((prev) => {
-      const updated = { ...prev };
-      switch (stepId) {
-        case "type": updated.establishmentType = value; break;
-        case "capacity": updated.seatingCapacity = parseInt(value); break;
-        case "layout": updated.seatingLayout = value; break;
-        case "priority": updated.layoutPriority = value; break;
-        case "style": updated.style = updated.style.includes(value) ? updated.style.filter(s => s !== value) : [...updated.style, value]; break;
-        case "budget": updated.budgetLevel = value; break;
+      const u = { ...prev };
+      switch (id) {
+        case "type":   u.establishmentType = value; break;
+        case "budget": u.budgetLevel = value; break;
       }
-      return updated;
+      return u;
     });
-    if (stepId !== "style" && currentStep < steps.length - 1) {
+    if (currentStep < steps.length - 1) {
       setTimeout(() => setCurrentStep((s) => s + 1), 300);
     }
   }, [currentStep, steps.length]);
+
+  const handleStyleToggle = useCallback((style: string) => {
+    setParams((prev) => {
+      const existing = prev.style;
+      const next = existing.includes(style)
+        ? existing.filter((s) => s !== style)
+        : [...existing, style];
+      const inferred = inferFromStyles(next);
+      return { ...prev, style: next, ambience: inferred.ambience, colorPalette: inferred.colorPalette };
+    });
+  }, []);
 
   const handleParamsChange = useCallback((updates: Partial<ProjectParameters>) => {
     setParams((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  const getSelectedValue = (stepId: string): string => {
-    switch (stepId) {
-      case "type": return params.establishmentType;
-      case "capacity": return params.seatingCapacity?.toString() || "";
-      case "layout": return params.seatingLayout;
-      case "priority": return params.layoutPriority;
-      case "style": return params.style[0] || "";
+  const getSelectedValue = (id: string): string => {
+    switch (id) {
+      case "type":   return params.establishmentType;
       case "budget": return params.budgetLevel;
-      default: return "";
+      default:       return "";
     }
-  };
-
-  const handleModeSelect = (mode: "guided" | "expert") => {
-    setParams((prev) => ({ ...prev, builderMode: mode }));
-    setTimeout(() => setCurrentStep(1), 200);
   };
 
   const handleGenerate = () => {
     if (products.length === 0) return;
     setIsGenerating(true);
-    const query = `${params.establishmentType} ${params.style.join(" ")} ${params.seatingCapacity || 60} seats`;
+    const query = [
+      params.establishmentType,
+      ...params.style,
+      params.seatingCapacity ? `${params.seatingCapacity} seats` : "",
+      params.budgetLevel,
+    ].filter(Boolean).join(" ");
+
     setTimeout(() => {
       const { parameters, concepts } = generateProjectConcepts(query, products, params);
       setResults({ parameters, concepts, query });
@@ -183,12 +208,6 @@ const ProjectBuilder = () => {
     setParams({ ...DEFAULT_PARAMS });
     setResults(null);
   };
-
-  const stepId = steps[currentStep]?.id;
-  const isReviewStep = stepId === "review";
-  const isModeStep = stepId === "mode";
-  const isExpertStep = stepId === "expert";
-  const isCapacityStep = stepId === "capacity";
 
   if (results) {
     return (
@@ -222,7 +241,7 @@ const ProjectBuilder = () => {
       <Header />
 
       <div className="pt-24 pb-16">
-        {/* Hero intro */}
+        {/* Hero */}
         <section className="px-6 mb-12">
           <div className="container mx-auto text-center">
             <motion.div
@@ -230,6 +249,14 @@ const ProjectBuilder = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
+              {urlFrom === "inspirations" && urlStyle && (
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 mb-4">
+                  <Sparkles className="h-3 w-3 text-accent-foreground" />
+                  <span className="text-xs font-body text-accent-foreground capitalize">
+                    Style {urlStyle} pre-selected from Inspirations
+                  </span>
+                </div>
+              )}
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Sparkles className="h-4 w-4 text-foreground" />
                 <span className="text-xs font-body uppercase tracking-[0.2em] text-muted-foreground">
@@ -240,7 +267,9 @@ const ProjectBuilder = () => {
                 Build your hospitality project
               </h1>
               <p className="text-muted-foreground font-body text-sm md:text-base mt-4 max-w-lg mx-auto">
-                Define your needs · Get layout suggestions · Discover matching products · Request supplier quotes
+                {urlFrom === "inspirations"
+                  ? "Your style is set — just add your capacity and budget to generate concepts."
+                  : "Define your needs · Get layout suggestions · Discover matching products"}
               </p>
             </motion.div>
           </div>
@@ -289,14 +318,13 @@ const ProjectBuilder = () => {
                       onBack={() => setCurrentStep(0)}
                       onNext={() => setCurrentStep(2)}
                     />
-                  ) : isReviewStep ? (
-                    <ProjectBuilderReview
-                      key="review"
-                      params={params}
-                      onGenerate={handleGenerate}
+                  ) : isStyleStep ? (
+                    <StyleStep
+                      key="style"
+                      selectedStyles={params.style}
+                      onToggle={handleStyleToggle}
                       onBack={() => setCurrentStep(currentStep - 1)}
-                      onReset={handleReset}
-                      isLoading={productsLoading}
+                      onNext={() => setCurrentStep(currentStep + 1)}
                     />
                   ) : isCapacityStep ? (
                     <CapacityStep
@@ -306,13 +334,14 @@ const ProjectBuilder = () => {
                       onBack={currentStep > 0 ? () => setCurrentStep(currentStep - 1) : undefined}
                       onNext={currentStep < steps.length - 1 ? () => setCurrentStep(currentStep + 1) : undefined}
                     />
-                  ) : stepId === "style" ? (
-                    <StyleStep
-                      key="style"
-                      selectedStyles={params.style}
-                      onToggle={(val) => handleSelectOption("style", val)}
-                      onBack={currentStep > 0 ? () => setCurrentStep(currentStep - 1) : undefined}
-                      onNext={currentStep < steps.length - 1 ? () => setCurrentStep(currentStep + 1) : undefined}
+                  ) : isReviewStep ? (
+                    <ProjectBuilderReview
+                      key="review"
+                      params={params}
+                      onGenerate={handleGenerate}
+                      onBack={() => setCurrentStep(currentStep - 1)}
+                      onReset={handleReset}
+                      isLoading={productsLoading}
                     />
                   ) : (
                     <ProjectBuilderStep
@@ -328,7 +357,7 @@ const ProjectBuilder = () => {
                 </AnimatePresence>
               </div>
 
-              {/* Right: sticky summary */}
+              {/* Sidebar */}
               {!isModeStep && (
                 <div className="hidden lg:block">
                   <ProjectBuilderSummary params={params} currentStep={currentStep} />
