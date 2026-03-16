@@ -496,7 +496,6 @@ function getConceptTemplates(params: ProjectParameters): ConceptTemplate[] {
     for (const amb of estAmbiences) {
       if (t.ambienceBias.includes(amb)) score += 1.5;
     }
-    score += Math.random() * 0.5;
     return { template: t, score };
   });
 
