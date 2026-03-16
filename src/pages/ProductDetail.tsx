@@ -99,7 +99,7 @@ const ProductDetail = () => {
   // Related products: same category, exclude self
   const similar = allProducts
     .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+    .slice(0, 6);
 
   // Complementary: different category, matching style or use_case
   const complementary = allProducts
