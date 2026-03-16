@@ -306,6 +306,14 @@ const ProjectBuilder = () => {
                       onBack={currentStep > 0 ? () => setCurrentStep(currentStep - 1) : undefined}
                       onNext={currentStep < steps.length - 1 ? () => setCurrentStep(currentStep + 1) : undefined}
                     />
+                  ) : stepId === "style" ? (
+                    <StyleStep
+                      key="style"
+                      selectedStyles={params.style}
+                      onToggle={(val) => handleSelectOption("style", val)}
+                      onBack={currentStep > 0 ? () => setCurrentStep(currentStep - 1) : undefined}
+                      onNext={currentStep < steps.length - 1 ? () => setCurrentStep(currentStep + 1) : undefined}
+                    />
                   ) : (
                     <ProjectBuilderStep
                       key={stepId}
