@@ -59,7 +59,7 @@ const Auth = () => {
     }
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
@@ -68,22 +68,13 @@ const Auth = () => {
             first_name: form.firstName,
             last_name: form.lastName,
             user_type: form.userType,
+            company: form.company,
+            siren: form.siren,
+            phone: form.phone || null,
           },
         },
       });
       if (error) throw error;
-      if (data.user) {
-        await (supabase.from("user_profiles" as any) as any).upsert({
-          id: data.user.id,
-          email: form.email,
-          first_name: form.firstName,
-          last_name: form.lastName,
-          company: form.company,
-          siren: form.siren,
-          phone: form.phone || null,
-          user_type: form.userType,
-        });
-      }
       toast.success("Account created! Check your email to confirm.");
       navigate(from);
     } catch (err: any) {
