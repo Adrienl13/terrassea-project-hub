@@ -59,6 +59,15 @@ const Auth = () => {
     }
     setIsLoading(true);
     try {
+      console.log("Signing up with data:", {
+        email: form.email,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        userType: form.userType,
+        company: form.company,
+        siren: form.siren,
+        phone: form.phone,
+      });
       const { error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
