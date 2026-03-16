@@ -65,9 +65,8 @@ const Index = () => {
   const resultsRef       = useRef<HTMLDivElement>(null);
   const searchResultsRef = useRef<HTMLDivElement>(null);
 
-  const { scrollY }   = useScroll();
-  const heroOpacity   = useTransform(scrollY, [0, 400], [1, 0]);
-  const heroY         = useTransform(scrollY, [0, 400], [0, 60]);
+  const heroOpacity = 1;
+  const heroY = 0;
 
   const handleSearch = (query: string) => {
     if (products.length === 0) return;
