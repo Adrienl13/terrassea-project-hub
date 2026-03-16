@@ -380,7 +380,7 @@ const ProductDetail = () => {
               <p className="text-xs text-muted-foreground font-body mb-6">
                 Products that pair well with {product.name}
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 {complementary.map((p) => (
                   <RelatedCard key={p.id} product={p} onAdd={() => { addItem(p); toast.success(`${p.name} added`); }} />
                 ))}
