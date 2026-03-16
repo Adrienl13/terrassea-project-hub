@@ -110,7 +110,7 @@ const ProductDetail = () => {
         (p.style_tags.some((t) => product.style_tags.includes(t)) ||
           p.use_case_tags.some((t) => product.use_case_tags.includes(t)))
     )
-    .slice(0, 4);
+    .slice(0, 6);
 
   const proFeatures = [
     product.is_chr_heavy_use && { icon: Shield, label: "Heavy-duty CHR use" },
