@@ -136,7 +136,7 @@ const ProjectBuilder = () => {
         case "capacity": updated.seatingCapacity = parseInt(value); break;
         case "layout": updated.seatingLayout = value; break;
         case "priority": updated.layoutPriority = value; break;
-        case "style": updated.style = [value]; break;
+        case "style": updated.style = updated.style.includes(value) ? updated.style.filter(s => s !== value) : [...updated.style, value]; break;
         case "budget": updated.budgetLevel = value; break;
       }
       return updated;
