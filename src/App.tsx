@@ -40,8 +40,9 @@ const App = () => (
                 <Route path="/inspirations" element={<Inspirations />} />
                 <Route path="/partners" element={<Partners />} />
                 <Route path="/partners/:slug" element={<PartnerDetail />} />
-                <Route path="/admin" element={<Admin />} />
+                <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
                 <Route path="/login" element={<Auth />} />
+                <Route path="/auth" element={<Auth />} />
                 <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
