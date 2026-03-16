@@ -10,6 +10,7 @@ import ProjectBuilderReview from "@/components/project-builder/ProjectBuilderRev
 import ProjectBuilderModeSelect from "@/components/project-builder/ProjectBuilderModeSelect";
 import ProjectBuilderExpertInputs from "@/components/project-builder/ProjectBuilderExpertInputs";
 import CapacityStep from "@/components/project-builder/CapacityStep";
+import StyleStep from "@/components/project-builder/StyleStep";
 import ProjectResults from "@/components/ProjectResults";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
 import { useProducts } from "@/hooks/useProducts";
@@ -135,12 +136,12 @@ const ProjectBuilder = () => {
         case "capacity": updated.seatingCapacity = parseInt(value); break;
         case "layout": updated.seatingLayout = value; break;
         case "priority": updated.layoutPriority = value; break;
-        case "style": updated.style = [value]; break;
+        case "style": updated.style = updated.style.includes(value) ? updated.style.filter(s => s !== value) : [...updated.style, value]; break;
         case "budget": updated.budgetLevel = value; break;
       }
       return updated;
     });
-    if (currentStep < steps.length - 1) {
+    if (stepId !== "style" && currentStep < steps.length - 1) {
       setTimeout(() => setCurrentStep((s) => s + 1), 300);
     }
   }, [currentStep, steps.length]);
@@ -302,6 +303,14 @@ const ProjectBuilder = () => {
                       key="capacity"
                       params={params}
                       onChange={handleParamsChange}
+                      onBack={currentStep > 0 ? () => setCurrentStep(currentStep - 1) : undefined}
+                      onNext={currentStep < steps.length - 1 ? () => setCurrentStep(currentStep + 1) : undefined}
+                    />
+                  ) : stepId === "style" ? (
+                    <StyleStep
+                      key="style"
+                      selectedStyles={params.style}
+                      onToggle={(val) => handleSelectOption("style", val)}
                       onBack={currentStep > 0 ? () => setCurrentStep(currentStep - 1) : undefined}
                       onNext={currentStep < steps.length - 1 ? () => setCurrentStep(currentStep + 1) : undefined}
                     />
