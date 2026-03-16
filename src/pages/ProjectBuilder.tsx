@@ -10,6 +10,7 @@ import ProjectBuilderReview from "@/components/project-builder/ProjectBuilderRev
 import ProjectBuilderModeSelect from "@/components/project-builder/ProjectBuilderModeSelect";
 import ProjectBuilderExpertInputs from "@/components/project-builder/ProjectBuilderExpertInputs";
 import CapacityStep from "@/components/project-builder/CapacityStep";
+import StyleStep from "@/components/project-builder/StyleStep";
 import ProjectResults from "@/components/ProjectResults";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
 import { useProducts } from "@/hooks/useProducts";
