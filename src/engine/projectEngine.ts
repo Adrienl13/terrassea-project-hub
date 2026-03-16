@@ -604,9 +604,6 @@ function scoreProduct(
     score += WEIGHTS.availabilityBonus * 0.5;
   }
 
-  // Small controlled freshness
-  score += Math.random() * 0.5;
-
   return score;
 }
 
