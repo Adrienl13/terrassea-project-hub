@@ -683,7 +683,20 @@ function selectProductsForConcept(
   products: DBProduct[],
   usedProductIds: Set<string>
 ): RecommendedProduct[] {
-  const scored = products
+  const BUDGET_MAX_PER_UNIT: Record<string, number> = {
+    economy: 80,
+    mid: 120,
+    premium: 180,
+    luxury: 99999,
+  };
+  const budgetMax = params.budgetLevel ? (BUDGET_MAX_PER_UNIT[params.budgetLevel] ?? 99999) : 99999;
+
+  const eligibleProducts = products.filter((p) => {
+    if (p.price_min == null) return true;
+    return p.price_min <= budgetMax;
+  });
+
+  const scored = eligibleProducts
     .map((p) => ({
       product: p,
       score: scoreProduct(p, concept, params),
