@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProjectCartProvider } from "@/contexts/ProjectCartContext";
 import { CompareProvider } from "@/contexts/CompareContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index.tsx";
 import Products from "./pages/Products.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
@@ -14,6 +15,7 @@ import PartnerDetail from "./pages/PartnerDetail.tsx";
 import Admin from "./pages/Admin.tsx";
 import ProjectBuilder from "./pages/ProjectBuilder.tsx";
 import Inspirations from "./pages/Inspirations.tsx";
+import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -21,26 +23,29 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <ProjectCartProvider>
-        <CompareProvider>
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/compare" element={<ProductCompare />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/project-cart" element={<ProjectCart />} />
-              <Route path="/projects/new" element={<ProjectBuilder />} />
-              <Route path="/inspirations" element={<Inspirations />} />
-              <Route path="/partners" element={<Partners />} />
-              <Route path="/partners/:slug" element={<PartnerDetail />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </CompareProvider>
-      </ProjectCartProvider>
+      <AuthProvider>
+        <ProjectCartProvider>
+          <CompareProvider>
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/products/compare" element={<ProductCompare />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/project-cart" element={<ProjectCart />} />
+                <Route path="/projects/new" element={<ProjectBuilder />} />
+                <Route path="/inspirations" element={<Inspirations />} />
+                <Route path="/partners" element={<Partners />} />
+                <Route path="/partners/:slug" element={<PartnerDetail />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/login" element={<Auth />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </CompareProvider>
+        </ProjectCartProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
