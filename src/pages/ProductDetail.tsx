@@ -421,6 +421,16 @@ function StockBadge({ status }: { status: string | null }) {
 }
 
 function RelatedCard({ product, onAdd }: { product: DBProduct; onAdd: () => void }) {
+  const STOCK_DOT: Record<string, { dot: string; label: string }> = {
+    available:    { dot: "bg-green-500",       label: "In stock"     },
+    low_stock:    { dot: "bg-amber-500",        label: "Low stock"    },
+    production:   { dot: "bg-blue-500",         label: "Production"   },
+    on_order:     { dot: "bg-muted-foreground", label: "On order"     },
+    to_confirm:   { dot: "bg-muted-foreground", label: "To confirm"   },
+    out_of_stock: { dot: "bg-red-500",          label: "Out of stock" },
+  };
+  const stock = STOCK_DOT[product.stock_status || "available"] ?? STOCK_DOT.available;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -440,19 +450,34 @@ function RelatedCard({ product, onAdd }: { product: DBProduct; onAdd: () => void
         </div>
       </Link>
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <Link to={`/products/${product.id}`}>
-            <h3 className="font-display font-semibold text-xs text-foreground truncate hover:underline">
+            <h3 className="font-display font-semibold text-xs text-foreground truncate hover:underline leading-tight">
               {product.name}
             </h3>
           </Link>
-          <p className="text-xs font-display font-medium text-foreground mt-1">
-            {product.indicative_price || "On request"}
-          </p>
+          <div className="flex items-center justify-between mt-1 gap-1">
+            <p className="text-xs font-display font-medium text-foreground">
+              {product.price_min != null
+                ? `From €${product.price_min.toFixed(2)}`
+                : product.indicative_price ?? (
+                    <span className="text-muted-foreground font-normal">On request</span>
+                  )}
+            </p>
+            <span
+              className={`w-2 h-2 rounded-full flex-shrink-0 ${stock.dot}`}
+              title={stock.label}
+            />
+          </div>
+          {(product as any).offers_count > 0 && (
+            <p className="text-[10px] text-muted-foreground font-body mt-0.5">
+              {(product as any).offers_count} supplier{(product as any).offers_count > 1 ? "s" : ""}
+            </p>
+          )}
         </div>
         <button
           onClick={onAdd}
-          className="flex-shrink-0 border border-border hover:border-foreground rounded-full p-1 transition-colors"
+          className="flex-shrink-0 border border-border hover:border-foreground rounded-full p-1 transition-colors mt-0.5"
         >
           <Plus className="h-3 w-3 text-muted-foreground" />
         </button>
