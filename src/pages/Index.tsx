@@ -123,10 +123,13 @@ const Index = () => {
 
         {/* Atmospheric background */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Radial glow */}
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-accent/20 rounded-full blur-[120px]" />
-          {/* Secondary glow */}
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-muted/30 rounded-full blur-[100px]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#F5E6D3]/70 via-[#E8D5B0]/20 to-background" />
+          <div className="absolute top-1/4 left-1/6 w-[500px] h-[500px] rounded-full opacity-30"
+            style={{ background: "radial-gradient(circle, #D4A574 0%, transparent 65%)" }} />
+          <div className="absolute bottom-1/4 right-1/6 w-80 h-80 rounded-full opacity-15"
+            style={{ background: "radial-gradient(circle, #4A90A4 0%, transparent 65%)" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full opacity-10"
+            style={{ background: "radial-gradient(ellipse, #C4956A 0%, transparent 70%)" }} />
           {/* Subtle grid */}
           <div className="absolute inset-0 opacity-[0.02]" style={{
             backgroundImage: "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
