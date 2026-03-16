@@ -141,7 +141,7 @@ const ProjectBuilder = () => {
       }
       return updated;
     });
-    if (currentStep < steps.length - 1) {
+    if (stepId !== "style" && currentStep < steps.length - 1) {
       setTimeout(() => setCurrentStep((s) => s + 1), 300);
     }
   }, [currentStep, steps.length]);
