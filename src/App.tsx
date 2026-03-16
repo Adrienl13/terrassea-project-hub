@@ -16,6 +16,8 @@ import Admin from "./pages/Admin.tsx";
 import ProjectBuilder from "./pages/ProjectBuilder.tsx";
 import Inspirations from "./pages/Inspirations.tsx";
 import Auth from "./pages/Auth.tsx";
+import Account from "./pages/Account.tsx";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -40,6 +42,7 @@ const App = () => (
                 <Route path="/partners/:slug" element={<PartnerDetail />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/login" element={<Auth />} />
+                <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
