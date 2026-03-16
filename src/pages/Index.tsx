@@ -202,11 +202,20 @@ const Index = () => {
         </motion.div>
 
         {/* Scroll indicator */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <span className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.4 }}
+          className="absolute bottom-6 right-8 flex items-center gap-2"
+        >
+          <motion.div
+            animate={{ y: [0, 4, 0] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            className="w-px h-6 bg-gradient-to-b from-muted-foreground/30 to-transparent"
+          />
+          <span className="text-[9px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground/35 -rotate-90 origin-left translate-y-3">
             Scroll
           </span>
-          <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 2, repeat: Infinity }} className="w-px h-8 bg-gradient-to-b from-foreground/40 to-transparent" />
         </motion.div>
       </section>
 
