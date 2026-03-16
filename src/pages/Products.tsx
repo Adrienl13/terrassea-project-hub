@@ -405,12 +405,17 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
         )}
         <div className="flex items-center justify-between mt-2 gap-1">
           <p className="text-xs font-display font-semibold text-foreground">
-            {priceDisplay ?? (
-              <span className="text-muted-foreground font-normal">On request</span>
-            )}
+            {product.price_min != null
+              ? `From €${product.price_min.toFixed(2)}`
+              : product.indicative_price ?? <span className="font-normal text-muted-foreground">On request</span>}
           </p>
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stock.dot}`} title={stock.label} />
         </div>
+        {(product as any).offers_count > 0 && (
+          <p className="text-[10px] text-muted-foreground font-body mt-0.5">
+            {(product as any).offers_count} supplier{(product as any).offers_count > 1 ? "s" : ""}
+          </p>
+        )}
       </div>
     </motion.div>
   );
