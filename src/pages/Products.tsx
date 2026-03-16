@@ -459,9 +459,22 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
         <p className="text-xs text-muted-foreground mt-1 line-clamp-1 font-body">
           {product.short_description}
         </p>
-        <span className="text-sm font-display font-medium text-foreground mt-2 inline-block">
-          {product.indicative_price || "On request"}
-        </span>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-sm font-display font-medium text-foreground">
+            {product.price_min != null
+              ? `From €${product.price_min.toFixed(2)}`
+              : product.indicative_price || "On request"}
+          </span>
+          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+            ({
+              available: "bg-green-500",
+              low_stock: "bg-amber-500",
+              production: "bg-blue-500",
+              on_order: "bg-muted-foreground",
+              to_confirm: "bg-muted-foreground",
+            } as Record<string, string>)[product.stock_status || "available"] ?? "bg-green-500"
+          }`} />
+        </div>
       </div>
       <button
         onClick={() => onAdd(product)}
