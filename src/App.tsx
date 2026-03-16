@@ -42,6 +42,7 @@ const App = () => (
                 <Route path="/partners/:slug" element={<PartnerDetail />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/login" element={<Auth />} />
+                <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
