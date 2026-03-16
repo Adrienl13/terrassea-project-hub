@@ -409,12 +409,7 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
               <span className="text-muted-foreground font-normal">On request</span>
             )}
           </p>
-          <span className="flex items-center gap-1 flex-shrink-0">
-            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${stock.dot}`} />
-            <span className="text-[10px] font-body text-muted-foreground whitespace-nowrap">
-              {stock.label}
-            </span>
-          </span>
+          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stock.dot}`} title={stock.label} />
         </div>
       </div>
     </motion.div>
