@@ -336,19 +336,20 @@ const ProjectCart = () => {
                               key={product.id}
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              className="flex items-center gap-3 px-3 py-2.5 bg-card rounded-sm border border-border group"
+                              className="grid items-center gap-3 px-3 py-2 bg-card rounded-sm border border-border group"
+                              style={{ gridTemplateColumns: "36px 1fr 100px 80px 20px" }}
                             >
                               {/* Image */}
-                              <button onClick={() => { setSelectedProduct(product); setDrawerOpen(true); }} className="flex-shrink-0 focus:outline-none">
+                              <button onClick={() => { setSelectedProduct(product); setDrawerOpen(true); }} className="focus:outline-none">
                                 <img
                                   src={product.image_url || "/placeholder.svg"}
                                   alt={product.name}
-                                  className="w-11 h-11 object-cover rounded-sm hover:opacity-80 transition-opacity cursor-pointer"
+                                  className="w-9 h-9 object-cover rounded-sm hover:opacity-80 transition-opacity"
                                 />
                               </button>
 
                               {/* Info */}
-                              <div className="flex-1 min-w-0">
+                              <div className="min-w-0">
                                 <button onClick={() => { setSelectedProduct(product); setDrawerOpen(true); }} className="text-left focus:outline-none w-full">
                                   <p className="font-display font-semibold text-xs text-foreground hover:underline truncate">{product.name}</p>
                                   <p className="text-[10px] text-muted-foreground font-body truncate">
@@ -356,24 +357,24 @@ const ProjectCart = () => {
                                   </p>
                                 </button>
                                 {selectedSupplier ? (
-                                  <div className="inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full bg-card border border-border text-[10px] font-body text-muted-foreground">
+                                  <div className="inline-flex items-center gap-1.5 mt-0.5 px-1.5 py-0.5 rounded-full bg-card border border-border text-[10px] font-body text-muted-foreground">
                                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
                                     {selectedSupplier.partnerName} · €{selectedSupplier.price?.toFixed(2)}/u
                                     {selectedSupplier.deliveryDelayDays != null && ` · ${selectedSupplier.deliveryDelayDays}d`}
-                                    <button onClick={() => clearSupplier(product.id)} className="hover:text-destructive transition-colors ml-0.5">
+                                    <button onClick={() => clearSupplier(product.id)} className="hover:text-destructive ml-0.5">
                                       <X className="h-2.5 w-2.5" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <div className="inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full text-[10px] font-body bg-amber-500/[0.08] text-amber-700 border border-amber-500/20">
+                                  <div className="inline-flex items-center gap-1.5 mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-body" style={{ background: "rgba(186,117,23,.08)", color: "#854F0B", border: "0.5px solid rgba(186,117,23,.2)" }}>
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-                                    No supplier selected
+                                    No supplier
                                   </div>
                                 )}
                               </div>
 
                               {/* Quantity */}
-                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                              <div className="flex items-center justify-center gap-1">
                                 <button onClick={() => updateQuantity(product.id, quantity - 1)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
                                   <Minus className="h-2.5 w-2.5" />
                                 </button>
@@ -393,7 +394,7 @@ const ProjectCart = () => {
                               </div>
 
                               {/* Price */}
-                              <div className="text-right flex-shrink-0 min-w-[60px]">
+                              <div className="text-right">
                                 {(selectedSupplier?.price ?? (product as any).price_min) ? (
                                   <>
                                     <p className="text-[10px] text-muted-foreground font-body">×€{(selectedSupplier?.price ?? (product as any).price_min)?.toFixed(2)}</p>
@@ -405,7 +406,7 @@ const ProjectCart = () => {
                               </div>
 
                               {/* Delete */}
-                              <button onClick={() => removeItem(product.id)} className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 opacity-40 group-hover:opacity-100">
+                              <button onClick={() => removeItem(product.id)} className="text-muted-foreground hover:text-foreground transition-colors opacity-40 group-hover:opacity-100 justify-self-center">
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </motion.div>
