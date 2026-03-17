@@ -477,7 +477,6 @@ const Admin = () => {
 };
 
 export default Admin;
-type ProductFormData = Omit<DBProduct, "id"> & { id?: string };
 
 const emptyProduct: ProductFormData = {
   name: "",
