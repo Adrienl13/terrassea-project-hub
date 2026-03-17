@@ -416,24 +416,30 @@ const ProjectCart = () => {
                     </div>
                 )}
 
-                  {/* Stats row */}
-                  <div className="flex items-center justify-around p-4 bg-card rounded-sm mt-6">
-                    <div className="text-center">
-                      <span className="font-display font-bold text-lg text-foreground block">{items.length}</span>
-                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Products</span>
+                  {/* Totals — aligned grid */}
+                  <div
+                    className="grid gap-3 px-3 py-2 bg-card rounded-sm border border-border mt-2"
+                    style={{ gridTemplateColumns: "36px 1fr 100px 80px 20px" }}
+                  >
+                    <div />
+                    <div>
+                      <p className="text-[10px] font-body text-muted-foreground uppercase tracking-wider">
+                        {items.length} product{items.length > 1 ? "s" : ""}
+                      </p>
                     </div>
                     <div className="text-center">
-                      <span className="font-display font-bold text-lg text-foreground block">
+                      <p className="text-sm font-display font-bold text-foreground">
                         {items.reduce((s, i) => s + i.quantity, 0)}
-                      </span>
-                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Units</span>
+                      </p>
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">units</p>
                     </div>
-                    <div className="text-center">
-                      <span className="font-display font-bold text-lg text-foreground block">
+                    <div className="text-right">
+                      <p className="text-sm font-display font-bold text-foreground">
                         {hasBudget ? `~€${totalBudget.toLocaleString("fr-FR")}` : "—"}
-                      </span>
-                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Indicative</span>
+                      </p>
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">indicative</p>
                     </div>
+                    <div />
                   </div>
 
                   {hasBudget &&
