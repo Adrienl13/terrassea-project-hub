@@ -43,6 +43,7 @@ const App = () => (
                 <Route path="/projects/new" element={<ProjectBuilder />} />
                 <Route path="/inspirations" element={<Inspirations />} />
                 <Route path="/resources" element={<Resources />} />
+                <Route path="/pro-service" element={<ProService />} />
                 <Route path="/partners" element={<Partners />} />
                 <Route path="/partners/:slug" element={<PartnerDetail />} />
                 <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
