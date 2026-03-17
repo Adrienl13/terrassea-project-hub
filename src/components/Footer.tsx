@@ -26,7 +26,7 @@ const Footer = () => {
             <h4 className="font-display font-semibold text-sm mb-4">Company</h4>
             <div className="flex flex-col gap-3">
               <Link to="/" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">About Terrassea</Link>
-              <Link to="/partners" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">Become a Partner</Link>
+              <Link to="/become-partner" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">Become a Partner</Link>
               <Link to="/" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">Contact</Link>
               <Link to="/" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">Privacy Policy</Link>
             </div>
