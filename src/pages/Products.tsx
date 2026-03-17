@@ -338,7 +338,9 @@ function StockBadge({ status }: { status: string | null }) {
 
 function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DBProduct) => void }) {
   const { addToCompare, isInCompare } = useCompare();
+  const { isFavourite, toggleFavourite } = useFavourites();
   const inCompare = isInCompare(product.id);
+  const fav = isFavourite(product.id);
 
   const priceDisplay = product.price_min != null
     ? `From €${product.price_min.toFixed(2)}`
