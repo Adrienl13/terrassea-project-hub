@@ -51,6 +51,7 @@ const App = () => (
             </BrowserRouter>
           </CompareProvider>
         </ProjectCartProvider>
+        </FavouritesProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
