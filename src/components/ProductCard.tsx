@@ -61,7 +61,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               fav ? "bg-foreground" : "bg-white border border-gray-300"
             }`}
           >
-            <Heart className={`h-3.5 w-3.5 ${fav ? "text-primary-foreground fill-primary-foreground" : "text-muted-foreground"}`} />
+            <Heart className={`h-3.5 w-3.5 ${fav ? "text-white fill-white" : "text-gray-500"}`} />
           </button>
           <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
