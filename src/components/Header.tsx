@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, User } from "lucide-react";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { motion } from "framer-motion";
 
@@ -45,6 +45,13 @@ const Header = () => {
                 {itemCount}
               </span>
             )}
+          </Link>
+          <Link
+            to="/account"
+            className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <User className="h-5 w-5" />
+            <span className="hidden sm:inline">My Account</span>
           </Link>
           <Link
             to="/projects/new"
