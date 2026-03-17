@@ -329,115 +329,77 @@ const ProjectCart = () => {
                         </span>
                       </div>
 
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {conceptItems.map(({ product, quantity, layoutRequirementLabel, selectedSupplier }) => {
-                          const dims = formatDims(product);
                           return (
                             <motion.div
                               key={product.id}
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              className="flex gap-3 p-2.5 bg-card rounded-sm border border-border group"
+                              className="flex items-center gap-3 px-3 py-2.5 bg-card rounded-sm border border-border group"
                             >
                               {/* Image */}
-                              <button
-                                onClick={() => { setSelectedProduct(product); setDrawerOpen(true); }}
-                                className="flex-shrink-0 focus:outline-none"
-                              >
+                              <button onClick={() => { setSelectedProduct(product); setDrawerOpen(true); }} className="flex-shrink-0 focus:outline-none">
                                 <img
                                   src={product.image_url || "/placeholder.svg"}
                                   alt={product.name}
-                                  className="w-14 h-14 object-cover rounded-sm hover:opacity-80 transition-opacity cursor-pointer"
+                                  className="w-11 h-11 object-cover rounded-sm hover:opacity-80 transition-opacity cursor-pointer"
                                 />
                               </button>
 
                               {/* Info */}
                               <div className="flex-1 min-w-0">
-                                <button
-                                  onClick={() => { setSelectedProduct(product); setDrawerOpen(true); }}
-                                  className="text-left w-full focus:outline-none"
-                                >
-                                  <h3 className="font-display font-semibold text-xs text-foreground hover:underline truncate cursor-pointer">
-                                    {product.name}
-                                  </h3>
-                                  <p className="text-[10px] text-muted-foreground font-body mt-0 truncate">
-                                    {product.category}
-                                    {product.main_color ? ` · ${product.main_color}` : ""}
+                                <button onClick={() => { setSelectedProduct(product); setDrawerOpen(true); }} className="text-left focus:outline-none w-full">
+                                  <p className="font-display font-semibold text-xs text-foreground hover:underline truncate">{product.name}</p>
+                                  <p className="text-[10px] text-muted-foreground font-body truncate">
+                                    {product.category}{product.main_color ? ` · ${product.main_color}` : ""}
                                   </p>
                                 </button>
-
-                                {dims && (
-                                  <p className="text-[10px] text-muted-foreground font-body mt-0.5 flex items-center gap-1">
-                                    <Ruler className="h-2.5 w-2.5" />
-                                    {dims}
-                                  </p>
-                                )}
-                                {layoutRequirementLabel && (
-                                  <p className="text-[10px] text-muted-foreground font-body mt-0.5">
-                                    {layoutRequirementLabel}
-                                  </p>
-                                )}
-
-                                <div className="mt-2">
-                                  <AvailabilityBadge product={product} compact />
-                                </div>
-
-                                {/* Selected supplier */}
-                                {selectedSupplier && (
-                                  <div className="mt-2 flex items-center gap-2 flex-wrap">
-                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/5 border border-primary/20 text-[10px] font-display font-semibold text-foreground">
-                                      {selectedSupplier.partnerName}
-                                      {selectedSupplier.price != null ? ` · €${selectedSupplier.price.toFixed(2)}` : ""}
-                                      <button
-                                        onClick={() => clearSupplier(product.id)}
-                                        className="ml-0.5 hover:text-destructive transition-colors"
-                                      >
-                                        <X className="h-2.5 w-2.5" />
-                                      </button>
-                                    </span>
-                                    {selectedSupplier.deliveryDelayDays != null && (
-                                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                        <Truck className="h-2.5 w-2.5" />
-                                        {selectedSupplier.deliveryDelayDays}d
-                                      </span>
-                                    )}
+                                {selectedSupplier ? (
+                                  <div className="inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full bg-card border border-border text-[10px] font-body text-muted-foreground">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                                    {selectedSupplier.partnerName} · €{selectedSupplier.price?.toFixed(2)}/u
+                                    {selectedSupplier.deliveryDelayDays != null && ` · ${selectedSupplier.deliveryDelayDays}d`}
+                                    <button onClick={() => clearSupplier(product.id)} className="hover:text-destructive transition-colors ml-0.5">
+                                      <X className="h-2.5 w-2.5" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full text-[10px] font-body bg-amber-500/[0.08] text-amber-700 border border-amber-500/20">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                                    No supplier selected
                                   </div>
                                 )}
-
-                                {/* Quantity */}
-                                <div className="flex items-center gap-2 mt-3">
-                                  <button
-                                    onClick={() => updateQuantity(product.id, quantity - 1)}
-                                    className="h-6 w-6 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors"
-                                  >
-                                    <Minus className="h-3 w-3" />
-                                  </button>
-                                  <span className="text-sm font-display font-medium w-6 text-center">{quantity}</span>
-                                  <button
-                                    onClick={() => updateQuantity(product.id, quantity + 1)}
-                                    className="h-6 w-6 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors"
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </button>
-                                  {/* Price per unit */}
-                                  {(selectedSupplier?.price ?? (product as any).price_min) && (
-                                    <span className="text-[10px] text-muted-foreground font-body ml-2">
-                                      ×€{(selectedSupplier?.price ?? (product as any).price_min).toFixed(2)}
-                                      {" = "}
-                                      <span className="font-semibold text-foreground">
-                                        ~€{((selectedSupplier?.price ?? (product as any).price_min) * quantity).toLocaleString("fr-FR")}
-                                      </span>
-                                    </span>
-                                  )}
-                                </div>
                               </div>
 
-                              {/* Remove */}
-                              <button
-                                onClick={() => removeItem(product.id)}
-                                className="text-muted-foreground hover:text-foreground transition-colors self-start flex-shrink-0"
-                              >
-                                <Trash2 className="h-4 w-4" />
+                              {/* Quantity */}
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                <button onClick={() => updateQuantity(product.id, quantity - 1)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
+                                  <Minus className="h-2.5 w-2.5" />
+                                </button>
+                                <span className="text-xs font-display font-medium w-4 text-center">{quantity}</span>
+                                <button onClick={() => updateQuantity(product.id, quantity + 1)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
+                                  <Plus className="h-2.5 w-2.5" />
+                                </button>
+                              </div>
+
+                              {/* Price */}
+                              <div className="text-right flex-shrink-0 min-w-[60px]">
+                                {(selectedSupplier?.price ?? (product as any).price_min) ? (
+                                  <>
+                                    <p className="text-[10px] text-muted-foreground font-body">×€{(selectedSupplier?.price ?? (product as any).price_min)?.toFixed(2)}</p>
+                                    <p className="text-xs font-display font-semibold text-foreground">~€{((selectedSupplier?.price ?? (product as any).price_min) * quantity).toLocaleString("fr-FR")}</p>
+                                  </>
+                                ) : (
+                                  <p className="text-[10px] text-muted-foreground font-body">On request</p>
+                                )}
+                              </div>
+
+                              {/* Delete */}
+                              <button onClick={() => removeItem(product.id)} className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 opacity-40 group-hover:opacity-100">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </motion.div>
                               </button>
                             </motion.div>
                           );
