@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
+import QuoteRequestModal from "@/components/products/QuoteRequestModal";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -21,6 +22,7 @@ const ProductDetail = () => {
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
   const { isFavourite, toggleFavourite } = useFavourites();
+  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -240,7 +242,11 @@ const ProductDetail = () => {
                     <Plus className="h-4 w-4" />
                     Add to project
                   </button>
-                  <button className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold border border-foreground text-foreground rounded-full hover:bg-foreground hover:text-primary-foreground transition-all">
+                  <button
+                    onClick={() => setQuoteModalOpen(true)}
+                    className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold border border-foreground text-foreground rounded-full hover:bg-foreground hover:text-primary-foreground transition-all"
+                  >
+                    <FileText className="h-4 w-4" />
                     Request a quote
                   </button>
                   <button
@@ -403,6 +409,13 @@ const ProductDetail = () => {
         )}
       </main>
       <Footer />
+      <QuoteRequestModal
+        open={quoteModalOpen}
+        onClose={() => setQuoteModalOpen(false)}
+        product={product}
+        offers={offers}
+        defaultQuantity={projectQuantity}
+      />
     </div>
   );
 };
