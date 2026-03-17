@@ -49,6 +49,8 @@ const Auth = () => {
   };
 
   const handleRegister = async () => {
+    window.alert("handleRegister called");
+
     if (!form.email || !form.password || !form.firstName || !form.company || !form.siren) {
       toast.error("Please fill in all required fields.");
       return;
@@ -68,7 +70,8 @@ const Auth = () => {
         siren: form.siren,
         phone: form.phone,
       });
-      const { error } = await supabase.auth.signUp({
+
+      const { data, error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
@@ -83,10 +86,18 @@ const Auth = () => {
           },
         },
       });
-      if (error) throw error;
+
+      if (error) {
+        console.error("supabase.auth.signUp error:", error);
+        console.error("supabase.auth.signUp full response:", { data, error });
+        throw error;
+      }
+
+      console.log("supabase.auth.signUp success:", { data, error });
       toast.success("Account created! Check your email to confirm.");
       navigate(from);
     } catch (err: any) {
+      console.error("handleRegister catch error:", err);
       toast.error(err.message || "Something went wrong.");
     } finally {
       setIsLoading(false);
