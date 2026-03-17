@@ -20,6 +20,7 @@ const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
+  const { isFavourite, toggleFavourite } = useFavourites();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
