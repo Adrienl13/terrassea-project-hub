@@ -477,7 +477,6 @@ const Admin = () => {
 };
 
 export default Admin;
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import type { DBProduct } from "@/lib/products";
 
