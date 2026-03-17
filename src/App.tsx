@@ -17,6 +17,7 @@ import Admin from "./pages/Admin.tsx";
 import ProjectBuilder from "./pages/ProjectBuilder.tsx";
 import Inspirations from "./pages/Inspirations.tsx";
 import Resources from "./pages/Resources.tsx";
+import ProService from "./pages/ProService.tsx";
 import Auth from "./pages/Auth.tsx";
 import Account from "./pages/Account.tsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -42,6 +43,7 @@ const App = () => (
                 <Route path="/projects/new" element={<ProjectBuilder />} />
                 <Route path="/inspirations" element={<Inspirations />} />
                 <Route path="/resources" element={<Resources />} />
+                <Route path="/pro-service" element={<ProService />} />
                 <Route path="/partners" element={<Partners />} />
                 <Route path="/partners/:slug" element={<PartnerDetail />} />
                 <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
