@@ -12,6 +12,7 @@ import ProductDetail from "./pages/ProductDetail.tsx";
 import ProductCompare from "./pages/ProductCompare.tsx";
 import ProjectCart from "./pages/ProjectCart.tsx";
 import Partners from "./pages/Partners.tsx";
+import BecomePartner from "./pages/BecomePartner.tsx";
 import PartnerDetail from "./pages/PartnerDetail.tsx";
 import Admin from "./pages/Admin.tsx";
 import ProjectBuilder from "./pages/ProjectBuilder.tsx";
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/resources" element={<Resources />} />
                 <Route path="/pro-service" element={<ProService />} />
                 <Route path="/partners" element={<Partners />} />
+                <Route path="/become-partner" element={<BecomePartner />} />
                 <Route path="/partners/:slug" element={<PartnerDetail />} />
                 <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
                 <Route path="/login" element={<Auth />} />
