@@ -1,59 +1,51 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import type { DBProduct } from "@/lib/products";
 
 interface FavouritesContextType {
-  favourites: Set<string>;
-  isLoading: boolean;
-  toggleFavourite: (productId: string) => Promise<void>;
+  favourites: DBProduct[];
   isFavourite: (productId: string) => boolean;
+  toggleFavourite: (product: DBProduct) => void;
+  count: number;
 }
 
 const FavouritesContext = createContext<FavouritesContextType>({
-  favourites: new Set(),
-  isLoading: false,
-  toggleFavourite: async () => {},
+  favourites: [],
   isFavourite: () => false,
+  toggleFavourite: () => {},
+  count: 0,
 });
 
-export const FavouritesProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  const [favourites, setFavourites] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(false);
+export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
+  const [favourites, setFavourites] = useState<DBProduct[]>(() => {
+    try {
+      const saved = localStorage.getItem("terrassea_favourites");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
-    if (!user) { setFavourites(new Set()); return; }
-    setIsLoading(true);
-    supabase
-      .from("user_favourites")
-      .select("product_id")
-      .eq("user_id", user.id)
-      .then(({ data }) => {
-        setFavourites(new Set((data ?? []).map((r: any) => r.product_id)));
-        setIsLoading(false);
-      });
-  }, [user]);
+    try {
+      localStorage.setItem("terrassea_favourites", JSON.stringify(favourites));
+    } catch {}
+  }, [favourites]);
 
-  const toggleFavourite = useCallback(async (productId: string) => {
-    if (!user) return;
-    const isFav = favourites.has(productId);
-    // Optimistic update
-    setFavourites((prev) => {
-      const next = new Set(prev);
-      isFav ? next.delete(productId) : next.add(productId);
-      return next;
-    });
-    if (isFav) {
-      await supabase.from("user_favourites").delete().eq("user_id", user.id).eq("product_id", productId);
-    } else {
-      await supabase.from("user_favourites").insert({ user_id: user.id, product_id: productId } as any);
-    }
-  }, [user, favourites]);
+  const isFavourite = (productId: string) =>
+    favourites.some((p) => p.id === productId);
 
-  const isFavourite = useCallback((productId: string) => favourites.has(productId), [favourites]);
+  const toggleFavourite = (product: DBProduct) => {
+    setFavourites((prev) =>
+      prev.some((p) => p.id === product.id)
+        ? prev.filter((p) => p.id !== product.id)
+        : [...prev, product]
+    );
+  };
 
   return (
-    <FavouritesContext.Provider value={{ favourites, isLoading, toggleFavourite, isFavourite }}>
+    <FavouritesContext.Provider
+      value={{ favourites, isFavourite, toggleFavourite, count: favourites.length }}
+    >
       {children}
     </FavouritesContext.Provider>
   );
