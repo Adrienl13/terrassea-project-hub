@@ -372,6 +372,14 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavourite(product); }}
+            className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${
+              fav ? "bg-foreground" : "bg-white border border-gray-200"
+            }`}
+          >
+            <Heart className={`h-3.5 w-3.5 ${fav ? "text-white fill-white" : "text-gray-400"}`} />
+          </button>
           <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={(e) => { e.preventDefault(); addToCompare(product); }}
