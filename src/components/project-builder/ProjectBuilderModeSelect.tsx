@@ -92,7 +92,7 @@ const ProjectBuilderModeSelect = ({ onSelect }: Props) => {
           <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground leading-tight mb-3">
             Where are you in your project?
           </h2>
-          <p className="text-sm font-body text-muted-foreground leading-relaxed max-w-xs">
+          <p className="text-sm font-body text-muted-foreground leading-relaxed">
             We adapt the experience to your situation — same result, the right path.
           </p>
         </div>
