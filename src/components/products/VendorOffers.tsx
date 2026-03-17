@@ -139,6 +139,17 @@ function OfferAction({ fit, offer, quantity, onAddToCart }: {
   );
 }
 
+// ── Partner type label ────────────────────────────────────────────────────────
+
+function getPartnerTypeLabel(type: string | null | undefined): string {
+  if (!type) return "";
+  const t = type.toLowerCase();
+  if (t === "manufacturer") return "Manufacturer";
+  if (t === "brand") return "Brand";
+  if (t === "reseller" || t === "distributor" || t === "retailer" || t === "wholesaler") return "Reseller";
+  return type;
+}
+
 // ── Supplier avatar (masked) ──────────────────────────────────────────────────
 
 function SupplierAvatar({ index, isAdmin, offer }: {
