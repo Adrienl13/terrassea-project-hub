@@ -337,7 +337,7 @@ const ProjectCart = () => {
                               key={product.id}
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              className="flex gap-4 p-4 bg-card rounded-sm group"
+                              className="flex gap-3 p-2.5 bg-card rounded-sm border border-border group"
                             >
                               {/* Image */}
                               <button
