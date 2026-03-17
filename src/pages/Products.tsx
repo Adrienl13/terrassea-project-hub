@@ -18,6 +18,7 @@ import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { DBProduct } from "@/lib/products";
+import { useFavourites } from "@/contexts/FavouritesContext";
 import { toast } from "sonner";
 import {
   Sheet,
