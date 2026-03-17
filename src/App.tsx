@@ -12,6 +12,7 @@ import ProductDetail from "./pages/ProductDetail.tsx";
 import ProductCompare from "./pages/ProductCompare.tsx";
 import ProjectCart from "./pages/ProjectCart.tsx";
 import Partners from "./pages/Partners.tsx";
+import BecomePartner from "./pages/BecomePartner.tsx";
 import PartnerDetail from "./pages/PartnerDetail.tsx";
 import Admin from "./pages/Admin.tsx";
 import ProjectBuilder from "./pages/ProjectBuilder.tsx";
