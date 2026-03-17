@@ -28,6 +28,9 @@ const Header = () => {
           <Link to="/inspirations" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
             Inspirations
           </Link>
+          <Link to="/resources" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
+            Guide
+          </Link>
           <Link to="/partners" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
             Partners
           </Link>
