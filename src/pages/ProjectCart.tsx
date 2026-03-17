@@ -373,21 +373,21 @@ const ProjectCart = () => {
                             }
                               </div>
 
-                              {/* Quantity */}
+                              {/* Quantity — alignée avec colonne UNITS */}
                               <div className="flex items-center justify-center gap-1">
                                 <button onClick={() => updateQuantity(product.id, quantity - 1)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
                                   <Minus className="h-2.5 w-2.5" />
                                 </button>
                                 <input
-                              type="number"
-                              min={1}
-                              value={quantity}
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value);
-                                if (!isNaN(val) && val > 0) updateQuantity(product.id, val);
-                              }}
-                              className="w-10 text-center text-xs font-display font-medium text-foreground bg-transparent border border-border rounded-sm py-0.5 focus:outline-none focus:border-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                            
+                                  type="number"
+                                  min={1}
+                                  value={quantity}
+                                  onChange={(e) => {
+                                    const v = parseInt(e.target.value);
+                                    if (!isNaN(v) && v > 0) updateQuantity(product.id, v);
+                                  }}
+                                  className="w-8 text-center text-xs font-display font-medium text-foreground bg-transparent border border-border rounded-sm py-0.5 focus:outline-none focus:border-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
                                 <button onClick={() => updateQuantity(product.id, quantity + 1)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
                                   <Plus className="h-2.5 w-2.5" />
                                 </button>
