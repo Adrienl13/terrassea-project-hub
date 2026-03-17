@@ -65,48 +65,15 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
   const statusConfig = STATUS_CONFIG[quotationStatus];
 
   return (
-    <div className="bg-card rounded-sm p-5 mb-6">
+    <div className="bg-card rounded-sm p-4 mb-6">
       {/* Header — titre + badge statut */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <h3 className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
           Sourcing Overview
         </h3>
         <span className={`text-[10px] font-display font-semibold px-2.5 py-1 rounded-full ${statusConfig.className}`}>
           {statusConfig.label}
         </span>
-      </div>
-
-      {/* Progress steps */}
-      <div className="flex items-center justify-between mb-5">
-        {STEPS.map((step, i) => {
-          const stepNum  = i + 1;
-          const isDone   = statusConfig.step > stepNum;
-          const isActive = statusConfig.step === stepNum;
-          const isLast   = i === STEPS.length - 1;
-          return (
-            <div key={step} className="flex items-center flex-1">
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-display font-bold transition-colors ${
-                    isDone
-                      ? "bg-green-600 text-white"
-                      : isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {isDone ? "✓" : stepNum}
-                </div>
-                <span className={`text-[9px] font-body ${isActive ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
-                  {step}
-                </span>
-              </div>
-              {!isLast && (
-                <div className={`flex-1 h-px mx-2 ${isDone ? "bg-green-600" : "bg-border"}`} />
-              )}
-            </div>
-          );
-        })}
       </div>
 
       {/* Stats grid — 6 métriques */}
