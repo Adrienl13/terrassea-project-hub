@@ -397,6 +397,15 @@ const BecomePartner = () => {
             viewport={{ once: true }}
             className="bg-card rounded-2xl border border-border p-8 md:p-10"
           >
+            {selectedPlan && (
+              <div className="flex items-center gap-2 mb-6 px-4 py-2.5 bg-card border border-border rounded-full w-fit">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-xs font-display font-semibold text-foreground capitalize">
+                  {selectedPlan} plan selected
+                </span>
+                <button onClick={() => setSelectedPlan(null)} className="text-muted-foreground hover:text-foreground ml-1 text-sm">×</button>
+              </div>
+            )}
             <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-2">
               Apply to join
             </p>
