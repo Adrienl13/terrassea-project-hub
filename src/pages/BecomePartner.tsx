@@ -236,9 +236,14 @@ const BecomePartner = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* ── Hero ── */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="container mx-auto max-w-3xl text-center">
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        {/* Fond coloré */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#D4603A]/8 via-background to-background" />
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #D4603A 0%, transparent 70%)" }} />
+          <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #4A90A4 0%, transparent 70%)" }} />
+        </div>
+        <div className="container mx-auto max-w-3xl text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4">
               Terrassea Partner Programme
