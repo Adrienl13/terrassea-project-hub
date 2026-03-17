@@ -33,7 +33,7 @@ const PLANS = [
   {
     id: "growth",
     name: "Growth",
-    price: "€149",
+    price: "€199",
     sub: "/month · auto-activated at order #3",
     commission: "5%",
     badge: { label: "Recommended", bg: "hsl(var(--foreground))", color: "hsl(var(--primary-foreground))" },
