@@ -337,7 +337,7 @@ const ProjectCart = () => {
                               key={product.id}
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              className="flex gap-4 p-4 bg-card rounded-sm group"
+                              className="flex gap-3 p-2.5 bg-card rounded-sm border border-border group"
                             >
                               {/* Image */}
                               <button
@@ -347,7 +347,7 @@ const ProjectCart = () => {
                                 <img
                                   src={product.image_url || "/placeholder.svg"}
                                   alt={product.name}
-                                  className="w-20 h-20 object-cover rounded-sm transition-opacity group-hover:opacity-80 cursor-pointer"
+                                  className="w-14 h-14 object-cover rounded-sm hover:opacity-80 transition-opacity cursor-pointer"
                                 />
                               </button>
 
@@ -357,17 +357,17 @@ const ProjectCart = () => {
                                   onClick={() => { setSelectedProduct(product); setDrawerOpen(true); }}
                                   className="text-left w-full focus:outline-none"
                                 >
-                                  <h3 className="font-display font-semibold text-sm text-foreground hover:underline cursor-pointer">
+                                  <h3 className="font-display font-semibold text-xs text-foreground hover:underline truncate cursor-pointer">
                                     {product.name}
                                   </h3>
-                                  <p className="text-xs text-muted-foreground font-body mt-0.5">
+                                  <p className="text-[10px] text-muted-foreground font-body mt-0 truncate">
                                     {product.category}
                                     {product.main_color ? ` · ${product.main_color}` : ""}
                                   </p>
                                 </button>
 
                                 {dims && (
-                                  <p className="text-[10px] text-muted-foreground font-body mt-1 flex items-center gap-1">
+                                  <p className="text-[10px] text-muted-foreground font-body mt-0.5 flex items-center gap-1">
                                     <Ruler className="h-2.5 w-2.5" />
                                     {dims}
                                   </p>
