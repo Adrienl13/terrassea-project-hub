@@ -30,6 +30,8 @@ export type Database = {
           phone: string | null
           product_categories: string[] | null
           product_category: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
           status: string | null
           vat_number: string | null
           website: string | null
@@ -49,6 +51,8 @@ export type Database = {
           phone?: string | null
           product_categories?: string[] | null
           product_category?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
           status?: string | null
           vat_number?: string | null
           website?: string | null
@@ -68,6 +72,8 @@ export type Database = {
           phone?: string | null
           product_categories?: string[] | null
           product_category?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
           status?: string | null
           vat_number?: string | null
           website?: string | null
