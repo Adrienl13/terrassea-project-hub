@@ -77,7 +77,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
       </div>
 
       {/* Stats grid — 6 métriques */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
         <div className="text-center">
           <Package className="h-3.5 w-3.5 text-muted-foreground mx-auto mb-1" />
           <span className="font-display font-bold text-lg text-foreground block">
