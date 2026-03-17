@@ -23,7 +23,9 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
+  const { isFavourite, toggleFavourite } = useFavourites();
   const inCompare = isInCompare(product.id);
+  const fav = isFavourite(product.id);
 
   const stock = STOCK_DOT[product.stock_status || "available"] ?? STOCK_DOT.available;
 
