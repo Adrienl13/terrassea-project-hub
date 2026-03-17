@@ -360,7 +360,7 @@ const ProjectCart = () => {
                                   <h3 className="font-display font-semibold text-xs text-foreground hover:underline truncate cursor-pointer">
                                     {product.name}
                                   </h3>
-                                  <p className="text-xs text-muted-foreground font-body mt-0.5">
+                                  <p className="text-[10px] text-muted-foreground font-body mt-0 truncate">
                                     {product.category}
                                     {product.main_color ? ` · ${product.main_color}` : ""}
                                   </p>
