@@ -242,7 +242,11 @@ const ProductDetail = () => {
                     <Plus className="h-4 w-4" />
                     Add to project
                   </button>
-                  <button className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold border border-foreground text-foreground rounded-full hover:bg-foreground hover:text-primary-foreground transition-all">
+                  <button
+                    onClick={() => setQuoteModalOpen(true)}
+                    className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold border border-foreground text-foreground rounded-full hover:bg-foreground hover:text-primary-foreground transition-all"
+                  >
+                    <FileText className="h-4 w-4" />
                     Request a quote
                   </button>
                   <button
