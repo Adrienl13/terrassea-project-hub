@@ -67,7 +67,7 @@ const PLANS = [
       { ok: true, label: "Access to Pro Service leads" },
       { ok: true, label: "Everything in Growth" },
     ],
-    note: "For established brands (Fermob, Tribu, Glatz...). Contact us to discuss.",
+    note: "For established brands with significant CHR volume. Contact us to discuss terms and pricing.",
   },
 ];
 
