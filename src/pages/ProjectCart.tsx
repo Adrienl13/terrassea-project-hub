@@ -357,7 +357,7 @@ const ProjectCart = () => {
                                   onClick={() => { setSelectedProduct(product); setDrawerOpen(true); }}
                                   className="text-left w-full focus:outline-none"
                                 >
-                                  <h3 className="font-display font-semibold text-sm text-foreground hover:underline cursor-pointer">
+                                  <h3 className="font-display font-semibold text-xs text-foreground hover:underline truncate cursor-pointer">
                                     {product.name}
                                   </h3>
                                   <p className="text-xs text-muted-foreground font-body mt-0.5">
