@@ -21,7 +21,6 @@ type CategoryKey = (typeof CATEGORIES)[number]["key"];
 
 export default function Partners() {
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("all");
-  const [showBecomePartner, setShowBecomePartner] = useState(false);
 
   const { data: partners = [], isLoading } = useQuery({
     queryKey: ["partners", activeCategory],
