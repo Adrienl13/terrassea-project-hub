@@ -277,26 +277,30 @@ const BecomePartner = () => {
         </div>
       </section>
 
-      {/* ── Why join ── */}
-      <section className="py-16 px-6 bg-muted/30">
-        <div className="container mx-auto max-w-5xl">
-          <h2 className="font-display text-2xl font-bold text-foreground text-center mb-10">
-            Why join Terrassea
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {WHY.map((item, i) => (
+      <section className="py-10 px-6 border-b border-border">
+        <div className="container mx-auto max-w-4xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { icon: Zap, title: "Qualified leads", desc: "Project details, quantity, budget and SIREN. No tyre-kickers.", color: "#D4603A", bg: "rgba(212,96,58,0.08)" },
+              { icon: TrendingUp, title: "Growing network", desc: "500+ hospitality professionals across Europe actively sourcing.", color: "#4A90A4", bg: "rgba(74,144,164,0.08)" },
+              { icon: Shield, title: "Protected identity", desc: "Your name is revealed only after order confirmation.", color: "#6B7B5E", bg: "rgba(107,123,94,0.08)" },
+              { icon: BarChart3, title: "Market data", desc: "See which styles and regions are most active.", color: "#C4956A", bg: "rgba(196,149,106,0.08)" },
+            ].map((item, i) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="bg-card rounded-xl p-6 border border-border"
+                className="p-4 rounded-sm border border-border relative overflow-hidden"
+                style={{ background: item.bg }}
               >
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <item.icon className="h-5 w-5 text-foreground" />
+                <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: item.color }} />
+                <div className="w-7 h-7 rounded-full flex items-center justify-center mb-3" style={{ background: `${item.color}20` }}>
+                  <item.icon className="h-3.5 w-3.5" style={{ color: item.color }} />
                 </div>
-                <h3 className="font-display font-semibold text-sm text-foreground">{item.title}</h3>
-                <p className="mt-2 text-xs font-body text-muted-foreground leading-relaxed">{item.desc}</p>
+                <p className="font-display font-bold text-xs text-foreground mb-1">{item.title}</p>
+                <p className="text-[10px] font-body text-muted-foreground leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
