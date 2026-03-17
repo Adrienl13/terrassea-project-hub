@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PartnerCard from "@/components/partners/PartnerCard";
-import BecomePartnerDialog from "@/components/partners/BecomePartnerDialog";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Building2, Factory, Store, Palette, Handshake } from "lucide-react";
