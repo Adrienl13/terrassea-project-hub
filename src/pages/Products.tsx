@@ -490,13 +490,23 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
           }`} title={product.stock_status || "available"} />
         </div>
       </div>
-      <button
-        onClick={() => onAdd(product)}
-        className="self-center flex-shrink-0 flex items-center gap-1.5 text-xs font-body border border-border hover:border-foreground rounded-full px-3 py-1.5 transition-colors text-muted-foreground hover:text-foreground"
-      >
-        <Plus className="h-3.5 w-3.5" />
-        Add
-      </button>
+      <div className="self-center flex-shrink-0 flex items-center gap-1.5">
+        <button
+          onClick={() => { toggleFavourite(product); }}
+          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+            fav ? "bg-foreground" : "bg-white border border-gray-200"
+          }`}
+        >
+          <Heart className={`h-3.5 w-3.5 ${fav ? "text-white fill-white" : "text-gray-400"}`} />
+        </button>
+        <button
+          onClick={() => onAdd(product)}
+          className="flex items-center gap-1.5 text-xs font-body border border-border hover:border-foreground rounded-full px-3 py-1.5 transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add
+        </button>
+      </div>
     </motion.div>
   );
 }
