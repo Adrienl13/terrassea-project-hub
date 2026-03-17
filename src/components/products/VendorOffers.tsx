@@ -139,6 +139,17 @@ function OfferAction({ fit, offer, quantity, onAddToCart }: {
   );
 }
 
+// ── Partner type label ────────────────────────────────────────────────────────
+
+function getPartnerTypeLabel(type: string | null | undefined): string {
+  if (!type) return "";
+  const t = type.toLowerCase();
+  if (t === "manufacturer") return "Manufacturer";
+  if (t === "brand") return "Brand";
+  if (t === "reseller" || t === "distributor" || t === "retailer" || t === "wholesaler") return "Reseller";
+  return type;
+}
+
 // ── Supplier avatar (masked) ──────────────────────────────────────────────────
 
 function SupplierAvatar({ index, isAdmin, offer }: {
@@ -311,9 +322,11 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
                             </span>
                           )}
                         </div>
-                        {isAdmin && (
+                        {offer.partner?.partner_type && (
                           <p className="text-[10px] text-muted-foreground capitalize">
-                            {offer.partner?.partner_type}
+                            {isAdmin
+                              ? `${offer.partner.name} · ${getPartnerTypeLabel(offer.partner.partner_type)}`
+                              : getPartnerTypeLabel(offer.partner.partner_type)}
                           </p>
                         )}
                       </div>
@@ -392,9 +405,18 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
                   <SupplierAvatar index={index} isAdmin={isAdmin} offer={offer} />
                   <div>
                     <p className="font-display font-semibold text-xs text-foreground">{displayName}</p>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <span>{flag}</span>
-                      <span>{offer.partner?.country || "—"}</span>
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <span>{flag}</span>
+                        <span>{offer.partner?.country || "—"}</span>
+                      </span>
+                      {offer.partner?.partner_type && (
+                        <span>
+                          · {isAdmin
+                            ? `${offer.partner.name} · ${getPartnerTypeLabel(offer.partner.partner_type)}`
+                            : getPartnerTypeLabel(offer.partner.partner_type)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
