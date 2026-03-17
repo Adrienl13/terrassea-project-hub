@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Plus, FileText, Shield, Sun, CloudRain, Flame, Feather,
-  Wrench, Palette, Package, Truck, ChevronRight, Info, BarChart3,
+  Wrench, Palette, Package, Truck, ChevronRight, Info, BarChart3, Heart,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
