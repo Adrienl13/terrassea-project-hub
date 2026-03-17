@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Search, SlidersHorizontal, X, Plus, LayoutGrid, List, BarChart3, ChevronDown,
+  Search, SlidersHorizontal, X, Plus, LayoutGrid, List, BarChart3, ChevronDown, Heart,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
