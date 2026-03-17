@@ -373,40 +373,40 @@ const ProjectCart = () => {
                             }
                               </div>
 
-                              {/* Quantity — alignée avec colonne UNITS */}
+                              {/* Quantity */}
                               <div className="flex items-center justify-center gap-1">
                                 <button onClick={() => updateQuantity(product.id, quantity - 1)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
                                   <Minus className="h-2.5 w-2.5" />
                                 </button>
                                 <input
-                                  type="number"
-                                  min={1}
-                                  value={quantity}
-                                  onChange={(e) => {
-                                    const v = parseInt(e.target.value);
-                                    if (!isNaN(v) && v > 0) updateQuantity(product.id, v);
-                                  }}
-                                  className="w-8 text-center text-xs font-display font-medium text-foreground bg-transparent border border-border rounded-sm py-0.5 focus:outline-none focus:border-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
+                              type="number"
+                              min={1}
+                              value={quantity}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                if (!isNaN(val) && val > 0) updateQuantity(product.id, val);
+                              }}
+                              className="w-10 text-center text-xs font-display font-medium text-foreground bg-transparent border border-border rounded-sm py-0.5 focus:outline-none focus:border-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                            
                                 <button onClick={() => updateQuantity(product.id, quantity + 1)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
                                   <Plus className="h-2.5 w-2.5" />
                                 </button>
                               </div>
 
-                              {/* Price — alignée avec colonne INDICATIVE */}
+                              {/* Price */}
                               <div className="text-right">
-                                {(selectedSupplier?.price ?? (product as any).price_min) ? (
-                                  <>
-                                    <p className="text-xs font-display font-semibold text-foreground">~€{((selectedSupplier?.price ?? (product as any).price_min) * quantity).toLocaleString("fr-FR")}</p>
-                                    <p className="text-[9px] text-muted-foreground">×€{(selectedSupplier?.price ?? (product as any).price_min)?.toFixed(0)}</p>
-                                  </>
-                                ) : (
-                                  <p className="text-[10px] text-muted-foreground font-body">On request</p>
-                                )}
+                                {selectedSupplier?.price ?? (product as any).price_min ?
+                            <>
+                                    <p className="text-[10px] text-muted-foreground font-body">×€{(selectedSupplier?.price ?? (product as any).price_min)?.toFixed(2)}</p>
+                                    <p className="font-display font-semibold text-foreground text-base">~€{((selectedSupplier?.price ?? (product as any).price_min) * quantity).toLocaleString("fr-FR")}</p>
+                                  </> :
+
+                            <p className="text-[10px] text-muted-foreground font-body">On request</p>
+                            }
                               </div>
 
                               {/* Delete */}
-                              <button onClick={() => removeItem(product.id)} className="text-muted-foreground hover:text-foreground transition-colors opacity-30 group-hover:opacity-100 flex justify-center">
+                              <button onClick={() => removeItem(product.id)} className="text-muted-foreground hover:text-foreground transition-colors opacity-40 group-hover:opacity-100 justify-self-center">
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </motion.div>);
@@ -416,30 +416,24 @@ const ProjectCart = () => {
                     </div>
                 )}
 
-                  {/* Totals — aligned grid */}
-                  <div
-                    className="grid gap-3 px-3 py-2 bg-card rounded-sm border border-border mt-2"
-                    style={{ gridTemplateColumns: "36px 1fr 100px 80px 20px" }}
-                  >
-                    <div />
-                    <div>
-                      <p className="text-[10px] font-body text-muted-foreground uppercase tracking-wider">
-                        {items.length} product{items.length > 1 ? "s" : ""}
-                      </p>
+                  {/* Stats row */}
+                  <div className="flex items-center justify-around p-4 bg-card rounded-sm mt-6">
+                    <div className="text-center">
+                      <span className="font-display font-bold text-lg text-foreground block">{items.length}</span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Products</span>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-display font-bold text-foreground">
+                      <span className="font-display font-bold text-lg text-foreground block">
                         {items.reduce((s, i) => s + i.quantity, 0)}
-                      </p>
-                      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">units</p>
+                      </span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Units</span>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-display font-bold text-foreground">
+                    <div className="text-center">
+                      <span className="font-display font-bold text-lg text-foreground block">
                         {hasBudget ? `~€${totalBudget.toLocaleString("fr-FR")}` : "—"}
-                      </p>
-                      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">indicative</p>
+                      </span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Indicative</span>
                     </div>
-                    <div />
                   </div>
 
                   {hasBudget &&
