@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Search, SlidersHorizontal, X, Plus, LayoutGrid, List, BarChart3, ChevronDown,
+  Search, SlidersHorizontal, X, Plus, LayoutGrid, List, BarChart3, ChevronDown, Heart,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -18,6 +18,7 @@ import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { DBProduct } from "@/lib/products";
+import { useFavourites } from "@/contexts/FavouritesContext";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -337,7 +338,9 @@ function StockBadge({ status }: { status: string | null }) {
 
 function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DBProduct) => void }) {
   const { addToCompare, isInCompare } = useCompare();
+  const { isFavourite, toggleFavourite } = useFavourites();
   const inCompare = isInCompare(product.id);
+  const fav = isFavourite(product.id);
 
   const priceDisplay = product.price_min != null
     ? `From €${product.price_min.toFixed(2)}`
@@ -369,6 +372,14 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavourite(product); }}
+            className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${
+              fav ? "bg-foreground" : "bg-white border border-gray-200"
+            }`}
+          >
+            <Heart className={`h-3.5 w-3.5 ${fav ? "text-white fill-white" : "text-gray-400"}`} />
+          </button>
           <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={(e) => { e.preventDefault(); addToCompare(product); }}
@@ -422,6 +433,9 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
 }
 
 function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DBProduct) => void }) {
+  const { isFavourite, toggleFavourite } = useFavourites();
+  const fav = isFavourite(product.id);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -476,13 +490,23 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
           }`} title={product.stock_status || "available"} />
         </div>
       </div>
-      <button
-        onClick={() => onAdd(product)}
-        className="self-center flex-shrink-0 flex items-center gap-1.5 text-xs font-body border border-border hover:border-foreground rounded-full px-3 py-1.5 transition-colors text-muted-foreground hover:text-foreground"
-      >
-        <Plus className="h-3.5 w-3.5" />
-        Add
-      </button>
+      <div className="self-center flex-shrink-0 flex items-center gap-1.5">
+        <button
+          onClick={() => { toggleFavourite(product); }}
+          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+            fav ? "bg-foreground" : "bg-white border border-gray-200"
+          }`}
+        >
+          <Heart className={`h-3.5 w-3.5 ${fav ? "text-white fill-white" : "text-gray-400"}`} />
+        </button>
+        <button
+          onClick={() => onAdd(product)}
+          className="flex items-center gap-1.5 text-xs font-body border border-border hover:border-foreground rounded-full px-3 py-1.5 transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add
+        </button>
+      </div>
     </motion.div>
   );
 }
