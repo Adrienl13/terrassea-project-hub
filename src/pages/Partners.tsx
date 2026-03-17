@@ -131,9 +131,9 @@ export default function Partners() {
               <Button
                 variant="outline"
                 className="mt-4 rounded-full font-display"
-                onClick={() => setShowBecomePartner(true)}
+                asChild
               >
-                Apply Now
+                <Link to="/become-partner">Apply Now</Link>
               </Button>
             </div>
           ) : (
