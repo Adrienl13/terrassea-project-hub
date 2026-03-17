@@ -41,6 +41,7 @@ const App = () => (
                 <Route path="/project-cart" element={<ProjectCart />} />
                 <Route path="/projects/new" element={<ProjectBuilder />} />
                 <Route path="/inspirations" element={<Inspirations />} />
+                <Route path="/resources" element={<Resources />} />
                 <Route path="/partners" element={<Partners />} />
                 <Route path="/partners/:slug" element={<PartnerDetail />} />
                 <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
