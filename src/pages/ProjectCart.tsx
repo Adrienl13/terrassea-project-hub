@@ -400,8 +400,6 @@ const ProjectCart = () => {
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </motion.div>
-                              </button>
-                            </motion.div>
                           );
                         })}
                       </div>
