@@ -66,11 +66,6 @@ function ProgressSteps({ current }: { current: number }) {
         );
       })}
     </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
   );
 }
 
