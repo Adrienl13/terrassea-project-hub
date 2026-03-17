@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Plus, FileText, Shield, Sun, CloudRain, Flame, Feather,
-  Wrench, Palette, Package, Truck, ChevronRight, Info, BarChart3,
+  Wrench, Palette, Package, Truck, ChevronRight, Info, BarChart3, Heart,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -13,12 +13,14 @@ import { fetchProductById, fetchProducts, type DBProduct } from "@/lib/products"
 import { fetchProductOffers } from "@/lib/productOffers";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
+import { useFavourites } from "@/contexts/FavouritesContext";
 import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
+  const { isFavourite, toggleFavourite } = useFavourites();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -248,6 +250,17 @@ const ProductDetail = () => {
                   >
                     <BarChart3 className="h-4 w-4" />
                     {isInCompare(product.id) ? "In compare" : "Compare"}
+                  </button>
+                  <button
+                    onClick={() => toggleFavourite(product)}
+                    className={`flex items-center gap-2 px-5 py-3 rounded-full border transition-all font-display font-semibold text-sm ${
+                      isFavourite(product.id)
+                        ? "bg-foreground text-primary-foreground border-foreground" 
+                        : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Heart className={`h-4 w-4 ${isFavourite(product.id) ? "fill-primary-foreground" : ""}`} />
+                    {isFavourite(product.id) ? "Saved" : "Save"}
                   </button>
                 </div>
 
