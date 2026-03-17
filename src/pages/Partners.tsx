@@ -72,11 +72,8 @@ export default function Partners() {
             transition={{ delay: 0.2 }}
             className="mt-8"
           >
-            <Button
-              onClick={() => setShowBecomePartner(true)}
-              className="rounded-full px-8 py-3 font-display font-semibold"
-            >
-              Become a Partner
+            <Button asChild className="rounded-full px-8 py-3 font-display font-semibold">
+              <Link to="/become-partner">Become a Partner</Link>
             </Button>
           </motion.div>
         </div>
