@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PartnerCard from "@/components/partners/PartnerCard";
-import BecomePartnerDialog from "@/components/partners/BecomePartnerDialog";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Building2, Factory, Store, Palette, Handshake } from "lucide-react";
@@ -21,7 +21,6 @@ type CategoryKey = (typeof CATEGORIES)[number]["key"];
 
 export default function Partners() {
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("all");
-  const [showBecomePartner, setShowBecomePartner] = useState(false);
 
   const { data: partners = [], isLoading } = useQuery({
     queryKey: ["partners", activeCategory],
@@ -71,11 +70,8 @@ export default function Partners() {
             transition={{ delay: 0.2 }}
             className="mt-8"
           >
-            <Button
-              onClick={() => setShowBecomePartner(true)}
-              className="rounded-full px-8 py-3 font-display font-semibold"
-            >
-              Become a Partner
+            <Button asChild className="rounded-full px-8 py-3 font-display font-semibold">
+              <Link to="/become-partner">Become a Partner</Link>
             </Button>
           </motion.div>
         </div>
@@ -133,9 +129,9 @@ export default function Partners() {
               <Button
                 variant="outline"
                 className="mt-4 rounded-full font-display"
-                onClick={() => setShowBecomePartner(true)}
+                asChild
               >
-                Apply Now
+                <Link to="/become-partner">Apply Now</Link>
               </Button>
             </div>
           ) : (
@@ -155,7 +151,7 @@ export default function Partners() {
         </div>
       </section>
 
-      <BecomePartnerDialog open={showBecomePartner} onOpenChange={setShowBecomePartner} />
+      
       <Footer />
     </div>
   );
