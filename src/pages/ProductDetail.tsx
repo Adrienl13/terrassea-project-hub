@@ -13,6 +13,7 @@ import { fetchProductById, fetchProducts, type DBProduct } from "@/lib/products"
 import { fetchProductOffers } from "@/lib/productOffers";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
+import { useFavourites } from "@/contexts/FavouritesContext";
 import { toast } from "sonner";
 
 const ProductDetail = () => {
