@@ -113,6 +113,7 @@ type Phase = "form" | "submitted";
 const BecomePartner = () => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>("form");
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
 
