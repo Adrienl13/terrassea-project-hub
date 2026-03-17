@@ -347,7 +347,7 @@ const ProjectCart = () => {
                                 <img
                                   src={product.image_url || "/placeholder.svg"}
                                   alt={product.name}
-                                  className="w-20 h-20 object-cover rounded-sm transition-opacity group-hover:opacity-80 cursor-pointer"
+                                  className="w-14 h-14 object-cover rounded-sm hover:opacity-80 transition-opacity cursor-pointer"
                                 />
                               </button>
 
