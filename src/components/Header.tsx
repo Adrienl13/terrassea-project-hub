@@ -34,6 +34,9 @@ const Header = () => {
           <Link to="/partners" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
             Partners
           </Link>
+          <Link to="/pro-service" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
+            Pro Service
+          </Link>
         </nav>
 
         <div className="flex items-center gap-4">
