@@ -151,7 +151,7 @@ export default function Partners() {
         </div>
       </section>
 
-      <BecomePartnerDialog open={showBecomePartner} onOpenChange={setShowBecomePartner} />
+      
       <Footer />
     </div>
   );
