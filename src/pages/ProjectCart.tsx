@@ -39,12 +39,10 @@ function ProgressSteps({ current }: { current: number }) {
         const isLast = i === STEPS.length - 1;
         return (
           <div key={step.id} className="flex items-center flex-1">
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center">
               <div
                 className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-display font-bold transition-colors ${
-                  isDone
-                    ? "bg-foreground text-primary-foreground"
-                    : isActive
+                  isDone || isActive
                     ? "bg-foreground text-primary-foreground"
                     : "bg-muted text-muted-foreground"
                 }`}
@@ -52,7 +50,7 @@ function ProgressSteps({ current }: { current: number }) {
                 {isDone ? "✓" : step.id}
               </div>
               <span
-                className={`text-[10px] font-display uppercase tracking-wider ${
+                className={`hidden md:block text-[10px] font-display uppercase tracking-wider mt-1 ${
                   isDone || isActive ? "text-foreground font-semibold" : "text-muted-foreground"
                 }`}
               >
@@ -61,10 +59,13 @@ function ProgressSteps({ current }: { current: number }) {
             </div>
             {!isLast && (
               <div
-                className={`flex-1 h-px mx-2 ${
-                  isDone ? "bg-foreground" : "bg-border"
-                }`}
+                className={`flex-1 h-px mx-2 ${isDone ? "bg-foreground" : "bg-border"}`}
               />
+            )}
+          </div>
+        );
+      })}
+    </div>
             )}
           </div>
         );
