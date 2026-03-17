@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, User } from "lucide-react";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { motion } from "framer-motion";
 
