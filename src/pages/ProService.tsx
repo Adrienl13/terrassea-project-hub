@@ -56,7 +56,7 @@ const FOR_WHO = [
   { check: true, label: "New restaurant opening, 100+ covers", sub: "Volume + deadline + first-time procurement = you need an expert" },
   { check: true, label: "Resort or seasonal beach club", sub: "Marine-grade specs + volume orders + tight seasonal deadlines" },
   { check: true, label: "Architect managing several client projects", sub: "Multi-project coordination and pro pricing across all orders" },
-  { check: false, label: "Restaurant under 50 covers, budget < €15k", sub: "→ Our Project Builder is built exactly for you" },
+  { check: false, label: "Restaurant under 100 covers, budget < €25k", sub: "→ Our Project Builder is built exactly for you" },
   { check: false, label: "Replacing a few individual pieces", sub: "→ Browse the catalogue and request a direct quote" },
 ];
 
