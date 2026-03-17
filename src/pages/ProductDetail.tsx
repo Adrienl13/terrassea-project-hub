@@ -22,6 +22,7 @@ const ProductDetail = () => {
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
   const { isFavourite, toggleFavourite } = useFavourites();
+  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
