@@ -478,10 +478,6 @@ const Admin = () => {
 
 export default Admin;
 
-const emptyProduct: ProductFormData = {
-  name: "",
-  category: "",
-  subcategory: "",
   short_description: "",
   long_description: "",
   indicative_price: "",
