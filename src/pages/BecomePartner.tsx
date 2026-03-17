@@ -366,6 +366,19 @@ const BecomePartner = () => {
                     </li>
                   ))}
                 </ul>
+                <button
+                  onClick={() => {
+                    setSelectedPlan(plan.id);
+                    document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className={`w-full py-2.5 mt-3 font-display font-semibold text-xs rounded-full transition-all ${
+                    plan.featured
+                      ? "bg-foreground text-primary-foreground hover:opacity-90"
+                      : "border border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+                  }`}
+                >
+                  {plan.id === "elite" ? "Contact us →" : "Apply with this plan →"}
+                </button>
                 <p className="mt-5 text-[10px] font-body text-muted-foreground leading-relaxed border-t border-border pt-4">
                   {plan.note}
                 </p>
