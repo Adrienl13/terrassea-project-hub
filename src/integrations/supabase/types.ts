@@ -22,10 +22,16 @@ export type Database = {
           contact_name: string | null
           country: string
           created_at: string
+          delivery_countries: string[] | null
+          estimated_annual_volume: string | null
           id: string
+          message: string | null
           partner_type: Database["public"]["Enums"]["partner_type"]
+          phone: string | null
+          product_categories: string[] | null
           product_category: string | null
           status: string | null
+          vat_number: string | null
           website: string | null
         }
         Insert: {
@@ -35,10 +41,16 @@ export type Database = {
           contact_name?: string | null
           country: string
           created_at?: string
+          delivery_countries?: string[] | null
+          estimated_annual_volume?: string | null
           id?: string
+          message?: string | null
           partner_type: Database["public"]["Enums"]["partner_type"]
+          phone?: string | null
+          product_categories?: string[] | null
           product_category?: string | null
           status?: string | null
+          vat_number?: string | null
           website?: string | null
         }
         Update: {
@@ -48,10 +60,16 @@ export type Database = {
           contact_name?: string | null
           country?: string
           created_at?: string
+          delivery_countries?: string[] | null
+          estimated_annual_volume?: string | null
           id?: string
+          message?: string | null
           partner_type?: Database["public"]["Enums"]["partner_type"]
+          phone?: string | null
+          product_categories?: string[] | null
           product_category?: string | null
           status?: string | null
+          vat_number?: string | null
           website?: string | null
         }
         Relationships: []
