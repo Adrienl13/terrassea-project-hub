@@ -477,9 +477,6 @@ const Admin = () => {
 };
 
 export default Admin;
-import { toast } from "sonner";
-import type { DBProduct } from "@/lib/products";
-
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string };
 
 const emptyProduct: ProductFormData = {
