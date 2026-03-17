@@ -33,7 +33,7 @@ const PLANS = [
   {
     id: "growth",
     name: "Growth",
-    price: "€149",
+    price: "€199",
     sub: "/month · auto-activated at order #3",
     commission: "5%",
     badge: { label: "Recommended", bg: "hsl(var(--foreground))", color: "hsl(var(--primary-foreground))" },
@@ -67,7 +67,7 @@ const PLANS = [
       { ok: true, label: "Access to Pro Service leads" },
       { ok: true, label: "Everything in Growth" },
     ],
-    note: "For established brands (Fermob, Tribu, Glatz...). Contact us to discuss.",
+    note: "For established brands with significant CHR volume. Contact us to discuss terms and pricing.",
   },
 ];
 
@@ -113,6 +113,7 @@ type Phase = "form" | "submitted";
 const BecomePartner = () => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>("form");
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
 
@@ -235,9 +236,14 @@ const BecomePartner = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* ── Hero ── */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="container mx-auto max-w-3xl text-center">
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        {/* Fond coloré */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#D4603A]/8 via-background to-background" />
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #D4603A 0%, transparent 70%)" }} />
+          <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #4A90A4 0%, transparent 70%)" }} />
+        </div>
+        <div className="container mx-auto max-w-3xl text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4">
               Terrassea Partner Programme
@@ -271,26 +277,30 @@ const BecomePartner = () => {
         </div>
       </section>
 
-      {/* ── Why join ── */}
-      <section className="py-16 px-6 bg-muted/30">
-        <div className="container mx-auto max-w-5xl">
-          <h2 className="font-display text-2xl font-bold text-foreground text-center mb-10">
-            Why join Terrassea
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {WHY.map((item, i) => (
+      <section className="py-10 px-6 border-b border-border">
+        <div className="container mx-auto max-w-4xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { icon: Zap, title: "Qualified leads", desc: "Project details, quantity, budget and SIREN. No tyre-kickers.", color: "#D4603A", bg: "rgba(212,96,58,0.08)" },
+              { icon: TrendingUp, title: "Growing network", desc: "500+ hospitality professionals across Europe actively sourcing.", color: "#4A90A4", bg: "rgba(74,144,164,0.08)" },
+              { icon: Shield, title: "Protected identity", desc: "Your name is revealed only after order confirmation.", color: "#6B7B5E", bg: "rgba(107,123,94,0.08)" },
+              { icon: BarChart3, title: "Market data", desc: "See which styles and regions are most active.", color: "#C4956A", bg: "rgba(196,149,106,0.08)" },
+            ].map((item, i) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="bg-card rounded-xl p-6 border border-border"
+                className="p-4 rounded-sm border border-border relative overflow-hidden"
+                style={{ background: item.bg }}
               >
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <item.icon className="h-5 w-5 text-foreground" />
+                <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: item.color }} />
+                <div className="w-7 h-7 rounded-full flex items-center justify-center mb-3" style={{ background: `${item.color}20` }}>
+                  <item.icon className="h-3.5 w-3.5" style={{ color: item.color }} />
                 </div>
-                <h3 className="font-display font-semibold text-sm text-foreground">{item.title}</h3>
-                <p className="mt-2 text-xs font-body text-muted-foreground leading-relaxed">{item.desc}</p>
+                <p className="font-display font-bold text-xs text-foreground mb-1">{item.title}</p>
+                <p className="text-[10px] font-body text-muted-foreground leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -356,6 +366,19 @@ const BecomePartner = () => {
                     </li>
                   ))}
                 </ul>
+                <button
+                  onClick={() => {
+                    setSelectedPlan(plan.id);
+                    document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className={`w-full py-2.5 mt-3 font-display font-semibold text-xs rounded-full transition-all ${
+                    plan.featured
+                      ? "bg-foreground text-primary-foreground hover:opacity-90"
+                      : "border border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+                  }`}
+                >
+                  {plan.id === "elite" ? "Contact us →" : "Apply with this plan →"}
+                </button>
                 <p className="mt-5 text-[10px] font-body text-muted-foreground leading-relaxed border-t border-border pt-4">
                   {plan.note}
                 </p>
@@ -374,6 +397,15 @@ const BecomePartner = () => {
             viewport={{ once: true }}
             className="bg-card rounded-2xl border border-border p-8 md:p-10"
           >
+            {selectedPlan && (
+              <div className="flex items-center gap-2 mb-6 px-4 py-2.5 bg-card border border-border rounded-full w-fit">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-xs font-display font-semibold text-foreground capitalize">
+                  {selectedPlan} plan selected
+                </span>
+                <button onClick={() => setSelectedPlan(null)} className="text-muted-foreground hover:text-foreground ml-1 text-sm">×</button>
+              </div>
+            )}
             <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-2">
               Apply to join
             </p>
