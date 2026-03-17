@@ -433,6 +433,9 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
 }
 
 function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DBProduct) => void }) {
+  const { isFavourite, toggleFavourite } = useFavourites();
+  const fav = isFavourite(product.id);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
