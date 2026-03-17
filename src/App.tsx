@@ -17,6 +17,7 @@ import Admin from "./pages/Admin.tsx";
 import ProjectBuilder from "./pages/ProjectBuilder.tsx";
 import Inspirations from "./pages/Inspirations.tsx";
 import Resources from "./pages/Resources.tsx";
+import ProService from "./pages/ProService.tsx";
 import Auth from "./pages/Auth.tsx";
 import Account from "./pages/Account.tsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
