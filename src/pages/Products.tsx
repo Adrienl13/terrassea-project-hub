@@ -375,7 +375,9 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavourite(product); }}
             className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${
-              fav ? "bg-foreground" : "bg-white border border-gray-200"
+              fav 
+                ? "bg-foreground opacity-100" 
+                : "bg-white/90 border border-gray-200 opacity-0 group-hover:opacity-100"
             }`}
           >
             <Heart className={`h-3.5 w-3.5 ${fav ? "text-white fill-white" : "text-gray-400"}`} />
