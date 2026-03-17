@@ -409,6 +409,13 @@ const ProductDetail = () => {
         )}
       </main>
       <Footer />
+      <QuoteRequestModal
+        open={quoteModalOpen}
+        onClose={() => setQuoteModalOpen(false)}
+        product={product}
+        offers={offers}
+        defaultQuantity={projectQuantity}
+      />
     </div>
   );
 };
