@@ -393,20 +393,20 @@ const ProjectCart = () => {
                                 </button>
                               </div>
 
-                              {/* Price */}
+                              {/* Price — alignée avec colonne INDICATIVE */}
                               <div className="text-right">
-                                {selectedSupplier?.price ?? (product as any).price_min ?
-                            <>
-                                    <p className="text-[10px] text-muted-foreground font-body">×€{(selectedSupplier?.price ?? (product as any).price_min)?.toFixed(2)}</p>
-                                    <p className="font-display font-semibold text-foreground text-base">~€{((selectedSupplier?.price ?? (product as any).price_min) * quantity).toLocaleString("fr-FR")}</p>
-                                  </> :
-
-                            <p className="text-[10px] text-muted-foreground font-body">On request</p>
-                            }
+                                {(selectedSupplier?.price ?? (product as any).price_min) ? (
+                                  <>
+                                    <p className="text-xs font-display font-semibold text-foreground">~€{((selectedSupplier?.price ?? (product as any).price_min) * quantity).toLocaleString("fr-FR")}</p>
+                                    <p className="text-[9px] text-muted-foreground">×€{(selectedSupplier?.price ?? (product as any).price_min)?.toFixed(0)}</p>
+                                  </>
+                                ) : (
+                                  <p className="text-[10px] text-muted-foreground font-body">On request</p>
+                                )}
                               </div>
 
                               {/* Delete */}
-                              <button onClick={() => removeItem(product.id)} className="text-muted-foreground hover:text-foreground transition-colors opacity-40 group-hover:opacity-100 justify-self-center">
+                              <button onClick={() => removeItem(product.id)} className="text-muted-foreground hover:text-foreground transition-colors opacity-30 group-hover:opacity-100 flex justify-center">
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </motion.div>);
