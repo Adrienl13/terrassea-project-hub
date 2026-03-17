@@ -4,6 +4,7 @@ import { Plus, BarChart3, Heart } from "lucide-react";
 import type { DBProduct } from "@/lib/products";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
+import { useFavourites } from "@/contexts/FavouritesContext";
 import { toast } from "sonner";
 
 const STOCK_DOT: Record<string, { dot: string; label: string }> = {
