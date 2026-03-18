@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronDown, ArrowRight, Armchair, Layers, Sun, Ruler, Scale } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { TOPIC_ILLUSTRATIONS, SIDEBAR_ILLUSTRATIONS } from "@/components/resources/ResourceIllustrations";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -463,13 +464,12 @@ function SidebarProductCard({ product, color }: { product: SidebarProduct; color
       onClick={() => navigate(product.href)}
       className="group w-full text-left border border-border rounded-sm overflow-hidden hover:border-foreground/30 transition-all"
     >
-      <div className="aspect-[4/3] overflow-hidden bg-card">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          loading="lazy"
-        />
+      <div className="aspect-[4/3] overflow-hidden bg-card group-hover:scale-[1.02] transition-transform duration-500">
+        {SIDEBAR_ILLUSTRATIONS[product.name] ? (
+          (() => { const Illust = SIDEBAR_ILLUSTRATIONS[product.name]; return <Illust />; })()
+        ) : (
+          <div className="w-full h-full bg-muted" />
+        )}
       </div>
       <div className="p-3">
         <div className="flex items-start justify-between gap-2 mb-1">
@@ -497,14 +497,13 @@ function TopicPhotoCard({ topic, isActive, onClick }: { topic: Topic; isActive: 
         isActive ? "ring-2 ring-foreground ring-offset-2" : "hover:opacity-90"
       }`}
     >
-      {/* Photo */}
-      <div className="aspect-[3/4] md:aspect-[4/5] overflow-hidden">
-        <img
-          src={topic.photo}
-          alt={topic.photoAlt}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          loading="lazy"
-        />
+      {/* Illustration */}
+      <div className="aspect-[3/4] md:aspect-[4/5] overflow-hidden group-hover:scale-[1.03] transition-transform duration-500">
+        {TOPIC_ILLUSTRATIONS[topic.id] ? (
+          (() => { const Illust = TOPIC_ILLUSTRATIONS[topic.id]; return <Illust />; })()
+        ) : (
+          <div className="w-full h-full bg-muted" />
+        )}
       </div>
 
       {/* Overlay gradient */}
