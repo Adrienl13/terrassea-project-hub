@@ -271,16 +271,20 @@ export type Database = {
       products: {
         Row: {
           ambience_tags: string[] | null
+          archetype_confidence: number | null
+          archetype_id: string | null
           availability_type: string | null
           available_colors: string[] | null
           brand_source: string | null
           category: string
           collection: string | null
+          color_variants: Json | null
           combinable: boolean | null
           combined_capacity_if_joined: number | null
           country_of_manufacture: string | null
           created_at: string
           customizable: boolean | null
+          data_quality_score: number | null
           default_seating_capacity: number | null
           dimensions_height_cm: number | null
           dimensions_length_cm: number | null
@@ -311,6 +315,7 @@ export type Database = {
           price_min: number | null
           priority_score: number | null
           product_family: string | null
+          product_type_tags: Json | null
           recommended_seating_max: number | null
           recommended_seating_min: number | null
           requires_assembly: boolean | null
@@ -333,16 +338,20 @@ export type Database = {
         }
         Insert: {
           ambience_tags?: string[] | null
+          archetype_confidence?: number | null
+          archetype_id?: string | null
           availability_type?: string | null
           available_colors?: string[] | null
           brand_source?: string | null
           category: string
           collection?: string | null
+          color_variants?: Json | null
           combinable?: boolean | null
           combined_capacity_if_joined?: number | null
           country_of_manufacture?: string | null
           created_at?: string
           customizable?: boolean | null
+          data_quality_score?: number | null
           default_seating_capacity?: number | null
           dimensions_height_cm?: number | null
           dimensions_length_cm?: number | null
@@ -373,6 +382,7 @@ export type Database = {
           price_min?: number | null
           priority_score?: number | null
           product_family?: string | null
+          product_type_tags?: Json | null
           recommended_seating_max?: number | null
           recommended_seating_min?: number | null
           requires_assembly?: boolean | null
@@ -395,16 +405,20 @@ export type Database = {
         }
         Update: {
           ambience_tags?: string[] | null
+          archetype_confidence?: number | null
+          archetype_id?: string | null
           availability_type?: string | null
           available_colors?: string[] | null
           brand_source?: string | null
           category?: string
           collection?: string | null
+          color_variants?: Json | null
           combinable?: boolean | null
           combined_capacity_if_joined?: number | null
           country_of_manufacture?: string | null
           created_at?: string
           customizable?: boolean | null
+          data_quality_score?: number | null
           default_seating_capacity?: number | null
           dimensions_height_cm?: number | null
           dimensions_length_cm?: number | null
@@ -435,6 +449,7 @@ export type Database = {
           price_min?: number | null
           priority_score?: number | null
           product_family?: string | null
+          product_type_tags?: Json | null
           recommended_seating_max?: number | null
           recommended_seating_min?: number | null
           requires_assembly?: boolean | null
@@ -641,6 +656,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tag_definitions: {
+        Row: {
+          created_at: string
+          id: string
+          label_de: string | null
+          label_en: string
+          label_es: string | null
+          label_fr: string | null
+          label_it: string | null
+          label_nl: string | null
+          slug: string
+          tag_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label_de?: string | null
+          label_en: string
+          label_es?: string | null
+          label_fr?: string | null
+          label_it?: string | null
+          label_nl?: string | null
+          slug: string
+          tag_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label_de?: string | null
+          label_en?: string
+          label_es?: string | null
+          label_fr?: string | null
+          label_it?: string | null
+          label_nl?: string | null
+          slug?: string
+          tag_type?: string
+        }
+        Relationships: []
       }
       user_favourites: {
         Row: {
