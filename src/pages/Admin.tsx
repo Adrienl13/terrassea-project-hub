@@ -31,6 +31,9 @@ const emptyProduct: ProductFormData = {
   brand_source: "", supplier_internal: "", documents: [], table_shape: null,
   default_seating_capacity: null, recommended_seating_min: null, recommended_seating_max: null,
   combinable: false, combined_capacity_if_joined: null,
+  archetype_id: null, archetype_confidence: null,
+  product_type_tags: {}, color_variants: [],
+  data_quality_score: 0,
 };
 
 const CATEGORIES = ["Chairs", "Armchairs", "Tables", "Bar Stools", "Parasols", "Lounge Seating", "Sun Loungers", "Benches", "Coffee Tables", "High Tables", "Sofas"];
