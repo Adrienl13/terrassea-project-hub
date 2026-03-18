@@ -1,40 +1,39 @@
+import type { DBProduct } from "@/lib/products";
+
+// ═══════════════════════════════════════════════════════════
+// PROJECT PARAMETERS
+// ═══════════════════════════════════════════════════════════
+
 export interface ProjectParameters {
-  builderMode: "guided" | "expert" | "";
-  establishmentType: string;
-  projectZone: string;
-  seatingCapacity: number | null;
-  seatingLayout: string;
-  layoutPriority: string;
-  style: string[];
-  ambience: string[];
-  colorPalette: string[];
-  materialPreferences: string[];
+  builderMode:          "guided" | "expert" | "";
+  establishmentType:    string;
+  projectZone:          string;
+  seatingCapacity:      number | null;
+  seatingLayout:        string;
+  layoutPriority:       string;
+  style:                string[];
+  ambience:             string[];
+  colorPalette:         string[];
+  materialPreferences:  string[];
   technicalConstraints: string[];
-  isOutdoor: boolean;
-  budgetLevel: string;
-  timeline: string;
-  terraceSurfaceM2: number | null;
-  terraceLength: number | null;
-  terraceWidth: number | null;
-  tableMix?: TableMixEntry[];
+  isOutdoor:            boolean;
+  budgetLevel:          string;
+  timeline:             string;
+  terraceSurfaceM2:     number | null;
+  terraceLength:        number | null;
+  terraceWidth:         number | null;
+  tableMix?:            TableMixEntry[];
 }
 
 export interface TableMixEntry {
-  format: string;
-  quantity: number;
+  format:       string;
+  quantity:     number;
   seatsPerTable: number;
 }
 
-export interface ProjectConcept {
-  id: string;
-  title: string;
-  description: string;
-  colorPalette: string[]; // hex colors
-  colorNames: string[];
-  moodKeywords: string[];
-  products: RecommendedProduct[];
-  layout?: LayoutRecommendation;
-}
+// ═══════════════════════════════════════════════════════════
+// LAYOUT
+// ═══════════════════════════════════════════════════════════
 
 export type LayoutRequirementType =
   | "chair"
@@ -43,104 +42,215 @@ export type LayoutRequirementType =
   | "table_base"
   | "tabletop"
   | "parasol"
+  | "sun_lounger"
+  | "bar_stool"
+  | "sofa"
   | "other";
 
 export interface LayoutRequirement {
-  id: string;
-  type: LayoutRequirementType;
-  label: string;
+  id:               string;
+  type:             LayoutRequirementType;
+  label:            string;
   requiredQuantity: number;
-  tableFormat?: string;
-}
-
-export interface LayoutRecommendation {
-  label: string; // "Suggested layout" | "Alternative layout" | "Flexible layout"
-  totalSeats: number;
-  tableGroups: TableGroup[];
-  chairCount: number;
-  notes: string;
-  spatialMetrics?: SpatialMetricsData;
-  requirements?: LayoutRequirement[];
-}
-
-export interface SpatialMetricsData {
-  terraceArea: number;
-  totalSeats: number;
-  spacePerSeat: number;
-  densityLevel: string;
-  densityLabel: string;
-  feasibility: string; // "good" | "compact" | "overcrowded"
-  feasibilityLabel: string;
-  feasibilityDescription: string;
-  maxSeatsComfortable: number;
-  maxSeatsBalanced: number;
-  maxSeatsDense: number;
-  estimatedOccupiedSurface: number;
-  remainingCirculationSpace: number;
+  tableFormat?:     string;
 }
 
 export interface TableGroup {
-  tableFormat: string; // e.g. "70×70", "120×70", "120×80"
-  shape: string;
-  quantity: number;
+  tableFormat:   string;
+  shape:         string;
+  quantity:      number;
   seatsPerTable: number;
-  totalSeats: number;
+  totalSeats:    number;
 }
+
+export interface SpatialMetricsData {
+  terraceArea:                number;
+  totalSeats:                 number;
+  spacePerSeat:               number;
+  densityLevel:               string;
+  densityLabel:               string;
+  feasibility:                string;
+  feasibilityLabel:           string;
+  feasibilityDescription:     string;
+  maxSeatsComfortable:        number;
+  maxSeatsBalanced:           number;
+  maxSeatsDense:              number;
+  estimatedOccupiedSurface:   number;
+  remainingCirculationSpace:  number;
+}
+
+export interface LayoutRecommendation {
+  label:           string;
+  totalSeats:      number;
+  tableGroups:     TableGroup[];
+  chairCount:      number;
+  notes:           string;
+  spatialMetrics?: SpatialMetricsData;
+  requirements?:   LayoutRequirement[];
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOM — Bill of Materials
+// ═══════════════════════════════════════════════════════════
+
+export type BOMSlotRole =
+  | "chair"
+  | "armchair"
+  | "bar_stool"
+  | "complete_table"
+  | "table_base"
+  | "tabletop"
+  | "parasol"
+  | "sun_lounger"
+  | "sofa"
+  | "bench"
+  | "accessory";
+
+export interface BOMSlot {
+  role:             BOMSlotRole;
+  quantity:         number;
+  product:          DBProduct;
+  archetypeId:      string | null;
+  relevanceScore:   number;
+  reason:           string;
+  layoutRequirementId?:    string;
+  layoutRequirementType?:  LayoutRequirementType;
+  layoutRequirementLabel?: string;
+  tableFormat?:   string;
+  isModular?:     boolean;
+  base?:          DBProduct;
+  top?:           DBProduct;
+  unitPriceMin:   number | null;
+  unitPriceMax:   number | null;
+  slotTotalMin:   number | null;
+  slotTotalMax:   number | null;
+}
+
+export interface ConceptBOM {
+  slots:            BOMSlot[];
+  totalItems:       number;
+  indicativeTotalMin: number | null;
+  indicativeTotalMax: number | null;
+  missingSlots:     BOMSlotRole[];
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONCEPT ALTERNATIVE
+// ═══════════════════════════════════════════════════════════
+
+export interface ConceptAlternative {
+  label:             string;
+  changedSlots:      BOMSlotRole[];
+  slots:             BOMSlot[];
+  priceDelta:        number;
+  alternativeReason: string;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROJECT CONCEPT
+// ═══════════════════════════════════════════════════════════
+
+export interface ProjectConcept {
+  id:           string;
+  title:        string;
+  description:  string;
+  colorPalette:  string[];
+  colorNames:    string[];
+  moodKeywords:  string[];
+  layout?: LayoutRecommendation;
+  bom?: ConceptBOM;
+  alternative?: ConceptAlternative;
+  priceRange?: {
+    min: number | null;
+    max: number | null;
+  };
+  products: RecommendedProduct[];
+}
+
+// ═══════════════════════════════════════════════════════════
+// RECOMMENDED PRODUCT (legacy)
+// ═══════════════════════════════════════════════════════════
 
 export interface RecommendedProduct {
-  productId: string;
-  relevanceScore: number;
-  reason: string;
-  suggestedQuantity?: number;
-  layoutRequirementType?: LayoutRequirementType;
+  productId:             string;
+  relevanceScore:        number;
+  reason:                string;
+  suggestedQuantity?:    number;
+  layoutRequirementType?:  LayoutRequirementType;
   layoutRequirementLabel?: string;
-  layoutRequirementId?: string;
+  layoutRequirementId?:    string;
 }
 
+// ═══════════════════════════════════════════════════════════
+// DISCOVERY
+// ═══════════════════════════════════════════════════════════
+
 export interface DiscoveryQuestion {
-  id: string;
+  id:       string;
   question: string;
-  options: string[];
-  field: keyof ProjectParameters | 'raw';
-  priority: number; // higher = more important to ask
+  options:  string[];
+  field:    keyof ProjectParameters | "raw";
+  priority: number;
 }
 
 export interface ProjectSummary {
   establishment: string;
-  zone: string;
-  style: string;
-  ambience: string;
-  capacity: string;
-  layout: string;
+  zone:          string;
+  style:         string;
+  ambience:      string;
+  capacity:      string;
+  layout:        string;
   layoutPriority: string;
-  palette: string;
-  materials: string;
-  constraints: string;
+  palette:       string;
+  materials:     string;
+  constraints:   string;
 }
 
+// ═══════════════════════════════════════════════════════════
+// SCORING CONTEXT
+// ═══════════════════════════════════════════════════════════
+
+export interface ClimateProfile {
+  isCoastal:    boolean;
+  isHighUV:     boolean;
+  isHighTraffic: boolean;
+  isElevated:   boolean;
+}
+
+export interface VenueNeeds {
+  mandatory:              string[];
+  preferred:              string[];
+  boost:                  number;
+  technicalRequirements:  string[];
+}
+
+// ═══════════════════════════════════════════════════════════
+// LEGACY — kept for backward compat with data/products.ts
+// ═══════════════════════════════════════════════════════════
+
 export interface EnrichedProduct {
-  id: string;
-  name: string;
+  id:          string;
+  name:        string;
   description: string;
-  price: string;
-  category: string;
-  image: string;
-  style: string;
-  material: string;
-  tags: ProductTags;
-  scoring: ProductScoring;
+  price:       string;
+  category:    string;
+  image:       string;
+  style:       string;
+  material:    string;
+  tags:        ProductTags;
+  scoring:     ProductScoring;
 }
 
 export interface ProductTags {
-  style: string[];
-  ambience: string[];
-  color: string[];
-  useCase: string[];
+  style:     string[];
+  ambience:  string[];
+  color:     string[];
+  useCase:   string[];
   technical: string[];
 }
 
 export interface ProductScoring {
-  popularity: number;
+  popularity:      number;
   complementarity: Record<string, number>;
-  diversityGroup: string;
+  diversityGroup:  string;
 }
