@@ -758,19 +758,30 @@ function ProductForm({
 // PRODUCTS TAB
 // ═══════════════════════════════════════════════════════════
 
+type PublishFilter = "all" | "draft" | "pending_review" | "published" | "rejected";
+
+const PUBLISH_BADGE: Record<string, string> = {
+  published:      "bg-green-50 text-green-700",
+  pending_review: "bg-amber-50 text-amber-700",
+  draft:          "bg-muted text-muted-foreground",
+  rejected:       "bg-red-50 text-red-700",
+};
+
 function ProductsTab() {
   const { data: products = [], isLoading } = useProducts();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<ProductFormData | null>(null);
   const [filter, setFilter] = useState("");
   const [catFilter, setCatFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<PublishFilter>("all");
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const filtered = products.filter(p => {
     const matchText = p.name.toLowerCase().includes(filter.toLowerCase()) ||
       p.category.toLowerCase().includes(filter.toLowerCase());
     const matchCat = !catFilter || p.category === catFilter;
-    return matchText && matchCat;
+    const matchStatus = statusFilter === "all" || (p as any).publish_status === statusFilter;
+    return matchText && matchCat && matchStatus;
   });
 
   const handleSave = async (data: ProductFormData) => {
