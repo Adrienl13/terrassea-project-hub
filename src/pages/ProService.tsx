@@ -24,48 +24,56 @@ function parseBudget(val: string): number | null {
   return match ? parseInt(match[0]) : null;
 }
 
-// ── What's included ──────────────────────────────────────────────────────────
+// ── Data ──────────────────────────────────────────────────────────────────────
 
 const INCLUDES = [
   {
     icon: Clock,
     title: "48h expert brief",
     desc: "A Terrassea sourcing expert analyses your project and comes back with a tailored approach within 48 business hours.",
+    accent: "#FAECE7",
+    iconColor: "#D85A30",
   },
   {
     icon: Sparkles,
     title: "3 curated proposals",
-    desc: "Products selected to match your space, style, budget and technical constraints — with matched suppliers and net pricing.",
+    desc: "Products matched to your space, style, budget and technical constraints — with matched suppliers and net pricing.",
+    accent: "#E6F1FB",
+    iconColor: "#378ADD",
   },
   {
     icon: Users,
     title: "Multi-supplier coordination",
     desc: "One point of contact for all quotes, delivery scheduling and supplier follow-up. We consolidate the complexity.",
+    accent: "#E6F1FB",
+    iconColor: "#378ADD",
   },
   {
     icon: Shield,
     title: "Free for the client",
     desc: "Our fee is paid by suppliers on confirmed orders. You get expert sourcing at zero cost.",
+    accent: "#E1F5EE",
+    iconColor: "#1D9E75",
+    highlight: true,
   },
 ];
 
-// ── Who it's for ─────────────────────────────────────────────────────────────
-
-const FOR_WHO = [
-  { check: true, label: "Hotel with multiple outdoor spaces", sub: "Terrace + pool deck + garden = complex multi-supplier coordination" },
-  { check: true, label: "New restaurant opening, 100+ covers", sub: "Volume + deadline + first-time procurement = you need an expert" },
-  { check: true, label: "Resort or seasonal beach club", sub: "Marine-grade specs + volume orders + tight seasonal deadlines" },
-  { check: true, label: "Architect managing several client projects", sub: "Multi-project coordination and pro pricing across all orders" },
-  { check: false, label: "Restaurant under 100 covers, budget < €25k", sub: "→ Our Project Builder is built exactly for you" },
-  { check: false, label: "Replacing a few individual pieces", sub: "→ Browse the catalogue and request a direct quote" },
+const FOR_WHO_YES = [
+  { label: "Hotel with multiple outdoor spaces", sub: "Terrace + pool deck + garden = complex multi-supplier coordination" },
+  { label: "New restaurant opening, 100+ covers", sub: "Volume + deadline + first-time procurement = you need an expert" },
+  { label: "Resort or seasonal beach club", sub: "Marine-grade specs + volume orders + tight seasonal deadlines" },
+  { label: "Architect managing several client projects", sub: "Multi-project coordination and pro pricing across all orders" },
 ];
 
-// ── Process steps ─────────────────────────────────────────────────────────────
+const FOR_WHO_NO = [
+  { label: "Restaurant under 100 covers, budget < €25k", sub: "→ Our Project Builder is built exactly for you" },
+  { label: "Replacing a few individual pieces", sub: "→ Browse the catalogue and request a direct quote" },
+];
 
 const STEPS = [
   { n: "01", title: "You describe", desc: "Fill in the project brief below. 5 minutes, no commitment." },
   { n: "02", title: "We qualify", desc: "Our team reviews your request within 24 hours and confirms we can help." },
-  { n: "03", title: "We source", desc: "3 curated product proposals with matched suppliers and pricing, within 5 business days." },
+  { n: "03", title: "We source", desc: "3 curated proposals with matched suppliers and pricing, within 5 business days." },
   { n: "04", title: "You decide", desc: "You choose what fits. We handle the rest — orders, delivery, follow-up." },
 ];
 
@@ -87,7 +95,7 @@ const ProService = () => {
 
   const handle = (field: string) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-      setForm((p) => ({ ...p, [field]: e.target.value }));
+      setForm(p => ({ ...p, [field]: e.target.value }));
 
   const coversNum = form.covers ? parseInt(form.covers) : null;
   const qualified = isQualified(coversNum, form.budget);
@@ -97,45 +105,29 @@ const ProService = () => {
       toast.error("Please fill in all required fields.");
       return;
     }
-
-    if (!qualified) {
-      setPhase("not_qualified");
-      return;
-    }
-
+    if (!qualified) { setPhase("not_qualified"); return; }
     setSubmitting(true);
     try {
       await supabase.from("project_requests").insert({
         project_name: `Pro Service — ${form.company || form.name}`,
-        contact_name: form.name,
-        contact_company: form.company,
-        contact_email: form.email,
-        contact_phone: form.phone,
-        city: form.location,
-        budget_range: form.budget,
-        timeline: form.timeline,
+        contact_name: form.name, contact_company: form.company,
+        contact_email: form.email, contact_phone: form.phone,
+        city: form.location, budget_range: form.budget, timeline: form.timeline,
         free_text_request: `${form.notes}\n\nType: ${form.establishmentType}\nCovers: ${form.covers}\nSpaces: ${form.spaces}\nStyle: ${form.style}\nConstraints: ${form.constraints}`,
-        detected_attributes: {
-          service_type: "pro_service",
-          siren: form.siren,
-          covers: coversNum,
-          spaces: form.spaces,
-        },
+        detected_attributes: { service_type: "pro_service", siren: form.siren, covers: coversNum, spaces: form.spaces },
       });
       setPhase("submitted");
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const inputClass = "w-full text-sm font-body bg-card border border-border rounded-full px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
+  const inputClass = "w-full text-sm font-body bg-white border border-border rounded-full px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
   const labelClass = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5";
 
   // ── Submitted ──
-
   if (phase === "submitted") {
     return (
       <div className="min-h-screen bg-background">
@@ -156,7 +148,7 @@ const ProService = () => {
             </p>
             <button
               onClick={() => navigate("/")}
-              className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90"
             >
               Back to homepage
             </button>
@@ -167,7 +159,6 @@ const ProService = () => {
   }
 
   // ── Not qualified ──
-
   if (phase === "not_qualified") {
     return (
       <div className="min-h-screen bg-background">
@@ -180,16 +171,13 @@ const ProService = () => {
             <h1 className="font-display text-xl font-bold tracking-tight mb-4">
               Great news — your project is a perfect fit for our Project Builder.
             </h1>
-            <p className="text-sm font-body text-muted-foreground leading-relaxed mb-4">
-              Pro Service is designed for projects above {MIN_COVERS} covers or €{MIN_BUDGET.toLocaleString()} budget. Your project looks like it's well-served by our self-service tools — faster, simpler, and just as effective.
-            </p>
             <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">
-              Describe your project in the builder and get 3 curated product concepts in minutes.
+              Pro Service is designed for projects above {MIN_COVERS} covers or €{MIN_BUDGET.toLocaleString()} budget. Your project is well-served by our self-service tools — faster, simpler, and just as effective.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={() => navigate("/projects/new")}
-                className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90"
               >
                 Launch Project Builder <ArrowRight className="h-4 w-4" />
               </button>
@@ -207,51 +195,63 @@ const ProService = () => {
   }
 
   // ── Main page ──
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* ── Hero ── */}
+      {/* ── HERO ── */}
       <section className="pt-32 pb-20 bg-background">
         <div className="container mx-auto px-6 max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-              Terrassea Pro Service
-            </p>
+            {/* Label */}
+            <div className="mb-4">
+              <span className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground">
+                Terrassea Pro Service
+              </span>
+            </div>
+
+            {/* Headline */}
             <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-6">
               Not for every project —<br />
-              for the ones where getting it wrong is expensive.
+              for the ones where{" "}
+              <span className="underline decoration-terracotta decoration-2 underline-offset-4">getting it wrong</span>
+              {" "}is expensive.
             </h1>
+
             <p className="text-base font-body text-muted-foreground leading-relaxed max-w-2xl mb-10">
               For large-scale hospitality projects — hotels, resorts, restaurant openings, beach clubs — our sourcing experts handle everything from brief to delivery. One contact, multiple suppliers, zero sourcing headaches.
             </p>
 
-            {/* Qualification thresholds */}
-            <div className="flex flex-wrap items-center gap-4 text-sm font-body">
-              <div className="flex items-center gap-2 bg-muted/50 rounded-full px-4 py-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span className="font-semibold">100+ covers</span>
-                <span className="text-muted-foreground">or more</span>
-              </div>
-              <span className="text-muted-foreground">or</span>
-              <div className="flex items-center gap-2 bg-muted/50 rounded-full px-4 py-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span className="font-semibold">€35,000+</span>
-                <span className="text-muted-foreground">indicative budget</span>
-              </div>
-              <span className="text-muted-foreground">or</span>
-              <div className="flex items-center gap-2 bg-muted/50 rounded-full px-4 py-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span className="font-semibold">2+ spaces</span>
-                <span className="text-muted-foreground">to furnish simultaneously</span>
-              </div>
+            {/* Thresholds */}
+            <div className="flex flex-wrap items-center gap-3 text-sm font-body mb-10">
+              {[
+                { value: "100+ covers", label: "or more" },
+                { value: "€35,000+", label: "indicative budget" },
+                { value: "2+ spaces", label: "simultaneously" },
+              ].map((t, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  {i > 0 && <span className="text-muted-foreground text-xs">or</span>}
+                  <div className="flex items-center gap-2 bg-muted/50 rounded-full px-4 py-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="font-semibold">{t.value}</span>
+                    <span className="text-muted-foreground">{t.label}</span>
+                  </div>
+                </div>
+              ))}
             </div>
+
+            {/* CTA */}
+            <a
+              href="#brief"
+              className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90 transition-opacity"
+            >
+              Submit your brief <ArrowRight className="h-4 w-4" />
+            </a>
           </motion.div>
         </div>
       </section>
 
-      {/* ── What's included ── */}
+      {/* ── WHAT'S INCLUDED ── */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-6 max-w-3xl">
           <h2 className="font-display text-xl font-bold tracking-tight mb-10">
@@ -260,8 +260,11 @@ const ProService = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {INCLUDES.map((item, i) => (
               <div key={i} className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center shrink-0">
-                  <item.icon className="h-4 w-4 text-foreground" />
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: item.accent }}
+                >
+                  <item.icon className="h-4 w-4" style={{ color: item.iconColor }} />
                 </div>
                 <div>
                   <h3 className="font-display font-semibold text-sm mb-1">{item.title}</h3>
@@ -273,7 +276,7 @@ const ProService = () => {
         </div>
       </section>
 
-      {/* ── Process ── */}
+      {/* ── HOW IT WORKS ── */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6 max-w-3xl">
           <h2 className="font-display text-xl font-bold tracking-tight mb-10">
@@ -291,40 +294,73 @@ const ProService = () => {
         </div>
       </section>
 
-      {/* ── For who ── */}
+      {/* ── IS THIS RIGHT FOR YOU ── */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-6 max-w-3xl">
           <h2 className="font-display text-xl font-bold tracking-tight mb-10">
             Is this right for you?
           </h2>
-          <div className="space-y-4">
-            {FOR_WHO.map((item, i) => (
-              <div key={i} className={`flex gap-4 p-4 rounded-xl border ${item.check ? 'border-green-200 bg-green-50/50' : 'border-border bg-card'}`}>
-                <span className={`text-lg font-semibold mt-0.5 ${item.check ? 'text-green-600' : 'text-muted-foreground'}`}>
-                  {item.check ? "✓" : "→"}
-                </span>
-                <div>
-                  <p className={`text-sm font-display font-semibold ${item.check ? 'text-foreground' : 'text-muted-foreground'}`}>
-                    {item.label}
-                  </p>
-                  <p className="text-xs font-body text-muted-foreground mt-0.5">{item.sub}</p>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Yes column */}
+            <div>
+              <p className="text-xs font-display font-semibold uppercase tracking-widest text-green-600 mb-4">
+                This is for you if…
+              </p>
+              <div className="space-y-3">
+                {FOR_WHO_YES.map((item, i) => (
+                  <div key={i} className="flex gap-3 p-3 rounded-xl border border-green-200 bg-green-50/50">
+                    <span className="text-green-600 font-semibold mt-0.5">✓</span>
+                    <div>
+                      <p className="text-sm font-display font-semibold">{item.label}</p>
+                      <p className="text-xs font-body text-muted-foreground mt-0.5">{item.sub}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* No column */}
+            <div>
+              <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                Better options for you if…
+              </p>
+              <div className="space-y-3">
+                {FOR_WHO_NO.map((item, i) => (
+                  <div key={i} className="flex gap-3 p-3 rounded-xl border border-border bg-card">
+                    <span className="text-muted-foreground font-semibold mt-0.5">→</span>
+                    <div>
+                      <p className="text-sm font-display font-semibold text-muted-foreground">{item.label}</p>
+                      <p className="text-xs font-body text-muted-foreground mt-0.5">{item.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Redirect CTA */}
+              <div className="mt-6 p-4 rounded-xl border border-border bg-card">
+                <p className="text-sm font-display font-semibold mb-1">Under 100 covers?</p>
+                <p className="text-xs font-body text-muted-foreground leading-relaxed mb-3">
+                  Our Project Builder generates curated product concepts in minutes — free, no commitment.
+                </p>
+                <button
+                  onClick={() => navigate("/projects/new")}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-display font-bold text-foreground hover:opacity-70 transition-opacity"
+                >
+                  Launch Project Builder <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Form ── */}
+      {/* ── FORM ── */}
       <section className="py-20 bg-background" id="brief">
         <div className="container mx-auto px-6 max-w-2xl">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-2">
               Tell us about your project
             </p>
-            <h2 className="font-display text-2xl font-bold tracking-tight mb-2">
-              Submit your brief
-            </h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight mb-2">Submit your brief</h2>
             <p className="text-sm font-body text-muted-foreground leading-relaxed mb-10">
               5 minutes. No commitment. If your project qualifies, we'll confirm within 24 hours and start working on your proposals.
             </p>
@@ -404,42 +440,30 @@ const ProService = () => {
                   <div>
                     <label className={labelClass}>
                       Number of covers / seats
-                      <span className="font-normal normal-case tracking-normal text-muted-foreground"> (total across all spaces)</span>
+                      <span className="font-normal normal-case tracking-normal text-muted-foreground"> (all spaces)</span>
                     </label>
                     <input
-                      type="number"
-                      value={form.covers}
-                      onChange={handle("covers")}
-                      placeholder="e.g. 200"
-                      className={`${inputClass} ${
-                        coversNum && coversNum >= MIN_COVERS ? "border-green-500" :
-                        coversNum && coversNum < MIN_COVERS ? "border-amber-400" : ""
-                      }`}
+                      type="number" value={form.covers} onChange={handle("covers")} placeholder="e.g. 200"
+                      className={`${inputClass} ${coversNum && coversNum >= MIN_COVERS ? "border-green-500" : coversNum && coversNum < MIN_COVERS ? "border-amber-400" : ""}`}
                     />
                     {coversNum !== null && (
                       <p className={`text-[10px] font-body mt-1.5 ${coversNum >= MIN_COVERS ? "text-green-600" : "text-amber-600"}`}>
-                        {coversNum >= MIN_COVERS ? `✓ Qualifies (100+ covers)` : `Min. ${MIN_COVERS} covers for Pro Service`}
+                        {coversNum >= MIN_COVERS ? "✓ Qualifies (100+ covers)" : `Min. ${MIN_COVERS} covers for Pro Service`}
                       </p>
                     )}
                   </div>
                   <div>
                     <label className={labelClass}>
                       Indicative budget
-                      <span className="font-normal normal-case tracking-normal text-muted-foreground"> (furniture only, excl. delivery)</span>
+                      <span className="font-normal normal-case tracking-normal text-muted-foreground"> (excl. delivery)</span>
                     </label>
                     <input
-                      type="text"
-                      value={form.budget}
-                      onChange={handle("budget")}
-                      placeholder="e.g. €50,000"
-                      className={`${inputClass} ${
-                        parseBudget(form.budget) && parseBudget(form.budget)! >= MIN_BUDGET ? "border-green-500" :
-                        parseBudget(form.budget) && parseBudget(form.budget)! < MIN_BUDGET ? "border-amber-400" : ""
-                      }`}
+                      type="text" value={form.budget} onChange={handle("budget")} placeholder="e.g. €50,000"
+                      className={`${inputClass} ${parseBudget(form.budget) && parseBudget(form.budget)! >= MIN_BUDGET ? "border-green-500" : parseBudget(form.budget) && parseBudget(form.budget)! < MIN_BUDGET ? "border-amber-400" : ""}`}
                     />
                     {parseBudget(form.budget) !== null && (
                       <p className={`text-[10px] font-body mt-1.5 ${parseBudget(form.budget)! >= MIN_BUDGET ? "text-green-600" : "text-amber-600"}`}>
-                        {parseBudget(form.budget)! >= MIN_BUDGET ? `✓ Qualifies (€35k+)` : `Min. €${MIN_BUDGET.toLocaleString()} for Pro Service`}
+                        {parseBudget(form.budget)! >= MIN_BUDGET ? "✓ Qualifies (€35k+)" : `Min. €${MIN_BUDGET.toLocaleString()} for Pro Service`}
                       </p>
                     )}
                   </div>
@@ -486,18 +510,20 @@ const ProService = () => {
 
               {/* SIREN */}
               <div>
-                <label className={labelClass}>SIREN <span className="font-normal text-muted-foreground normal-case tracking-normal">(optional — for faster processing)</span></label>
-                <input type="text" value={form.siren} onChange={(e) => setForm(p => ({ ...p, siren: e.target.value.replace(/\D/g, "").slice(0, 9) }))} placeholder="123456789" className={inputClass} />
+                <label className={labelClass}>
+                  SIREN <span className="font-normal text-muted-foreground normal-case tracking-normal">(optional — for faster processing)</span>
+                </label>
+                <input type="text" value={form.siren}
+                  onChange={e => setForm(p => ({ ...p, siren: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+                  placeholder="123456789" className={inputClass} />
               </div>
 
               {/* Submit */}
               <div className="pt-2">
-                <button
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="w-full py-4 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
+                <button onClick={handleSubmit} disabled={submitting}
+                  className="w-full py-4 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
                 >
-                  {submitting ? "Submitting..." : <>Submit project brief <ArrowRight className="h-4 w-4" /></>}
+                  {submitting ? "Submitting..." : <> Submit project brief <ArrowRight className="h-4 w-4" /> </>}
                 </button>
                 <p className="text-[10px] text-muted-foreground font-body text-center mt-3 leading-relaxed">
                   No commitment · Our team confirms eligibility within 24h · Free for the client
