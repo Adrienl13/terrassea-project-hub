@@ -23,6 +23,18 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sirenValid, setSirenValid] = useState<boolean | null>(null);
   const [sirenChecking, setSirenChecking] = useState(false);
+  const [isRecovery, setIsRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecovery(true);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
   const [form, setForm] = useState({
     email: "", password: "", firstName: "", lastName: "",
     company: "", siren: "", phone: "", userType: "client" as UserType,
