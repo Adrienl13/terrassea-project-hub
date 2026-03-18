@@ -316,6 +316,7 @@ export type Database = {
           priority_score: number | null
           product_family: string | null
           product_type_tags: Json | null
+          publish_status: string
           recommended_seating_max: number | null
           recommended_seating_min: number | null
           requires_assembly: boolean | null
@@ -383,6 +384,7 @@ export type Database = {
           priority_score?: number | null
           product_family?: string | null
           product_type_tags?: Json | null
+          publish_status?: string
           recommended_seating_max?: number | null
           recommended_seating_min?: number | null
           requires_assembly?: boolean | null
@@ -450,6 +452,7 @@ export type Database = {
           priority_score?: number | null
           product_family?: string | null
           product_type_tags?: Json | null
+          publish_status?: string
           recommended_seating_max?: number | null
           recommended_seating_min?: number | null
           requires_assembly?: boolean | null

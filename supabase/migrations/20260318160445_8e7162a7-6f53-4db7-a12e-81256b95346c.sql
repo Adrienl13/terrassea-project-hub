@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS publish_status text NOT NULL DEFAULT 'draft';

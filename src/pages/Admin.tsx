@@ -18,7 +18,7 @@ import type { DBProduct, ProductTypeTags, TagDefinition } from "@/lib/products";
 
 type Tab = "applications" | "quotes" | "pro_service" | "products";
 
-type ProductFormData = Omit<DBProduct, "id"> & { id?: string };
+type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
 const CATEGORIES = [
   "Chairs", "Armchairs", "Tables", "Bar Stools", "Parasols",
@@ -58,6 +58,7 @@ const emptyProduct = (): ProductFormData => ({
   combinable: false, combined_capacity_if_joined: null,
   archetype_id: null, archetype_confidence: null,
   product_type_tags: {}, color_variants: [],
+  publish_status: "draft",
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -387,17 +388,21 @@ function ProductForm({
     return Math.min(Math.round(s * 100) / 100, 1);
   })();
 
-  const handleSave = async () => {
+  const handleSave = async (overrides?: Partial<ProductFormData>) => {
     if (!form.name || !form.category) {
       toast.error("Name and category are required");
       return;
     }
     setSaving(true);
     try {
-      await onSave(form);
+      await onSave({ ...form, ...overrides });
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSubmitForReview = () => {
+    handleSave({ publish_status: "pending_review" });
   };
 
   const SECTIONS = [
@@ -725,13 +730,23 @@ function ProductForm({
           >
             Cancel
           </button>
+          {(!form.id || form.publish_status === "draft") && previewScore >= 0.4 && (
+            <button
+              onClick={handleSubmitForReview}
+              disabled={saving || !form.name || !form.category}
+              className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm border border-amber-300 text-amber-700 bg-amber-50 rounded-full hover:bg-amber-100 disabled:opacity-50 transition-colors"
+            >
+              <Eye className="h-4 w-4" />
+              {saving ? "Submitting..." : "Submit for review"}
+            </button>
+          )}
           <button
-            onClick={handleSave}
+            onClick={() => handleSave()}
             disabled={saving || !form.name || !form.category}
             className="flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving ? "Saving..." : form.id ? "Update product" : "Create product"}
+            {saving ? "Saving..." : form.id ? "Update product" : "Save draft"}
           </button>
         </div>
       </div>
@@ -743,28 +758,45 @@ function ProductForm({
 // PRODUCTS TAB
 // ═══════════════════════════════════════════════════════════
 
+type PublishFilter = "all" | "draft" | "pending_review" | "published" | "rejected";
+
+const PUBLISH_BADGE: Record<string, string> = {
+  published:      "bg-green-50 text-green-700",
+  pending_review: "bg-amber-50 text-amber-700",
+  draft:          "bg-muted text-muted-foreground",
+  rejected:       "bg-red-50 text-red-700",
+};
+
 function ProductsTab() {
   const { data: products = [], isLoading } = useProducts();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<ProductFormData | null>(null);
   const [filter, setFilter] = useState("");
   const [catFilter, setCatFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<PublishFilter>("all");
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const filtered = products.filter(p => {
     const matchText = p.name.toLowerCase().includes(filter.toLowerCase()) ||
       p.category.toLowerCase().includes(filter.toLowerCase());
     const matchCat = !catFilter || p.category === catFilter;
-    return matchText && matchCat;
+    const matchStatus = statusFilter === "all" || (p as any).publish_status === statusFilter;
+    return matchText && matchCat && matchStatus;
   });
 
   const handleSave = async (data: ProductFormData) => {
-    const { id, ...rest } = data;
-    const dbData = {
+    const { id, publish_status, ...rest } = data;
+    const dbData: any = {
       ...rest,
       color_variants:    rest.color_variants as any,
       product_type_tags: rest.product_type_tags as any,
     };
+    // New products default to draft; existing keep their status unless explicitly changed
+    if (!id) {
+      dbData.publish_status = publish_status || "draft";
+    } else if (publish_status) {
+      dbData.publish_status = publish_status;
+    }
     try {
       if (id) {
         const { error } = await supabase.from("products").update(dbData).eq("id", id);
@@ -780,6 +812,17 @@ function ProductsTab() {
     } catch (err: any) {
       toast.error(err.message || "Failed to save");
       throw err;
+    }
+  };
+
+  const handlePublishAction = async (productId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase.from("products").update({ publish_status: newStatus } as any).eq("id", productId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success(newStatus === "published" ? "Product published" : "Product rejected");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update status");
     }
   };
 
@@ -837,6 +880,26 @@ function ProductsTab() {
         </button>
       </div>
 
+      {/* Publish status filter */}
+      <div className="flex gap-1 mb-4 flex-wrap">
+        {([
+          { id: "all",            label: "All" },
+          { id: "draft",          label: "Draft" },
+          { id: "pending_review", label: "Pending review" },
+          { id: "published",      label: "Published" },
+          { id: "rejected",       label: "Rejected" },
+        ] as { id: PublishFilter; label: string }[]).map(f => (
+          <button key={f.id} onClick={() => setStatusFilter(f.id)}
+            className={`px-3 py-1.5 text-[10px] font-display font-semibold rounded-full transition-all ${
+              statusFilter === f.id
+                ? "bg-foreground text-primary-foreground"
+                : "border border-border text-muted-foreground hover:border-foreground"
+            }`}>
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {isLoading ? (
         <p className="text-muted-foreground font-body text-sm">Loading...</p>
       ) : filtered.length === 0 ? (
@@ -851,7 +914,7 @@ function ProductsTab() {
           <table className="w-full text-sm font-body">
             <thead>
               <tr className="border-b border-border">
-                {["Product", "Category", "Color", "Price", "Quality", "Stock", ""].map(h => (
+                {["Product", "Category", "Color", "Price", "Quality", "Status", ""].map(h => (
                   <th key={h} className={`py-3 px-2 text-[10px] uppercase tracking-wider text-muted-foreground font-normal ${h === "" ? "text-right" : "text-left"}`}>
                     {h}
                   </th>
@@ -891,16 +954,32 @@ function ProductsTab() {
                     <DataQualityBadge score={product.data_quality_score} />
                   </td>
                   <td className="py-3 px-2">
-                    <span className={`text-[9px] font-body px-1.5 py-0.5 rounded ${
-                      product.availability_type === "available" ? "bg-green-50 text-green-700" :
-                      product.availability_type === "on-order"  ? "bg-blue-50 text-blue-700" :
-                      "bg-muted text-muted-foreground"
+                    <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full ${
+                      PUBLISH_BADGE[(product as any).publish_status] || PUBLISH_BADGE.draft
                     }`}>
-                      {product.availability_type || "—"}
+                      {((product as any).publish_status || "draft").replace("_", " ")}
                     </span>
                   </td>
                   <td className="py-3 px-2 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1.5">
+                      {(product as any).publish_status === "pending_review" && (
+                        <>
+                          <button
+                            onClick={() => handlePublishAction(product.id, "published")}
+                            className="text-green-600 hover:text-green-800 transition-colors"
+                            title="Publish"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handlePublishAction(product.id, "rejected")}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                            title="Reject"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={() => setEditing({ ...product })}
                         className="text-muted-foreground hover:text-foreground transition-colors"
@@ -1359,9 +1438,18 @@ const Admin = () => {
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
-              <span className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-[10px] font-display font-semibold text-green-700">Admin · full access</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-[10px] font-display font-semibold text-green-700">Admin · full access</span>
+              </div>
+              {products.filter(p => (p as any).publish_status === "pending_review").length > 0 && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
+                  <span className="text-[10px] font-display font-semibold text-red-600">
+                    {products.filter(p => (p as any).publish_status === "pending_review").length} awaiting review
+                  </span>
+                </div>
+              )}
             </div>
             {products.length > 0 && (
               <div className="flex items-center gap-2 text-[10px] font-body text-muted-foreground">
