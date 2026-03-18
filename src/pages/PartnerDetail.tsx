@@ -349,7 +349,7 @@ export default function PartnerDetail() {
 
             {/* ── RIGHT COLUMN — sticky CTA ── */}
             <div className="lg:sticky lg:top-28 self-start">
-              <SourcingCTA partnerType={partner.partner_type} />
+              <SourcingCTA partnerType={partner.partner_type} slug={partner.slug} />
             </div>
           </motion.div>
         </div>
