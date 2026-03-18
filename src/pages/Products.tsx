@@ -177,7 +177,7 @@ const Products = () => {
     }
 
     return result;
-  }, [products, search, filters, sortKey]);
+  }, [products, search, filters, sortKey, supplierSlug]);
 
   const handleAdd = (product: DBProduct) => {
     addItem(product);
