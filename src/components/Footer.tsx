@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="md:col-span-2">
             <h3 className="font-display text-xl font-bold tracking-tight">
-              TERRASSEA<span className="font-light ml-1 opacity-50">HUB</span>
+              TERRASSEA <span className="text-terracotta">HUB</span>
             </h3>
             <p className="text-sm font-body opacity-60 mt-4 max-w-sm leading-relaxed">
               The European hospitality project platform. Design your outdoor space, discover premium furniture solutions, and connect with sourcing partners.
