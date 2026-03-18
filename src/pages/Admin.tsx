@@ -880,6 +880,26 @@ function ProductsTab() {
         </button>
       </div>
 
+      {/* Publish status filter */}
+      <div className="flex gap-1 mb-4 flex-wrap">
+        {([
+          { id: "all",            label: "All" },
+          { id: "draft",          label: "Draft" },
+          { id: "pending_review", label: "Pending review" },
+          { id: "published",      label: "Published" },
+          { id: "rejected",       label: "Rejected" },
+        ] as { id: PublishFilter; label: string }[]).map(f => (
+          <button key={f.id} onClick={() => setStatusFilter(f.id)}
+            className={`px-3 py-1.5 text-[10px] font-display font-semibold rounded-full transition-all ${
+              statusFilter === f.id
+                ? "bg-foreground text-primary-foreground"
+                : "border border-border text-muted-foreground hover:border-foreground"
+            }`}>
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {isLoading ? (
         <p className="text-muted-foreground font-body text-sm">Loading...</p>
       ) : filtered.length === 0 ? (
