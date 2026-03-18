@@ -497,14 +497,13 @@ function TopicPhotoCard({ topic, isActive, onClick }: { topic: Topic; isActive: 
         isActive ? "ring-2 ring-foreground ring-offset-2" : "hover:opacity-90"
       }`}
     >
-      {/* Photo */}
-      <div className="aspect-[3/4] md:aspect-[4/5] overflow-hidden">
-        <img
-          src={topic.photo}
-          alt={topic.photoAlt}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          loading="lazy"
-        />
+      {/* Illustration */}
+      <div className="aspect-[3/4] md:aspect-[4/5] overflow-hidden group-hover:scale-[1.03] transition-transform duration-500">
+        {TOPIC_ILLUSTRATIONS[topic.id] ? (
+          (() => { const Illust = TOPIC_ILLUSTRATIONS[topic.id]; return <Illust />; })()
+        ) : (
+          <div className="w-full h-full bg-muted" />
+        )}
       </div>
 
       {/* Overlay gradient */}
