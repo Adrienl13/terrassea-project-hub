@@ -517,6 +517,26 @@ function ProductForm({
             <Input label="Product family" field="product_family" />
             <Input label="Brand / Source" field="brand_source" />
             <Input label="Supplier (internal)" field="supplier_internal" />
+            <div>
+              <label className="text-xs font-body text-muted-foreground block mb-1">Partner</label>
+              <select
+                value={partnersList.find(p => p.slug === form.supplier_internal)?.id ?? ""}
+                onChange={e => {
+                  const partner = partnersList.find(p => p.id === e.target.value);
+                  if (partner) {
+                    set("supplier_internal", partner.slug);
+                  } else {
+                    set("supplier_internal", "");
+                  }
+                }}
+                className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+              >
+                <option value="">— No partner —</option>
+                {partnersList.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
             <Input label="Collection" field="collection" />
             <Input label="Country of manufacture" field="country_of_manufacture" />
           </div>
