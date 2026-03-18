@@ -954,16 +954,32 @@ function ProductsTab() {
                     <DataQualityBadge score={product.data_quality_score} />
                   </td>
                   <td className="py-3 px-2">
-                    <span className={`text-[9px] font-body px-1.5 py-0.5 rounded ${
-                      product.availability_type === "available" ? "bg-green-50 text-green-700" :
-                      product.availability_type === "on-order"  ? "bg-blue-50 text-blue-700" :
-                      "bg-muted text-muted-foreground"
+                    <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full ${
+                      PUBLISH_BADGE[(product as any).publish_status] || PUBLISH_BADGE.draft
                     }`}>
-                      {product.availability_type || "—"}
+                      {((product as any).publish_status || "draft").replace("_", " ")}
                     </span>
                   </td>
                   <td className="py-3 px-2 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1.5">
+                      {(product as any).publish_status === "pending_review" && (
+                        <>
+                          <button
+                            onClick={() => handlePublishAction(product.id, "published")}
+                            className="text-green-600 hover:text-green-800 transition-colors"
+                            title="Publish"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handlePublishAction(product.id, "rejected")}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                            title="Reject"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={() => setEditing({ ...product })}
                         className="text-muted-foreground hover:text-foreground transition-colors"
