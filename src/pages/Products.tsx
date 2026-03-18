@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import {
   Search, SlidersHorizontal, X, Plus, LayoutGrid, List, BarChart3, ChevronDown, Heart,
@@ -34,6 +36,29 @@ const Products = () => {
   const { data: products = [], isLoading } = useProducts();
   const { addItem } = useProjectCart();
   const isMobile = useIsMobile();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const supplierSlug = searchParams.get("supplier") || "";
+
+  // Fetch partner info for supplier banner
+  const { data: supplierPartner } = useQuery({
+    queryKey: ["supplier-partner", supplierSlug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("partners")
+        .select("name, partner_type, country, slug")
+        .eq("slug", supplierSlug)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!supplierSlug,
+  });
+
+  const clearSupplierFilter = () => {
+    searchParams.delete("supplier");
+    setSearchParams(searchParams);
+  };
 
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -51,6 +76,16 @@ const Products = () => {
 
   const filtered = useMemo(() => {
     let result = products;
+
+    // Supplier filter from URL param
+    if (supplierSlug) {
+      result = result.filter(
+        (p) =>
+          p.supplier_internal?.toLowerCase() === supplierSlug.toLowerCase() ||
+          p.brand_source?.toLowerCase() === supplierSlug.toLowerCase()
+      );
+    }
+
     const q = search.toLowerCase().trim();
 
     if (q) {
@@ -142,7 +177,7 @@ const Products = () => {
     }
 
     return result;
-  }, [products, search, filters, sortKey]);
+  }, [products, search, filters, sortKey, supplierSlug]);
 
   const handleAdd = (product: DBProduct) => {
     addItem(product);
@@ -153,6 +188,32 @@ const Products = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="pt-24 pb-16">
+        {/* Supplier filter banner */}
+        {supplierSlug && (
+          <div className="px-6 mb-4">
+            <div className="container mx-auto">
+              <div className="flex items-center justify-between gap-3 bg-muted/60 border border-border rounded-full px-5 py-2.5">
+                <p className="text-sm font-body text-foreground">
+                  Showing products from{" "}
+                  <span className="font-display font-semibold">
+                    Verified Supplier
+                    {supplierPartner && (
+                      <> · {supplierPartner.partner_type.charAt(0).toUpperCase() + supplierPartner.partner_type.slice(1)}{supplierPartner.country ? ` · ${supplierPartner.country}` : ""}</>
+                    )}
+                  </span>
+                </p>
+                <button
+                  onClick={clearSupplierFilter}
+                  className="flex-shrink-0 w-6 h-6 rounded-full bg-muted hover:bg-border flex items-center justify-center transition-colors"
+                  aria-label="Clear supplier filter"
+                >
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Hero */}
         <section className="px-6 mb-8">
           <div className="container mx-auto">
