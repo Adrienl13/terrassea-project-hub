@@ -76,6 +76,16 @@ const Products = () => {
 
   const filtered = useMemo(() => {
     let result = products;
+
+    // Supplier filter from URL param
+    if (supplierSlug) {
+      result = result.filter(
+        (p) =>
+          p.supplier_internal?.toLowerCase() === supplierSlug.toLowerCase() ||
+          p.brand_source?.toLowerCase() === supplierSlug.toLowerCase()
+      );
+    }
+
     const q = search.toLowerCase().trim();
 
     if (q) {
