@@ -70,10 +70,10 @@ const FOR_WHO_NO = [
 ];
 
 const STEPS = [
-  { n: "01", title: "You describe", desc: "Fill in the project brief below. 5 minutes, no commitment." },
-  { n: "02", title: "We qualify", desc: "Our team reviews your request within 24 hours and confirms we can help." },
-  { n: "03", title: "We source", desc: "3 curated proposals with matched suppliers and pricing, within 5 business days." },
-  { n: "04", title: "You decide", desc: "You choose what fits. We handle the rest — orders, delivery, follow-up." },
+  { n: "01", title: "You describe", desc: "Fill in the project brief below. 5 minutes, no commitment.", duration: "5 min" },
+  { n: "02", title: "We qualify", desc: "Our team reviews your request within 24 hours and confirms we can help.", duration: "24h" },
+  { n: "03", title: "We source", desc: "3 curated proposals with matched suppliers and pricing, within 5 business days.", duration: "5 days" },
+  { n: "04", title: "You decide", desc: "You choose what fits. We handle the rest — orders, delivery, follow-up.", duration: "Your choice" },
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -255,12 +255,15 @@ const ProService = () => {
             {/* Left — How it works */}
             <div>
               <h2 className="font-display text-xl font-bold tracking-tight mb-8">How it works</h2>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-8">
                 {STEPS.map((step, i) => (
-                  <div key={i}>
-                    <p className="text-3xl font-display font-bold text-muted-foreground/20 mb-2">{step.n}</p>
+                  <div key={i} className="p-6 bg-white rounded-xl border border-border flex flex-col">
+                    <p className="text-5xl font-display font-bold text-muted-foreground/20 mb-3">{step.n}</p>
                     <h3 className="font-display font-semibold text-sm mb-1">{step.title}</h3>
                     <p className="text-sm font-body text-muted-foreground leading-relaxed">{step.desc}</p>
+                    <div className="border-t border-border mt-4 pt-4 mt-auto">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-display">{step.duration}</p>
+                    </div>
                   </div>
                 ))}
               </div>
