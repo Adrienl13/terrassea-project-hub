@@ -322,7 +322,7 @@ const ProService = () => {
           <div className="max-w-2xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-2">Tell us about your project</p>
-              <h2 className="font-display text-2xl font-bold tracking-tight mb-2">Submit your brief</h2>
+              <h2 className="font-display text-2xl font-bold tracking-tight mb-2 text-terracotta">Submit your brief</h2>
               <p className="text-sm font-body text-muted-foreground leading-relaxed mb-10">
                 5 minutes. No commitment. If your project qualifies, we'll confirm within 24 hours and start working on your proposals.
               </p>
