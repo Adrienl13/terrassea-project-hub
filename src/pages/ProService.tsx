@@ -70,10 +70,10 @@ const FOR_WHO_NO = [
 ];
 
 const STEPS = [
-  { n: "01", title: "You describe", desc: "Fill in the project brief below. 5 minutes, no commitment." },
-  { n: "02", title: "We qualify", desc: "Our team reviews your request within 24 hours and confirms we can help." },
-  { n: "03", title: "We source", desc: "3 curated proposals with matched suppliers and pricing, within 5 business days." },
-  { n: "04", title: "You decide", desc: "You choose what fits. We handle the rest — orders, delivery, follow-up." },
+  { n: "01", title: "You describe", desc: "Fill in the project brief below. 5 minutes, no commitment.", duration: "5 min" },
+  { n: "02", title: "We qualify", desc: "Our team reviews your request within 24 hours and confirms we can help.", duration: "24h" },
+  { n: "03", title: "We source", desc: "3 curated proposals with matched suppliers and pricing, within 5 business days.", duration: "5 days" },
+  { n: "04", title: "You decide", desc: "You choose what fits. We handle the rest — orders, delivery, follow-up.", duration: "Your choice" },
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
