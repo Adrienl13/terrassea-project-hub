@@ -18,7 +18,7 @@ import type { DBProduct, ProductTypeTags, TagDefinition } from "@/lib/products";
 
 type Tab = "applications" | "quotes" | "pro_service" | "products";
 
-type ProductFormData = Omit<DBProduct, "id"> & { id?: string };
+type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
 const CATEGORIES = [
   "Chairs", "Armchairs", "Tables", "Bar Stools", "Parasols",
