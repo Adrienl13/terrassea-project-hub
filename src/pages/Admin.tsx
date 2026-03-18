@@ -1438,9 +1438,18 @@ const Admin = () => {
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
-              <span className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-[10px] font-display font-semibold text-green-700">Admin · full access</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-[10px] font-display font-semibold text-green-700">Admin · full access</span>
+              </div>
+              {products.filter(p => (p as any).publish_status === "pending_review").length > 0 && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
+                  <span className="text-[10px] font-display font-semibold text-red-600">
+                    {products.filter(p => (p as any).publish_status === "pending_review").length} awaiting review
+                  </span>
+                </div>
+              )}
             </div>
             {products.length > 0 && (
               <div className="flex items-center gap-2 text-[10px] font-body text-muted-foreground">
