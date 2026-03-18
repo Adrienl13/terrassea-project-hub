@@ -1,18 +1,125 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PartnerContactDialog from "@/components/partners/PartnerContactDialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, Award, Globe, Factory, Layers } from "lucide-react";
+import {
+  ArrowLeft, ArrowRight, Lock, Package, Globe,
+  Calendar, Award, MapPin, Star, ChevronLeft, ChevronRight as ChevronRightIcon,
+  Factory, Layers, Shield,
+} from "lucide-react";
+
+// ═══════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════
+
+const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; initial_bg: string }> = {
+  brand:        { label: "Brand",        color: "#712B13", bg: "#F5C4B3", initial_bg: "#D4603A" },
+  manufacturer: { label: "Manufacturer", color: "#0C447C", bg: "#B5D4F4", initial_bg: "#378ADD" },
+  reseller:     { label: "Reseller",     color: "#085041", bg: "#9FE1CB", initial_bg: "#1D9E75" },
+  designer:     { label: "Designer",     color: "#3C3489", bg: "#CECBF6", initial_bg: "#534AB7" },
+};
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  France: "🇫🇷", Italy: "🇮🇹", Spain: "🇪🇸", Germany: "🇩🇪",
+  Portugal: "🇵🇹", Netherlands: "🇳🇱", Belgium: "🇧🇪", Denmark: "🇩🇰",
+  Sweden: "🇸🇪", Greece: "🇬🇷", "United Kingdom": "🇬🇧", Switzerland: "🇨🇭",
+};
+
+// ═══════════════════════════════════════════════════════════
+// INFO BLOCK
+// ═══════════════════════════════════════════════════════════
+
+function InfoBlock({ icon, title, items }: {
+  icon: React.ReactNode;
+  title: string;
+  items: string[];
+}) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="bg-card border border-border rounded-xl p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-muted-foreground">{icon}</span>
+        <h3 className="font-display font-semibold text-sm text-foreground">{title}</h3>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {items.map(item => (
+          <span
+            key={item}
+            className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground font-body"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// SOURCING CTA CARD
+// ═══════════════════════════════════════════════════════════
+
+function SourcingCTA({ partnerType }: { partnerType: string }) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6">
+      {/* Anonymous identity reminder */}
+      <div className="flex items-start gap-3 mb-6 bg-muted/50 rounded-xl p-4">
+        <Lock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+        <p className="text-xs font-body text-muted-foreground leading-relaxed">
+          Full supplier identity is revealed only in a confirmed quote. All sourcing goes through Terrassea.
+        </p>
+      </div>
+
+      <h3 className="font-display font-bold text-base text-foreground mb-2">
+        Source from this supplier
+      </h3>
+      <p className="text-sm font-body text-muted-foreground mb-5">
+        Create a project brief and we'll include this supplier in your curated proposals — with pricing and availability.
+      </p>
+
+      <button
+        onClick={() => navigate("/projects/new")}
+        className="w-full flex items-center justify-center gap-2 py-3 font-display font-semibold text-sm text-white rounded-full hover:opacity-90 transition-opacity mb-3"
+        style={{ background: "#D4603A" }}
+      >
+        Start a project <ArrowRight className="h-4 w-4" />
+      </button>
+
+      <Link
+        to="/pro-service"
+        className="block text-center text-xs font-body text-muted-foreground hover:text-foreground transition-colors mb-5"
+      >
+        Large project? Pro Service →
+      </Link>
+
+      {/* Trust signals */}
+      <div className="space-y-2 pt-4 border-t border-border">
+        {[
+          "No direct supplier contact needed",
+          "Pricing consolidated in one quote",
+          "Free for hospitality professionals",
+        ].map(item => (
+          <div key={item} className="flex items-center gap-2 text-xs font-body text-muted-foreground">
+            <Shield className="h-3 w-3 text-green-600 flex-shrink-0" />
+            {item}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAIN PAGE
+// ═══════════════════════════════════════════════════════════
 
 export default function PartnerDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const [showContact, setShowContact] = useState(false);
 
   const { data: partner, isLoading } = useQuery({
     queryKey: ["partner", slug],
@@ -28,31 +135,32 @@ export default function PartnerDetail() {
     enabled: !!slug,
   });
 
-  const typeLabels: Record<string, string> = {
-    brand: "Brand",
-    manufacturer: "Manufacturer",
-    reseller: "Reseller",
-    designer: "Designer",
-  };
-
+  // Loading
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <div className="pt-32 container mx-auto px-6">
           <div className="h-8 w-48 bg-muted rounded animate-pulse mb-4" />
-          <div className="h-64 bg-muted rounded-xl animate-pulse" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="h-64 bg-muted rounded-xl animate-pulse" />
+              <div className="h-32 bg-muted rounded-xl animate-pulse mt-6" />
+            </div>
+            <div className="h-80 bg-muted rounded-xl animate-pulse" />
+          </div>
         </div>
       </div>
     );
   }
 
+  // Not found
   if (!partner) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <div className="pt-32 container mx-auto px-6 text-center">
-          <h1 className="font-display text-2xl font-bold">Partner not found</h1>
+          <h1 className="font-display text-2xl font-bold text-foreground">Supplier not found</h1>
           <Link to="/partners" className="text-sm text-muted-foreground hover:text-foreground mt-4 inline-block">
             ← Back to Partners
           </Link>
@@ -62,163 +170,185 @@ export default function PartnerDetail() {
     );
   }
 
+  const type = TYPE_CONFIG[partner.partner_type] || TYPE_CONFIG.brand;
+  const flag = partner.country ? (COUNTRY_FLAGS[partner.country] || "🌍") : "🌍";
+  const isFeatured = partner.is_featured;
+  const initial = { brand: "B", manufacturer: "M", reseller: "R", designer: "D" }[partner.partner_type as string] || "P";
+
+  // Anonymous identity label
+  const identityLabel = `${type.label} · ${partner.country || "Europe"}`;
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <div className="pt-28 pb-24 px-6">
-        <div className="container mx-auto max-w-4xl">
+      {/* ── HERO STRIP ── */}
+      <section className="pt-24 pb-8 px-6 border-b border-border" style={{ background: "#FAF7F4" }}>
+        <div className="container mx-auto max-w-6xl">
           <Link
             to="/partners"
-            className="inline-flex items-center gap-1.5 text-sm font-body text-muted-foreground hover:text-foreground transition-colors mb-8"
+            className="inline-flex items-center gap-1.5 text-sm font-body text-muted-foreground hover:text-foreground transition-colors mb-6"
           >
-            <ArrowLeft className="h-4 w-4" /> Back to Partners
+            <ArrowLeft className="h-4 w-4" /> Back to Partner Network
           </Link>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center gap-6 mb-10">
-              {partner.logo_url ? (
-                <img
-                  src={partner.logo_url}
-                  alt={partner.name}
-                  className="h-20 w-20 rounded-xl object-contain bg-muted p-2"
-                />
-              ) : (
-                <div className="h-20 w-20 rounded-xl bg-muted flex items-center justify-center font-display font-bold text-3xl text-muted-foreground">
-                  {partner.name.charAt(0)}
-                </div>
-              )}
-              <div className="flex-1">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="font-display text-3xl font-bold text-foreground">
-                    {partner.name}
-                  </h1>
-                  <Badge variant="secondary" className="font-display">
-                    {typeLabels[partner.partner_type] || partner.partner_type}
-                  </Badge>
-                </div>
-                {partner.country && (
-                  <div className="flex items-center gap-1.5 mt-2 text-muted-foreground font-body">
-                    <MapPin className="h-4 w-4" />
-                    {partner.city ? `${partner.city}, ` : ""}{partner.country}
-                  </div>
-                )}
-              </div>
-              <Button
-                onClick={() => setShowContact(true)}
-                className="rounded-full px-8 font-display font-semibold self-start"
+          <div className="flex items-center gap-5">
+            {/* Logo / initials */}
+            {partner.logo_url ? (
+              <img
+                src={partner.logo_url}
+                alt={identityLabel}
+                className="h-16 w-16 rounded-xl object-contain bg-white p-2 border border-border"
+              />
+            ) : (
+              <div
+                className="h-16 w-16 rounded-xl flex items-center justify-center font-display font-bold text-2xl text-white"
+                style={{ background: type.initial_bg }}
               >
-                Contact via Terrassea
-              </Button>
-            </div>
-
-            {/* Description */}
-            {partner.description && (
-              <div className="mb-8">
-                <h2 className="font-display font-semibold text-lg text-foreground mb-2">About</h2>
-                <p className="font-body text-muted-foreground leading-relaxed">
-                  {partner.description}
-                </p>
+                {initial}
               </div>
             )}
 
-            {/* Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {partner.specialties && partner.specialties.length > 0 && (
+            <div>
+              {/* Type badge + featured */}
+              <div className="flex items-center gap-2 mb-1">
+                <span
+                  className="text-xs font-display font-semibold px-2.5 py-0.5 rounded-full"
+                  style={{ color: type.color, background: type.bg }}
+                >
+                  {type.label}
+                </span>
+                {isFeatured && (
+                  <span className="inline-flex items-center gap-1 text-xs font-display font-semibold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                    Featured Partner
+                  </span>
+                )}
+              </div>
+
+              <h1 className="font-display text-2xl font-bold text-foreground">
+                {identityLabel}
+              </h1>
+
+              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground font-body">
+                {partner.country && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {flag} {partner.city ? `${partner.city}, ` : ""}{partner.country}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── MAIN CONTENT ── */}
+      <section className="py-10 px-6">
+        <div className="container mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+          >
+            {/* ── LEFT COLUMN ── */}
+            <div className="lg:col-span-2 space-y-8">
+
+              {/* Illustrated placeholder — no gallery columns in DB */}
+              <div className="bg-muted/30 rounded-2xl overflow-hidden border border-border">
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div
+                    className="w-20 h-20 rounded-2xl flex items-center justify-center font-display font-bold text-3xl text-white mb-4"
+                    style={{ background: type.initial_bg }}
+                  >
+                    {initial}
+                  </div>
+                  <p className="text-sm font-body text-muted-foreground">
+                    Gallery coming soon — contact via Terrassea for full catalogue
+                  </p>
+                </div>
+              </div>
+
+              {/* About */}
+              {partner.description && (
+                <div>
+                  <h2 className="font-display font-semibold text-lg text-foreground mb-2">About</h2>
+                  <p className="font-body text-muted-foreground leading-relaxed">
+                    {partner.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Meta stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {partner.production_capacity && (
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="font-display font-bold text-foreground">{partner.production_capacity}</p>
+                    <p className="text-xs font-body text-muted-foreground mt-1">Production Capacity</p>
+                  </div>
+                )}
+                {partner.coverage_zone && (
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="font-display font-bold text-foreground">{partner.coverage_zone}</p>
+                    <p className="text-xs font-body text-muted-foreground mt-1">Coverage Zone</p>
+                  </div>
+                )}
+                {partner.partner_subtype && (
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="font-display font-bold text-foreground">{partner.partner_subtype}</p>
+                    <p className="text-xs font-body text-muted-foreground mt-1">Subtype</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Info blocks */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InfoBlock
                   icon={<Layers className="h-4 w-4" />}
                   title="Specialties"
-                  items={partner.specialties}
+                  items={partner.specialties || []}
                 />
-              )}
-              {partner.certifications && partner.certifications.length > 0 && (
                 <InfoBlock
                   icon={<Award className="h-4 w-4" />}
                   title="Certifications"
-                  items={partner.certifications}
+                  items={partner.certifications || []}
                 />
-              )}
-              {partner.materials && partner.materials.length > 0 && (
                 <InfoBlock
                   icon={<Factory className="h-4 w-4" />}
                   title="Materials"
-                  items={partner.materials}
+                  items={partner.materials || []}
                 />
-              )}
-              {partner.project_types && partner.project_types.length > 0 && (
                 <InfoBlock
                   icon={<Globe className="h-4 w-4" />}
                   title="Project Types"
-                  items={partner.project_types}
+                  items={partner.project_types || []}
                 />
-              )}
+              </div>
+
+              {/* Anonymity notice */}
+              <div className="flex items-start gap-4 bg-muted/30 border border-border rounded-xl p-5">
+                <Lock className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="font-display font-semibold text-sm text-foreground mb-1">
+                    Supplier identity is protected
+                  </h3>
+                  <p className="text-xs font-body text-muted-foreground leading-relaxed">
+                    The full name and contact details of this supplier are revealed exclusively in a confirmed Terrassea quote.
+                    This protects both parties and ensures fair sourcing conditions for all hospitality professionals.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Additional info */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {partner.production_capacity && (
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <span className="text-xs font-display font-medium text-muted-foreground uppercase tracking-wider">Production Capacity</span>
-                  <p className="mt-1 font-body text-foreground">{partner.production_capacity}</p>
-                </div>
-              )}
-              {partner.coverage_zone && (
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <span className="text-xs font-display font-medium text-muted-foreground uppercase tracking-wider">Coverage Zone</span>
-                  <p className="mt-1 font-body text-foreground">{partner.coverage_zone}</p>
-                </div>
-              )}
-              {partner.partner_subtype && (
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <span className="text-xs font-display font-medium text-muted-foreground uppercase tracking-wider">Partner Type</span>
-                  <p className="mt-1 font-body text-foreground">{partner.partner_subtype}</p>
-                </div>
-              )}
+            {/* ── RIGHT COLUMN — sticky CTA ── */}
+            <div className="lg:sticky lg:top-28 self-start">
+              <SourcingCTA partnerType={partner.partner_type} />
             </div>
           </motion.div>
         </div>
-      </div>
+      </section>
 
-      <PartnerContactDialog
-        open={showContact}
-        onOpenChange={setShowContact}
-        partnerId={partner.id}
-        partnerName={partner.name}
-      />
       <Footer />
-    </div>
-  );
-}
-
-function InfoBlock({
-  icon,
-  title,
-  items,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  items: string[];
-}) {
-  return (
-    <div className="bg-card border border-border rounded-xl p-5">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-muted-foreground">{icon}</span>
-        <h3 className="font-display font-semibold text-sm text-foreground">{title}</h3>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {items.map((item) => (
-          <span
-            key={item}
-            className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground font-body"
-          >
-            {item}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }
