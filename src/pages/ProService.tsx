@@ -100,7 +100,7 @@ const ProService = () => {
   const qualified = isQualified(coversNum, form.budget);
 
   const handleSubmit = async () => {
-    if (!form.name || !form.email || !form.phone || !form.establishmentType || !form.location) {
+    if (!form.name || !form.email || !form.phone || !form.company || !form.siren || !form.establishmentType || !form.location) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -352,7 +352,7 @@ const ProService = () => {
                     <input type="text" value={form.name} onChange={handle("name")} placeholder="Jean Dupont" className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Company</label>
+                    <label className={labelClass}>Company *</label>
                     <input type="text" value={form.company} onChange={handle("company")} placeholder="Hôtel Les Pins" className={inputClass} />
                   </div>
                 </div>
@@ -462,7 +462,7 @@ const ProService = () => {
                 {/* SIREN */}
                 <div>
                   <label className={labelClass}>
-                    SIREN <span className="font-normal text-muted-foreground normal-case tracking-normal">(optional — for faster processing)</span>
+                    SIREN *
                   </label>
                   <input type="text" value={form.siren}
                     onChange={e => setForm(p => ({ ...p, siren: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
