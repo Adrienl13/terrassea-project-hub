@@ -388,17 +388,21 @@ function ProductForm({
     return Math.min(Math.round(s * 100) / 100, 1);
   })();
 
-  const handleSave = async () => {
+  const handleSave = async (overrides?: Partial<ProductFormData>) => {
     if (!form.name || !form.category) {
       toast.error("Name and category are required");
       return;
     }
     setSaving(true);
     try {
-      await onSave(form);
+      await onSave({ ...form, ...overrides });
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSubmitForReview = () => {
+    handleSave({ publish_status: "pending_review" });
   };
 
   const SECTIONS = [
