@@ -7,10 +7,13 @@ import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import {
   Building2, Factory, Store, Palette, Handshake,
-  MapPin, ArrowRight, Star, Search, ChevronRight,
+  ArrowRight, Star, Search, Lock, Package, Globe,
+  ChevronRight, ImageOff,
 } from "lucide-react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════
 
 interface Partner {
   id: string;
@@ -21,104 +24,166 @@ interface Partner {
   city: string | null;
   logo_url: string | null;
   description: string | null;
+  specialties: string[] | null;
   is_featured: boolean | null;
+  is_public: boolean | null;
   priority_order: number | null;
   website: string | null;
-  specialties: string[] | null;
 }
 
-// ── Constants ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════
 
 const CATEGORIES = [
-  { key: "all",          label: "All Partners",   icon: Handshake },
-  { key: "brand",        label: "Brands",          icon: Building2 },
-  { key: "manufacturer", label: "Manufacturers",   icon: Factory },
-  { key: "reseller",     label: "Resellers",       icon: Store },
-  { key: "designer",     label: "Designers",       icon: Palette },
+  { key: "all",          label: "All",           icon: Handshake  },
+  { key: "brand",        label: "Brands",        icon: Building2  },
+  { key: "manufacturer", label: "Manufacturers", icon: Factory    },
+  { key: "reseller",     label: "Resellers",     icon: Store      },
+  { key: "designer",     label: "Designers",     icon: Palette    },
 ] as const;
 
 type CategoryKey = (typeof CATEGORIES)[number]["key"];
 
-const TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  brand:        { label: "Brand",        color: "#712B13", bg: "#F5C4B3" },
-  manufacturer: { label: "Manufacturer", color: "#0C447C", bg: "#B5D4F4" },
-  reseller:     { label: "Reseller",     color: "#085041", bg: "#9FE1CB" },
-  designer:     { label: "Designer",     color: "#3C3489", bg: "#CECBF6" },
+const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; initial_bg: string }> = {
+  brand:        { label: "Brand",        color: "#712B13", bg: "#F5C4B3", initial_bg: "#D4603A" },
+  manufacturer: { label: "Manufacturer", color: "#0C447C", bg: "#B5D4F4", initial_bg: "#378ADD" },
+  reseller:     { label: "Reseller",     color: "#085041", bg: "#9FE1CB", initial_bg: "#1D9E75" },
+  designer:     { label: "Designer",     color: "#3C3489", bg: "#CECBF6", initial_bg: "#534AB7" },
 };
 
 const COUNTRY_FLAGS: Record<string, string> = {
   France: "🇫🇷", Italy: "🇮🇹", Spain: "🇪🇸", Germany: "🇩🇪",
   Portugal: "🇵🇹", Netherlands: "🇳🇱", Belgium: "🇧🇪", Denmark: "🇩🇰",
-  Sweden: "🇸🇪", Greece: "🇬🇷", "United Kingdom": "🇬🇧",
+  Sweden: "🇸🇪", Greece: "🇬🇷", "United Kingdom": "🇬🇧", Switzerland: "🇨🇭",
+  Austria: "🇦🇹", Poland: "🇵🇱",
 };
 
-// ── Featured Partner Card ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// ANONYMOUS DISPLAY HELPERS
+// ═══════════════════════════════════════════════════════════
 
-function FeaturedCard({ partner, index }: { partner: Partner; index: number }) {
-  const type = TYPE_LABELS[partner.partner_type] || TYPE_LABELS.brand;
-  const flag = partner.country ? (COUNTRY_FLAGS[partner.country] || "🌍") : "🌍";
-  const initials = partner.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+function getAnonymousLabel(partner: Partner): string {
+  const type = TYPE_CONFIG[partner.partner_type];
+  const country = partner.country || "EU";
+  return `${type?.label || "Supplier"} · ${country}`;
+}
+
+function getInitial(partner: Partner): string {
+  const typeMap: Record<string, string> = {
+    brand: "B", manufacturer: "M", reseller: "R", designer: "D",
+  };
+  return typeMap[partner.partner_type] || "P";
+}
+
+function isFeatured(partner: Partner): boolean {
+  return !!partner.is_featured;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PARTNER CARD
+// ═══════════════════════════════════════════════════════════
+
+function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
+  const type     = TYPE_CONFIG[partner.partner_type] || TYPE_CONFIG.brand;
+  const flag     = partner.country ? (COUNTRY_FLAGS[partner.country] || "🌍") : "🌍";
+  const featured = isFeatured(partner);
+  const initial  = getInitial(partner);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08 }}
+      transition={{ delay: index * 0.04 }}
     >
       <Link
         to={`/partners/${partner.slug}`}
-        className="group relative block rounded-2xl border border-border bg-card overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+        className="group block rounded-2xl border border-border bg-card overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
       >
-        {/* Featured banner */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-[#D4603A] via-[#E8956A] to-[#D4603A]" />
-
-        {/* Featured badge */}
-        <div className="absolute top-4 right-4 flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF8F0] border border-[#D4603A]/20">
-          <Star className="h-3 w-3 fill-[#D4603A] text-[#D4603A]" />
-          <span className="text-[10px] font-display font-semibold text-[#D4603A] uppercase tracking-wider">Featured</span>
-        </div>
-
-        <div className="p-6">
-          {/* Logo / initials */}
-          <div className="flex items-start gap-4">
-            {partner.logo_url ? (
-              <img
-                src={partner.logo_url}
-                alt={partner.name}
-                className="h-14 w-14 rounded-xl object-contain bg-muted p-1.5 flex-shrink-0"
-              />
-            ) : (
-              <div className="h-14 w-14 rounded-xl flex items-center justify-center font-display font-bold text-lg flex-shrink-0"
-                style={{ backgroundColor: type.bg, color: type.color }}>
-                {initials}
-              </div>
-            )}
-            <div className="min-w-0">
-              <h3 className="font-display font-bold text-foreground text-lg leading-tight group-hover:text-foreground/80 transition-colors truncate">
-                {partner.name}
-              </h3>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className="text-[10px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: type.bg, color: type.color }}>
-                  {type.label}
-                </span>
-                <span className="text-xs text-muted-foreground font-body flex items-center gap-1">
-                  {flag} {partner.city ? `${partner.city}, ` : ""}{partner.country}
-                </span>
+        {/* ── Visual zone ── */}
+        <div className="relative h-44 overflow-hidden bg-muted">
+          {partner.logo_url ? (
+            <img
+              src={partner.logo_url}
+              alt=""
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center"
+              style={{ background: `linear-gradient(135deg, ${type.initial_bg}22, ${type.initial_bg}11)` }}
+            >
+              <div
+                className="h-16 w-16 rounded-2xl flex items-center justify-center text-white font-display font-bold text-2xl"
+                style={{ backgroundColor: type.initial_bg }}
+              >
+                {initial}
               </div>
             </div>
+          )}
+
+          {/* Type badge */}
+          <div className="absolute bottom-3 left-3">
+            <span
+              className="text-[10px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full"
+              style={{ backgroundColor: type.bg, color: type.color }}
+            >
+              {type.label}
+            </span>
+          </div>
+
+          {/* Featured badge */}
+          {featured && (
+            <div className="absolute top-3 right-3">
+              <span className="flex items-center gap-1 text-[10px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#FFF8F0] border border-[#D4603A]/20 text-[#D4603A]">
+                <Star className="h-3 w-3 fill-[#D4603A]" />
+                Featured
+              </span>
+            </div>
+          )}
+
+          {/* Featured top bar */}
+          {featured && (
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#D4603A] via-[#E8956A] to-[#D4603A]" />
+          )}
+        </div>
+
+        {/* ── Content zone ── */}
+        <div className="p-5">
+          {/* Anonymous identity */}
+          <div className="mb-3">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+              Verified Supplier
+            </p>
+            <h3 className="font-display font-bold text-foreground text-base leading-tight group-hover:text-foreground/80 transition-colors">
+              {getAnonymousLabel(partner)}
+            </h3>
           </div>
 
           {/* Description */}
-          {partner.description && (
-            <p className="mt-4 text-sm font-body text-muted-foreground line-clamp-2 leading-relaxed">
-              {partner.description}
-            </p>
-          )}
+          <p className="text-sm font-body text-muted-foreground line-clamp-2 leading-relaxed mb-4">
+            {partner.description || "Specialist in professional outdoor furniture for the hospitality industry."}
+          </p>
+
+          {/* Meta info */}
+          <div className="space-y-1.5 mb-4">
+            {partner.specialties && partner.specialties.length > 0 && (
+              <p className="text-xs font-body text-muted-foreground flex items-center gap-1.5">
+                <Package className="h-3 w-3 flex-shrink-0" />
+                {partner.specialties.slice(0, 3).join(", ")}
+              </p>
+            )}
+            {partner.country && (
+              <p className="text-xs font-body text-muted-foreground flex items-center gap-1.5">
+                <Globe className="h-3 w-3 flex-shrink-0" />
+                {flag} {partner.city ? `${partner.city}, ` : ""}{partner.country}
+              </p>
+            )}
+          </div>
 
           {/* Specialty tags */}
           {partner.specialties && partner.specialties.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-4">
+            <div className="flex flex-wrap gap-1.5 mb-4">
               {partner.specialties.slice(0, 3).map(tag => (
                 <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-body">
                   {tag}
@@ -128,13 +193,16 @@ function FeaturedCard({ partner, index }: { partner: Partner; index: number }) {
           )}
 
           {/* CTA */}
-          <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-            <span className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
-              Featured Partner
+          <div className="pt-4 border-t border-border space-y-2">
+            <span className="flex items-center gap-1.5 text-sm font-display font-semibold text-foreground group-hover:text-[#D4603A] transition-colors">
+              Source via Terrassea <ArrowRight className="h-3.5 w-3.5" />
             </span>
-            <span className="flex items-center gap-1 text-sm font-display font-semibold text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-              View profile <ArrowRight className="h-3.5 w-3.5" />
-            </span>
+            <div className="flex items-center gap-1.5">
+              <Lock className="h-3 w-3 text-muted-foreground" />
+              <span className="text-[10px] font-body text-muted-foreground">
+                Supplier identity revealed in confirmed quote only
+              </span>
+            </div>
           </div>
         </div>
       </Link>
@@ -142,110 +210,51 @@ function FeaturedCard({ partner, index }: { partner: Partner; index: number }) {
   );
 }
 
-// ── Standard Partner Card ─────────────────────────────────────────────────────
-
-function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
-  const type = TYPE_LABELS[partner.partner_type] || TYPE_LABELS.brand;
-  const flag = partner.country ? (COUNTRY_FLAGS[partner.country] || "🌍") : "🌍";
-  const initials = partner.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-    >
-      <Link
-        to={`/partners/${partner.slug}`}
-        className="group flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:shadow-md hover:border-foreground/10 transition-all duration-200"
-      >
-        {/* Logo / initials */}
-        {partner.logo_url ? (
-          <img
-            src={partner.logo_url}
-            alt={partner.name}
-            className="h-11 w-11 rounded-lg object-contain bg-muted p-1 flex-shrink-0"
-          />
-        ) : (
-          <div className="h-11 w-11 rounded-lg flex items-center justify-center font-display font-bold text-sm flex-shrink-0"
-            style={{ backgroundColor: type.bg, color: type.color }}>
-            {initials}
-          </div>
-        )}
-
-        {/* Info */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-display font-semibold text-foreground text-sm truncate group-hover:text-foreground/80 transition-colors">
-              {partner.name}
-            </h3>
-            <span className="text-[9px] font-display font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: type.bg, color: type.color }}>
-              {type.label}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground font-body mt-0.5 flex items-center gap-1">
-            {flag} {partner.city ? `${partner.city}, ` : ""}{partner.country}
-          </p>
-          {partner.description && (
-            <p className="text-xs text-muted-foreground font-body mt-1 line-clamp-1">{partner.description}</p>
-          )}
-        </div>
-
-        <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-      </Link>
-    </motion.div>
-  );
-}
-
-// ── Premium placement CTA ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// FEATURED PLACEMENT CTA
+// ═══════════════════════════════════════════════════════════
 
 function PremiumPlacementCTA() {
   return (
-    <div className="my-12">
-      <div className="rounded-2xl border border-dashed border-[#D4603A]/30 bg-[#FFF8F0] p-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div className="flex items-start gap-4 flex-1">
-            <div className="h-10 w-10 rounded-xl bg-[#D4603A]/10 flex items-center justify-center flex-shrink-0">
-              <Star className="h-5 w-5 text-[#D4603A]" />
-            </div>
-            <div>
-              <h3 className="font-display font-bold text-foreground text-base">
-                Get featured at the top of the Partner Network
-              </h3>
-              <p className="text-sm font-body text-muted-foreground mt-1 max-w-lg">
-                Featured partners are seen first by hospitality professionals searching for suppliers.
-                Upgrade to Growth or Elite to unlock your featured placement, priority in project recommendations,
-                and a verified badge visible across the entire platform.
-              </p>
-            </div>
+    <div className="my-12 rounded-2xl border border-dashed border-[#D4603A]/30 bg-[#FFF8F0] p-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+        <div className="flex items-start gap-4 flex-1">
+          <div className="h-10 w-10 rounded-xl bg-[#D4603A]/10 flex items-center justify-center flex-shrink-0">
+            <Star className="h-5 w-5 text-[#D4603A]" />
           </div>
-          <Link
-            to="/become-partner"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#D4603A] text-white font-display font-semibold text-sm hover:bg-[#C05030] transition-colors flex-shrink-0"
-          >
-            Become a Partner <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div>
+            <h3 className="font-display font-bold text-foreground text-base">
+              Get featured at the top of the network
+            </h3>
+            <p className="text-sm font-body text-muted-foreground mt-1 max-w-lg">
+              Featured suppliers are seen first by hospitality professionals. Upgrade to Growth or Elite
+              to unlock featured placement, cover photo, photo gallery, and priority in project recommendations.
+            </p>
+          </div>
         </div>
+        <Link
+          to="/become-partner"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#D4603A] text-white font-display font-semibold text-sm hover:bg-[#C05030] transition-colors flex-shrink-0"
+        >
+          Learn more <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
     </div>
   );
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// EMPTY STATE
+// ═══════════════════════════════════════════════════════════
 
-function EmptyState({ category }: { category: string }) {
+function EmptyState() {
   return (
     <div className="text-center py-20">
       <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-        <Search className="h-7 w-7 text-muted-foreground" />
+        <ImageOff className="h-7 w-7 text-muted-foreground" />
       </div>
-      <h3 className="font-display font-bold text-foreground text-lg">
-        No {category === "all" ? "" : category + " "}partners yet
-      </h3>
-      <p className="text-sm font-body text-muted-foreground mt-2 max-w-sm mx-auto">
-        Be the first in this category. Featured placements available now.
-      </p>
+      <h3 className="font-display font-bold text-foreground text-lg">No partners yet in this category</h3>
+      <p className="text-sm font-body text-muted-foreground mt-2">Be the first — featured placements available now.</p>
       <Link
         to="/become-partner"
         className="inline-flex items-center gap-2 mt-6 px-6 py-2.5 rounded-full bg-foreground text-primary-foreground font-display font-semibold text-sm hover:bg-foreground/90 transition-colors"
@@ -256,7 +265,9 @@ function EmptyState({ category }: { category: string }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// MAIN PAGE
+// ═══════════════════════════════════════════════════════════
 
 export default function Partners() {
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("all");
@@ -264,41 +275,42 @@ export default function Partners() {
   const [countryFilter, setCountryFilter] = useState("");
 
   const { data: partners = [], isLoading } = useQuery({
-    queryKey: ["partners", activeCategory],
+    queryKey: ["partners"],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("partners")
         .select("*")
         .eq("is_public", true)
         .order("priority_order", { ascending: false });
-
-      if (activeCategory !== "all") {
-        query = query.eq("partner_type", activeCategory);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return (data || []) as Partner[];
     },
   });
 
-  // Extract unique countries
   const countries = useMemo(() => {
     const all = partners.map(p => p.country).filter(Boolean) as string[];
     return [...new Set(all)].sort();
   }, [partners]);
 
-  // Filter partners
   const filtered = useMemo(() => {
     return partners.filter(p => {
-      const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase());
+      const matchCat     = activeCategory === "all" || p.partner_type === activeCategory;
+      const matchSearch  = !search || getAnonymousLabel(p).toLowerCase().includes(search.toLowerCase()) || (p.description || "").toLowerCase().includes(search.toLowerCase());
       const matchCountry = !countryFilter || p.country === countryFilter;
-      return matchSearch && matchCountry;
+      return matchCat && matchSearch && matchCountry;
     });
-  }, [partners, search, countryFilter]);
+  }, [partners, activeCategory, search, countryFilter]);
 
-  const featured = filtered.filter(p => p.is_featured);
-  const standard = filtered.filter(p => !p.is_featured);
+  const featured = filtered.filter(isFeatured);
+  const standard = filtered.filter(p => !isFeatured(p));
+
+  const counts: Record<string, number> = {
+    all: partners.length,
+    brand: partners.filter(p => p.partner_type === "brand").length,
+    manufacturer: partners.filter(p => p.partner_type === "manufacturer").length,
+    reseller: partners.filter(p => p.partner_type === "reseller").length,
+    designer: partners.filter(p => p.partner_type === "designer").length,
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -308,7 +320,6 @@ export default function Partners() {
       <section className="pt-28 pb-16 px-6 bg-gradient-to-b from-muted/50 to-background">
         <div className="container mx-auto max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left */}
             <div>
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
@@ -333,8 +344,9 @@ export default function Partners() {
                 transition={{ delay: 0.1 }}
                 className="mt-6 text-base font-body text-muted-foreground max-w-md leading-relaxed"
               >
-                A curated ecosystem of brands, manufacturers, resellers and designers
+                A curated ecosystem of verified manufacturers, brands and resellers
                 powering the European hospitality industry. Every partner is reviewed and approved by Terrassea.
+                Supplier identities are protected — all sourcing goes through Terrassea.
               </motion.p>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -346,12 +358,12 @@ export default function Partners() {
                   Become a Partner <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a href="#partners-grid" className="px-6 py-3 rounded-full border border-border font-display font-semibold text-sm text-foreground hover:bg-muted transition-colors">
-                  Browse the network
+                  Browse suppliers
                 </a>
               </motion.div>
             </div>
 
-            {/* Right — stats + trust signals */}
+            {/* Stats grid */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -359,10 +371,10 @@ export default function Partners() {
               className="grid grid-cols-2 gap-4"
             >
               {[
-                { value: `${partners.length || "—"}`, label: "Approved partners", accent: "#D4603A" },
-                { value: "7", label: "Countries covered", accent: "#4A90A4" },
-                { value: "100%", label: "CHR verified", accent: "#1D9E75" },
-                { value: "Free", label: "To source & quote", accent: "#8B7355" },
+                { value: `${partners.length || "—"}`, label: "Verified suppliers",  accent: "#D4603A" },
+                { value: `${countries.length || "7"}`, label: "Countries covered",  accent: "#4A90A4" },
+                { value: "100%",                        label: "CHR reviewed",       accent: "#1D9E75" },
+                { value: "Protected",                   label: "Supplier identity",  accent: "#8B7355" },
               ].map((stat, i) => (
                 <div key={i} className="rounded-xl border border-border bg-card p-5 text-center">
                   <p className="font-display font-bold text-2xl" style={{ color: stat.accent }}>
@@ -380,17 +392,18 @@ export default function Partners() {
       <section className="sticky top-[73px] z-40 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-6">
           <div className="flex items-center gap-2 overflow-x-auto py-3 no-scrollbar">
-            {/* Category pills */}
             {CATEGORIES.map(cat => {
-              const Icon = cat.icon;
+              const Icon     = cat.icon;
               const isActive = activeCategory === cat.key;
-              const count = cat.key === "all" ? partners.length : partners.filter(p => p.partner_type === cat.key).length;
+              const count    = counts[cat.key] ?? 0;
               return (
                 <button
                   key={cat.key}
                   onClick={() => setActiveCategory(cat.key)}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-display font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
-                    isActive ? "bg-foreground text-primary-foreground" : "border border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+                    isActive
+                      ? "bg-foreground text-primary-foreground"
+                      : "border border-border text-muted-foreground hover:border-foreground hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -402,10 +415,8 @@ export default function Partners() {
               );
             })}
 
-            {/* Separator */}
             <div className="h-5 w-px bg-border flex-shrink-0 mx-1" />
 
-            {/* Search */}
             <div className="relative flex-shrink-0">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <input
@@ -416,7 +427,6 @@ export default function Partners() {
               />
             </div>
 
-            {/* Country filter */}
             {countries.length > 0 && (
               <select
                 value={countryFilter}
@@ -433,32 +443,32 @@ export default function Partners() {
         </div>
       </section>
 
-      {/* ── PARTNERS CONTENT ── */}
+      {/* ── PARTNERS GRID ── */}
       <section id="partners-grid" className="py-10 pb-24 px-6">
         <div className="container mx-auto max-w-6xl">
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-48 rounded-2xl bg-muted animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="h-80 rounded-2xl bg-muted animate-pulse" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <EmptyState category={activeCategory} />
+            <EmptyState />
           ) : (
             <>
-              {/* Featured section */}
+              {/* Featured */}
               {featured.length > 0 && (
                 <div className="mb-10">
                   <div className="flex items-center gap-2 mb-6">
                     <Star className="h-4 w-4 text-[#D4603A]" />
                     <h2 className="font-display font-bold text-foreground text-lg">
-                      Featured Partners
+                      Featured Suppliers
                     </h2>
                     <div className="flex-1 h-px bg-border ml-3" />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {featured.map((partner, i) => (
-                      <FeaturedCard key={partner.id} partner={partner} index={i} />
+                      <PartnerCard key={partner.id} partner={partner} index={i} />
                     ))}
                   </div>
                 </div>
@@ -467,17 +477,17 @@ export default function Partners() {
               {/* Premium placement CTA */}
               <PremiumPlacementCTA />
 
-              {/* Standard partners */}
+              {/* All partners */}
               {standard.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="font-display font-bold text-foreground text-lg">
-                      All Partners
+                      All Verified Suppliers
                     </h2>
                     <div className="flex-1 h-px bg-border mx-4" />
-                    <span className="text-xs font-body text-muted-foreground">{standard.length} partners</span>
+                    <span className="text-xs font-body text-muted-foreground">{standard.length} suppliers</span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {standard.map((partner, i) => (
                       <PartnerCard key={partner.id} partner={partner} index={i} />
                     ))}
@@ -486,6 +496,29 @@ export default function Partners() {
               )}
             </>
           )}
+        </div>
+      </section>
+
+      {/* ── TRUST FOOTER BAND ── */}
+      <section className="py-10 px-6 border-t border-border bg-muted/30">
+        <div className="container mx-auto max-w-4xl">
+          <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+            <div className="flex items-start gap-3 flex-1">
+              <Lock className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-display font-semibold text-foreground text-sm">Supplier identity is always protected</h3>
+                <p className="text-xs font-body text-muted-foreground mt-1">
+                  Full supplier details are only shared in a confirmed quote. All sourcing flows through Terrassea.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/become-partner"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border font-display font-semibold text-sm text-foreground hover:bg-muted transition-colors flex-shrink-0"
+            >
+              Join the network <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
