@@ -188,6 +188,32 @@ const Products = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="pt-24 pb-16">
+        {/* Supplier filter banner */}
+        {supplierSlug && (
+          <div className="px-6 mb-4">
+            <div className="container mx-auto">
+              <div className="flex items-center justify-between gap-3 bg-muted/60 border border-border rounded-full px-5 py-2.5">
+                <p className="text-sm font-body text-foreground">
+                  Showing products from{" "}
+                  <span className="font-display font-semibold">
+                    Verified Supplier
+                    {supplierPartner && (
+                      <> · {supplierPartner.partner_type.charAt(0).toUpperCase() + supplierPartner.partner_type.slice(1)}{supplierPartner.country ? ` · ${supplierPartner.country}` : ""}</>
+                    )}
+                  </span>
+                </p>
+                <button
+                  onClick={clearSupplierFilter}
+                  className="flex-shrink-0 w-6 h-6 rounded-full bg-muted hover:bg-border flex items-center justify-center transition-colors"
+                  aria-label="Clear supplier filter"
+                >
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Hero */}
         <section className="px-6 mb-8">
           <div className="container mx-auto">
