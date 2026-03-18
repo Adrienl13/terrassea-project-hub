@@ -352,7 +352,7 @@ const ProService = () => {
                     <input type="text" value={form.name} onChange={handle("name")} placeholder="Jean Dupont" className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Company</label>
+                    <label className={labelClass}>Company *</label>
                     <input type="text" value={form.company} onChange={handle("company")} placeholder="Hôtel Les Pins" className={inputClass} />
                   </div>
                 </div>
