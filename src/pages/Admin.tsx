@@ -914,7 +914,7 @@ function ProductsTab() {
           <table className="w-full text-sm font-body">
             <thead>
               <tr className="border-b border-border">
-                {["Product", "Category", "Color", "Price", "Quality", "Stock", ""].map(h => (
+                {["Product", "Category", "Color", "Price", "Quality", "Status", ""].map(h => (
                   <th key={h} className={`py-3 px-2 text-[10px] uppercase tracking-wider text-muted-foreground font-normal ${h === "" ? "text-right" : "text-left"}`}>
                     {h}
                   </th>
