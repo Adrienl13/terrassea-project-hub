@@ -62,7 +62,7 @@ function InfoBlock({ icon, title, items }: {
 // SOURCING CTA CARD
 // ═══════════════════════════════════════════════════════════
 
-function SourcingCTA({ partnerType }: { partnerType: string }) {
+function SourcingCTA({ partnerType, slug }: { partnerType: string; slug: string }) {
   const navigate = useNavigate();
 
   return (
@@ -79,13 +79,20 @@ function SourcingCTA({ partnerType }: { partnerType: string }) {
         Source from this supplier
       </h3>
       <p className="text-sm font-body text-muted-foreground mb-5">
-        Create a project brief and we'll include this supplier in your curated proposals — with pricing and availability.
+        Browse their catalogue or create a project brief — we'll include this supplier in your curated proposals.
       </p>
 
       <button
-        onClick={() => navigate("/projects/new")}
+        onClick={() => navigate(`/products?supplier=${encodeURIComponent(slug)}`)}
         className="w-full flex items-center justify-center gap-2 py-3 font-display font-semibold text-sm text-white rounded-full hover:opacity-90 transition-opacity mb-3"
         style={{ background: "#D4603A" }}
+      >
+        See their products <ArrowRight className="h-4 w-4" />
+      </button>
+
+      <button
+        onClick={() => navigate("/projects/new")}
+        className="w-full flex items-center justify-center gap-2 py-2.5 font-display font-semibold text-sm text-foreground rounded-full border border-border hover:bg-muted/50 transition-colors mb-3"
       >
         Start a project <ArrowRight className="h-4 w-4" />
       </button>
