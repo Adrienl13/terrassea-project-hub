@@ -58,6 +58,7 @@ const emptyProduct = (): ProductFormData => ({
   combinable: false, combined_capacity_if_joined: null,
   archetype_id: null, archetype_confidence: null,
   product_type_tags: {}, color_variants: [],
+  publish_status: "draft",
 });
 
 // ═══════════════════════════════════════════════════════════
