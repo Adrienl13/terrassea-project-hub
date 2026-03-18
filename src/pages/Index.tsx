@@ -23,46 +23,46 @@ import spaceBeachclub from "@/assets/space-beachclub.jpg";
 import spaceCamping from "@/assets/space-camping.jpg";
 
 const spaces = [
-  { name: "Restaurants", image: spaceRestaurant, description: "Terraces, patios & outdoor dining" },
-  { name: "Hotels",      image: spaceHotel,      description: "Lobbies, pool decks & garden lounges" },
-  { name: "Rooftops",    image: spaceRooftop,    description: "Sky bars & urban terraces" },
-  { name: "Beach Clubs", image: spaceBeachclub,  description: "Beachfront lounges & daybeds" },
-  { name: "Campings",    image: spaceCamping,    description: "Glamping & outdoor communal areas" },
-];
+{ name: "Restaurants", image: spaceRestaurant, description: "Terraces, patios & outdoor dining" },
+{ name: "Hotels", image: spaceHotel, description: "Lobbies, pool decks & garden lounges" },
+{ name: "Rooftops", image: spaceRooftop, description: "Sky bars & urban terraces" },
+{ name: "Beach Clubs", image: spaceBeachclub, description: "Beachfront lounges & daybeds" },
+{ name: "Campings", image: spaceCamping, description: "Glamping & outdoor communal areas" }];
+
 
 const stats = [
-  { value: "500+", label: "Curated products" },
-  { value: "10+",  label: "Partner suppliers" },
-  { value: "5",   label: "European countries" },
-  { value: "5",    label: "Space categories" },
-];
+{ value: "500+", label: "Curated products" },
+{ value: "10+", label: "Partner suppliers" },
+{ value: "5", label: "European countries" },
+{ value: "5", label: "Space categories" }];
+
 
 const steps = [
-  { icon: Sparkles, title: "Describe",  text: "Your space, style and requirements" },
-  { icon: Compass,  title: "Refine",    text: "A few questions to shape your brief" },
-  { icon: Layers,   title: "Select",    text: "3 curated concepts with products" },
-  { icon: Send,     title: "Submit",    text: "Your project goes to sourcing" },
-];
+{ icon: Sparkles, title: "Describe", text: "Your space, style and requirements" },
+{ icon: Compass, title: "Refine", text: "A few questions to shape your brief" },
+{ icon: Layers, title: "Select", text: "3 curated concepts with products" },
+{ icon: Send, title: "Submit", text: "Your project goes to sourcing" }];
+
 
 type FlowPhase = "idle" | "product_search" | "discovery" | "results";
 
 const Index = () => {
   const navigate = useNavigate();
-  const heroRef  = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
   const { data: products = [], isLoading: productsLoading } = useProducts();
 
-  const [phase,             setPhase]             = useState<FlowPhase>("idle");
-  const [searchQuery,       setSearchQuery]        = useState("");
-  const [productSearchData, setProductSearchData]  = useState<{
-    recommended: DBProduct[]; similar: DBProduct[]; compatible: DBProduct[];
+  const [phase, setPhase] = useState<FlowPhase>("idle");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [productSearchData, setProductSearchData] = useState<{
+    recommended: DBProduct[];similar: DBProduct[];compatible: DBProduct[];
   } | null>(null);
   const [searchResults, setSearchResults] = useState<{
-    parameters: ProjectParameters; concepts: ProjectConcept[]; query: string;
+    parameters: ProjectParameters;concepts: ProjectConcept[];query: string;
   } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const discoveryRef     = useRef<HTMLDivElement>(null);
-  const resultsRef       = useRef<HTMLDivElement>(null);
+  const discoveryRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const searchResultsRef = useRef<HTMLDivElement>(null);
 
   const heroOpacity = 1;
@@ -125,15 +125,15 @@ const Index = () => {
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-[#F5E6D3]/70 via-[#E8D5B0]/20 to-background" />
           <div className="absolute top-1/4 left-1/6 w-[500px] h-[500px] rounded-full opacity-30"
-            style={{ background: "radial-gradient(circle, #D4A574 0%, transparent 65%)" }} />
+          style={{ background: "radial-gradient(circle, #D4A574 0%, transparent 65%)" }} />
           <div className="absolute bottom-1/4 right-1/6 w-80 h-80 rounded-full opacity-15"
-            style={{ background: "radial-gradient(circle, #4A90A4 0%, transparent 65%)" }} />
+          style={{ background: "radial-gradient(circle, #4A90A4 0%, transparent 65%)" }} />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full opacity-10"
-            style={{ background: "radial-gradient(ellipse, #C4956A 0%, transparent 70%)" }} />
+          style={{ background: "radial-gradient(ellipse, #C4956A 0%, transparent 70%)" }} />
           {/* Subtle grid */}
           <div className="absolute inset-0 opacity-[0.02]" style={{
             backgroundImage: "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
+            backgroundSize: "60px 60px"
           }} />
           {/* Floating dots */}
           <div className="absolute inset-0 overflow-hidden">
@@ -160,7 +160,7 @@ const Index = () => {
             <br />
             <span className="relative inline-block">
               space starts
-              <motion.span initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.8, delay: 0.8 }} className="absolute -bottom-1 left-0 right-0 h-[3px] bg-foreground origin-left" />
+              <motion.span initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.8, delay: 0.8 }} className="absolute -bottom-1 left-0 right-0 h-[3px] origin-left bg-[#d4613a]" />
             </span>
             <br />
             here.
@@ -177,28 +177,28 @@ const Index = () => {
           </motion.div>
 
           {/* Quick actions */}
-          {phase === "idle" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="flex flex-wrap justify-center gap-3 mt-6">
+          {phase === "idle" &&
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="flex flex-wrap justify-center gap-3 mt-6">
               <button
-                onClick={() => navigate("/projects/new")}
-                className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all"
-              >
+              onClick={() => navigate("/projects/new")}
+              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
+              
                 <Sparkles className="h-3 w-3" /> Start a guided project
               </button>
               <button
-                onClick={() => navigate("/products")}
-                className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all"
-              >
+              onClick={() => navigate("/products")}
+              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
+              
                 <Search className="h-3 w-3" /> Browse catalogue
               </button>
               <button
-                onClick={() => navigate("/inspirations")}
-                className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all"
-              >
+              onClick={() => navigate("/inspirations")}
+              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
+              
                 <Compass className="h-3 w-3" /> Get inspired
               </button>
             </motion.div>
-          )}
+          }
         </motion.div>
 
         {/* Scroll indicator */}
@@ -206,13 +206,13 @@ const Index = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.4 }}
-          className="absolute bottom-6 right-8 flex items-center gap-2"
-        >
+          className="absolute bottom-6 right-8 flex items-center gap-2">
+          
           <motion.div
             animate={{ y: [0, 4, 0] }}
             transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            className="w-px h-6 bg-gradient-to-b from-muted-foreground/30 to-transparent"
-          />
+            className="w-px h-6 bg-gradient-to-b from-muted-foreground/30 to-transparent" />
+          
           <span className="text-[9px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground/35 -rotate-90 origin-left translate-y-3">
             Scroll
           </span>
@@ -220,34 +220,34 @@ const Index = () => {
       </section>
 
       {/* ── SEARCH RESULTS ──────────────────────────────────────────── */}
-      {phase === "product_search" && productSearchData && (
-        <div ref={searchResultsRef}>
+      {phase === "product_search" && productSearchData &&
+      <div ref={searchResultsRef}>
           <ProductSearchResults
-            recommended={productSearchData.recommended}
-            similar={productSearchData.similar}
-            compatible={productSearchData.compatible}
-            query={searchQuery}
-            allProducts={products}
-            onCreateProjectFromProduct={handleCreateProjectFromProduct}
-          />
+          recommended={productSearchData.recommended}
+          similar={productSearchData.similar}
+          compatible={productSearchData.compatible}
+          query={searchQuery}
+          allProducts={products}
+          onCreateProjectFromProduct={handleCreateProjectFromProduct} />
+        
         </div>
-      )}
+      }
 
       {/* ── DISCOVERY ───────────────────────────────────────────────── */}
-      {phase === "discovery" && (
-        <section ref={discoveryRef} className="py-16 px-6">
+      {phase === "discovery" &&
+      <section ref={discoveryRef} className="py-16 px-6">
           <div className="container mx-auto flex justify-center">
             <ProjectDiscovery
-              query={searchQuery}
-              onComplete={handleDiscoveryComplete}
-              onReset={handleReset}
-            />
+            query={searchQuery}
+            onComplete={handleDiscoveryComplete}
+            onReset={handleReset} />
+          
           </div>
         </section>
-      )}
+      }
 
-      {isGenerating && (
-        <section className="py-16 px-6">
+      {isGenerating &&
+      <section className="py-16 px-6">
           <div className="container mx-auto text-center">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
               <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin mx-auto" />
@@ -257,29 +257,29 @@ const Index = () => {
             </motion.div>
           </div>
         </section>
-      )}
+      }
 
-      {searchResults && phase === "results" && (
-        <div ref={resultsRef}>
+      {searchResults && phase === "results" &&
+      <div ref={resultsRef}>
           <ProjectResults
-            parameters={searchResults.parameters}
-            concepts={searchResults.concepts}
-            query={searchResults.query}
-            products={products}
-          />
+          parameters={searchResults.parameters}
+          concepts={searchResults.concepts}
+          query={searchResults.query}
+          products={products} />
+        
         </div>
-      )}
+      }
 
       {/* ── STATS BAND ──────────────────────────────────────────────── */}
       <section className="py-12 px-6 border-y border-border">
         <div className="container mx-auto">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, i) => (
-              <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
+            {stats.map((stat, i) =>
+            <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
                 <p className="font-display text-2xl md:text-3xl font-bold text-foreground">{stat.value}</p>
                 <p className="text-xs font-body text-muted-foreground mt-1 uppercase tracking-wider">{stat.label}</p>
               </motion.div>
-            ))}
+            )}
           </motion.div>
         </div>
       </section>
@@ -298,16 +298,16 @@ const Index = () => {
             </div>
             <button
               onClick={() => navigate("/inspirations")}
-              className="hidden md:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors group"
-            >
+              className="hidden md:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors group">
+              
               All inspirations
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {spaces.map((space, i) => (
-              <SpaceCard key={space.name} {...space} index={i} />
-            ))}
+            {spaces.map((space, i) =>
+            <SpaceCard key={space.name} {...space} index={i} />
+            )}
           </div>
         </div>
       </section>
@@ -325,15 +325,15 @@ const Index = () => {
               </h2>
               <button
                 onClick={() => navigate("/projects/new")}
-                className="mt-6 flex items-center gap-2 text-sm font-display font-semibold text-foreground border border-foreground rounded-full px-5 py-2.5 hover:bg-foreground hover:text-primary-foreground transition-all group"
-              >
+                className="mt-6 flex items-center gap-2 text-sm font-display font-semibold text-foreground border border-foreground rounded-full px-5 py-2.5 hover:bg-foreground hover:text-primary-foreground transition-all group">
+                
                 Get started <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-              {steps.map((step, i) => (
-                <motion.div key={step.title} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="space-y-3">
+              {steps.map((step, i) =>
+              <motion.div key={step.title} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
                       <step.icon className="h-4 w-4 text-foreground" />
@@ -345,7 +345,7 @@ const Index = () => {
                   <h3 className="font-display font-semibold text-sm text-foreground">{step.title}</h3>
                   <p className="text-xs text-muted-foreground font-body leading-relaxed">{step.text}</p>
                 </motion.div>
-              ))}
+              )}
             </div>
           </motion.div>
         </div>
@@ -365,35 +365,35 @@ const Index = () => {
             </div>
             <button
               onClick={() => navigate("/products")}
-              className="hidden md:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors group"
-            >
+              className="hidden md:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors group">
+              
               View all <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </motion.div>
 
-          {productsLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="animate-pulse">
+          {productsLoading ?
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {[...Array(8)].map((_, i) =>
+            <div key={i} className="animate-pulse">
                   <div className="aspect-square bg-muted rounded-sm mb-4" />
                   <div className="h-4 bg-muted rounded w-3/4 mb-2" />
                   <div className="h-3 bg-muted rounded w-1/2" />
                 </div>
-              ))}
+            )}
+            </div> :
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {products.slice(0, 8).map((product) =>
+            <ProductCard key={product.id} product={product} />
+            )}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-              {products.slice(0, 8).map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
+          }
 
           <div className="flex justify-center mt-12 md:hidden">
             <button
               onClick={() => navigate("/products")}
-              className="flex items-center gap-2 text-sm font-body text-muted-foreground border border-border rounded-full px-5 py-2.5 hover:border-foreground hover:text-foreground transition-all"
-            >
+              className="flex items-center gap-2 text-sm font-body text-muted-foreground border border-border rounded-full px-5 py-2.5 hover:border-foreground hover:text-foreground transition-all">
+              
               View all products <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -419,53 +419,53 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              {
-                number: "01",
-                title: "Simplified sourcing",
-                text: "Compare offers from multiple suppliers on a single product. Price, stock, delivery times — all at a glance.",
-                accent: "#D4603A",
-                tag: "Multi-supplier",
-              },
-              {
-                number: "02",
-                title: "Tailored projects",
-                text: "Our engine generates curated selections adapted to your establishment type, style and budget.",
-                accent: "#4A90A4",
-                tag: "AI-powered",
-              },
-              {
-                number: "03",
-                title: "Verified partners",
-                text: "Every supplier is selected for CHR-grade quality, delivery reliability and professional service across Europe.",
-                accent: "#6B7B5E",
-                tag: "Europe-wide",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative p-6 rounded-sm border border-border bg-background overflow-hidden group hover:border-foreground/30 transition-colors"
-              >
+            {
+              number: "01",
+              title: "Simplified sourcing",
+              text: "Compare offers from multiple suppliers on a single product. Price, stock, delivery times — all at a glance.",
+              accent: "#D4603A",
+              tag: "Multi-supplier"
+            },
+            {
+              number: "02",
+              title: "Tailored projects",
+              text: "Our engine generates curated selections adapted to your establishment type, style and budget.",
+              accent: "#4A90A4",
+              tag: "AI-powered"
+            },
+            {
+              number: "03",
+              title: "Verified partners",
+              text: "Every supplier is selected for CHR-grade quality, delivery reliability and professional service across Europe.",
+              accent: "#6B7B5E",
+              tag: "Europe-wide"
+            }].
+            map((item, i) =>
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="relative p-6 rounded-sm border border-border bg-background overflow-hidden group hover:border-foreground/30 transition-colors">
+              
                 {/* Accent top border */}
                 <div
-                  className="absolute top-0 left-0 right-0 h-0.5"
-                  style={{ background: item.accent }}
-                />
+                className="absolute top-0 left-0 right-0 h-0.5"
+                style={{ background: item.accent }} />
+              
                 {/* Number + tag */}
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-[10px] font-display font-semibold uppercase tracking-[0.15em] text-muted-foreground/40">
                     {item.number}
                   </span>
                   <span
-                    className="text-[9px] font-display font-semibold uppercase tracking-[0.12em] px-2 py-1 rounded-full"
-                    style={{
-                      background: `${item.accent}15`,
-                      color: item.accent,
-                    }}
-                  >
+                  className="text-[9px] font-display font-semibold uppercase tracking-[0.12em] px-2 py-1 rounded-full"
+                  style={{
+                    background: `${item.accent}15`,
+                    color: item.accent
+                  }}>
+                  
                     {item.tag}
                   </span>
                 </div>
@@ -478,11 +478,11 @@ const Index = () => {
                 </p>
                 {/* Decorative corner accent */}
                 <div
-                  className="absolute bottom-0 right-0 w-16 h-16 rounded-full opacity-[0.07] -mb-6 -mr-6"
-                  style={{ background: item.accent }}
-                />
+                className="absolute bottom-0 right-0 w-16 h-16 rounded-full opacity-[0.07] -mb-6 -mr-6"
+                style={{ background: item.accent }} />
+              
               </motion.div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -512,14 +512,14 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
               <button
                 onClick={() => navigate("/projects/new")}
-                className="px-8 py-4 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
-              >
+                className="px-8 py-4 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
+                
                 Launch my project →
               </button>
               <button
                 onClick={() => navigate("/products")}
-                className="px-8 py-4 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all"
-              >
+                className="px-8 py-4 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all">
+                
                 Browse catalogue
               </button>
             </div>
@@ -528,8 +528,8 @@ const Index = () => {
       </section>
 
       <Footer />
-    </div>
-  );
+    </div>);
+
 };
 
 export default Index;
