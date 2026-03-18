@@ -100,7 +100,7 @@ const ProService = () => {
   const qualified = isQualified(coversNum, form.budget);
 
   const handleSubmit = async () => {
-    if (!form.name || !form.email || !form.phone || !form.establishmentType || !form.location) {
+    if (!form.name || !form.email || !form.phone || !form.company || !form.siren || !form.establishmentType || !form.location) {
       toast.error("Please fill in all required fields.");
       return;
     }
