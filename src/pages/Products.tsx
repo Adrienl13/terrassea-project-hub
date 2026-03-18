@@ -36,6 +36,29 @@ const Products = () => {
   const { data: products = [], isLoading } = useProducts();
   const { addItem } = useProjectCart();
   const isMobile = useIsMobile();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const supplierSlug = searchParams.get("supplier") || "";
+
+  // Fetch partner info for supplier banner
+  const { data: supplierPartner } = useQuery({
+    queryKey: ["supplier-partner", supplierSlug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("partners")
+        .select("name, partner_type, country, slug")
+        .eq("slug", supplierSlug)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!supplierSlug,
+  });
+
+  const clearSupplierFilter = () => {
+    searchParams.delete("supplier");
+    setSearchParams(searchParams);
+  };
 
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
