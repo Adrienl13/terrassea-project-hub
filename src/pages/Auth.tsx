@@ -149,6 +149,60 @@ const Auth = () => {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md mx-auto"
         >
+          {isRecovery ? (
+            <div className="space-y-4">
+              <h2 className="text-lg font-display font-bold text-foreground">Reset your password</h2>
+              <div>
+                <span className={labelClass}>New password *</span>
+                <input
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  type="password"
+                  placeholder="••••••••"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <span className={labelClass}>Confirm password *</span>
+                <input
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  type="password"
+                  placeholder="••••••••"
+                  className={inputClass}
+                />
+              </div>
+              <button
+                onClick={async () => {
+                  if (!newPassword || !confirmPassword) {
+                    toast.error("Please fill in both fields.");
+                    return;
+                  }
+                  if (newPassword !== confirmPassword) {
+                    toast.error("Passwords do not match.");
+                    return;
+                  }
+                  setIsLoading(true);
+                  try {
+                    const { error } = await supabase.auth.updateUser({ password: newPassword });
+                    if (error) throw error;
+                    toast.success("Password updated successfully!");
+                    setIsRecovery(false);
+                    navigate("/account");
+                  } catch (err: any) {
+                    toast.error(err.message || "Could not update password.");
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                disabled={isLoading}
+                className="w-full py-3 bg-foreground text-primary-foreground font-display font-semibold text-sm rounded-full hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {isLoading ? "..." : "Update password"}
+              </button>
+            </div>
+          ) : (
+            <>
           {/* Mode toggle */}
           <div className="flex gap-1 bg-card border border-border rounded-full p-1 mb-8">
             {(["login", "register"] as Mode[]).map((m) => (
