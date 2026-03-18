@@ -730,13 +730,23 @@ function ProductForm({
           >
             Cancel
           </button>
+          {(!form.id || form.publish_status === "draft") && previewScore >= 0.4 && (
+            <button
+              onClick={handleSubmitForReview}
+              disabled={saving || !form.name || !form.category}
+              className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm border border-amber-300 text-amber-700 bg-amber-50 rounded-full hover:bg-amber-100 disabled:opacity-50 transition-colors"
+            >
+              <Eye className="h-4 w-4" />
+              {saving ? "Submitting..." : "Submit for review"}
+            </button>
+          )}
           <button
-            onClick={handleSave}
+            onClick={() => handleSave()}
             disabled={saving || !form.name || !form.category}
             className="flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving ? "Saving..." : form.id ? "Update product" : "Create product"}
+            {saving ? "Saving..." : form.id ? "Update product" : "Save draft"}
           </button>
         </div>
       </div>
