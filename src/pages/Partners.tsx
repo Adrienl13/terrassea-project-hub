@@ -489,56 +489,6 @@ export default function Partners() {
         </div>
       </section>
 
-      {/* ── BOTTOM CTA ── */}
-      <section className="py-20 px-6 bg-muted/30 border-t border-border">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div>
-              <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-[#D4603A] mb-3">
-                For suppliers &amp; manufacturers
-              </p>
-              <h2 className="font-display text-3xl font-bold tracking-tight text-foreground leading-tight">
-                Get in front of the right buyers.<br />
-                For free, for 6 months.
-              </h2>
-              <p className="mt-4 text-sm font-body text-muted-foreground max-w-md leading-relaxed">
-                Terrassea connects you directly with hotels, restaurants, beach clubs and resorts actively sourcing outdoor furniture.
-                No intermediaries. No commission on your first 3 confirmed orders.
-              </p>
-              <div className="mt-8">
-                <Link
-                  to="/become-partner"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#D4603A] text-white font-display font-semibold text-sm hover:bg-[#C05030] transition-colors"
-                >
-                  Apply as a partner <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                { title: "Starter — Free 6 months", desc: "List up to 30 products, 8% commission after first 3 orders, then automatic upgrade.", tag: "No credit card" },
-                { title: "Growth — €199/month", desc: "Unlimited products, 5% commission, featured placement in partner network + project recommendations.", tag: "Most popular" },
-                { title: "Elite — Custom pricing", desc: "3% commission, API integration, dedicated account manager, custom showcase page.", tag: "Large volumes" },
-              ].map((plan, i) => (
-                <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-border bg-card">
-                  <div className="h-2 w-2 rounded-full bg-[#D4603A] mt-2 flex-shrink-0" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-display font-bold text-foreground text-sm">{plan.title}</h3>
-                      <span className="text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                        {plan.tag}
-                      </span>
-                    </div>
-                    <p className="text-xs font-body text-muted-foreground mt-1 leading-relaxed">{plan.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       <Footer />
     </div>
   );
