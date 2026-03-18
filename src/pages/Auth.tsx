@@ -330,6 +330,7 @@ const Auth = () => {
               {isLoading ? "..." : mode === "login" ? "Sign in" : "Create my account"}
             </button>
           </div>
+            </>
           )}
         </motion.div>
       </div>
