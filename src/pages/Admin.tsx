@@ -349,6 +349,19 @@ function ProductForm({
   const [saving, setSaving] = useState(false);
   const [section, setSection] = useState<string>("basics");
 
+  // Load partners list for select
+  const { data: partnersList = [] } = useQuery({
+    queryKey: ["partners-list"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("partners")
+        .select("id, name, slug")
+        .order("name");
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
   // Load tag suggestions from DB
   const { data: tagDefs = [] } = useQuery<TagDefinition[]>({
     queryKey: ["tag_definitions"],
