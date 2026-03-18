@@ -104,7 +104,8 @@ export type BOMSlotRole =
   | "sun_lounger"
   | "sofa"
   | "bench"
-  | "accessory";
+  | "accessory"
+  | "other";
 
 export interface BOMSlot {
   role:             BOMSlotRole;
