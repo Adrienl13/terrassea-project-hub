@@ -232,6 +232,30 @@ const Auth = () => {
               <input value={form.password} onChange={handle("password")} type="password" placeholder="••••••••" className={inputClass} />
             </div>
 
+            {mode === "login" && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!form.email) {
+                    toast.error("Enter your email first.");
+                    return;
+                  }
+                  try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (error) throw error;
+                    toast.success("Password reset email sent! Check your inbox.");
+                  } catch (err: any) {
+                    toast.error(err.message || "Could not send reset email.");
+                  }
+                }}
+                className="text-xs font-body text-muted-foreground hover:text-foreground transition-colors self-end"
+              >
+                Forgot password?
+              </button>
+            )}
+
             <button
               onClick={mode === "login" ? handleLogin : handleRegister}
               disabled={isLoading}
