@@ -20,13 +20,147 @@ interface Topic {
   label: string;
   subtitle: string;
   color: string;
+  photo: string;          // hero card photo URL
+  photoAlt: string;
+  sidebarProducts: SidebarProduct[];
   guide: { title: string; body: string };
   expert: string;
   faqs: FAQItem[];
   cta: { label: string; href: string };
 }
 
-// ── Content ───────────────────────────────────────────────────────────────────
+interface SidebarProduct {
+  name: string;
+  category: string;
+  image: string;
+  tag: string;   // short highlight tag
+  href: string;
+}
+
+// ── Sidebar product data per topic ────────────────────────────────────────────
+// Images: curated Unsplash photos matching each product category
+
+const SIDEBAR_SEATING: SidebarProduct[] = [
+  {
+    name: "Bistrot Stackable Chair",
+    category: "Chairs",
+    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80",
+    tag: "CHR heavy-use",
+    href: "/products?category=chairs",
+  },
+  {
+    name: "Rope Armchair",
+    category: "Armchairs",
+    image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80",
+    tag: "Premium comfort",
+    href: "/products?category=armchairs",
+  },
+  {
+    name: "Teak Bar Stool",
+    category: "Bar Stools",
+    image: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=400&q=80",
+    tag: "With footrest",
+    href: "/products?category=bar-stools",
+  },
+];
+
+const SIDEBAR_MATERIALS: SidebarProduct[] = [
+  {
+    name: "Marine-grade Aluminium",
+    category: "Chairs",
+    image: "https://images.unsplash.com/photo-1567016432779-094069958ea5?w=400&q=80",
+    tag: "Coastal certified",
+    href: "/products?material=aluminium",
+  },
+  {
+    name: "FSC Teak Collection",
+    category: "Tables",
+    image: "https://images.unsplash.com/photo-1449247709967-d4461a6a6103?w=400&q=80",
+    tag: "Grade A FSC",
+    href: "/products?material=teak",
+  },
+  {
+    name: "Rope-woven Armchair",
+    category: "Armchairs",
+    image: "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=400&q=80",
+    tag: "Weather resistant",
+    href: "/products?material=rope",
+  },
+];
+
+const SIDEBAR_SHADE: SidebarProduct[] = [
+  {
+    name: "Cantilever Parasol 3m",
+    category: "Parasols",
+    image: "https://images.unsplash.com/photo-1601628828688-632f38a5a7d0?w=400&q=80",
+    tag: "Beaufort 6",
+    href: "/products?category=parasols",
+  },
+  {
+    name: "Pool Sun Lounger",
+    category: "Sun Loungers",
+    image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=80",
+    tag: "Quick-dry cushion",
+    href: "/products?category=sun-loungers",
+  },
+  {
+    name: "Centre-pole Parasol 4m",
+    category: "Parasols",
+    image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=80",
+    tag: "UPF 50+",
+    href: "/products?category=parasols",
+  },
+];
+
+const SIDEBAR_LAYOUT: SidebarProduct[] = [
+  {
+    name: "HPL Dining Table 70×70",
+    category: "Tables",
+    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80",
+    tag: "2-cover standard",
+    href: "/products?category=tables",
+  },
+  {
+    name: "Teak Table 120×70",
+    category: "Tables",
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80",
+    tag: "4-cover dining",
+    href: "/products?category=tables",
+  },
+  {
+    name: "High Table 80×80 Bar",
+    category: "High Tables",
+    image: "https://images.unsplash.com/photo-1574096079513-d8259312b785?w=400&q=80",
+    tag: "Height 110cm",
+    href: "/products?category=tables",
+  },
+];
+
+const SIDEBAR_REGULATIONS: SidebarProduct[] = [
+  {
+    name: "EN 12727 Certified Chair",
+    category: "Chairs",
+    image: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&q=80",
+    tag: "Level 4 certified",
+    href: "/products",
+  },
+  {
+    name: "Fire-retardant Cushion",
+    category: "Accessories",
+    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80",
+    tag: "NF P 92-507",
+    href: "/products",
+  },
+  {
+    name: "CHR Contract Armchair",
+    category: "Armchairs",
+    image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80",
+    tag: "3-year warranty",
+    href: "/products",
+  },
+];
+
+// ── Topic data ────────────────────────────────────────────────────────────────
 
 const TOPICS: Topic[] = [
   {
@@ -35,6 +169,9 @@ const TOPICS: Topic[] = [
     label: "Seating",
     subtitle: "Chairs, armchairs, stools & benches",
     color: "#D4603A",
+    photo: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80",
+    photoAlt: "Restaurant terrace with chairs",
+    sidebarProducts: SIDEBAR_SEATING,
     guide: {
       title: "How to choose the right seating for your establishment",
       body: `Outdoor seating in a professional CHR setting is subject to constraints that residential furniture simply cannot meet. A terrace chair typically endures 6 to 8 hours of continuous use per day, exposure to UV radiation, humidity cycles, and weekly cleaning with commercial-grade products. Choosing the wrong product means replacement within 2-3 seasons — a cost that far exceeds the initial saving.
@@ -82,6 +219,9 @@ The second decision is structural: bistrot frame, sled base, or 4-leg. Bistrot f
     label: "Materials",
     subtitle: "Teak, aluminium, resin, rope & composites",
     color: "#8B7355",
+    photo: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=900&q=80",
+    photoAlt: "Hotel pool terrace with premium furniture",
+    sidebarProducts: SIDEBAR_MATERIALS,
     guide: {
       title: "The complete material guide for outdoor hospitality furniture",
       body: `Material selection for CHR outdoor furniture is a decision that determines maintenance cost, lifecycle, guest experience, and environmental impact simultaneously. There is no universally superior material — every material is a trade-off between performance, aesthetics, maintenance requirements, and budget.
@@ -129,6 +269,9 @@ Two emerging materials deserve attention for premium CHR applications: rope-wove
     label: "Shade & Comfort",
     subtitle: "Parasols, sun loungers & pergolas",
     color: "#4A90A4",
+    photo: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=80",
+    photoAlt: "Beach club with parasols and sun loungers",
+    sidebarProducts: SIDEBAR_SHADE,
     guide: {
       title: "Shade planning for hospitality outdoor spaces",
       body: `Shade planning is one of the most underestimated aspects of outdoor hospitality design. A terrace without adequate shade loses 60–70% of its covers during peak summer hours — not because guests don't want to be outside, but because direct sun exposure without protection is physically uncomfortable after 30 minutes. Effective shade management is therefore a direct revenue driver.
@@ -169,6 +312,9 @@ The parasol diameter selection is driven by the table configuration it serves. A
     label: "Layout & Density",
     subtitle: "Table mix, spacing norms & terrace optimisation",
     color: "#6B7B5E",
+    photo: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900&q=80",
+    photoAlt: "Restaurant terrace layout overhead view",
+    sidebarProducts: SIDEBAR_LAYOUT,
     guide: {
       title: "Terrace layout optimisation: the science of profitable density",
       body: `Layout planning is where hospitality design meets revenue management. The difference between a poorly planned terrace and an optimised one is not aesthetic — it is financial. An extra 8 covers on a 60-seat terrace, achieved through intelligent layout, represents approximately €150–250 of additional revenue per service at typical European CHR average spend. Multiplied across a season, the ROI on professional layout planning is immediate.
@@ -209,6 +355,9 @@ The secondary variable is furniture geometry. Square tables (70×70cm or 80×80c
     label: "Regulations & Sourcing",
     subtitle: "CHR norms, certifications, lead times & MOQ",
     color: "#1A2456",
+    photo: "https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=900&q=80",
+    photoAlt: "Hotel rooftop terrace at sunset",
+    sidebarProducts: SIDEBAR_REGULATIONS,
     guide: {
       title: "Procurement fundamentals for professional outdoor furniture",
       body: `Procuring outdoor furniture for a professional CHR establishment involves regulatory, logistical, and commercial considerations that differ substantially from residential purchasing. Understanding these before engaging suppliers saves time, avoids costly mistakes, and enables better commercial negotiation.
@@ -267,11 +416,7 @@ function FAQAccordion({ faqs }: { faqs: FAQItem[] }) {
             <span className="font-display font-semibold text-sm text-foreground leading-snug">
               {faq.q}
             </span>
-            <ChevronDown
-              className={`h-4 w-4 shrink-0 mt-1 text-muted-foreground transition-transform duration-200 ${
-                open === i ? "rotate-180" : ""
-              }`}
-            />
+            <ChevronDown className={`h-4 w-4 shrink-0 mt-1 text-muted-foreground transition-transform duration-200 ${open === i ? "rotate-180" : ""}`} />
           </button>
           <AnimatePresence>
             {open === i && (
@@ -283,26 +428,17 @@ function FAQAccordion({ faqs }: { faqs: FAQItem[] }) {
                 className="overflow-hidden"
               >
                 <div className="px-5 pb-5 space-y-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                    {faq.a}
-                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{faq.a}</p>
                   {faq.tip && (
                     <div className="bg-accent/50 border border-accent rounded-lg p-4">
-                      <span className="text-[11px] font-display font-bold uppercase tracking-wider text-foreground/60">
-                        Expert tip
-                      </span>
-                      <p className="text-sm text-foreground/80 mt-1 leading-relaxed">
-                        {faq.tip}
-                      </p>
+                      <span className="text-[11px] font-display font-bold uppercase tracking-wider text-foreground/60">Expert tip</span>
+                      <p className="text-sm text-foreground/80 mt-1 leading-relaxed">{faq.tip}</p>
                     </div>
                   )}
                   {faq.tags && (
                     <div className="flex flex-wrap gap-1.5">
-                      {faq.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[10px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border border-border text-muted-foreground"
-                        >
+                      {faq.tags.map(tag => (
+                        <span key={tag} className="text-[10px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border border-border text-muted-foreground">
                           {tag}
                         </span>
                       ))}
@@ -318,54 +454,132 @@ function FAQAccordion({ faqs }: { faqs: FAQItem[] }) {
   );
 }
 
+// ── Product sidebar card ──────────────────────────────────────────────────────
+
+function SidebarProductCard({ product, color }: { product: SidebarProduct; color: string }) {
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => navigate(product.href)}
+      className="group w-full text-left border border-border rounded-sm overflow-hidden hover:border-foreground/30 transition-all"
+    >
+      <div className="aspect-[4/3] overflow-hidden bg-card">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          loading="lazy"
+        />
+      </div>
+      <div className="p-3">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <p className="font-display font-semibold text-xs text-foreground leading-snug">{product.name}</p>
+          <span
+            className="text-[9px] font-display font-bold uppercase tracking-wider px-1.5 py-0.5 rounded flex-shrink-0"
+            style={{ background: color + "18", color }}
+          >
+            {product.tag}
+          </span>
+        </div>
+        <p className="text-[10px] font-body text-muted-foreground">{product.category}</p>
+      </div>
+    </button>
+  );
+}
+
+// ── Topic photo card ──────────────────────────────────────────────────────────
+
+function TopicPhotoCard({ topic, isActive, onClick }: { topic: Topic; isActive: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`group relative overflow-hidden rounded-sm transition-all duration-300 ${
+        isActive ? "ring-2 ring-foreground ring-offset-2" : "hover:opacity-90"
+      }`}
+    >
+      {/* Photo */}
+      <div className="aspect-[3/4] md:aspect-[4/5] overflow-hidden">
+        <img
+          src={topic.photo}
+          alt={topic.photoAlt}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          loading="lazy"
+        />
+      </div>
+
+      {/* Overlay gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+      {/* Active indicator */}
+      {isActive && (
+        <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-white" />
+      )}
+
+      {/* Icon + label */}
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        <div
+          className="w-7 h-7 rounded-full flex items-center justify-center mb-2"
+          style={{ backgroundColor: topic.color }}
+        >
+          <topic.icon className="h-3.5 w-3.5 text-white" />
+        </div>
+        <p className="font-display font-bold text-sm text-white leading-tight">{topic.label}</p>
+        <p className="text-[10px] text-white/60 mt-0.5 leading-tight hidden md:block">{topic.subtitle}</p>
+      </div>
+    </button>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 const Resources = () => {
   const navigate = useNavigate();
   const [activeTopic, setActiveTopic] = useState("seating");
-  const topic = TOPICS.find((t) => t.id === activeTopic)!;
+  const topic = TOPICS.find(t => t.id === activeTopic)!;
+
+  const handleTopicChange = (id: string) => {
+    setActiveTopic(id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
 
-      {/* ── Hero ── */}
-      <section className="bg-muted/30 border-b border-border">
-        <div className="max-w-4xl mx-auto px-6 py-16 md:py-24">
-          <div className="space-y-6">
-            <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground">
+      {/* ── Hero with photo cards ── */}
+      <section className="border-b border-border">
+        <div className="max-w-6xl mx-auto px-6 pt-16 pb-0">
+
+          {/* Header text */}
+          <div className="max-w-2xl mb-10">
+            <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-4">
               The Outdoor Hospitality Guide
             </p>
-            <h1 className="font-display text-3xl md:text-5xl font-bold leading-[1.1] tracking-tight text-foreground">
+            <h1 className="font-display text-3xl md:text-5xl font-bold leading-[1.1] tracking-tight text-foreground mb-4">
               Everything you need to know
-              <br /> before furnishing your space.
+              <br />before furnishing your space.
             </h1>
-            <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">
-              From materials to regulations, table mix to maintenance — expert answers to the real questions hospitality professionals ask us every day. Use this guide to go from "I don't know where to start" to "I know exactly what I need and why."
+            <p className="text-base text-muted-foreground leading-relaxed">
+              From materials to regulations, table mix to maintenance — expert answers to the real questions hospitality professionals ask us every day.
             </p>
-            {/* Topic nav pills */}
-            <div className="flex flex-wrap gap-2 pt-2">
-              {TOPICS.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTopic(t.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-display font-semibold transition-all ${
-                    activeTopic === t.id
-                      ? "bg-foreground text-primary-foreground"
-                      : "border border-border text-muted-foreground hover:border-foreground hover:text-foreground"
-                  }`}
-                >
-                  <t.icon className="h-3.5 w-3.5" />
-                  {t.label}
-                </button>
-              ))}
-            </div>
+          </div>
+
+          {/* Photo card grid */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {TOPICS.map(t => (
+              <TopicPhotoCard
+                key={t.id}
+                topic={t}
+                isActive={activeTopic === t.id}
+                onClick={() => handleTopicChange(t.id)}
+              />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── Topic content ── */}
-      <section className="max-w-4xl mx-auto px-6 py-16">
+      {/* ── Topic content — 2-column layout ── */}
+      <section className="max-w-6xl mx-auto px-6 py-16">
         <AnimatePresence mode="wait">
           <motion.div
             key={topic.id}
@@ -373,108 +587,162 @@ const Resources = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.3 }}
+            className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-12"
           >
-            {/* Topic header */}
-            <div className="flex items-center gap-4 mb-10">
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: topic.color + "18", color: topic.color }}
-              >
-                <topic.icon className="h-5 w-5" />
+            {/* ── Main content column ── */}
+            <div>
+              {/* Topic header */}
+              <div className="flex items-center gap-4 mb-10">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: topic.color + "18", color: topic.color }}
+                >
+                  <topic.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-display text-2xl font-bold text-foreground">{topic.label}</h2>
+                  <p className="text-sm text-muted-foreground">{topic.subtitle}</p>
+                </div>
               </div>
-              <div>
-                <h2 className="font-display text-2xl font-bold text-foreground">
-                  {topic.label}
-                </h2>
-                <p className="text-sm text-muted-foreground">{topic.subtitle}</p>
+
+              {/* Guide body */}
+              <div className="mb-12">
+                <h3 className="font-display text-lg font-bold text-foreground mb-4">{topic.guide.title}</h3>
+                <div className="space-y-4">
+                  {topic.guide.body.trim().split("\n\n").map((para, i) => (
+                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{para}</p>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Guide */}
-            <div className="mb-12">
-              <h3 className="font-display text-lg font-bold text-foreground mb-4">
-                {topic.guide.title}
-              </h3>
-              <div className="space-y-4">
-                {topic.guide.body.trim().split("\n\n").map((para, i) => (
-                  <p key={i} className="text-sm text-muted-foreground leading-relaxed">
-                    {para}
-                  </p>
-                ))}
-              </div>
-            </div>
-
-            {/* Expert insight */}
-            <div className="bg-foreground text-primary-foreground rounded-lg p-6 mb-12">
-              <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-primary-foreground/50 mb-3">
-                Expert insight
-              </p>
-              <p className="text-sm leading-relaxed text-primary-foreground/80 italic">
-                "{topic.expert}"
-              </p>
-            </div>
-
-            {/* FAQ */}
-            <div className="mb-12">
-              <h3 className="font-display text-lg font-bold text-foreground mb-6 flex items-center gap-2">
-                <ChevronDown className="h-4 w-4" />
-                Frequently asked questions
-              </h3>
-              <FAQAccordion faqs={topic.faqs} />
-            </div>
-
-            {/* CTA band */}
-            <div className="bg-foreground rounded-lg p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div>
-                <h3 className="font-display text-lg font-bold text-primary-foreground mb-1">
-                  Ready to put this into practice?
-                </h3>
-                <p className="text-sm text-primary-foreground/60">
-                  Describe your project — our engine generates a curated selection matched to your space, style and budget.
+              {/* Expert insight */}
+              <div className="bg-foreground text-primary-foreground rounded-lg p-6 mb-12">
+                <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-primary-foreground/50 mb-3">
+                  Expert insight
+                </p>
+                <p className="text-sm leading-relaxed text-primary-foreground/80 italic">
+                  "{topic.expert}"
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => navigate("/projects/new")}
-                  className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm bg-primary-foreground text-foreground rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
-                >
-                  Start my project <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={() => navigate(topic.cta.href)}
-                  className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm border border-primary-foreground/30 text-primary-foreground/70 rounded-full hover:border-primary-foreground hover:text-primary-foreground transition-all whitespace-nowrap"
-                >
-                  {topic.cta.label}
-                </button>
+
+              {/* FAQ */}
+              <div className="mb-12">
+                <h3 className="font-display text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+                  <ChevronDown className="h-4 w-4" />
+                  Frequently asked questions
+                </h3>
+                <FAQAccordion faqs={topic.faqs} />
+              </div>
+
+              {/* CTA */}
+              <div className="bg-foreground rounded-lg p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div>
+                  <h3 className="font-display text-lg font-bold text-primary-foreground mb-1">
+                    Ready to put this into practice?
+                  </h3>
+                  <p className="text-sm text-primary-foreground/60">
+                    Describe your project — our engine generates a curated selection matched to your space, style and budget.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => navigate("/projects/new")}
+                    className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm bg-primary-foreground text-foreground rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
+                  >
+                    Start my project <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => navigate(topic.cta.href)}
+                    className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm border border-primary-foreground/30 text-primary-foreground/70 rounded-full hover:border-primary-foreground hover:text-primary-foreground transition-all whitespace-nowrap"
+                  >
+                    {topic.cta.label}
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* ── Sidebar ── */}
+            <aside className="hidden lg:block">
+              <div className="sticky top-28 space-y-6">
+
+                {/* Sidebar header */}
+                <div>
+                  <p className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">
+                    Related products
+                  </p>
+                  <div className="space-y-3">
+                    {topic.sidebarProducts.map((product, i) => (
+                      <SidebarProductCard key={i} product={product} color={topic.color} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sidebar CTA */}
+                <div
+                  className="rounded-sm p-4 border"
+                  style={{ borderColor: topic.color + "30", background: topic.color + "08" }}
+                >
+                  <p className="font-display font-bold text-sm text-foreground mb-1">
+                    Not sure what you need?
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                    Our Project Builder selects the right products for your space automatically.
+                  </p>
+                  <button
+                    onClick={() => navigate("/projects/new")}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 font-display font-semibold text-xs text-white rounded-full transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: topic.color }}
+                  >
+                    Launch my project <ArrowRight className="h-3 w-3" />
+                  </button>
+                </div>
+
+                {/* Topic switcher in sidebar */}
+                <div>
+                  <p className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                    Other topics
+                  </p>
+                  <div className="space-y-1">
+                    {TOPICS.filter(t => t.id !== activeTopic).map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => handleTopicChange(t.id)}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-sm text-left hover:bg-card transition-colors"
+                      >
+                        <t.icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <div>
+                          <p className="text-xs font-display font-semibold text-foreground">{t.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{t.faqs.length} questions</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </aside>
           </motion.div>
         </AnimatePresence>
       </section>
 
-      {/* ── Bottom topic switcher ── */}
-      <section className="border-t border-border bg-muted/20">
-        <div className="max-w-4xl mx-auto px-6 py-12">
-          <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-6">
+      {/* ── Mobile: bottom topic switcher ── */}
+      <section className="lg:hidden border-t border-border bg-muted/20">
+        <div className="max-w-4xl mx-auto px-6 py-10">
+          <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-5">
             Continue reading
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {TOPICS.map((t) => (
+          <div className="grid grid-cols-2 gap-3">
+            {TOPICS.map(t => (
               <button
                 key={t.id}
-                onClick={() => { setActiveTopic(t.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                onClick={() => handleTopicChange(t.id)}
                 className={`flex flex-col items-start gap-2 p-3 rounded-sm border text-left transition-all ${
-                  activeTopic === t.id
-                    ? "border-foreground bg-background"
-                    : "border-border hover:border-foreground/30"
+                  activeTopic === t.id ? "border-foreground bg-background" : "border-border hover:border-foreground/30"
                 }`}
               >
                 <t.icon className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs font-display font-semibold text-foreground">{t.label}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {t.faqs.length} questions
-                  </p>
+                  <p className="text-[10px] text-muted-foreground">{t.faqs.length} questions</p>
                 </div>
               </button>
             ))}
