@@ -785,12 +785,18 @@ function ProductsTab() {
   });
 
   const handleSave = async (data: ProductFormData) => {
-    const { id, ...rest } = data;
-    const dbData = {
+    const { id, publish_status, ...rest } = data;
+    const dbData: any = {
       ...rest,
       color_variants:    rest.color_variants as any,
       product_type_tags: rest.product_type_tags as any,
     };
+    // New products default to draft; existing keep their status unless explicitly changed
+    if (!id) {
+      dbData.publish_status = publish_status || "draft";
+    } else if (publish_status) {
+      dbData.publish_status = publish_status;
+    }
     try {
       if (id) {
         const { error } = await supabase.from("products").update(dbData).eq("id", id);
@@ -806,6 +812,17 @@ function ProductsTab() {
     } catch (err: any) {
       toast.error(err.message || "Failed to save");
       throw err;
+    }
+  };
+
+  const handlePublishAction = async (productId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase.from("products").update({ publish_status: newStatus } as any).eq("id", productId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success(newStatus === "published" ? "Product published" : "Product rejected");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update status");
     }
   };
 
