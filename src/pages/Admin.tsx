@@ -577,13 +577,21 @@ function ProductsTab() {
     if (!editing) return;
     setSaving(true);
     try {
-      const { id, ...data } = editing;
+      const { id, color_variants, product_type_tags, data_quality_score, archetype_id, archetype_confidence, ...data } = editing;
+      const dbData = {
+        ...data,
+        color_variants: color_variants as any,
+        product_type_tags: product_type_tags as any,
+        data_quality_score,
+        archetype_id,
+        archetype_confidence,
+      };
       if (id) {
-        const { error } = await supabase.from("products").update(data).eq("id", id);
+        const { error } = await supabase.from("products").update(dbData).eq("id", id);
         if (error) throw error;
         toast.success("Product updated");
       } else {
-        const { error } = await supabase.from("products").insert(data);
+        const { error } = await supabase.from("products").insert(dbData as any);
         if (error) throw error;
         toast.success("Product created");
       }
