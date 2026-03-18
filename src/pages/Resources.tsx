@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronDown, ArrowRight, Armchair, Layers, Sun, Ruler, Scale } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { TOPIC_ILLUSTRATIONS, SIDEBAR_ILLUSTRATIONS } from "@/components/resources/ResourceIllustrations";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
