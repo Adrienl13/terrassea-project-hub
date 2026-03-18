@@ -874,6 +874,9 @@ function assignLayoutRequirementsToRecommendations(
       table_base: [],
       tabletop: [],
       parasol: [],
+      sun_lounger: [],
+      bar_stool: [],
+      sofa: [],
       other: [],
     }
   );
