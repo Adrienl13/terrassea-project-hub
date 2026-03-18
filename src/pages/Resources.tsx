@@ -464,13 +464,12 @@ function SidebarProductCard({ product, color }: { product: SidebarProduct; color
       onClick={() => navigate(product.href)}
       className="group w-full text-left border border-border rounded-sm overflow-hidden hover:border-foreground/30 transition-all"
     >
-      <div className="aspect-[4/3] overflow-hidden bg-card">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          loading="lazy"
-        />
+      <div className="aspect-[4/3] overflow-hidden bg-card group-hover:scale-[1.02] transition-transform duration-500">
+        {SIDEBAR_ILLUSTRATIONS[product.name] ? (
+          (() => { const Illust = SIDEBAR_ILLUSTRATIONS[product.name]; return <Illust />; })()
+        ) : (
+          <div className="w-full h-full bg-muted" />
+        )}
       </div>
       <div className="p-3">
         <div className="flex items-start justify-between gap-2 mb-1">
