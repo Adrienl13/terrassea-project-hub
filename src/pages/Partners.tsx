@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import {
   Building2, Factory, Store, Palette, Handshake,
   ArrowRight, Star, Search, Lock, Package, Globe,
-  ChevronRight, ImageOff, Utensils,
+  ChevronRight, ImageOff,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════
@@ -384,64 +384,6 @@ export default function Partners() {
                 </div>
               ))}
             </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── ROLE PICKER ── */}
-      <section className="py-12 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-
-            {/* Fournisseur */}
-            <div className="border-2 border-foreground rounded-xl p-6 bg-card">
-              <div className="w-10 h-10 rounded-lg bg-foreground flex items-center justify-center mb-4">
-                <Factory className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <p className="font-display font-bold text-base text-foreground mb-1">
-                I supply furniture
-              </p>
-              <p className="text-xs font-body text-muted-foreground leading-relaxed mb-4">
-                Manufacturer, brand or reseller of outdoor CHR furniture.
-                List your products and reach hospitality buyers across Europe.
-              </p>
-              <span className="text-xs font-display font-semibold text-foreground">↓ Continue below</span>
-            </div>
-
-            {/* Designer / Architect */}
-            <Link to="/pro-service" className="border border-border rounded-xl p-6 bg-card hover:border-foreground transition-all group">
-              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center mb-4">
-                <Palette className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </div>
-              <p className="font-display font-bold text-base text-foreground mb-1">
-                I'm a designer / architect
-              </p>
-              <p className="text-xs font-body text-muted-foreground leading-relaxed mb-4">
-                Access curated CHR furniture and expert sourcing support
-                through Pro Service — at no cost to you.
-              </p>
-              <span className="text-xs font-display font-semibold text-[#D4603A] group-hover:underline">
-                Discover Pro Service →
-              </span>
-            </Link>
-
-            {/* Restaurant / Hôtel */}
-            <Link to="/projects/new" className="border border-border rounded-xl p-6 bg-card hover:border-foreground transition-all group">
-              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center mb-4">
-                <Utensils className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </div>
-              <p className="font-display font-bold text-base text-foreground mb-1">
-                I furnish my venue
-              </p>
-              <p className="text-xs font-body text-muted-foreground leading-relaxed mb-4">
-                Hotel, restaurant, beach club or rooftop.
-                Find and source the right furniture for your space — free.
-              </p>
-              <span className="text-xs font-display font-semibold text-[#D4603A] group-hover:underline">
-                Launch my project →
-              </span>
-            </Link>
-
           </div>
         </div>
       </section>
