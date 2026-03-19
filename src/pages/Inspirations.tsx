@@ -414,14 +414,14 @@ const Inspirations = () => {
             <div className="max-w-2xl">
               <div className="space-y-3">
                 <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-[0.2em]">
-                  Inspirations
+                  {t('inspirations.badge')}
                 </p>
                 <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground leading-[1.1]">
-                  Trouvez le style{"\n"}de votre espace
+                  {t('inspirations.headline')}
                 </h1>
               </div>
               <p className="text-sm text-muted-foreground font-body mt-4 max-w-lg leading-relaxed">
-                Palettes, matériaux et produits — chaque sélection est directement liée à notre catalogue.
+                {t('inspirations.subtitle')}
               </p>
             </div>
           </div>
