@@ -222,10 +222,10 @@ const ProjectCart = () => {
 
       localStorage.removeItem("terrassea_cart_form");
       setSubmitted(true);
-      toast.success("Project submitted! Our team will contact you within 48h.");
+      toast.success(t('projectCart.submitSuccess'));
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t('projectCart.submitError'));
     } finally {
       setSubmitting(false);
     }
