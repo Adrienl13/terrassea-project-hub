@@ -11,11 +11,11 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const CATEGORIES = [
-  "Chairs", "Armchairs", "Bar Stools", "Benches",
-  "Dining Tables", "Coffee Tables", "High Tables",
-  "Sun Loungers", "Sofas / Lounge", "Parasols",
-  "Pergolas / Shade", "Accessories",
+const CATEGORY_KEYS = [
+  "chairs", "armchairs", "barStools", "benches",
+  "diningTables", "coffeeTables", "highTables",
+  "sunLoungers", "sofas", "parasols",
+  "pergolas", "accessories",
 ];
 
 const COUNTRIES = [
@@ -48,63 +48,63 @@ const BecomePartner = () => {
   const PLANS = [
     {
       id: "starter",
-      name: t('becomePartnerPage.starterName'),
-      price: t('becomePartnerPage.starterPrice'),
-      sub: t('becomePartnerPage.starterSub'),
+      name: t('plans.starter'),
+      price: t('plans.free'),
+      sub: t('plans.starterSub', { percent: 8 }),
       commission: "8%",
-      badge: { label: t('becomePartnerPage.starterBadge'), bg: "hsl(var(--accent))", color: "hsl(var(--accent-foreground))" },
+      badge: { label: t('plans.noRisk'), bg: "hsl(var(--accent))", color: "hsl(var(--accent-foreground))" },
       features: [
-        { ok: true, label: t('becomePartnerPage.starterF1') },
-        { ok: true, label: t('becomePartnerPage.starterF2') },
-        { ok: true, label: t('becomePartnerPage.starterF3') },
-        { ok: true, label: t('becomePartnerPage.starterF4') },
-        { ok: true, label: t('becomePartnerPage.starterF5') },
-        { ok: false, label: t('becomePartnerPage.starterF6') },
-        { ok: false, label: t('becomePartnerPage.starterF7') },
-        { ok: false, label: t('becomePartnerPage.starterF8') },
+        { ok: true, label: t('plans.features.products30') },
+        { ok: true, label: t('plans.features.commission8') },
+        { ok: true, label: t('plans.features.logoDesc') },
+        { ok: true, label: t('plans.features.quoteAccess') },
+        { ok: true, label: t('plans.features.profilePage') },
+        { ok: false, label: t('plans.features.analytics') },
+        { ok: false, label: t('plans.features.verifiedBadge') },
+        { ok: false, label: t('plans.features.leads24') },
       ],
-      note: t('becomePartnerPage.starterNote'),
+      note: t('plans.starterNote'),
     },
     {
       id: "growth",
-      name: t('becomePartnerPage.growthName'),
-      price: t('becomePartnerPage.growthPrice'),
-      sub: t('becomePartnerPage.growthSub'),
+      name: t('plans.growth'),
+      price: "249€ HT",
+      sub: t('plans.growthSub', { percent: 5 }),
       commission: "5%",
-      badge: { label: t('becomePartnerPage.growthBadge'), bg: "hsl(var(--foreground))", color: "hsl(var(--primary-foreground))" },
+      badge: { label: t('plans.mostPopular'), bg: "hsl(var(--foreground))", color: "hsl(var(--primary-foreground))" },
       features: [
-        { ok: true, label: t('becomePartnerPage.growthF1') },
-        { ok: true, label: t('becomePartnerPage.growthF2') },
-        { ok: true, label: t('becomePartnerPage.growthF3') },
-        { ok: true, label: t('becomePartnerPage.growthF4') },
-        { ok: true, label: t('becomePartnerPage.growthF5') },
-        { ok: true, label: t('becomePartnerPage.growthF6') },
-        { ok: true, label: t('becomePartnerPage.growthF7') },
-        { ok: true, label: t('becomePartnerPage.growthF8') },
+        { ok: true, label: t('plans.features.products50') },
+        { ok: true, label: t('plans.features.commission5') },
+        { ok: true, label: t('plans.features.logoVisible') },
+        { ok: true, label: t('plans.features.boost2') },
+        { ok: true, label: t('plans.features.verifiedBadge') },
+        { ok: true, label: t('plans.features.analytics') },
+        { ok: true, label: t('plans.features.leads24') },
+        { ok: true, label: t('plans.features.stockSync') },
       ],
-      note: t('becomePartnerPage.growthNote'),
+      note: t('plans.growthNote'),
       featured: true,
     },
     {
       id: "elite",
-      name: t('becomePartnerPage.eliteName'),
-      price: t('becomePartnerPage.elitePrice'),
-      sub: t('becomePartnerPage.eliteSub'),
+      name: t('plans.elite'),
+      price: t('plans.custom'),
+      sub: t('plans.eliteSub'),
       commission: "3%",
-      badge: { label: t('becomePartnerPage.eliteBadge'), bg: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" },
+      badge: { label: t('plans.byInvitation'), bg: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" },
       features: [
-        { ok: true, label: t('becomePartnerPage.eliteF1') },
-        { ok: true, label: t('becomePartnerPage.eliteF2') },
-        { ok: true, label: t('becomePartnerPage.eliteF3') },
-        { ok: true, label: t('becomePartnerPage.eliteF4') },
-        { ok: true, label: t('becomePartnerPage.eliteF5') },
-        { ok: true, label: t('becomePartnerPage.eliteF6') },
-        { ok: true, label: t('becomePartnerPage.eliteF7') },
-        { ok: true, label: t('becomePartnerPage.eliteF8') },
-        { ok: true, label: t('becomePartnerPage.eliteF9') },
-        { ok: true, label: t('becomePartnerPage.eliteF10') },
+        { ok: true, label: t('plans.features.productsContract') },
+        { ok: true, label: t('plans.features.commission3') },
+        { ok: true, label: t('plans.features.logoName') },
+        { ok: true, label: t('plans.features.boost10') },
+        { ok: true, label: t('plans.features.brandedPage') },
+        { ok: true, label: t('plans.features.accountManager') },
+        { ok: true, label: t('plans.features.apiSync') },
+        { ok: true, label: t('plans.features.advancedAnalytics') },
+        { ok: true, label: t('plans.features.coMarketing') },
+        { ok: true, label: t('plans.features.proLeads') },
       ],
-      note: t('becomePartnerPage.eliteNote'),
+      note: t('plans.eliteNote'),
     },
   ];
 
@@ -348,7 +348,7 @@ const BecomePartner = () => {
               >
                 {plan.featured && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-foreground text-primary-foreground text-[10px] font-display font-semibold px-3 py-1 rounded-full">
-                    {t('becomePartnerPage.growthBadge')}
+                    {t('plans.mostPopular')}
                   </div>
                 )}
                 <div className="flex items-center justify-between mb-4">
@@ -364,7 +364,7 @@ const BecomePartner = () => {
                 <p className="text-xs font-body text-muted-foreground mt-1">{plan.sub}</p>
                 <div className="mt-4 mb-5 inline-flex items-center gap-1.5 bg-muted rounded-full px-3 py-1.5">
                   <span className="font-display font-bold text-sm text-foreground">{plan.commission}</span>
-                  <span className="text-[10px] font-body text-muted-foreground">{t('becomePartnerPage.commission')}</span>
+                  <span className="text-[10px] font-body text-muted-foreground">{t('plans.commission')}</span>
                 </div>
                 <ul className="space-y-2.5">
                   {plan.features.map((f) => (
@@ -393,7 +393,7 @@ const BecomePartner = () => {
                       : "border border-border text-muted-foreground hover:border-foreground hover:text-foreground"
                   }`}
                 >
-                  {plan.id === "elite" ? t('becomePartnerPage.contactUs') : t('becomePartnerPage.applyWithPlan')}
+                  {plan.id === "elite" ? t('plans.contactUs') : t('plans.applyPlan')}
                 </button>
                 <p className="mt-5 text-[10px] font-body text-muted-foreground leading-relaxed border-t border-border pt-4">
                   {plan.note}
@@ -488,18 +488,18 @@ const BecomePartner = () => {
                   <span className="font-normal normal-case tracking-normal">({t('becomePartnerPage.selectAllApply')})</span>
                 </label>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {CATEGORIES.map((cat) => (
+                  {CATEGORY_KEYS.map((key) => (
                     <button
-                      key={cat}
+                      key={key}
                       type="button"
-                      onClick={() => toggleCategory(cat)}
+                      onClick={() => toggleCategory(key)}
                       className={`text-[11px] font-body px-2.5 py-1 rounded-full border transition-all ${
-                        form.productCategories.includes(cat)
+                        form.productCategories.includes(key)
                           ? "bg-foreground text-primary-foreground border-foreground"
                           : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
                       }`}
                     >
-                      {cat}
+                      {t(`categories.${key}`)}
                     </button>
                   ))}
                 </div>
