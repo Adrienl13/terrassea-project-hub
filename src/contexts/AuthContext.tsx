@@ -39,12 +39,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await (supabase
-      .from("user_profiles" as any)
-      .select("*")
-      .eq("id", userId)
-      .single() as any);
-    setProfile(data ?? null);
+    try {
+      const { data } = await (supabase
+        .from("user_profiles" as any)
+        .select("*")
+        .eq("id", userId)
+        .single() as any);
+      setProfile(data ?? null);
+    } catch {
+      setProfile(null);
+    }
   };
 
   const refreshProfile = async () => {
