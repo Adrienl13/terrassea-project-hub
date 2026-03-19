@@ -356,6 +356,7 @@ function SettingsSection({ profile }: { profile: any }) {
 // ── Main Account component ────────────────────────────────────────────────────
 
 const Account = () => {
+  const { t } = useTranslation();
   const { profile, isLoading, signOut } = useAuth();
   const { favourites, toggleFavourite } = useFavourites();
   const navigate = useNavigate();
