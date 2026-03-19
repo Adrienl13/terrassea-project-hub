@@ -266,7 +266,7 @@ const ProService = () => {
               </div>
 
               {/* No */}
-              <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-3">Better options for you if…</p>
+              <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-3">{t('proService.betterOptions')}</p>
               <div className="space-y-2.5 mb-4">
                 {FOR_WHO_NO.map((item, i) => (
                   <div key={i} className="flex gap-3 p-3 rounded-xl border border-border bg-card">
