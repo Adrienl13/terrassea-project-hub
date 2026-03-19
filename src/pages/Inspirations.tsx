@@ -501,7 +501,7 @@ const Inspirations = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             {filtered.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-sm text-muted-foreground">Aucun moodboard pour cette combinaison.</p>
+                <p className="text-sm text-muted-foreground">{t('inspirations.noMoodboards')}</p>
               </div>
             ) : (
               <AnimatePresence mode="wait">
