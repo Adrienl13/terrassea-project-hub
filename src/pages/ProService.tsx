@@ -140,10 +140,10 @@ const ProService = () => {
               <Sparkles className="h-8 w-8 text-amber-600" />
             </div>
             <h1 className="font-display text-xl font-bold tracking-tight mb-4">
-              Great news — your project is a perfect fit for our Project Builder.
+              {t('proService.notQualifiedTitle')}
             </h1>
             <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">
-              Pro Service is designed for projects above {MIN_COVERS} covers or €{MIN_BUDGET.toLocaleString()} budget. Your project is well-served by our self-service tools — faster, simpler, and just as effective.
+              {t('proService.notQualifiedDesc', { covers: MIN_COVERS, budget: MIN_BUDGET.toLocaleString() })}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => navigate("/projects/new")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90">
