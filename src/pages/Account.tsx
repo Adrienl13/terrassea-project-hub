@@ -26,11 +26,11 @@ type Section =
 // ── Nav config per profile ────────────────────────────────────────────────────
 
 const NAV_CLIENT = [
-  { id: "overview",   icon: LayoutDashboard, label: "Overview" },
-  { id: "projects",   icon: FolderOpen,      label: "My projects" },
-  { id: "quotes",     icon: MessageSquare,   label: "Quote requests" },
-  { id: "favourites", icon: Heart,           label: "Favourites" },
-  { id: "settings",   icon: Settings,        label: "Profile settings" },
+  { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "projects",   icon: FolderOpen,      labelKey: "account.myProjects" },
+  { id: "quotes",     icon: MessageSquare,   labelKey: "account.quoteRequests" },
+  { id: "favourites", icon: Heart,           labelKey: "account.favourites" },
+  { id: "settings",   icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
 const NAV_PARTNER = [
