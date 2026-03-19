@@ -533,6 +533,7 @@ function TopicPhotoCard({ topic, isActive, onClick }: { topic: Topic; isActive: 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 const Resources = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTopic, setActiveTopic] = useState("seating");
   const topic = TOPICS.find(t => t.id === activeTopic)!;
