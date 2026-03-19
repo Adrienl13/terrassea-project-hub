@@ -17,11 +17,7 @@ import type { CartItem } from "@/contexts/ProjectCartContext";
 
 // ── Progress steps ────────────────────────────────────────────────────────────
 
-const STEPS = [
-{ id: 1, label: "Selection" },
-{ id: 2, label: "Suppliers" },
-{ id: 3, label: "Details" },
-{ id: 4, label: "Submit" }];
+const STEP_KEYS = ["selection", "suppliers", "details", "submit"] as const;
 
 
 function getCurrentStep(items: CartItem[]): number {
@@ -31,43 +27,35 @@ function getCurrentStep(items: CartItem[]): number {
   return 3;
 }
 
-function ProgressSteps({ current }: {current: number;}) {
+function ProgressSteps({ current, t }: {current: number; t: (k: string) => string}) {
   return (
     <div className="flex items-center justify-between mb-8">
-      {STEPS.map((step, i) => {
-        const isDone = current > step.id;
-        const isActive = current === step.id;
-        const isLast = i === STEPS.length - 1;
+      {STEP_KEYS.map((key, i) => {
+        const stepId = i + 1;
+        const isDone = current > stepId;
+        const isActive = current === stepId;
+        const isLast = i === STEP_KEYS.length - 1;
         return (
-          <div key={step.id} className="flex items-center flex-1">
+          <div key={key} className="flex items-center flex-1">
             <div className="flex flex-col items-center">
               <div
                 className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-display font-bold transition-colors ${
                 isDone || isActive ?
                 "bg-foreground text-primary-foreground" :
-                "bg-muted text-muted-foreground"}`
-                }>
-                
-                {isDone ? "✓" : step.id}
+                "bg-muted text-muted-foreground"}`}>
+                {isDone ? "✓" : stepId}
               </div>
               <span
                 className={`hidden md:block text-[10px] font-display uppercase tracking-wider mt-1 ${
-                isDone || isActive ? "text-foreground font-semibold" : "text-muted-foreground"}`
-                }>
-                
-                {step.label}
+                isDone || isActive ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
+                {t(`projectCart.${key}`)}
               </span>
             </div>
             {!isLast &&
-            <div
-              className={`flex-1 h-px mx-2 ${isDone ? "bg-foreground" : "bg-border"}`} />
-
-            }
+            <div className={`flex-1 h-px mx-2 ${isDone ? "bg-foreground" : "bg-border"}`} />}
           </div>);
-
       })}
     </div>);
-
 }
 
 // ── SIREN lookup ──────────────────────────────────────────────────────────────
@@ -180,20 +168,20 @@ const ProjectCart = () => {
   setFormData((p) => ({ ...p, [field]: e.target.value }));
 
   const handleSave = () => {
-    toast.success("Project saved locally — you can continue later.");
+    toast.success(t('projectCart.savedSuccess'));
   };
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.email || !formData.phone || !formData.siren) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t('projectCart.fillRequired'));
       return;
     }
     if (formData.siren.length !== 9) {
-      toast.error("SIREN must be 9 digits.");
+      toast.error(t('projectCart.sirenDigits'));
       return;
     }
     if (items.length === 0) {
-      toast.error("Add at least one product to your project.");
+      toast.error(t('projectCart.addProduct'));
       return;
     }
     setSubmitting(true);
@@ -234,10 +222,10 @@ const ProjectCart = () => {
 
       localStorage.removeItem("terrassea_cart_form");
       setSubmitted(true);
-      toast.success("Project submitted! Our team will contact you within 48h.");
+      toast.success(t('projectCart.submitSuccess'));
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t('projectCart.submitError'));
     } finally {
       setSubmitting(false);
     }
@@ -259,15 +247,14 @@ const ProjectCart = () => {
             <div className="w-16 h-16 rounded-full bg-green-500/10 text-green-700 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
               ✓
             </div>
-            <h1 className="font-display text-3xl font-bold text-foreground">Project submitted</h1>
+            <h1 className="font-display text-3xl font-bold text-foreground">{t('projectCart.submittedTitle')}</h1>
             <p className="text-muted-foreground font-body mt-4 max-w-md mx-auto">
-              Thank you! Our sourcing team will review your project and send precise quotes from each supplier within 48 hours.
+              {t('projectCart.submittedDesc')}
             </p>
             <Link
               to="/"
               className="inline-flex items-center gap-2 mt-8 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full">
-              
-              Back to homepage
+              {t('projectCart.backToHomepage')}
             </Link>
           </motion.div>
         </div>
@@ -287,19 +274,19 @@ const ProjectCart = () => {
         <div className="container mx-auto">
           {/* Back */}
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground mb-8">
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('projectCart.back')}
           </Link>
 
           {/* Title */}
           <div className="mb-6">
-            <h1 className="font-display text-3xl font-bold text-foreground">My Project</h1>
+            <h1 className="font-display text-3xl font-bold text-foreground">{t('projectCart.title')}</h1>
             <p className="text-sm text-muted-foreground font-body mt-1">
-              Review your selection, confirm suppliers and submit for sourcing
+              {t('projectCart.subtitle')}
             </p>
           </div>
 
           {/* Progress */}
-          {items.length > 0 && <ProgressSteps current={currentStep} />}
+          {items.length > 0 && <ProgressSteps current={currentStep} t={t} />}
 
           {/* Sourcing summary + alerts */}
           {items.length > 0 &&
@@ -315,9 +302,9 @@ const ProjectCart = () => {
             <div className="lg:col-span-3">
               {items.length === 0 ?
               <div className="bg-card rounded-sm p-12 text-center">
-                  <p className="text-muted-foreground font-body">No products in your project yet.</p>
+                  <p className="text-muted-foreground font-body">{t('projectCart.noProducts')}</p>
                   <Link to="/" className="text-sm font-display font-semibold text-foreground mt-4 inline-block hover:underline">
-                    Start designing →
+                    {t('projectCart.startDesigning')}
                   </Link>
                 </div> :
 
@@ -370,7 +357,7 @@ const ProjectCart = () => {
 
                             <div className="inline-flex items-center gap-1.5 mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-body" style={{ background: "rgba(186,117,23,.08)", color: "#854F0B", border: "0.5px solid rgba(186,117,23,.2)" }}>
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-                                    No supplier
+                                    {t('projectCart.noSupplier')}
                                   </div>
                             }
                               </div>
@@ -403,7 +390,7 @@ const ProjectCart = () => {
                                     <p className="font-display font-semibold text-foreground text-base">~€{((selectedSupplier?.price ?? (product as any).price_min) * quantity).toLocaleString("fr-FR")}</p>
                                   </> :
 
-                            <p className="text-[10px] text-muted-foreground font-body">On request</p>
+                            <p className="text-[10px] text-muted-foreground font-body">{t('projectCart.onRequest')}</p>
                             }
                               </div>
 
@@ -422,37 +409,37 @@ const ProjectCart = () => {
                   <div className="flex items-center justify-around p-4 bg-card rounded-sm mt-6">
                     <div className="text-center">
                       <span className="font-display font-bold text-lg text-foreground block">{items.length}</span>
-                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Products</span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">{t('projectCart.products')}</span>
                     </div>
                     <div className="text-center">
                       <span className="font-display font-bold text-lg text-foreground block">
                         {items.reduce((s, i) => s + i.quantity, 0)}
                       </span>
-                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Units</span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">{t('projectCart.units')}</span>
                     </div>
                     <div className="text-center">
                       <span className="font-display font-bold text-lg text-foreground block">
                         {hasBudget ? `~€${totalBudget.toLocaleString("fr-FR")}` : "—"}
                       </span>
-                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Indicative</span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">{t('projectCart.indicative')}</span>
                     </div>
                   </div>
 
                   {hasBudget &&
                 <p className="text-[10px] text-muted-foreground font-body mt-2 text-center">
-                      Indicative total · excl. delivery & VAT · final quotes may vary by volume and supplier conditions
+                      {t('projectCart.indicativeNotice')}
                     </p>
                 }
 
                   {/* Notes */}
                   <div className="mt-6">
                     <label className="font-display font-semibold text-sm text-foreground block mb-2">
-                      Project notes
+                      {t('projectCart.projectNotes')}
                     </label>
                     <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Describe your requirements, deadline, specific finishes..."
+                    placeholder={t('projectCart.notesPlaceholder')}
                     rows={3}
                     className="w-full bg-card rounded-sm border border-border p-4 text-sm font-body text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-foreground resize-none" />
                   
@@ -461,7 +448,7 @@ const ProjectCart = () => {
                   {/* Auto-save notice */}
                   <div className="flex items-center gap-2 text-[10px] font-body text-muted-foreground mt-2">
                     <Save className="h-3 w-3" />
-                    <span>Your project details are saved locally</span>
+                    <span>{t('projectCart.savedLocally')}</span>
                   </div>
                 </>
               }
@@ -470,32 +457,32 @@ const ProjectCart = () => {
             {/* ── RIGHT — Form ──────────────────────────────────────────── */}
             <div className="lg:col-span-2">
               <div className="lg:sticky lg:top-28 space-y-4">
-                <h2 className="font-display font-bold text-base text-foreground">Contact & delivery</h2>
+                <h2 className="font-display font-bold text-base text-foreground">{t('projectCart.contactDelivery')}</h2>
 
                 {/* Required fields */}
                 <div className="space-y-3">
                   <div>
-                    <label className={labelClass}>Full name *</label>
-                    <input type="text" value={formData.name} onChange={handle("name")} placeholder="Jean Dupont" className={inputClass} />
+                    <label className={labelClass}>{t('projectCart.fullName')} *</label>
+                    <input type="text" value={formData.name} onChange={handle("name")} placeholder={t('projectCart.placeholders.fullName')} className={inputClass} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className={labelClass}>Email *</label>
-                      <input type="email" value={formData.email} onChange={handle("email")} placeholder="jean@restaurant.fr" className={inputClass} />
+                      <label className={labelClass}>{t('projectCart.email')} *</label>
+                      <input type="email" value={formData.email} onChange={handle("email")} placeholder={t('projectCart.placeholders.email')} className={inputClass} />
                     </div>
                     <div>
-                      <label className={labelClass}>Phone *</label>
-                      <input type="tel" value={formData.phone} onChange={handle("phone")} placeholder="+33 6 12 34 56 78" className={inputClass} />
+                      <label className={labelClass}>{t('projectCart.phone')} *</label>
+                      <input type="tel" value={formData.phone} onChange={handle("phone")} placeholder={t('projectCart.placeholders.phone')} className={inputClass} />
                     </div>
                   </div>
 
                   {/* SIREN */}
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
-                      <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">SIREN *</label>
+                      <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('projectCart.siren')} *</label>
                       {sirenChecking &&
-                      <span className="text-[10px] text-muted-foreground animate-pulse">Checking...</span>
+                      <span className="text-[10px] text-muted-foreground animate-pulse">{t('projectCart.checking')}</span>
                       }
                       {sirenResult && !sirenChecking &&
                       <span className="text-[10px] text-green-600 font-semibold">
@@ -503,7 +490,7 @@ const ProjectCart = () => {
                         </span>
                       }
                       {sirenError && !sirenChecking &&
-                      <span className="text-[10px] text-destructive">Not found</span>
+                      <span className="text-[10px] text-destructive">{t('projectCart.notFound')}</span>
                       }
                     </div>
                     <input
@@ -513,7 +500,7 @@ const ProjectCart = () => {
                         const val = e.target.value.replace(/\D/g, "").slice(0, 9);
                         setFormData((p) => ({ ...p, siren: val }));
                       }}
-                      placeholder="123456789"
+                      placeholder={t('projectCart.placeholders.siren')}
                       className={`${inputClass} ${sirenResult ? "border-green-500" : sirenError ? "border-destructive" : ""}`} />
                     
 
@@ -527,13 +514,13 @@ const ProjectCart = () => {
                         className="mt-2 p-3 bg-green-500/5 border border-green-500/20 rounded-lg">
                         
                           <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-green-700">
-                            Delivery address — auto-filled
+                            {t('projectCart.deliveryAddress')}
                           </p>
                           <p className="text-sm font-body text-foreground mt-1">
                             {sirenResult.address}
                           </p>
                           <p className="text-[10px] text-muted-foreground font-body mt-1">
-                            Delivery costs will be calculated per supplier based on this address
+                            {t('projectCart.deliveryCosts')}
                           </p>
                         </motion.div>
                       }
@@ -546,7 +533,7 @@ const ProjectCart = () => {
                   onClick={() => setShowOptional(!showOptional)}
                   className="w-full text-xs font-body text-muted-foreground hover:text-foreground transition-colors text-left flex items-center justify-between py-1">
                   
-                  <span>{showOptional ? "Hide" : "+"} optional details (budget, timeline...)</span>
+                  <span>{showOptional ? t('projectCart.hideOptional') : t('projectCart.optionalDetails')}</span>
                   <span>{showOptional ? "−" : "+"}</span>
                 </button>
 
@@ -559,19 +546,19 @@ const ProjectCart = () => {
                     className="space-y-3">
                     
                       <div>
-                        <label className={labelClass}>Budget range</label>
-                        <input type="text" value={formData.budget} onChange={handle("budget")} placeholder="€5,000 – €15,000" className={inputClass} />
+                        <label className={labelClass}>{t('projectCart.budgetRange')}</label>
+                        <input type="text" value={formData.budget} onChange={handle("budget")} placeholder={t('projectCart.budgetPlaceholder')} className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Timeline</label>
-                        <input type="text" value={formData.timeline} onChange={handle("timeline")} placeholder="June 2026" className={inputClass} />
+                        <label className={labelClass}>{t('projectCart.timeline')}</label>
+                        <input type="text" value={formData.timeline} onChange={handle("timeline")} placeholder={t('projectCart.timelinePlaceholder')} className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Additional notes</label>
+                        <label className={labelClass}>{t('projectCart.additionalNotes')}</label>
                         <textarea
                         value={formData.notes}
                         onChange={handle("notes")}
-                        placeholder="Any specific requirements..."
+                        placeholder={t('projectCart.additionalNotesPlaceholder')}
                         rows={3}
                         className="w-full text-sm font-body bg-card border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50 resize-none" />
                       
@@ -587,18 +574,18 @@ const ProjectCart = () => {
                     disabled={submitting || items.length === 0}
                     className="w-full py-3.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-40">
                     
-                    {submitting ? "Submitting..." : "Submit for sourcing →"}
+                    {submitting ? t('projectCart.submitting') : t('projectCart.submitForSourcing')}
                   </button>
                   <button
                     onClick={handleSave}
                     className="w-full py-3 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all flex items-center justify-center gap-2">
                     
-                    <Save className="h-3.5 w-3.5" /> Save for later
+                    <Save className="h-3.5 w-3.5" /> {t('projectCart.saveForLater')}
                   </button>
                 </div>
 
                 <p className="text-[10px] text-muted-foreground font-body text-center leading-relaxed">
-                  Precise quotes from each supplier within 48h · No commitment required
+                  {t('projectCart.preciseQuotes')}
                 </p>
               </div>
             </div>
@@ -615,7 +602,7 @@ const ProjectCart = () => {
         quantity={selectedProduct ? items.find((i) => i.product.id === selectedProduct.id)?.quantity : undefined}
         showSuppliers
         onAddToQuotation={() => {
-          toast.success(`${selectedProduct?.name} confirmed`);
+          toast.success(`${selectedProduct?.name} ${t('projectCart.confirmed')}`);
           setDrawerOpen(false);
         }} />
       
