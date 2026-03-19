@@ -286,7 +286,7 @@ const ProjectCart = () => {
           </div>
 
           {/* Progress */}
-          {items.length > 0 && <ProgressSteps current={currentStep} />}
+          {items.length > 0 && <ProgressSteps current={currentStep} t={t} />}
 
           {/* Sourcing summary + alerts */}
           {items.length > 0 &&
