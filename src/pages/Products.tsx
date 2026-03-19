@@ -268,7 +268,7 @@ const Products = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name, material, color, style..."
+                placeholder={t('products.searchPlaceholder')}
                 className="w-full pl-11 pr-4 py-3 text-sm font-body bg-card border border-border rounded-full focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all placeholder:text-muted-foreground"
               />
               {search && (
