@@ -731,18 +731,18 @@ const Resources = () => {
             {t('resources.continueReading')}
           </p>
           <div className="grid grid-cols-2 gap-3">
-            {TOPICS.map(t => (
+            {TOPICS.map(tp => (
               <button
-                key={t.id}
-                onClick={() => handleTopicChange(t.id)}
+                key={tp.id}
+                onClick={() => handleTopicChange(tp.id)}
                 className={`flex flex-col items-start gap-2 p-3 rounded-sm border text-left transition-all ${
-                  activeTopic === t.id ? "border-foreground bg-background" : "border-border hover:border-foreground/30"
+                  activeTopic === tp.id ? "border-foreground bg-background" : "border-border hover:border-foreground/30"
                 }`}
               >
-                <t.icon className="h-4 w-4 text-muted-foreground" />
+                <tp.icon className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs font-display font-semibold text-foreground">{t.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{t.faqs.length} questions</p>
+                  <p className="text-xs font-display font-semibold text-foreground">{tp.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{tp.faqs.length} {t('resources.questions')}</p>
                 </div>
               </button>
             ))}
