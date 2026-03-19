@@ -20,6 +20,7 @@ import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
   const { isFavourite, toggleFavourite } = useFavourites();
