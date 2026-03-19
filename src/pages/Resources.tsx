@@ -727,7 +727,7 @@ const Resources = () => {
       <section className="lg:hidden border-t border-border bg-muted/20">
         <div className="max-w-4xl mx-auto px-6 py-10">
           <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-5">
-            Continue reading
+            {t('resources.continueReading')}
           </p>
           <div className="grid grid-cols-2 gap-3">
             {TOPICS.map(t => (
