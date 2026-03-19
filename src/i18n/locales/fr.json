@@ -1,0 +1,13 @@
+{
+  "nav": {
+    "explore": "Explorer",
+    "products": "Produits",
+    "inspirations": "Inspirations",
+    "guide": "Guide",
+    "partners": "Partenaires",
+    "proService": "Service Pro",
+    "myProject": "Mon Projet",
+    "myAccount": "Mon Compte",
+    "launchProject": "Lancer mon projet"
+  }
+}
