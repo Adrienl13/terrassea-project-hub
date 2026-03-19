@@ -486,7 +486,7 @@ const Account = () => {
                   onClick={() => navigate("/products")}
                   className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
                 >
-                  Browse catalogue
+                  {t('account.browseCatalogue')}
                 </button>
               </div>
             </div>
