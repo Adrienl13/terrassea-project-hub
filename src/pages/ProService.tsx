@@ -388,8 +388,8 @@ const ProService = () => {
                     </div>
                     <div>
                       <label className={labelClass}>
-                        Indicative budget
-                        <span className="font-normal normal-case tracking-normal text-muted-foreground"> (excl. delivery)</span>
+                        {t('proService.formFields.budget')}
+                        <span className="font-normal normal-case tracking-normal text-muted-foreground"> {t('proService.formFields.budgetExcl')}</span>
                       </label>
                       <input type="text" value={form.budget} onChange={handle("budget")} placeholder="e.g. €50,000"
                         className={`${inputClass} ${parseBudget(form.budget) && parseBudget(form.budget)! >= MIN_BUDGET ? "border-green-500" : parseBudget(form.budget) && parseBudget(form.budget)! < MIN_BUDGET ? "border-amber-400" : ""}`} />
