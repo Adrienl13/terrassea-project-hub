@@ -66,6 +66,22 @@ const Products = () => {
   const [sortKey, setSortKey] = useState<SortKey>("popular");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
+  // Sync filters from URL params on mount
+  useEffect(() => {
+    const category = searchParams.get("category");
+    const sub = searchParams.get("sub");
+    if (category) {
+      const formatted = category.charAt(0).toUpperCase() + category.slice(1).replace("-", " ");
+      setFilters(prev => ({
+        ...prev,
+        categories: [formatted],
+      }));
+    }
+    if (sub) {
+      setSearch(sub.replace("-", " "));
+    }
+  }, [searchParams]);
+
   const activeFilterCount =
     filters.categories.length + filters.usage.length + filters.materials.length +
     filters.styles.length + filters.colors.length + filters.features.length +
