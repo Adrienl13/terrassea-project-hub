@@ -276,19 +276,19 @@ const ProductDetail = () => {
                 <div className="space-y-3">
                   {product.style_tags.length > 0 && (
                     <div className="flex items-baseline gap-3">
-                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">Style</span>
+                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">{t('productDetail.style')}</span>
                       <span className="text-xs font-body text-foreground capitalize">{product.style_tags.join(" / ")}</span>
                     </div>
                   )}
                   {product.material_tags.length > 0 && (
                     <div className="flex items-baseline gap-3">
-                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">Material</span>
+                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">{t('productDetail.material')}</span>
                       <span className="text-xs font-body text-foreground capitalize">{product.material_tags.join(" / ")}</span>
                     </div>
                   )}
                   {product.use_case_tags.length > 0 && (
                     <div className="flex items-baseline gap-3">
-                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">Suitable for</span>
+                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">{t('productDetail.suitableFor')}</span>
                       <span className="text-xs font-body text-foreground capitalize">{product.use_case_tags.join(" / ")}</span>
                     </div>
                   )}
