@@ -553,14 +553,13 @@ const Resources = () => {
           {/* Header text */}
           <div className="max-w-2xl mb-10">
             <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-4">
-              The Outdoor Hospitality Guide
+              {t('resources.title')}
             </p>
             <h1 className="font-display text-3xl md:text-5xl font-bold leading-[1.1] tracking-tight text-foreground mb-4">
-              Everything you need to know
-              <br />before furnishing your space.
+              {t('resources.heroTitle')}
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed">
-              From materials to regulations, table mix to maintenance — expert answers to the real questions hospitality professionals ask us every day.
+              {t('resources.subtitle')}
             </p>
           </div>
 
