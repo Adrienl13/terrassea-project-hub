@@ -27,35 +27,12 @@ function parseBudget(val: string): number | null {
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
-const INCLUDES = [
-  {
-    icon: Clock,
-    title: "48h expert brief",
-    desc: "A Terrassea sourcing expert analyses your project and comes back with a tailored approach within 48 business hours.",
-    accent: "#FAECE7",
-    iconColor: "#D85A30",
-  },
-  {
-    icon: Sparkles,
-    title: "3 curated proposals",
-    desc: "Products matched to your space, style, budget and technical constraints — with matched suppliers and net pricing.",
-    accent: "#E6F1FB",
-    iconColor: "#378ADD",
-  },
-  {
-    icon: Users,
-    title: "Multi-supplier coordination",
-    desc: "One point of contact for all quotes, delivery scheduling and supplier follow-up. We consolidate the complexity.",
-    accent: "#E6F1FB",
-    iconColor: "#378ADD",
-  },
-  {
-    icon: Shield,
-    title: "Free for the client",
-    desc: "Our fee is paid by suppliers on confirmed orders. You get expert sourcing at zero cost.",
-    accent: "#E1F5EE",
-    iconColor: "#1D9E75",
-  },
+// INCLUDES icons config (titles/desc come from t())
+const INCLUDES_ICONS = [
+  { icon: Clock, accent: "#FAECE7", iconColor: "#D85A30", titleKey: "proService.card1Title", descKey: "proService.card1Desc" },
+  { icon: Sparkles, accent: "#E6F1FB", iconColor: "#378ADD", titleKey: "proService.card2Title", descKey: "proService.card2Desc" },
+  { icon: Users, accent: "#E6F1FB", iconColor: "#378ADD", titleKey: "proService.card3Title", descKey: "proService.card3Desc" },
+  { icon: Shield, accent: "#E1F5EE", iconColor: "#1D9E75", titleKey: "proService.card4Title", descKey: "proService.card4Desc" },
 ];
 
 const FOR_WHO_YES = [
