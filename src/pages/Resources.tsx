@@ -703,16 +703,16 @@ const Resources = () => {
                     {t('resources.otherTopics')}
                   </p>
                   <div className="space-y-1">
-                    {TOPICS.filter(t => t.id !== activeTopic).map(t => (
+                    {TOPICS.filter(tp => tp.id !== activeTopic).map(tp => (
                       <button
-                        key={t.id}
-                        onClick={() => handleTopicChange(t.id)}
+                        key={tp.id}
+                        onClick={() => handleTopicChange(tp.id)}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-sm text-left hover:bg-card transition-colors"
                       >
-                        <t.icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <tp.icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                         <div>
-                          <p className="text-xs font-display font-semibold text-foreground">{t.label}</p>
-                          <p className="text-[10px] text-muted-foreground">{t.faqs.length} {t('resources.questions')}</p>
+                          <p className="text-xs font-display font-semibold text-foreground">{tp.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{tp.faqs.length} {t('resources.questions')}</p>
                         </div>
                       </button>
                     ))}
