@@ -290,7 +290,110 @@
     "ctaTitle": "¿No encuentras tu estilo?",
     "ctaDesc": "Describe tu espacio — nuestro motor genera 3 conceptos a medida con los productos adecuados.",
     "ctaLaunch": "Lanzar mi proyecto →",
-    "ctaCatalogue": "Explorar catálogo"
+    "ctaCatalogue": "Explorar catálogo",
+    "filterByVenue": "Por tipo de establecimiento",
+    "filterByStyle": "Por estilo",
+    "shopTheLook": "Comprar este look",
+    "inspi": "inspi.",
+    "venues": {
+      "restaurant": "Restaurante",
+      "hotel": "Hotel",
+      "rooftop": "Azotea",
+      "beachclub": "Beach Club",
+      "camping": "Camping"
+    },
+    "styles": {
+      "bistro": "Bistro",
+      "mediterranean": "Mediterráneo",
+      "beachClub": "Beach Club",
+      "urban": "Urbano",
+      "lounge": "Lounge",
+      "nordic": "Nórdico",
+      "natural": "Natural"
+    },
+    "moods": {
+      "convivial": "Convivial",
+      "authentic": "Auténtico",
+      "warm": "Cálido",
+      "relaxed": "Relajado",
+      "contemporary": "Contemporáneo",
+      "evening": "Noche",
+      "refined": "Refinado",
+      "highEnd": "Alta gama",
+      "pure": "Depurado",
+      "functional": "Funcional",
+      "fourSeasons": "4 estaciones",
+      "durable": "Duradero",
+      "ecoFriendly": "Eco-responsable",
+      "ibizaStyle": "Estilo Ibiza",
+      "marineResistance": "Resistencia marina",
+      "windResistance": "Resistencia al viento",
+      "highTraffic": "Alto tráfico",
+      "heavyUse": "Uso intensivo",
+      "saltResistant": "Resistente a la sal"
+    },
+    "moodboardNames": {
+      "cafeParisien": "Café Parisino",
+      "rivieraMed": "Riviera Mediterránea",
+      "beachClub": "Beach Club",
+      "rooftopUrban": "Rooftop Urban",
+      "loungeLuxe": "Lounge Luxe",
+      "nordicCalm": "Nordic Calm",
+      "naturalOrganic": "Natural & Orgánico"
+    },
+    "moodboardTaglines": {
+      "cafeParisien": "El alma de las terrazas parisinas",
+      "rivieraMed": "Calidez del sur, materiales nobles",
+      "beachClub": "Espíritu Ibiza, confort 5 estrellas",
+      "rooftopUrban": "Sofisticación sobre los tejados",
+      "loungeLuxe": "El gran confort outdoor redefinido",
+      "nordicCalm": "Pureza escandinava, confort 4 estaciones",
+      "naturalOrganic": "La naturaleza como hilo conductor"
+    },
+    "materials": {
+      "cafeParisien": {
+        "0": { "label": "Ratán trenzado a mano", "pro": "Firma bistró" },
+        "1": { "label": "Hierro forjado / metal lacado", "pro": "Muy resistente" },
+        "2": { "label": "Zinc (tapas de mesa)", "pro": "Auténtico" },
+        "3": { "label": "Aluminio lacado apilable", "pro": "Fácil de almacenar" }
+      },
+      "rivieraMed": {
+        "0": { "label": "Teca maciza", "pro": "Resistente a la sal" },
+        "1": { "label": "Cuerda / ratán sintético", "pro": "Resistente UV" },
+        "2": { "label": "Aluminio termolacado", "pro": "Anticorrosión" },
+        "3": { "label": "Cerámica / gres", "pro": "Tapas premium" }
+      },
+      "beachClub": {
+        "0": { "label": "Teca grado A", "pro": "Certificado anti-sal" },
+        "1": { "label": "Ratán sintético UV+", "pro": "Resistencia marina" },
+        "2": { "label": "Textilene / Batyline®", "pro": "Secado rápido" },
+        "3": { "label": "Aluminio inoxidable", "pro": "Resistencia marina" }
+      },
+      "rooftopUrban": {
+        "0": { "label": "Acero termolacado mate", "pro": "Resistencia al viento" },
+        "1": { "label": "Latón cepillado (detalles)", "pro": "Premium" },
+        "2": { "label": "Madera ahumada / HPL", "pro": "Intemperie" },
+        "3": { "label": "Hormigón pulido (tapas)", "pro": "Diseño firma" }
+      },
+      "loungeLuxe": {
+        "0": { "label": "Tejido outdoor Sunbrella®", "pro": "Referencia lujo" },
+        "1": { "label": "Latón / acero dorado", "pro": "Acabado alta gama" },
+        "2": { "label": "Mármol / piedra natural", "pro": "Tapa firma" },
+        "3": { "label": "Teca aceitada premium", "pro": "Longevidad garantizada" }
+      },
+      "nordicCalm": {
+        "0": { "label": "Madera clara (roble / abedul)", "pro": "4 estaciones" },
+        "1": { "label": "Aluminio blanco en polvo", "pro": "Ligero y duradero" },
+        "2": { "label": "Lona lino / algodón outdoor", "pro": "Natural" },
+        "3": { "label": "Polipropileno reciclado", "pro": "Eco-responsable" }
+      },
+      "naturalOrganic": {
+        "0": { "label": "Teca / acacia FSC", "pro": "Certificado sostenible" },
+        "1": { "label": "Ratán natural / bambú", "pro": "Bio-fuente" },
+        "2": { "label": "Cuerda natural / cáñamo", "pro": "Auténtico" },
+        "3": { "label": "PP reciclado eco-diseñado", "pro": "Reciclable" }
+      }
+    }
   },
   "footer": {
     "description": "La plataforma europea de proyectos de hostelería. Diseña tu espacio outdoor, descubre soluciones de mobiliario premium y conecta con socios de sourcing.",

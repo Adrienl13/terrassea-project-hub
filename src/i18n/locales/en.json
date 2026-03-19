@@ -290,7 +290,113 @@
     "ctaTitle": "Can't find your style?",
     "ctaDesc": "Describe your space — our engine generates 3 custom concepts with matched products.",
     "ctaLaunch": "Launch my project →",
-    "ctaCatalogue": "Explore catalogue"
+    "ctaCatalogue": "Explore catalogue",
+    "filterByVenue": "By venue type",
+    "filterByStyle": "By style",
+    "shopTheLook": "Shop the look",
+    "inspi": "inspi.",
+    "venues": {
+      "restaurant": "Restaurant",
+      "hotel": "Hotel",
+      "rooftop": "Rooftop",
+      "beachclub": "Beach Club",
+      "camping": "Camping"
+    },
+    "styles": {
+      "bistro": "Bistro",
+      "mediterranean": "Mediterranean",
+      "beachClub": "Beach Club",
+      "urban": "Urban",
+      "lounge": "Lounge",
+      "nordic": "Nordic",
+      "natural": "Natural"
+    },
+    "moods": {
+      "convivial": "Convivial",
+      "authentic": "Authentic",
+      "industrial": "Industrial",
+      "warm": "Warm",
+      "relaxed": "Relaxed",
+      "mediterranean": "Mediterranean",
+      "beachVibes": "Beach vibes",
+      "contemporary": "Contemporary",
+      "evening": "Evening",
+      "refined": "Refined",
+      "highEnd": "High-end",
+      "pure": "Pure",
+      "functional": "Functional",
+      "fourSeasons": "4 seasons",
+      "durable": "Durable",
+      "ecoFriendly": "Eco-friendly",
+      "ibizaStyle": "Ibiza style",
+      "marineResistance": "Marine resistance",
+      "windResistance": "Wind resistance",
+      "highTraffic": "High traffic",
+      "heavyUse": "Heavy use",
+      "saltResistant": "Salt resistant"
+    },
+    "moodboardNames": {
+      "cafeParisien": "Café Parisien",
+      "rivieraMed": "Riviera Mediterranean",
+      "beachClub": "Beach Club",
+      "rooftopUrban": "Rooftop Urban",
+      "loungeLuxe": "Lounge Luxe",
+      "nordicCalm": "Nordic Calm",
+      "naturalOrganic": "Natural & Organic"
+    },
+    "moodboardTaglines": {
+      "cafeParisien": "The soul of Parisian terraces",
+      "rivieraMed": "Southern warmth, noble materials",
+      "beachClub": "Ibiza spirit, 5-star comfort",
+      "rooftopUrban": "Sophistication above the rooftops",
+      "loungeLuxe": "Outdoor comfort redefined",
+      "nordicCalm": "Scandinavian purity, 4-season comfort",
+      "naturalOrganic": "Nature as a guiding thread"
+    },
+    "materials": {
+      "cafeParisien": {
+        "0": { "label": "Hand-woven cane rattan", "pro": "Bistro signature" },
+        "1": { "label": "Wrought iron / lacquered metal", "pro": "Very resistant" },
+        "2": { "label": "Zinc (round table tops)", "pro": "Authentic" },
+        "3": { "label": "Stackable lacquered aluminium", "pro": "Easy to store" }
+      },
+      "rivieraMed": {
+        "0": { "label": "Solid teak", "pro": "Salt resistant" },
+        "1": { "label": "Rope / synthetic rattan", "pro": "UV resistant" },
+        "2": { "label": "Powder-coated aluminium", "pro": "Anti-corrosion" },
+        "3": { "label": "Ceramic / stoneware", "pro": "Premium tops" }
+      },
+      "beachClub": {
+        "0": { "label": "Grade A teak", "pro": "Certified salt-proof" },
+        "1": { "label": "Synthetic rattan UV+", "pro": "Marine resistance" },
+        "2": { "label": "Textilene / Batyline®", "pro": "Quick drying" },
+        "3": { "label": "Stainless aluminium", "pro": "Marine resistance" }
+      },
+      "rooftopUrban": {
+        "0": { "label": "Matt powder-coated steel", "pro": "Wind resistance" },
+        "1": { "label": "Brushed brass (details)", "pro": "Premium" },
+        "2": { "label": "Smoked treated wood / HPL", "pro": "Weatherproof" },
+        "3": { "label": "Polished concrete (tops)", "pro": "Signature design" }
+      },
+      "loungeLuxe": {
+        "0": { "label": "Sunbrella® outdoor fabric", "pro": "Luxury reference" },
+        "1": { "label": "Brass / gilded steel", "pro": "High-end finish" },
+        "2": { "label": "Marble / natural stone", "pro": "Signature top" },
+        "3": { "label": "Premium oiled teak", "pro": "Guaranteed longevity" }
+      },
+      "nordicCalm": {
+        "0": { "label": "Light wood (oak / birch)", "pro": "4 seasons" },
+        "1": { "label": "White powder-coated aluminium", "pro": "Light & durable" },
+        "2": { "label": "Linen / cotton outdoor canvas", "pro": "Natural" },
+        "3": { "label": "Recycled polypropylene", "pro": "Eco-friendly" }
+      },
+      "naturalOrganic": {
+        "0": { "label": "FSC teak / acacia", "pro": "Certified sustainable" },
+        "1": { "label": "Natural rattan / bamboo", "pro": "Bio-sourced" },
+        "2": { "label": "Natural rope / hemp", "pro": "Authentic" },
+        "3": { "label": "Eco-designed recycled PP", "pro": "Recyclable" }
+      }
+    }
   },
   "footer": {
     "description": "The European hospitality project platform. Design your outdoor space, discover premium furniture solutions, and connect with sourcing partners.",
