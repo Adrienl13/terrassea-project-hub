@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "@/hooks/useDebounce";
+import { normalizeSearchQuery } from "@/lib/searchNormalizer";
 import { normalizeProduct, fetchProducts, type DBProduct } from "@/lib/products";
 
 export function useProducts(searchTerm?: string, categoryFilter?: string) {
@@ -17,8 +18,10 @@ export function useProducts(searchTerm?: string, categoryFilter?: string) {
     queryKey: ["products", debouncedSearch, categoryFilter, lang],
     queryFn: async () => {
       if (debouncedSearch && debouncedSearch.trim().length > 1) {
+        const normalized = normalizeSearchQuery(debouncedSearch.trim());
+
         const { data, error } = await supabase.rpc("fuzzy_search_products", {
-          search_query: debouncedSearch.trim(),
+          search_query: normalized,
           lang: lang,
           category_filter: categoryFilter || null,
           limit_count: 50,
