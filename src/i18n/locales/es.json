@@ -826,5 +826,171 @@
       "phone": "+34 612 345 678",
       "siren": "123456789"
     }
+  },
+  "projectBuilder": {
+    "badge": "Project Builder",
+    "title": "Construye tu proyecto de hostelería",
+    "subtitle": "Define tus necesidades · Obtén sugerencias de distribución · Descubre productos",
+    "subtitleFromInspirations": "Tu estilo está definido — añade capacidad y presupuesto para generar conceptos.",
+    "stylePreSelected": "Estilo {{style}} preseleccionado desde Inspiraciones",
+    "generating": "Generando tus conceptos de proyecto...",
+    "newProject": "Nuevo proyecto",
+    "steps": {
+      "start": "Inicio", "type": "Tipo", "budget": "Presupuesto",
+      "capacity": "Capacidad", "style": "Estilo", "review": "Revisión",
+      "requirements": "Requisitos"
+    },
+    "stepDescriptions": {
+      "howToBegin": "¿Cómo empezar?",
+      "establishmentType": "Tipo de establecimiento",
+      "budgetPerSeat": "Presupuesto por asiento",
+      "guestsSpace": "Asientos y espacio",
+      "aestheticDirection": "Dirección estética",
+      "confirmBrief": "Confirmar brief",
+      "defineParameters": "Definir todos los parámetros"
+    },
+    "type": {
+      "question": "¿Qué tipo de establecimiento?",
+      "restaurant": "Restaurante", "restaurantDesc": "Terrazas, patios y comedor exterior",
+      "hotel": "Hotel", "hotelDesc": "Lobbies, piscinas y jardines lounge",
+      "rooftop": "Azotea", "rooftopDesc": "Bares en altura y terrazas urbanas",
+      "beachClub": "Beach Club", "beachClubDesc": "Lounges frente al mar y tumbonas",
+      "bar": "Bar / Lounge", "barDesc": "Bares de cócteles y vinotecas",
+      "camping": "Camping", "campingDesc": "Glamping y zonas comunes al aire libre",
+      "event": "Espacio para eventos", "eventDesc": "Banquetes, bodas y recepciones",
+      "pool": "Zona de piscina", "poolDesc": "Mobiliario de piscina y terraza"
+    },
+    "budget": {
+      "question": "¿Cuál es tu presupuesto por asiento?",
+      "economy": "€50–80", "economyDesc": "Funcional y económico",
+      "mid": "€80–120", "midDesc": "Gama media, buena calidad",
+      "premium": "€120–180", "premiumDesc": "Materiales premium y diseño",
+      "luxury": "€180+", "luxuryDesc": "Lujo y personalizado"
+    },
+    "review": {
+      "badge": "Brief del Proyecto — Revisión",
+      "title": "Revisa tu configuración de proyecto",
+      "establishment": "Establecimiento", "zone": "Zona",
+      "capacity": "Capacidad", "terrace": "Terraza",
+      "spaceSeat": "Espacio/asiento", "circulation": "Circulación",
+      "feasibility": "Viabilidad", "layoutStrategy": "Estrategia de distribución",
+      "layoutPriority": "Prioridad de layout", "style": "Estilo",
+      "budget": "Presupuesto", "notSpecified": "No especificado",
+      "seats": "asientos", "generate": "Generar mi recomendación",
+      "editAnswers": "Editar respuestas", "startOver": "Empezar de nuevo"
+    },
+    "layouts": {
+      "mostly-2": "Principalmente mesas de 2",
+      "balanced-2-4": "Mix equilibrado de 2 y 4",
+      "mostly-4": "Principalmente mesas de 4",
+      "modular": "Distribución modular flexible",
+      "group": "Adaptado a grupos",
+      "custom": "Mix personalizado"
+    },
+    "priorities": {
+      "max-capacity": "Maximizar capacidad",
+      "balanced": "Confort y capacidad equilibrados",
+      "spacious": "Layout espacioso premium",
+      "flexible-groups": "Mesas flexibles para grupos",
+      "couples": "Principalmente parejas",
+      "groups": "Principalmente grupos"
+    },
+    "budgetLabels": {
+      "economy": "€50–80 por asiento", "mid": "€80–120 por asiento",
+      "premium": "€120–180 por asiento", "luxury": "€180+ por asiento"
+    },
+    "modeSelect": {
+      "header": "¿En qué punto estás de tu proyecto?",
+      "headerDesc": "Adaptamos la experiencia a tu situación — mismo resultado, el camino correcto.",
+      "guided": "Tengo un proyecto en mente",
+      "guidedRecommended": "Recomendado",
+      "guidedDesc": "Quiero rediseñar una terraza, azotea o espacio exterior. Describo mi proyecto — tú construyes el brief y encuentras los productos.",
+      "guidedCta": "Empezar →",
+      "expert": "Tengo especificaciones precisas",
+      "expertPro": "Pro",
+      "expertDesc": "Arquitecto, diseñador o comprador experimentado — tengo dimensiones exactas, mix de mesas y restricciones técnicas.",
+      "expertCta": "Configurar",
+      "browse": "Ya sé lo que necesito",
+      "browseQuick": "Rápido",
+      "browseDesc": "Busco un producto específico — silla, mesa, sombrilla o tumbona. Navegar, comparar y solicitar presupuesto.",
+      "browseCta": "Explorar →",
+      "footer": "Todos los caminos llevan a presupuestos de proveedores y soporte de sourcing"
+    },
+    "expertInputs": {
+      "title": "Configurador técnico",
+      "subtitle": "Introduce tus especificaciones directamente. Todos los parámetros en una vista.",
+      "establishment": "Establecimiento",
+      "spaceCapacity": "Espacio y Capacidad",
+      "seatsTarget": "Asientos (objetivo)",
+      "length": "Largo (m)", "width": "Ancho (m)", "area": "Superficie (m²)",
+      "recommended": "Recomendado: {{min}}–{{max}} asientos para {{surface}} m²",
+      "tableMix": "Configuración de mix de mesas",
+      "format": "Formato", "qty": "Cant.", "seatsPerTable": "Asientos/mesa", "subtotal": "Subtotal",
+      "addTableFormat": "Añadir formato",
+      "tables": "mesas",
+      "seatsFromMix": "{{count}} asientos del mix de mesas",
+      "styleBudget": "Estilo y Presupuesto",
+      "style": "Estilo", "budgetPerSeat": "Presupuesto por asiento",
+      "back": "Volver", "reviewGenerate": "Revisar y Generar"
+    },
+    "capacity": {
+      "question": "¿Cuál es tu capacidad objetivo?",
+      "under30": "Menos de 30 asientos", "intimate": "Espacio íntimo",
+      "30to60": "30–60 asientos", "mediumTerrace": "Terraza mediana",
+      "60to120": "60–120 asientos", "largeTerrace": "Terraza grande",
+      "120plus": "120+ asientos", "highVolume": "Establecimiento de alto volumen",
+      "exactLabel": "O introduce el número exacto de asientos",
+      "exactPlaceholder": "ej. 72",
+      "dimensionsLabel": "Dimensiones de la terraza (opcional)",
+      "or": "o",
+      "recommendedCapacity": "Capacidad recomendada para esta superficie: {{min}}–{{max}} asientos",
+      "back": "Volver", "next": "Siguiente"
+    },
+    "styleStep": {
+      "question": "¿Qué estilo define tu proyecto?",
+      "subtitle": "Selecciona uno o más estilos — crearemos conceptos que los combinen.",
+      "mediterranean": "Mediterráneo", "mediterraneanDesc": "Riviera, tonos terrosos, texturas naturales",
+      "bistro": "Bistro / Parisino", "bistroDesc": "Encanto clásico de terraza francesa",
+      "natural": "Natural / Orgánico", "naturalDesc": "Materiales orgánicos, paleta terreña",
+      "modern": "Moderno / Minimal", "modernDesc": "Líneas limpias, diseño contemporáneo",
+      "luxury": "Lujo / Premium", "luxuryDesc": "Materiales de alta gama, exclusividad",
+      "industrial": "Industrial / Urbano", "industrialDesc": "Metal, acabados brutos, carácter urbano",
+      "coastal": "Costero / Náutico", "coastalDesc": "Elegancia marítima",
+      "tropical": "Tropical / Resort", "tropicalDesc": "Exótico, exuberante, estilo resort",
+      "multipleHint": "Puedes seleccionar varios estilos para conceptos híbridos",
+      "selected": "{{count}} estilo seleccionado",
+      "selectedPlural": "{{count}} estilos seleccionados — los combinaremos",
+      "back": "Volver", "reviewBrief": "Revisar brief"
+    },
+    "summary": {
+      "title": "Resumen del proyecto",
+      "emptyHint": "Empieza a seleccionar opciones para construir tu brief...",
+      "mode": "Modo", "guided": "Guiado", "expert": "Experto",
+      "projectType": "Tipo de proyecto", "zone": "Zona",
+      "capacity": "Capacidad", "terrace": "Terraza",
+      "m2Seat": "m²/asiento", "density": "Densidad", "feasibility": "Viabilidad",
+      "layout": "Layout", "priority": "Prioridad",
+      "style": "Estilo", "budget": "Presupuesto"
+    },
+    "editableLayout": {
+      "seats": "asientos",
+      "editLayout": "Editar layout",
+      "tables": "mesas",
+      "seatsEach": "asientos cada una",
+      "addTableFormat": "Añadir formato",
+      "cancel": "Cancelar", "apply": "Aplicar",
+      "chairsNeeded": "Sillas necesarias:",
+      "estimatedBudget": "Presupuesto estimado de mobiliario",
+      "avgPerSeat": "Media por asiento"
+    },
+    "spatialMetrics": {
+      "title": "Análisis espacial",
+      "terraceArea": "Superficie terraza",
+      "totalSeats": "Total asientos",
+      "spacePerSeat": "Espacio por asiento",
+      "circulation": "Circulación",
+      "occupiedSurface": "Superficie ocupada",
+      "remainingSpace": "Espacio restante"
+    }
   }
 }
