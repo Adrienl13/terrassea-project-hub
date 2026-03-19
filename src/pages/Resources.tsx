@@ -692,7 +692,7 @@ const Resources = () => {
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 font-display font-semibold text-xs text-white rounded-full transition-opacity hover:opacity-90"
                     style={{ backgroundColor: topic.color }}
                   >
-                    Launch my project <ArrowRight className="h-3 w-3" />
+                    {t('resources.launchMyProject')} <ArrowRight className="h-3 w-3" />
                   </button>
                 </div>
 
