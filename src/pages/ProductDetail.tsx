@@ -249,7 +249,7 @@ const ProductDetail = () => {
                     className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold border border-foreground text-foreground rounded-full hover:bg-foreground hover:text-primary-foreground transition-all"
                   >
                     <FileText className="h-4 w-4" />
-                    Request a quote
+                    {t('actions.requestQuote')}
                   </button>
                   <button
                     onClick={() => addToCompare(product)}
