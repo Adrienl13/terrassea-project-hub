@@ -617,7 +617,7 @@ const Resources = () => {
               {/* Expert insight */}
               <div className="bg-foreground text-primary-foreground rounded-lg p-6 mb-12">
                 <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-primary-foreground/50 mb-3">
-                  Expert insight
+                  {t('resources.expertInsight')}
                 </p>
                 <p className="text-sm leading-relaxed text-primary-foreground/80 italic">
                   "{topic.expert}"
