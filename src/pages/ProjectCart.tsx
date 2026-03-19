@@ -434,7 +434,8 @@ const ProjectCart = () => {
                   {/* Notes */}
                   <div className="mt-6">
                     <label className="font-display font-semibold text-sm text-foreground block mb-2">
-                      Project notes
+                      {t('projectCart.projectNotes')}
+                    </label>
                     </label>
                     <textarea
                     value={notes}
