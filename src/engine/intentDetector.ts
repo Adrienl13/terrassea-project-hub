@@ -41,12 +41,15 @@ const TERM_TO_CATEGORY_SLUG: Record<string, string> = {
   sgabello: "bar stools",
   divano: "lounge seating",
   ombrellone: "parasols",
+  lettino: "sun loungers",
   // ES
   silla: "chairs", sillas: "chairs",
   sillón: "armchairs", sillon: "armchairs",
   mesa: "tables", mesas: "tables",
   taburete: "bar stools",
   sofá: "lounge seating",
+  sombrilla: "parasols",
+  tumbona: "sun loungers",
   // DE
   stuhl: "chairs", stühle: "chairs", stuhle: "chairs",
   sessel: "armchairs",
