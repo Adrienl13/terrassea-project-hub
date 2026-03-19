@@ -581,7 +581,7 @@ const ProjectCart = () => {
                     onClick={handleSave}
                     className="w-full py-3 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all flex items-center justify-center gap-2">
                     
-                    <Save className="h-3.5 w-3.5" /> Save for later
+                    <Save className="h-3.5 w-3.5" /> {t('projectCart.saveForLater')}
                   </button>
                 </div>
 
