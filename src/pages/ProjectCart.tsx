@@ -168,7 +168,7 @@ const ProjectCart = () => {
   setFormData((p) => ({ ...p, [field]: e.target.value }));
 
   const handleSave = () => {
-    toast.success("Project saved locally — you can continue later.");
+    toast.success(t('projectCart.savedSuccess'));
   };
 
   const handleSubmit = async () => {
