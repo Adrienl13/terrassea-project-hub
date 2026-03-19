@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -114,6 +115,7 @@ type Phase = "form" | "submitted";
 
 const BecomePartner = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [path, setPath] = useState<'supplier' | null>(null);
   const [phase, setPhase] = useState<Phase>("form");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -137,7 +139,7 @@ const BecomePartner = () => {
           Become a Partner
         </p>
         <h1 className="font-display text-3xl font-bold text-foreground text-center mb-10">
-          What best describes you?
+          {t('becomePartner.title')}
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-2xl">
           <button onClick={() => setPath('supplier')}
@@ -146,10 +148,10 @@ const BecomePartner = () => {
               <Factory className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
             </div>
             <p className="font-display font-bold text-lg text-foreground mb-2">
-              Brand, Manufacturer or Reseller
+              {t('becomePartner.supplier')}
             </p>
             <p className="text-sm font-body text-muted-foreground leading-relaxed">
-              You supply outdoor CHR furniture and want to reach hospitality buyers across Europe.
+              {t('becomePartner.supplierDesc')}
             </p>
           </button>
           <Link to="/auth?mode=register&type=designer"
@@ -158,10 +160,10 @@ const BecomePartner = () => {
               <Palette className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
             </div>
             <p className="font-display font-bold text-lg text-foreground mb-2">
-              Designer or Architect
+              {t('becomePartner.designer')}
             </p>
             <p className="text-sm font-body text-muted-foreground leading-relaxed">
-              You design hospitality spaces. Sourcing support and curated products — at no cost.
+              {t('becomePartner.designerDesc')}
             </p>
           </Link>
         </div>

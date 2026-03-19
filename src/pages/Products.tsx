@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -33,6 +34,7 @@ type ViewMode = "grid" | "list";
 type SortKey = typeof SORT_OPTIONS[number]["key"];
 
 const Products = () => {
+  const { t } = useTranslation();
   const { data: products = [], isLoading } = useProducts();
   const { addItem } = useProjectCart();
   const isMobile = useIsMobile();
@@ -253,10 +255,10 @@ const Products = () => {
         <section className="px-6 mb-8">
           <div className="container mx-auto">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
-              Product Hub
+              {t('products.title')}
             </h1>
             <p className="text-sm text-muted-foreground font-body max-w-xl">
-              Professional furniture sourcing — search, compare and select from our curated catalog.
+              {t('products.subtitle')}
             </p>
 
             {/* Search bar */}
@@ -266,7 +268,7 @@ const Products = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name, material, color, style..."
+                placeholder={t('products.searchPlaceholder')}
                 className="w-full pl-11 pr-4 py-3 text-sm font-body bg-card border border-border rounded-full focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all placeholder:text-muted-foreground"
               />
               {search && (
@@ -371,7 +373,7 @@ const Products = () => {
                 ) : filtered.length === 0 ? (
                   <div className="text-center py-20">
                     <p className="text-sm text-muted-foreground font-body">
-                      No products match your criteria. Try adjusting your filters.
+                      {t('products.noResults')}
                     </p>
                   </div>
                 ) : viewMode === "grid" ? (

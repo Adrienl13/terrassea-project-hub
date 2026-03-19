@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Compass, Layers, Send, Sparkles, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import SmartSearch from "@/components/SmartSearch";
 import SpaceCard from "@/components/SpaceCard";
 import ProductCard from "@/components/ProductCard";
@@ -47,6 +48,7 @@ const steps = [
 type FlowPhase = "idle" | "product_search" | "discovery" | "results";
 
 const Index = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const heroRef = useRef<HTMLDivElement>(null);
   const { data: products = [], isLoading: productsLoading } = useProducts();

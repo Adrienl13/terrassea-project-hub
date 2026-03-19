@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -85,6 +86,7 @@ function isFeatured(partner: Partner): boolean {
 // ═══════════════════════════════════════════════════════════
 
 function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
+  const { t } = useTranslation();
   const type     = TYPE_CONFIG[partner.partner_type] || TYPE_CONFIG.brand;
   const flag     = partner.country ? (COUNTRY_FLAGS[partner.country] || "🌍") : "🌍";
   const featured = isFeatured(partner);
@@ -153,7 +155,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
           {/* Anonymous identity */}
           <div className="mb-3">
             <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground mb-1">
-              Verified Supplier
+              {t('partners.verifiedSupplier')}
             </p>
             <h3 className="font-display font-bold text-foreground text-base leading-tight group-hover:text-foreground/80 transition-colors">
               {getAnonymousLabel(partner)}
@@ -195,7 +197,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
           {/* CTA */}
           <div className="pt-4 border-t border-border space-y-2">
             <span className="flex items-center gap-1.5 text-sm font-display font-semibold text-foreground group-hover:text-[#D4603A] transition-colors">
-              Source via Terrassea <ArrowRight className="h-3.5 w-3.5" />
+              {t('partners.sourceViaTerrassea')} <ArrowRight className="h-3.5 w-3.5" />
             </span>
             <div className="flex items-center gap-1.5">
               <Lock className="h-3 w-3 text-muted-foreground" />
@@ -270,6 +272,7 @@ function EmptyState() {
 // ═══════════════════════════════════════════════════════════
 
 export default function Partners() {
+  const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("all");
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
@@ -326,7 +329,7 @@ export default function Partners() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-xs font-display font-semibold uppercase tracking-widest text-[#D4603A] mb-4"
               >
-                Partner Network
+                {t('partners.title')}
               </motion.p>
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
@@ -355,7 +358,7 @@ export default function Partners() {
                 className="mt-8 flex items-center gap-3"
               >
                 <Link to="/become-partner" className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#D4603A] text-white font-display font-semibold text-sm hover:bg-[#C05030] transition-colors">
-                  Become a Partner <ArrowRight className="h-4 w-4" />
+                  {t('partners.becomePartner')} <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a href="#partners-grid" className="px-6 py-3 rounded-full border border-border font-display font-semibold text-sm text-foreground hover:bg-muted transition-colors">
                   Browse suppliers
