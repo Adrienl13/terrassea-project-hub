@@ -449,7 +449,7 @@ const Account = () => {
                       }`}
                     >
                       <item.icon className="h-4 w-4" />
-                      {item.label}
+                      {t(item.labelKey)}
                       {item.id === "favourites" && favourites.length > 0 && (
                         <span className="ml-auto text-[9px] font-display font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
                           {favourites.length}
