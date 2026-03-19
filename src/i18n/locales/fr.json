@@ -1,6 +1,82 @@
 {
   "nav": { "explore": "Explorer", "products": "Produits", "inspirations": "Inspirations", "guide": "Guide", "partners": "Partenaires", "proService": "Pro Service", "myProject": "Mon Projet", "myAccount": "Mon Compte", "launchProject": "Lancer mon projet" },
-  "home": { "badge": "Plateforme Hôtellerie Outdoor & Indoor", "headline1": "Concevez & sourcez", "headline2": "votre espace outdoor.", "subtitle": "200+ produits CHR certifiés de fournisseurs européens vérifiés.", "searchPlaceholder": "Rechercher par produit, matière, style...", "search": "Rechercher", "trending": "Tendances", "launchProject": "Lancer mon projet →", "browseCatalogue": "Parcourir le catalogue" },
+  "home": {
+    "badge": "Sourcing mobilier outdoor — B2B",
+    "headline1": "L'espace outdoor",
+    "headline2": "de vos clients",
+    "headline3": "commence ici.",
+    "subtitle": "Recherchez un produit ou décrivez votre projet — nous connectons les professionnels de l'hôtellerie aux meilleurs fournisseurs en Europe.",
+    "searchPlaceholder": "Rechercher par produit, matière, style...",
+    "search": "Rechercher",
+    "trending": "Tendances",
+    "launchProject": "Lancer mon projet →",
+    "browseCatalogue": "Parcourir le catalogue",
+    "getInspired": "S'inspirer",
+    "startGuided": "Démarrer un projet guidé",
+    "scroll": "Défiler"
+  },
+  "stats": {
+    "curatedProducts": "Produits sélectionnés",
+    "partnerSuppliers": "Fournisseurs partenaires",
+    "europeanCountries": "Pays européens",
+    "spaceCategories": "Catégories d'espaces"
+  },
+  "spaces": {
+    "byEstablishment": "Par établissement",
+    "exploreSpaces": "Explorer les espaces",
+    "allInspirations": "Toutes les inspirations",
+    "restaurants": "Restaurants",
+    "restaurantsDesc": "Terrasses, patios & salles en plein air",
+    "hotels": "Hôtels",
+    "hotelsDesc": "Halls, bords de piscine & salons jardins",
+    "rooftops": "Rooftops",
+    "rooftopsDesc": "Sky bars & terrasses urbaines",
+    "beachClubs": "Beach Clubs",
+    "beachClubsDesc": "Lounges en bord de mer & daybeds",
+    "campings": "Campings",
+    "campingsDesc": "Glamping & espaces communs extérieurs"
+  },
+  "howItWorks": {
+    "label": "Comment ça marche",
+    "title": "De l'idée au projet en quelques minutes",
+    "getStarted": "Commencer",
+    "step1Title": "Décrivez",
+    "step1Text": "Votre espace, style et exigences",
+    "step2Title": "Affinez",
+    "step2Text": "Quelques questions pour préciser votre brief",
+    "step3Title": "Sélectionnez",
+    "step3Text": "3 concepts sur mesure avec produits",
+    "step4Title": "Soumettez",
+    "step4Text": "Votre projet part en sourcing"
+  },
+  "popularProducts": {
+    "label": "Catalogue",
+    "title": "Produits populaires",
+    "viewAll": "Voir tout",
+    "viewAllProducts": "Voir tous les produits"
+  },
+  "valueProp": {
+    "label": "Pourquoi Terrassea",
+    "title": "Conçu pour les professionnels de l'hôtellerie",
+    "subtitle": "Tout ce qu'il vous faut pour sourcer, comparer et commander du mobilier outdoor — en un seul endroit.",
+    "card1Tag": "Multi-fournisseurs",
+    "card1Title": "Sourcing simplifié",
+    "card1Text": "Comparez les offres de plusieurs fournisseurs sur un même produit. Prix, stock, délais — en un coup d'œil.",
+    "card2Tag": "Motorisé par l'IA",
+    "card2Title": "Projets sur mesure",
+    "card2Text": "Notre moteur génère des sélections adaptées à votre type d'établissement, style et budget.",
+    "card3Tag": "Toute l'Europe",
+    "card3Title": "Partenaires vérifiés",
+    "card3Text": "Chaque fournisseur est sélectionné pour sa qualité CHR, sa fiabilité de livraison et son service en Europe."
+  },
+  "cta": {
+    "label": "Prêt à commencer ?",
+    "title1": "Concevez votre espace outdoor",
+    "title2": "en quelques clics.",
+    "subtitle": "Rejoignez les professionnels de l'hôtellerie qui font confiance à Terrassea pour sourcer leur mobilier outdoor en Europe.",
+    "launchProject": "Lancer mon projet →",
+    "browseCatalogue": "Parcourir le catalogue"
+  },
   "categories": { "all": "Tous", "chairs": "Chaises", "armchairs": "Fauteuils", "tables": "Tables", "tableBases": "Pieds de table", "tabletops": "Plateaux", "parasols": "Parasols", "sunLoungers": "Bains de soleil", "sofas": "Canapés", "barStools": "Tabourets de bar", "accessories": "Accessoires", "indoorSoon": "Indoor — bientôt ✦" },
   "products": { "title": "Catalogue Produits", "subtitle": "Sourcing professionnel — recherchez, comparez et sélectionnez.", "searchPlaceholder": "Rechercher par nom, matière, couleur, style...", "noResults": "Aucun produit ne correspond à vos critères.", "addToProject": "Ajouter", "added": "Ajouté", "inStock": "En stock", "lowStock": "Stock limité", "onRequest": "Sur demande" },
   "partners": { "title": "Réseau Partenaires", "becomePartner": "Devenir Partenaire", "verifiedSupplier": "Fournisseur Vérifié", "sourceViaTerrassea": "Sourcer via Terrassea →" },

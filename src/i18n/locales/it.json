@@ -1,6 +1,82 @@
 {
   "nav": { "explore": "Esplora", "products": "Prodotti", "inspirations": "Ispirazioni", "guide": "Guida", "partners": "Partner", "proService": "Pro Service", "myProject": "Il Mio Progetto", "myAccount": "Il Mio Account", "launchProject": "Lancia il mio progetto" },
-  "home": { "badge": "Piattaforma Hospitality Outdoor & Indoor", "headline1": "Progetta e acquista", "headline2": "il tuo spazio outdoor.", "subtitle": "200+ prodotti CHR da fornitori europei verificati.", "searchPlaceholder": "Cerca per prodotto, materiale, stile...", "search": "Cerca", "trending": "Tendenze", "launchProject": "Lancia il progetto →", "browseCatalogue": "Sfoglia il catalogo" },
+  "home": {
+    "badge": "Sourcing arredo outdoor — B2B",
+    "headline1": "Lo spazio outdoor",
+    "headline2": "dei tuoi clienti",
+    "headline3": "inizia qui.",
+    "subtitle": "Cerca un prodotto o descrivi il tuo progetto — connettiamo i professionisti dell'hospitality con i migliori fornitori in Europa.",
+    "searchPlaceholder": "Cerca per prodotto, materiale, stile...",
+    "search": "Cerca",
+    "trending": "Tendenze",
+    "launchProject": "Lancia il progetto →",
+    "browseCatalogue": "Sfoglia il catalogo",
+    "getInspired": "Ispirati",
+    "startGuided": "Avvia un progetto guidato",
+    "scroll": "Scorri"
+  },
+  "stats": {
+    "curatedProducts": "Prodotti selezionati",
+    "partnerSuppliers": "Fornitori partner",
+    "europeanCountries": "Paesi europei",
+    "spaceCategories": "Categorie di spazi"
+  },
+  "spaces": {
+    "byEstablishment": "Per tipologia",
+    "exploreSpaces": "Esplora gli spazi",
+    "allInspirations": "Tutte le ispirazioni",
+    "restaurants": "Ristoranti",
+    "restaurantsDesc": "Terrazze, patii & pranzo all'aperto",
+    "hotels": "Hotel",
+    "hotelsDesc": "Hall, bordo piscina & lounge giardino",
+    "rooftops": "Rooftop",
+    "rooftopsDesc": "Sky bar & terrazze urbane",
+    "beachClubs": "Beach Club",
+    "beachClubsDesc": "Lounge fronte mare & daybed",
+    "campings": "Camping",
+    "campingsDesc": "Glamping & aree comuni all'aperto"
+  },
+  "howItWorks": {
+    "label": "Come funziona",
+    "title": "Dall'idea al progetto in pochi minuti",
+    "getStarted": "Inizia",
+    "step1Title": "Descrivi",
+    "step1Text": "Il tuo spazio, stile ed esigenze",
+    "step2Title": "Affina",
+    "step2Text": "Alcune domande per definire il tuo brief",
+    "step3Title": "Seleziona",
+    "step3Text": "3 concept su misura con prodotti",
+    "step4Title": "Invia",
+    "step4Text": "Il tuo progetto va in sourcing"
+  },
+  "popularProducts": {
+    "label": "Catalogo",
+    "title": "Prodotti popolari",
+    "viewAll": "Vedi tutto",
+    "viewAllProducts": "Vedi tutti i prodotti"
+  },
+  "valueProp": {
+    "label": "Perché Terrassea",
+    "title": "Progettato per i professionisti dell'hospitality",
+    "subtitle": "Tutto ciò che serve per cercare, confrontare e ordinare arredo outdoor — in un unico posto.",
+    "card1Tag": "Multi-fornitore",
+    "card1Title": "Sourcing semplificato",
+    "card1Text": "Confronta offerte da più fornitori su un singolo prodotto. Prezzo, disponibilità, tempi — tutto a colpo d'occhio.",
+    "card2Tag": "Con IA",
+    "card2Title": "Progetti su misura",
+    "card2Text": "Il nostro motore genera selezioni adatte al tuo tipo di locale, stile e budget.",
+    "card3Tag": "Tutta Europa",
+    "card3Title": "Partner verificati",
+    "card3Text": "Ogni fornitore è selezionato per qualità CHR, affidabilità nelle consegne e servizio in Europa."
+  },
+  "cta": {
+    "label": "Pronto a iniziare?",
+    "title1": "Progetta il tuo spazio outdoor",
+    "title2": "in pochi clic.",
+    "subtitle": "Unisciti ai professionisti dell'hospitality che si affidano a Terrassea per il sourcing di arredo outdoor in Europa.",
+    "launchProject": "Lancia il mio progetto →",
+    "browseCatalogue": "Sfoglia il catalogo"
+  },
   "categories": { "all": "Tutti", "chairs": "Sedie", "armchairs": "Poltrone", "tables": "Tavoli", "tableBases": "Basi tavolo", "tabletops": "Piani tavolo", "parasols": "Ombrelloni", "sunLoungers": "Lettini", "sofas": "Divani", "barStools": "Sgabelli da bar", "accessories": "Accessori", "indoorSoon": "Indoor — presto ✦" },
   "products": { "title": "Catalogo Prodotti", "subtitle": "Sourcing professionale — cerca, confronta e seleziona.", "searchPlaceholder": "Cerca per nome, materiale, colore, stile...", "noResults": "Nessun prodotto corrisponde ai tuoi criteri.", "addToProject": "Aggiungi", "added": "Aggiunto", "inStock": "Disponibile", "lowStock": "Scorte limitate", "onRequest": "Su richiesta" },
   "partners": { "title": "Rete Partner", "becomePartner": "Diventa Partner", "verifiedSupplier": "Fornitore Verificato", "sourceViaTerrassea": "Acquista via Terrassea →" },

@@ -23,26 +23,8 @@ import spaceRooftop from "@/assets/space-rooftop.jpg";
 import spaceBeachclub from "@/assets/space-beachclub.jpg";
 import spaceCamping from "@/assets/space-camping.jpg";
 
-const spaces = [
-{ name: "Restaurants", image: spaceRestaurant, description: "Terraces, patios & outdoor dining" },
-{ name: "Hotels", image: spaceHotel, description: "Lobbies, pool decks & garden lounges" },
-{ name: "Rooftops", image: spaceRooftop, description: "Sky bars & urban terraces" },
-{ name: "Beach Clubs", image: spaceBeachclub, description: "Beachfront lounges & daybeds" },
-{ name: "Campings", image: spaceCamping, description: "Glamping & outdoor communal areas" }];
+// spaces and stats/steps are now translated inline via t()
 
-
-const stats = [
-{ value: "500+", label: "Curated products" },
-{ value: "10+", label: "Partner suppliers" },
-{ value: "5", label: "European countries" },
-{ value: "5", label: "Space categories" }];
-
-
-const steps = [
-{ icon: Sparkles, title: "Describe", text: "Your space, style and requirements" },
-{ icon: Compass, title: "Refine", text: "A few questions to shape your brief" },
-{ icon: Layers, title: "Select", text: "3 curated concepts with products" },
-{ icon: Send, title: "Submit", text: "Your project goes to sourcing" }];
 
 
 type FlowPhase = "idle" | "product_search" | "discovery" | "results";
@@ -151,26 +133,26 @@ const Index = () => {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex items-center justify-center gap-2 mb-8">
             <div className="w-8 h-px bg-border" />
             <span className="text-[10px] font-body uppercase tracking-[0.3em] text-muted-foreground">
-              Outdoor furniture sourcing — B2B
+              {t('home.badge')}
             </span>
             <div className="w-8 h-px bg-border" />
           </motion.div>
 
           {/* Headline */}
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-foreground tracking-tight leading-[1.05]">
-            Your clients' outdoor
+            {t('home.headline1')}
             <br />
             <span className="relative inline-block">
-              space starts
+              {t('home.headline2')}
               <motion.span initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.8, delay: 0.8 }} className="absolute -bottom-1 left-0 right-0 h-[3px] origin-left bg-[#d4613a]" />
             </span>
             <br />
-            here.
+            {t('home.headline3')}
           </motion.h1>
 
           {/* Subline */}
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.3 }} className="text-muted-foreground font-body text-base md:text-lg mt-8 max-w-xl mx-auto leading-relaxed">
-            Search a product or describe your project — we connect hospitality professionals with the best suppliers across Europe.
+            {t('home.subtitle')}
           </motion.p>
 
           {/* Search */}
@@ -185,19 +167,19 @@ const Index = () => {
               onClick={() => navigate("/projects/new")}
               className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
               
-                <Sparkles className="h-3 w-3" /> Start a guided project
+                <Sparkles className="h-3 w-3" /> {t('home.startGuided')}
               </button>
               <button
               onClick={() => navigate("/products")}
               className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
               
-                <Search className="h-3 w-3" /> Browse catalogue
+                <Search className="h-3 w-3" /> {t('home.browseCatalogue')}
               </button>
               <button
               onClick={() => navigate("/inspirations")}
               className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
               
-                <Compass className="h-3 w-3" /> Get inspired
+                <Compass className="h-3 w-3" /> {t('home.getInspired')}
               </button>
             </motion.div>
           }
@@ -216,7 +198,7 @@ const Index = () => {
             className="w-px h-6 bg-gradient-to-b from-muted-foreground/30 to-transparent" />
           
           <span className="text-[9px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground/35 -rotate-90 origin-left translate-y-3">
-            Scroll
+            {t('home.scroll')}
           </span>
         </motion.div>
       </section>
@@ -276,10 +258,15 @@ const Index = () => {
       <section className="py-12 px-6 border-y border-border">
         <div className="container mx-auto">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, i) =>
-            <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
+            {[
+              { value: "500+", labelKey: "stats.curatedProducts" },
+              { value: "10+", labelKey: "stats.partnerSuppliers" },
+              { value: "5", labelKey: "stats.europeanCountries" },
+              { value: "5", labelKey: "stats.spaceCategories" },
+            ].map((stat, i) =>
+            <motion.div key={stat.labelKey} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
                 <p className="font-display text-2xl md:text-3xl font-bold text-foreground">{stat.value}</p>
-                <p className="text-xs font-body text-muted-foreground mt-1 uppercase tracking-wider">{stat.label}</p>
+                <p className="text-xs font-body text-muted-foreground mt-1 uppercase tracking-wider">{t(stat.labelKey)}</p>
               </motion.div>
             )}
           </motion.div>
@@ -292,22 +279,28 @@ const Index = () => {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="flex items-end justify-between mb-12">
             <div>
               <span className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
-                By establishment
+                {t('spaces.byEstablishment')}
               </span>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-1">
-                Explore spaces
+                {t('spaces.exploreSpaces')}
               </h2>
             </div>
             <button
               onClick={() => navigate("/inspirations")}
               className="hidden md:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors group">
               
-              All inspirations
+              {t('spaces.allInspirations')}
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {spaces.map((space, i) =>
+            {[
+              { name: t('spaces.restaurants'), image: spaceRestaurant, description: t('spaces.restaurantsDesc') },
+              { name: t('spaces.hotels'), image: spaceHotel, description: t('spaces.hotelsDesc') },
+              { name: t('spaces.rooftops'), image: spaceRooftop, description: t('spaces.rooftopsDesc') },
+              { name: t('spaces.beachClubs'), image: spaceBeachclub, description: t('spaces.beachClubsDesc') },
+              { name: t('spaces.campings'), image: spaceCamping, description: t('spaces.campingsDesc') },
+            ].map((space, i) =>
             <SpaceCard key={space.name} {...space} index={i} />
             )}
           </div>
@@ -320,22 +313,27 @@ const Index = () => {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="grid md:grid-cols-[1fr_2fr] gap-16 items-start">
             <div>
               <span className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
-                How it works
+                {t('howItWorks.label')}
               </span>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-2">
-                From idea to project in minutes
+                {t('howItWorks.title')}
               </h2>
               <button
                 onClick={() => navigate("/projects/new")}
                 className="mt-6 flex items-center gap-2 text-sm font-display font-semibold text-foreground border border-foreground rounded-full px-5 py-2.5 hover:bg-foreground hover:text-primary-foreground transition-all group">
                 
-                Get started <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                {t('howItWorks.getStarted')} <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-              {steps.map((step, i) =>
-              <motion.div key={step.title} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="space-y-3">
+              {[
+                { icon: Sparkles, titleKey: "howItWorks.step1Title", textKey: "howItWorks.step1Text" },
+                { icon: Compass, titleKey: "howItWorks.step2Title", textKey: "howItWorks.step2Text" },
+                { icon: Layers, titleKey: "howItWorks.step3Title", textKey: "howItWorks.step3Text" },
+                { icon: Send, titleKey: "howItWorks.step4Title", textKey: "howItWorks.step4Text" },
+              ].map((step, i) =>
+              <motion.div key={step.titleKey} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
                       <step.icon className="h-4 w-4 text-foreground" />
@@ -344,8 +342,8 @@ const Index = () => {
                       {String(i + 1).padStart(2, "0")}
                     </span>
                   </div>
-                  <h3 className="font-display font-semibold text-sm text-foreground">{step.title}</h3>
-                  <p className="text-xs text-muted-foreground font-body leading-relaxed">{step.text}</p>
+                  <h3 className="font-display font-semibold text-sm text-foreground">{t(step.titleKey)}</h3>
+                  <p className="text-xs text-muted-foreground font-body leading-relaxed">{t(step.textKey)}</p>
                 </motion.div>
               )}
             </div>
@@ -359,17 +357,17 @@ const Index = () => {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="flex items-end justify-between mb-12">
             <div>
               <span className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
-                Catalogue
+                {t('popularProducts.label')}
               </span>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-1">
-                Popular products
+                {t('popularProducts.title')}
               </h2>
             </div>
             <button
               onClick={() => navigate("/products")}
               className="hidden md:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors group">
               
-              View all <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+              {t('popularProducts.viewAll')} <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </motion.div>
 
@@ -396,7 +394,7 @@ const Index = () => {
               onClick={() => navigate("/products")}
               className="flex items-center gap-2 text-sm font-body text-muted-foreground border border-border rounded-full px-5 py-2.5 hover:border-foreground hover:text-foreground transition-all">
               
-              View all products <ArrowRight className="h-4 w-4" />
+              {t('popularProducts.viewAllProducts')} <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -408,14 +406,14 @@ const Index = () => {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
             <div>
               <p className="text-[10px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Why Terrassea
+                {t('valueProp.label')}
               </p>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                Built for hospitality professionals
+                {t('valueProp.title')}
               </h2>
             </div>
             <p className="text-sm font-body text-muted-foreground max-w-xs leading-relaxed">
-              Everything you need to source, compare and order outdoor furniture — in one place.
+              {t('valueProp.subtitle')}
             </p>
           </div>
 
@@ -423,24 +421,24 @@ const Index = () => {
             {[
             {
               number: "01",
-              title: "Simplified sourcing",
-              text: "Compare offers from multiple suppliers on a single product. Price, stock, delivery times — all at a glance.",
+              title: t('valueProp.card1Title'),
+              text: t('valueProp.card1Text'),
               accent: "#D4603A",
-              tag: "Multi-supplier"
+              tag: t('valueProp.card1Tag')
             },
             {
               number: "02",
-              title: "Tailored projects",
-              text: "Our engine generates curated selections adapted to your establishment type, style and budget.",
+              title: t('valueProp.card2Title'),
+              text: t('valueProp.card2Text'),
               accent: "#4A90A4",
-              tag: "AI-powered"
+              tag: t('valueProp.card2Tag')
             },
             {
               number: "03",
-              title: "Verified partners",
-              text: "Every supplier is selected for CHR-grade quality, delivery reliability and professional service across Europe.",
+              title: t('valueProp.card3Title'),
+              text: t('valueProp.card3Text'),
               accent: "#6B7B5E",
-              tag: "Europe-wide"
+              tag: t('valueProp.card3Tag')
             }].
             map((item, i) =>
             <motion.div
@@ -500,15 +498,15 @@ const Index = () => {
         <div className="container mx-auto relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center max-w-2xl mx-auto">
             <motion.span initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-[10px] font-body uppercase tracking-[0.3em] text-muted-foreground">
-              Ready to start?
+              {t('cta.label')}
             </motion.span>
 
             <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mt-4 leading-tight">
-              Design your outdoor space<br />in just a few clicks.
+              {t('cta.title1')}<br />{t('cta.title2')}
             </h2>
 
             <p className="text-muted-foreground font-body mt-6 max-w-lg mx-auto leading-relaxed">
-              Join the hospitality professionals who trust Terrassea to source their outdoor furniture across Europe.
+              {t('cta.subtitle')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
@@ -516,13 +514,13 @@ const Index = () => {
                 onClick={() => navigate("/projects/new")}
                 className="px-8 py-4 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
                 
-                Launch my project →
+                {t('cta.launchProject')}
               </button>
               <button
                 onClick={() => navigate("/products")}
                 className="px-8 py-4 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all">
                 
-                Browse catalogue
+                {t('cta.browseCatalogue')}
               </button>
             </div>
           </motion.div>
