@@ -491,7 +491,7 @@ const ProjectCart = () => {
                         </span>
                       }
                       {sirenError && !sirenChecking &&
-                      <span className="text-[10px] text-destructive">Not found</span>
+                      <span className="text-[10px] text-destructive">{t('projectCart.notFound')}</span>
                       }
                     </div>
                     <input
