@@ -144,7 +144,7 @@ const ProductDetail = () => {
         <div className="px-6 container mx-auto mb-6">
           <nav className="flex items-center gap-2 text-xs font-body text-muted-foreground">
             <Link to="/products" className="hover:text-foreground transition-colors flex items-center gap-1">
-              <ArrowLeft className="h-3 w-3" /> Products
+              <ArrowLeft className="h-3 w-3" /> {t('nav.products')}
             </Link>
             <ChevronRight className="h-3 w-3" />
             <span className="capitalize">{product.category}</span>
