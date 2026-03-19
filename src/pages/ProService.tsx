@@ -121,7 +121,7 @@ const ProService = () => {
               {t('proService.requestReceivedDetail')}
             </p>
             <button onClick={() => navigate("/")} className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90">
-              Back to homepage
+              {t('proService.backToHome')}
             </button>
           </motion.div>
         </div>
