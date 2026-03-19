@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,6 +65,22 @@ const Products = () => {
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [sortKey, setSortKey] = useState<SortKey>("popular");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  // Sync filters from URL params on mount
+  useEffect(() => {
+    const category = searchParams.get("category");
+    const sub = searchParams.get("sub");
+    if (category) {
+      const formatted = category.charAt(0).toUpperCase() + category.slice(1).replace("-", " ");
+      setFilters(prev => ({
+        ...prev,
+        categories: [formatted],
+      }));
+    }
+    if (sub) {
+      setSearch(sub.replace("-", " "));
+    }
+  }, [searchParams]);
 
   const activeFilterCount =
     filters.categories.length + filters.usage.length + filters.materials.length +
