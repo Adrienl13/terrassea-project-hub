@@ -48,6 +48,23 @@ const ProService = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
 
+  const FOR_WHO_YES = [
+    { label: t('proService.forYes1'), sub: t('proService.forYes1Sub') },
+    { label: t('proService.forYes2'), sub: t('proService.forYes2Sub') },
+    { label: t('proService.forYes3'), sub: t('proService.forYes3Sub') },
+    { label: t('proService.forYes4'), sub: t('proService.forYes4Sub') },
+  ];
+  const FOR_WHO_NO = [
+    { label: t('proService.forNo1'), sub: t('proService.forNo1Sub') },
+    { label: t('proService.forNo2'), sub: t('proService.forNo2Sub') },
+  ];
+  const STEPS = [
+    { n: "01", title: t('proService.step1Title'), desc: t('proService.step1Desc'), duration: "5 min" },
+    { n: "02", title: t('proService.step2Title'), desc: t('proService.step2Desc'), duration: "24h" },
+    { n: "03", title: t('proService.step3Title'), desc: t('proService.step3Desc'), duration: "5 days" },
+    { n: "04", title: t('proService.step4Title'), desc: t('proService.step4Desc'), duration: "Your choice" },
+  ];
+
   const [form, setForm] = useState({
     name: "", email: "", phone: "", company: "", siren: "",
     establishmentType: "", location: "", covers: "", budget: "",
