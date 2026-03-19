@@ -83,6 +83,7 @@ type Phase = "form" | "not_qualified" | "submitted";
 
 const ProService = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>("form");
   const [submitting, setSubmitting] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
