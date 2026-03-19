@@ -575,7 +575,7 @@ const ProjectCart = () => {
                     disabled={submitting || items.length === 0}
                     className="w-full py-3.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-40">
                     
-                    {submitting ? "Submitting..." : "Submit for sourcing →"}
+                    {submitting ? t('projectCart.submitting') : t('projectCart.submitForSourcing')}
                   </button>
                   <button
                     onClick={handleSave}
