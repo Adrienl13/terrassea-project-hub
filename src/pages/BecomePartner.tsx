@@ -348,7 +348,7 @@ const BecomePartner = () => {
               >
                 {plan.featured && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-foreground text-primary-foreground text-[10px] font-display font-semibold px-3 py-1 rounded-full">
-                    {t('becomePartnerPage.growthBadge')}
+                    {t('plans.mostPopular')}
                   </div>
                 )}
                 <div className="flex items-center justify-between mb-4">
@@ -364,7 +364,7 @@ const BecomePartner = () => {
                 <p className="text-xs font-body text-muted-foreground mt-1">{plan.sub}</p>
                 <div className="mt-4 mb-5 inline-flex items-center gap-1.5 bg-muted rounded-full px-3 py-1.5">
                   <span className="font-display font-bold text-sm text-foreground">{plan.commission}</span>
-                  <span className="text-[10px] font-body text-muted-foreground">{t('becomePartnerPage.commission')}</span>
+                  <span className="text-[10px] font-body text-muted-foreground">{t('plans.commission')}</span>
                 </div>
                 <ul className="space-y-2.5">
                   {plan.features.map((f) => (
@@ -393,7 +393,7 @@ const BecomePartner = () => {
                       : "border border-border text-muted-foreground hover:border-foreground hover:text-foreground"
                   }`}
                 >
-                  {plan.id === "elite" ? t('becomePartnerPage.contactUs') : t('becomePartnerPage.applyWithPlan')}
+                  {plan.id === "elite" ? t('plans.contactUs') : t('plans.applyPlan')}
                 </button>
                 <p className="mt-5 text-[10px] font-body text-muted-foreground leading-relaxed border-t border-border pt-4">
                   {plan.note}
