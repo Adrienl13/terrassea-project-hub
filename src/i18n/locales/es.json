@@ -1,13 +1,10 @@
 {
-  "nav": {
-    "explore": "Explorar",
-    "products": "Productos",
-    "inspirations": "Inspiraciones",
-    "guide": "Guía",
-    "partners": "Socios",
-    "proService": "Servicio Pro",
-    "myProject": "Mi Proyecto",
-    "myAccount": "Mi Cuenta",
-    "launchProject": "Lanzar mi proyecto"
-  }
+  "nav": { "explore": "Explorar", "products": "Productos", "inspirations": "Inspiraciones", "guide": "Guía", "partners": "Socios", "proService": "Pro Service", "myProject": "Mi Proyecto", "myAccount": "Mi Cuenta", "launchProject": "Lanzar mi proyecto" },
+  "home": { "badge": "Plataforma Hostelería Outdoor & Indoor", "headline1": "Diseña y obtén", "headline2": "tu espacio outdoor.", "subtitle": "200+ productos CHR de proveedores europeos verificados.", "searchPlaceholder": "Buscar por producto, material, estilo...", "search": "Buscar", "trending": "Tendencias", "launchProject": "Lanzar proyecto →", "browseCatalogue": "Ver catálogo" },
+  "categories": { "all": "Todo", "chairs": "Sillas", "armchairs": "Sillones", "tables": "Mesas", "tableBases": "Bases de mesa", "tabletops": "Tableros", "parasols": "Parasoles", "sunLoungers": "Tumbonas", "sofas": "Sofás", "barStools": "Taburetes de bar", "accessories": "Accesorios", "indoorSoon": "Interior — próximamente ✦" },
+  "products": { "title": "Catálogo de Productos", "subtitle": "Sourcing profesional — busca, compara y selecciona.", "searchPlaceholder": "Buscar por nombre, material, color, estilo...", "noResults": "Ningún producto coincide con tus criterios.", "addToProject": "Añadir", "added": "Añadido", "inStock": "En stock", "lowStock": "Stock limitado", "onRequest": "Bajo consulta" },
+  "partners": { "title": "Red de Socios", "becomePartner": "Convertirse en Socio", "verifiedSupplier": "Proveedor Verificado", "sourceViaTerrassea": "Obtener vía Terrassea →" },
+  "becomePartner": { "title": "¿Cómo te describes?", "supplier": "Marca, Fabricante o Distribuidor", "supplierDesc": "Suministras mobiliario CHR outdoor y quieres llegar a compradores europeos.", "designer": "Diseñador o Arquitecto", "designerDesc": "Diseñas espacios de hostelería. Soporte sourcing y productos seleccionados — sin coste." },
+  "trust": { "products": "200+ productos", "sourcing": "Sourcing gratuito", "certified": "EN 12727" },
+  "common": { "seeAll": "Ver todo →", "back": "Volver", "save": "Guardar", "cancel": "Cancelar", "loading": "Cargando...", "error": "Algo salió mal.", "required": "Requerido" }
 }

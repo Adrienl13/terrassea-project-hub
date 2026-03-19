@@ -1,13 +1,10 @@
 {
-  "nav": {
-    "explore": "Explorer",
-    "products": "Produits",
-    "inspirations": "Inspirations",
-    "guide": "Guide",
-    "partners": "Partenaires",
-    "proService": "Service Pro",
-    "myProject": "Mon Projet",
-    "myAccount": "Mon Compte",
-    "launchProject": "Lancer mon projet"
-  }
+  "nav": { "explore": "Explorer", "products": "Produits", "inspirations": "Inspirations", "guide": "Guide", "partners": "Partenaires", "proService": "Pro Service", "myProject": "Mon Projet", "myAccount": "Mon Compte", "launchProject": "Lancer mon projet" },
+  "home": { "badge": "Plateforme Hôtellerie Outdoor & Indoor", "headline1": "Concevez & sourcez", "headline2": "votre espace outdoor.", "subtitle": "200+ produits CHR certifiés de fournisseurs européens vérifiés.", "searchPlaceholder": "Rechercher par produit, matière, style...", "search": "Rechercher", "trending": "Tendances", "launchProject": "Lancer mon projet →", "browseCatalogue": "Parcourir le catalogue" },
+  "categories": { "all": "Tous", "chairs": "Chaises", "armchairs": "Fauteuils", "tables": "Tables", "tableBases": "Pieds de table", "tabletops": "Plateaux", "parasols": "Parasols", "sunLoungers": "Bains de soleil", "sofas": "Canapés", "barStools": "Tabourets de bar", "accessories": "Accessoires", "indoorSoon": "Indoor — bientôt ✦" },
+  "products": { "title": "Catalogue Produits", "subtitle": "Sourcing professionnel — recherchez, comparez et sélectionnez.", "searchPlaceholder": "Rechercher par nom, matière, couleur, style...", "noResults": "Aucun produit ne correspond à vos critères.", "addToProject": "Ajouter", "added": "Ajouté", "inStock": "En stock", "lowStock": "Stock limité", "onRequest": "Sur demande" },
+  "partners": { "title": "Réseau Partenaires", "becomePartner": "Devenir Partenaire", "verifiedSupplier": "Fournisseur Vérifié", "sourceViaTerrassea": "Sourcer via Terrassea →" },
+  "becomePartner": { "title": "Qui êtes-vous ?", "supplier": "Marque, Fabricant ou Revendeur", "supplierDesc": "Vous fournissez du mobilier CHR outdoor et souhaitez atteindre les acheteurs hôteliers en Europe.", "designer": "Designer ou Architecte", "designerDesc": "Vous concevez des espaces hôteliers. Accompagnement sourcing et produits sélectionnés — sans frais." },
+  "trust": { "products": "200+ produits", "sourcing": "Sourcing gratuit", "certified": "EN 12727" },
+  "common": { "seeAll": "Voir tout →", "back": "Retour", "save": "Enregistrer", "cancel": "Annuler", "loading": "Chargement...", "error": "Une erreur est survenue.", "required": "Requis" }
 }

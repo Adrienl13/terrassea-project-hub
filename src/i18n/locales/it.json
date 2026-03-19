@@ -1,13 +1,10 @@
 {
-  "nav": {
-    "explore": "Esplora",
-    "products": "Prodotti",
-    "inspirations": "Ispirazioni",
-    "guide": "Guida",
-    "partners": "Partner",
-    "proService": "Servizio Pro",
-    "myProject": "Il mio Progetto",
-    "myAccount": "Il mio Account",
-    "launchProject": "Avvia il mio progetto"
-  }
+  "nav": { "explore": "Esplora", "products": "Prodotti", "inspirations": "Ispirazioni", "guide": "Guida", "partners": "Partner", "proService": "Pro Service", "myProject": "Il Mio Progetto", "myAccount": "Il Mio Account", "launchProject": "Lancia il mio progetto" },
+  "home": { "badge": "Piattaforma Hospitality Outdoor & Indoor", "headline1": "Progetta e acquista", "headline2": "il tuo spazio outdoor.", "subtitle": "200+ prodotti CHR da fornitori europei verificati.", "searchPlaceholder": "Cerca per prodotto, materiale, stile...", "search": "Cerca", "trending": "Tendenze", "launchProject": "Lancia il progetto →", "browseCatalogue": "Sfoglia il catalogo" },
+  "categories": { "all": "Tutti", "chairs": "Sedie", "armchairs": "Poltrone", "tables": "Tavoli", "tableBases": "Basi tavolo", "tabletops": "Piani tavolo", "parasols": "Ombrelloni", "sunLoungers": "Lettini", "sofas": "Divani", "barStools": "Sgabelli da bar", "accessories": "Accessori", "indoorSoon": "Indoor — presto ✦" },
+  "products": { "title": "Catalogo Prodotti", "subtitle": "Sourcing professionale — cerca, confronta e seleziona.", "searchPlaceholder": "Cerca per nome, materiale, colore, stile...", "noResults": "Nessun prodotto corrisponde ai tuoi criteri.", "addToProject": "Aggiungi", "added": "Aggiunto", "inStock": "Disponibile", "lowStock": "Scorte limitate", "onRequest": "Su richiesta" },
+  "partners": { "title": "Rete Partner", "becomePartner": "Diventa Partner", "verifiedSupplier": "Fornitore Verificato", "sourceViaTerrassea": "Acquista via Terrassea →" },
+  "becomePartner": { "title": "Come ti descrivi?", "supplier": "Marchio, Produttore o Rivenditore", "supplierDesc": "Fornisci arredamento CHR outdoor e vuoi raggiungere acquirenti europei.", "designer": "Designer o Architetto", "designerDesc": "Progetti spazi hospitality. Supporto sourcing e prodotti selezionati — senza costi." },
+  "trust": { "products": "200+ prodotti", "sourcing": "Sourcing gratuito", "certified": "EN 12727" },
+  "common": { "seeAll": "Vedi tutto →", "back": "Indietro", "save": "Salva", "cancel": "Annulla", "loading": "Caricamento...", "error": "Qualcosa è andato storto.", "required": "Obbligatorio" }
 }
