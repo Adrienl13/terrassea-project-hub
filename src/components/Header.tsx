@@ -67,6 +67,30 @@ const Header = () => {
           </Link>
         </div>
       </div>
+
+      {/* Category nav bar */}
+      <div className="bg-[#2C2C2A] border-t border-white/5">
+        <div className="container mx-auto px-6 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-7 py-2.5 min-w-max">
+            {[
+              "All", "Chairs", "Armchairs", "Tables", "Parasols",
+              "Sun Loungers", "Sofas", "Bar Stools", "Benches", "Accessories",
+            ].map((cat) => (
+              <Link
+                key={cat}
+                to={cat === "All" ? "/products" : `/products?category=${cat.toLowerCase().replace(" ", "-")}`}
+                className="text-[11px] font-display font-semibold text-white/60 hover:text-white transition-colors whitespace-nowrap py-0.5 border-b-2 border-transparent hover:border-[#D4603A]"
+              >
+                {cat}
+              </Link>
+            ))}
+            <div className="w-px h-4 bg-white/10 mx-1" />
+            <span className="text-[11px] font-display font-semibold text-white/25 whitespace-nowrap cursor-default">
+              Indoor — soon ✦
+            </span>
+          </div>
+        </div>
+      </div>
     </motion.header>
   );
 };
