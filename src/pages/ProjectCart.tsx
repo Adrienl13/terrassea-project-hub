@@ -415,7 +415,7 @@ const ProjectCart = () => {
                       <span className="font-display font-bold text-lg text-foreground block">
                         {items.reduce((s, i) => s + i.quantity, 0)}
                       </span>
-                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Units</span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">{t('projectCart.units')}</span>
                     </div>
                     <div className="text-center">
                       <span className="font-display font-bold text-lg text-foreground block">
