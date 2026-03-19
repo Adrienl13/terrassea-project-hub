@@ -119,15 +119,15 @@ const ProductDetail = () => {
     .slice(0, 6);
 
   const proFeatures = [
-    product.is_chr_heavy_use && { icon: Shield, label: "Heavy-duty CHR use" },
-    product.is_outdoor && { icon: Sun, label: "Suitable for outdoor terrace" },
-    product.uv_resistant && { icon: Sun, label: "UV resistant" },
-    product.weather_resistant && { icon: CloudRain, label: "Weather resistant" },
-    product.fire_retardant && { icon: Flame, label: "Fire retardant" },
-    product.lightweight && { icon: Feather, label: "Lightweight structure" },
-    product.easy_maintenance && { icon: Wrench, label: "Easy maintenance" },
-    product.is_stackable && { icon: Package, label: "Stackable" },
-    product.customizable && { icon: Palette, label: "Customizable" },
+    product.is_chr_heavy_use && { icon: Shield, label: t('productDetail.heavyDuty') },
+    product.is_outdoor && { icon: Sun, label: t('productDetail.outdoorSuitable') },
+    product.uv_resistant && { icon: Sun, label: t('productDetail.uvResistant') },
+    product.weather_resistant && { icon: CloudRain, label: t('productDetail.weatherResistant') },
+    product.fire_retardant && { icon: Flame, label: t('productDetail.fireRetardant') },
+    product.lightweight && { icon: Feather, label: t('productDetail.lightweightStructure') },
+    product.easy_maintenance && { icon: Wrench, label: t('productDetail.easyMaintenance') },
+    product.is_stackable && { icon: Package, label: t('productDetail.stackable') },
+    product.customizable && { icon: Palette, label: t('productDetail.customizable') },
   ].filter(Boolean) as { icon: any; label: string }[];
 
   const dimensions = [
