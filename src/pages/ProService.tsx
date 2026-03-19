@@ -413,7 +413,7 @@ const ProService = () => {
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className={labelClass}>Spaces to furnish</label>
+                          <label className={labelClass}>{t('proService.formFields.spaces')}</label>
                           <input type="text" value={form.spaces} onChange={handle("spaces")} placeholder="Terrace, pool deck, garden" className={inputClass} />
                         </div>
                         <div>
