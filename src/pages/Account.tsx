@@ -6,11 +6,25 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox,
+  AlertTriangle, Rocket, Briefcase,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
+import { useConversations } from "@/hooks/useConversations";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import {
+  PlanBadge, PLAN_CONFIG,
+  PartnerOverview as PartnerOverviewNew,
+  PartnerQuotesSection,
+  PartnerCatalogueSection,
+  PartnerPerformanceSection,
+  PartnerMessagesSection,
+  PartnerFeaturedSection,
+  PartnerProLeadsSection,
+  type PartnerPlan,
+  type PartnerSectionSetter,
+} from "@/components/partner-dashboard/PartnerSections";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -18,8 +32,11 @@ type Section =
   | "overview"
   | "projects"
   | "quotes"
+  | "messages"
   | "favourites"
   | "catalogue"
+  | "featured"
+  | "proleads"
   | "performance"
   | "settings";
 
@@ -33,13 +50,19 @@ const NAV_CLIENT = [
   { id: "settings",   icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
-const NAV_PARTNER = [
+const NAV_PARTNER_BASE = [
   { id: "overview",     icon: LayoutDashboard, labelKey: "account.overview" },
   { id: "quotes",       icon: Inbox,           labelKey: "account.quoteRequests" },
+  { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "catalogue",    icon: Package,         labelKey: "account.catalogue" },
+  { id: "featured",     icon: Rocket,          labelKey: "account.featuredProducts", eliteOnly: false },
+  { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: true },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
 ];
+
+const getPartnerNav = (plan: PartnerPlan) =>
+  NAV_PARTNER_BASE.filter(item => !item.eliteOnly || plan === "elite");
 
 const NAV_ARCHITECT = [
   { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
@@ -65,7 +88,7 @@ const PROFILE_CONFIG = {
     bg: "rgba(26,36,86,0.08)",
     badge: { bg: "#E6F1FB", color: "#185FA5", label: "Partner" },
     emoji: "🏭",
-    nav: NAV_PARTNER,
+    nav: NAV_PARTNER_BASE, // overridden dynamically in component
   },
   architect: {
     color: "#6B7B5E",
@@ -199,55 +222,7 @@ function ClientOverview({ favourites, onToggleFavourite }: { favourites: any[]; 
   );
 }
 
-function PartnerOverview() {
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard value="7" label="Pending requests" trend="+3 this week" trendColor="#185FA5" />
-        <StatCard value="23" label="Products listed" />
-        <StatCard value="€8,200" label="Revenue this month" trend="+12%" trendColor="#085041" />
-        <StatCard value="4.8" label="Avg. rating" />
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-display font-bold text-sm text-foreground flex items-center gap-2">
-            <Inbox className="h-4 w-4 text-muted-foreground" />
-            Incoming requests
-          </p>
-          <span className="text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
-            7 pending
-          </span>
-        </div>
-        <div className="space-y-2">
-          <ProjectRow title="Quote — 40× Riviera Chair" meta="Hotel Le Grand, Paris · 2h ago" badge="New" badgeStyle="bg-blue-50 text-blue-700" />
-          <ProjectRow title="Quote — 12× Parasol XL" meta="Beach Club Cala, Nice · 1d ago" badge="New" badgeStyle="bg-blue-50 text-blue-700" />
-          <ProjectRow title="Quote — 8× Table ronde 80cm" meta="Brasserie du Port, Marseille · 3d ago" badge="Pending" badgeStyle="bg-amber-50 text-amber-700" />
-        </div>
-      </div>
-
-      <div>
-        <p className="font-display font-bold text-sm text-foreground mb-3">Top products this month</p>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-3 py-2 border border-border rounded-sm">
-            <div className="flex items-center gap-2">
-              <Star className="h-3.5 w-3.5 text-amber-500" />
-              <p className="text-xs font-display font-semibold text-foreground">Riviera Chair</p>
-            </div>
-            <p className="text-[10px] font-body text-muted-foreground">142 views · 12 quotes</p>
-          </div>
-          <div className="flex items-center justify-between px-3 py-2 border border-border rounded-sm">
-            <div className="flex items-center gap-2">
-              <Star className="h-3.5 w-3.5 text-amber-500" />
-              <p className="text-xs font-display font-semibold text-foreground">Parasol XL</p>
-            </div>
-            <p className="text-[10px] font-body text-muted-foreground">98 views · 8 quotes</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+// PartnerOverview is now imported from PartnerSections
 
 function ArchitectOverview({ favourites, onToggleFavourite }: { favourites: any[]; onToggleFavourite: (p: any) => void }) {
   return (
@@ -359,8 +334,12 @@ const Account = () => {
   const { t } = useTranslation();
   const { profile, isLoading, signOut } = useAuth();
   const { favourites, toggleFavourite } = useFavourites();
+  const { totalUnread } = useConversations();
   const navigate = useNavigate();
   const [section, setSection] = useState<Section>("overview");
+
+  // Partner plan — default to "elite" for demo (would come from partner_subscriptions)
+  const partnerPlan: PartnerPlan = "elite";
 
   if (isLoading) {
     return (
@@ -377,7 +356,7 @@ const Account = () => {
 
   const userType = profile.user_type as keyof typeof PROFILE_CONFIG;
   const config = PROFILE_CONFIG[userType] ?? PROFILE_CONFIG.client;
-  const nav = config.nav;
+  const nav = userType === "partner" ? getPartnerNav(partnerPlan) : config.nav;
 
   const handleSignOut = async () => {
     await signOut();
@@ -388,9 +367,22 @@ const Account = () => {
     if (section === "settings") return <SettingsSection profile={profile} />;
     if (section === "favourites") return <FavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
 
+    // Partner-specific sections
+    const handlePartnerNav: PartnerSectionSetter = (s) => setSection(s as Section);
+    if (userType === "partner") {
+      switch (section) {
+        case "overview":    return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
+        case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
+        case "messages":    return <PartnerMessagesSection />;
+        case "catalogue":   return <PartnerCatalogueSection plan={partnerPlan} />;
+        case "featured":    return <PartnerFeaturedSection plan={partnerPlan} />;
+        case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;
+        case "performance": return <PartnerPerformanceSection plan={partnerPlan} />;
+        default:            return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
+      }
+    }
+
     switch (userType) {
-      case "partner":
-        return <PartnerOverview />;
       case "architect":
         return <ArchitectOverview favourites={favourites} onToggleFavourite={toggleFavourite} />;
       default:
@@ -428,12 +420,31 @@ const Account = () => {
                   {profile.company && (
                     <p className="text-[10px] font-body text-muted-foreground">{profile.company}</p>
                   )}
-                  <span
-                    className="inline-block text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full mt-1.5"
-                    style={{ background: config.badge.bg, color: config.badge.color }}
-                  >
-                    {config.badge.label}
-                  </span>
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    <span
+                      className="inline-block text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                      style={{ background: config.badge.bg, color: config.badge.color }}
+                    >
+                      {config.badge.label}
+                    </span>
+                    {userType === "partner" && (
+                      <PlanBadge plan={partnerPlan} />
+                    )}
+                  </div>
+                  {/* Commission reminder for partners */}
+                  {userType === "partner" && (
+                    <div
+                      className="flex items-center gap-1.5 mt-2.5 px-2.5 py-1.5 rounded-sm border text-[9px] font-body"
+                      style={{
+                        background: PLAN_CONFIG[partnerPlan].bg,
+                        borderColor: PLAN_CONFIG[partnerPlan].border,
+                        color: PLAN_CONFIG[partnerPlan].color,
+                      }}
+                    >
+                      <AlertTriangle className="h-3 w-3 shrink-0" />
+                      <span>Commission : <strong>{PLAN_CONFIG[partnerPlan].commission}%</strong></span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Nav items */}
@@ -458,6 +469,19 @@ const Account = () => {
                       {item.id === "quotes" && userType === "partner" && (
                         <span className="ml-auto text-[9px] font-display font-semibold bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full">7</span>
                       )}
+                      {item.id === "messages" && totalUnread > 0 && (
+                        <span className="ml-auto text-[9px] font-display font-bold bg-foreground text-primary-foreground px-1.5 py-0.5 rounded-full">
+                          {totalUnread}
+                        </span>
+                      )}
+                      {item.id === "proleads" && (
+                        <span className="ml-auto text-[9px] font-display font-semibold bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full">New</span>
+                      )}
+                      {item.id === "featured" && (
+                        <span className="ml-auto text-[9px] font-display font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+                          {partnerPlan === "elite" ? "10" : partnerPlan === "growth" ? "2" : "0"}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </nav>
@@ -476,18 +500,55 @@ const Account = () => {
 
               {/* Quick actions */}
               <div className="mt-6 space-y-2">
-                <button
-                  onClick={() => navigate("/projects/new")}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
-                >
-                  <Plus className="h-3.5 w-3.5" /> {t('account.newProject')}
-                </button>
-                <button
-                  onClick={() => navigate("/products")}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
-                >
-                  {t('account.browseCatalogue')}
-                </button>
+                {userType === "partner" ? (
+                  <>
+                    <button
+                      onClick={() => setSection("catalogue")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> {t('pd.catalogue.add')}
+                    </button>
+                    <button
+                      onClick={() => setSection("messages")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" /> {t('pd.msg.title')}
+                      {totalUnread > 0 && (
+                        <span className="text-[9px] font-display font-bold bg-foreground text-primary-foreground px-1.5 py-0.5 rounded-full">
+                          {totalUnread}
+                        </span>
+                      )}
+                    </button>
+                    {partnerPlan !== "elite" && (
+                      <button
+                        onClick={() => navigate("/become-partner")}
+                        className="w-full text-center py-2 text-[9px] font-display font-semibold rounded-full border hover:opacity-80 transition-opacity"
+                        style={{
+                          background: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : "elite"].bg,
+                          color: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : "elite"].color,
+                          borderColor: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : "elite"].border,
+                        }}
+                      >
+                        Passer au plan {partnerPlan === "starter" ? "Growth" : "Elite"} →
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => navigate("/projects/new")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> {t('account.newProject')}
+                    </button>
+                    <button
+                      onClick={() => navigate("/products")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
+                    >
+                      {t('account.browseCatalogue')}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
