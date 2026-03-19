@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 
 type Mode = "login" | "register";
-type UserType = "client" | "partner" | "architect";
+type UserType = "client" | "partner" | "architect" | "designer";
 
 const USER_TYPES: { value: UserType; label: string; desc: string; icon: string }[] = [
   { value: "client",    label: "Client",      desc: "Restaurant, hotel, venue owner", icon: "🍽" },
