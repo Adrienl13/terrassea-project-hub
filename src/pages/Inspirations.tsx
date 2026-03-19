@@ -549,13 +549,13 @@ const Inspirations = () => {
                     onClick={() => navigate("/projects/new")}
                     className="px-8 py-3.5 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
                   >
-                    Lancer mon projet →
+                    {t('inspirations.ctaLaunch')}
                   </button>
                   <button
                     onClick={() => navigate("/products")}
                     className="px-8 py-3.5 text-sm font-display font-semibold border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all whitespace-nowrap text-center"
                   >
-                    Explorer le catalogue
+                    {t('inspirations.ctaCatalogue')}
                   </button>
                 </div>
               </div>
