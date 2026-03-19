@@ -168,14 +168,6 @@ const BecomePartner = () => {
     </div>
   );
 
-  const [form, setForm] = useState({
-    companyName: "", contactName: "", email: "", phone: "",
-    website: "", vatNumber: "", country: "",
-    partnerType: "" as "manufacturer" | "brand" | "reseller" | "",
-    productCategories: [] as string[],
-    estimatedVolume: "", deliveryCountries: [] as string[],
-    message: "",
-  });
 
   const handle = (field: string) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
