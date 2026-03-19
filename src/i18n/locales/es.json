@@ -349,6 +349,50 @@
       "loungeLuxe": "El gran confort outdoor redefinido",
       "nordicCalm": "Pureza escandinava, confort 4 estaciones",
       "naturalOrganic": "La naturaleza como hilo conductor"
+    },
+    "materials": {
+      "cafeParisien": {
+        "0": { "label": "Ratán trenzado a mano", "pro": "Firma bistró" },
+        "1": { "label": "Hierro forjado / metal lacado", "pro": "Muy resistente" },
+        "2": { "label": "Zinc (tapas de mesa)", "pro": "Auténtico" },
+        "3": { "label": "Aluminio lacado apilable", "pro": "Fácil de almacenar" }
+      },
+      "rivieraMed": {
+        "0": { "label": "Teca maciza", "pro": "Resistente a la sal" },
+        "1": { "label": "Cuerda / ratán sintético", "pro": "Resistente UV" },
+        "2": { "label": "Aluminio termolacado", "pro": "Anticorrosión" },
+        "3": { "label": "Cerámica / gres", "pro": "Tapas premium" }
+      },
+      "beachClub": {
+        "0": { "label": "Teca grado A", "pro": "Certificado anti-sal" },
+        "1": { "label": "Ratán sintético UV+", "pro": "Resistencia marina" },
+        "2": { "label": "Textilene / Batyline®", "pro": "Secado rápido" },
+        "3": { "label": "Aluminio inoxidable", "pro": "Resistencia marina" }
+      },
+      "rooftopUrban": {
+        "0": { "label": "Acero termolacado mate", "pro": "Resistencia al viento" },
+        "1": { "label": "Latón cepillado (detalles)", "pro": "Premium" },
+        "2": { "label": "Madera ahumada / HPL", "pro": "Intemperie" },
+        "3": { "label": "Hormigón pulido (tapas)", "pro": "Diseño firma" }
+      },
+      "loungeLuxe": {
+        "0": { "label": "Tejido outdoor Sunbrella®", "pro": "Referencia lujo" },
+        "1": { "label": "Latón / acero dorado", "pro": "Acabado alta gama" },
+        "2": { "label": "Mármol / piedra natural", "pro": "Tapa firma" },
+        "3": { "label": "Teca aceitada premium", "pro": "Longevidad garantizada" }
+      },
+      "nordicCalm": {
+        "0": { "label": "Madera clara (roble / abedul)", "pro": "4 estaciones" },
+        "1": { "label": "Aluminio blanco en polvo", "pro": "Ligero y duradero" },
+        "2": { "label": "Lona lino / algodón outdoor", "pro": "Natural" },
+        "3": { "label": "Polipropileno reciclado", "pro": "Eco-responsable" }
+      },
+      "naturalOrganic": {
+        "0": { "label": "Teca / acacia FSC", "pro": "Certificado sostenible" },
+        "1": { "label": "Ratán natural / bambú", "pro": "Bio-fuente" },
+        "2": { "label": "Cuerda natural / cáñamo", "pro": "Auténtico" },
+        "3": { "label": "PP reciclado eco-diseñado", "pro": "Reciclable" }
+      }
     }
   },
   "footer": {

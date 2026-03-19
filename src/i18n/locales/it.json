@@ -349,6 +349,50 @@
       "loungeLuxe": "Il grande comfort outdoor ridefinito",
       "nordicCalm": "Purezza scandinava, comfort 4 stagioni",
       "naturalOrganic": "La natura come filo conduttore"
+    },
+    "materials": {
+      "cafeParisien": {
+        "0": { "label": "Rattan intrecciato a mano", "pro": "Firma bistrot" },
+        "1": { "label": "Ferro battuto / metallo laccato", "pro": "Molto resistente" },
+        "2": { "label": "Zinco (piani tavolini)", "pro": "Autentico" },
+        "3": { "label": "Alluminio laccato impilabile", "pro": "Facile da riporre" }
+      },
+      "rivieraMed": {
+        "0": { "label": "Teak massello", "pro": "Resistente al sale" },
+        "1": { "label": "Corda / rattan sintetico", "pro": "Resistente UV" },
+        "2": { "label": "Alluminio termolaccato", "pro": "Anticorrosione" },
+        "3": { "label": "Ceramica / gres", "pro": "Piani premium" }
+      },
+      "beachClub": {
+        "0": { "label": "Teak grado A", "pro": "Certificato anti-sale" },
+        "1": { "label": "Rattan sintetico UV+", "pro": "Resistenza marina" },
+        "2": { "label": "Textilene / Batyline®", "pro": "Asciugatura rapida" },
+        "3": { "label": "Alluminio inox", "pro": "Resistenza marina" }
+      },
+      "rooftopUrban": {
+        "0": { "label": "Acciaio termolaccato opaco", "pro": "Resistenza al vento" },
+        "1": { "label": "Ottone spazzolato (dettagli)", "pro": "Premium" },
+        "2": { "label": "Legno affumicato / HPL", "pro": "Intemperie" },
+        "3": { "label": "Cemento levigato (piani)", "pro": "Design firma" }
+      },
+      "loungeLuxe": {
+        "0": { "label": "Tessuto outdoor Sunbrella®", "pro": "Riferimento lusso" },
+        "1": { "label": "Ottone / acciaio dorato", "pro": "Finitura alta gamma" },
+        "2": { "label": "Marmo / pietra naturale", "pro": "Piano firma" },
+        "3": { "label": "Teak oliato premium", "pro": "Longevità garantita" }
+      },
+      "nordicCalm": {
+        "0": { "label": "Legno chiaro (rovere / betulla)", "pro": "4 stagioni" },
+        "1": { "label": "Alluminio verniciato bianco", "pro": "Leggero e durevole" },
+        "2": { "label": "Tela lino / cotone outdoor", "pro": "Naturale" },
+        "3": { "label": "Polipropilene riciclato", "pro": "Eco-responsabile" }
+      },
+      "naturalOrganic": {
+        "0": { "label": "Teak / acacia FSC", "pro": "Certificato sostenibile" },
+        "1": { "label": "Rattan naturale / bambù", "pro": "Bio-fonte" },
+        "2": { "label": "Corda naturale / canapa", "pro": "Autentico" },
+        "3": { "label": "PP riciclato eco-design", "pro": "Riciclabile" }
+      }
     }
   },
   "footer": {
