@@ -370,13 +370,13 @@ const ProService = () => {
                 {/* Qualification fields */}
                 <div className="border border-border rounded-2xl p-5 bg-muted/20">
                   <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-                    Project scale — used to confirm eligibility
+                    {t('proService.formFields.scale')}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className={labelClass}>
-                        Number of covers / seats
-                        <span className="font-normal normal-case tracking-normal text-muted-foreground"> (all spaces)</span>
+                        {t('proService.formFields.covers')}
+                        <span className="font-normal normal-case tracking-normal text-muted-foreground"> {t('proService.formFields.coversAll')}</span>
                       </label>
                       <input type="number" value={form.covers} onChange={handle("covers")} placeholder="e.g. 200"
                         className={`${inputClass} ${coversNum && coversNum >= MIN_COVERS ? "border-green-500" : coversNum && coversNum < MIN_COVERS ? "border-amber-400" : ""}`} />
