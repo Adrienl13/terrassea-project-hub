@@ -84,7 +84,7 @@ const TERM_TO_COLOR_SLUG: Record<string, string> = {
   sabbia: "sand", avorio: "ivory", ruggine: "rust",
   // ES
   azul: "blue", blanco: "white", negro: "black",
-  rojo: "red", gris: "grey",
+  rojo: "red",
   arena: "sand", marfil: "ivory", óxido: "rust",
   // DE
   blau: "blue", weiß: "white", weiss: "white",
