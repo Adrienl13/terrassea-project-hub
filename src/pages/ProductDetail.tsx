@@ -242,7 +242,7 @@ const ProductDetail = () => {
                     className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
                   >
                     <Plus className="h-4 w-4" />
-                    Add to project
+                    {t('actions.addToProject')}
                   </button>
                   <button
                     onClick={() => setQuoteModalOpen(true)}
