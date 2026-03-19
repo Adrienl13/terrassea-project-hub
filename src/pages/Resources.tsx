@@ -699,7 +699,7 @@ const Resources = () => {
                 {/* Topic switcher in sidebar */}
                 <div>
                   <p className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                    Other topics
+                    {t('resources.otherTopics')}
                   </p>
                   <div className="space-y-1">
                     {TOPICS.filter(t => t.id !== activeTopic).map(t => (
