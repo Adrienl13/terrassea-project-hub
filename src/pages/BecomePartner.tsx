@@ -41,7 +41,7 @@ const PLANS = [
       { ok: true, label: "Up to 50 products" },
       { ok: true, label: "5% commission (save vs 8%)" },
       { ok: true, label: "Logo visible on partner profile & product cards" },
-      { ok: true, label: "Priority in recommendation engine — 3 featured products" },
+      { ok: true, label: "2 featured products boosted in recommendation engine" },
       { ok: true, label: "Verified Partner badge" },
       { ok: true, label: "Analytics dashboard — views, quotes, orders" },
       { ok: true, label: "Leads 24h before Starter partners" },
