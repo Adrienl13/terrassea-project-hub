@@ -249,7 +249,7 @@ const ProService = () => {
 
             {/* Right — Is this right for you */}
             <div>
-              <h2 className="font-display text-xl font-bold tracking-tight mb-8">Is this right for you?</h2>
+              <h2 className="font-display text-xl font-bold tracking-tight mb-8">{t('proService.isThisForYou')}</h2>
 
               {/* Yes */}
               <p className="text-xs font-display font-semibold uppercase tracking-widest text-green-600 mb-3">This is for you if…</p>
