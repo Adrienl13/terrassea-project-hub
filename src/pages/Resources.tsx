@@ -566,12 +566,12 @@ const Resources = () => {
 
           {/* Photo card grid */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {TOPICS.map(t => (
+            {TOPICS.map(tp => (
               <TopicPhotoCard
-                key={t.id}
-                topic={t}
-                isActive={activeTopic === t.id}
-                onClick={() => handleTopicChange(t.id)}
+                key={tp.id}
+                topic={tp}
+                isActive={activeTopic === tp.id}
+                onClick={() => handleTopicChange(tp.id)}
               />
             ))}
           </div>
