@@ -66,6 +66,7 @@ const TERM_TO_COLOR_SLUG: Record<string, string> = {
   bronze: "bronze", teak: "teak", walnut: "walnut",
   brown: "dark-brown", taupe: "taupe", silver: "silver",
   copper: "copper", yellow: "yellow", mustard: "mustard",
+  ivory: "ivory",
   // FR
   bleu: "blue", bleue: "blue", marine: "navy",
   blanc: "white", blanche: "white",
@@ -77,9 +78,11 @@ const TERM_TO_COLOR_SLUG: Record<string, string> = {
   // IT
   blu: "blue", bianco: "white", nero: "black",
   grigio: "grey", verde: "green", rosso: "red",
+  sabbia: "sand", avorio: "ivory", ruggine: "rust",
   // ES
   azul: "blue", blanco: "white", negro: "black",
-  rojo: "red",
+  rojo: "red", gris: "grey",
+  arena: "sand", marfil: "ivory", óxido: "rust",
   // DE
   blau: "blue", weiß: "white", weiss: "white",
   schwarz: "black", grau: "grey", grün: "green",
