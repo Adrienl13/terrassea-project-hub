@@ -290,7 +290,66 @@
     "ctaTitle": "¿No encuentras tu estilo?",
     "ctaDesc": "Describe tu espacio — nuestro motor genera 3 conceptos a medida con los productos adecuados.",
     "ctaLaunch": "Lanzar mi proyecto →",
-    "ctaCatalogue": "Explorar catálogo"
+    "ctaCatalogue": "Explorar catálogo",
+    "filterByVenue": "Por tipo de establecimiento",
+    "filterByStyle": "Por estilo",
+    "shopTheLook": "Comprar este look",
+    "inspi": "inspi.",
+    "venues": {
+      "restaurant": "Restaurante",
+      "hotel": "Hotel",
+      "rooftop": "Azotea",
+      "beachclub": "Beach Club",
+      "camping": "Camping"
+    },
+    "styles": {
+      "bistro": "Bistro",
+      "mediterranean": "Mediterráneo",
+      "beachClub": "Beach Club",
+      "urban": "Urbano",
+      "lounge": "Lounge",
+      "nordic": "Nórdico",
+      "natural": "Natural"
+    },
+    "moods": {
+      "convivial": "Convivial",
+      "authentic": "Auténtico",
+      "warm": "Cálido",
+      "relaxed": "Relajado",
+      "contemporary": "Contemporáneo",
+      "evening": "Noche",
+      "refined": "Refinado",
+      "highEnd": "Alta gama",
+      "pure": "Depurado",
+      "functional": "Funcional",
+      "fourSeasons": "4 estaciones",
+      "durable": "Duradero",
+      "ecoFriendly": "Eco-responsable",
+      "ibizaStyle": "Estilo Ibiza",
+      "marineResistance": "Resistencia marina",
+      "windResistance": "Resistencia al viento",
+      "highTraffic": "Alto tráfico",
+      "heavyUse": "Uso intensivo",
+      "saltResistant": "Resistente a la sal"
+    },
+    "moodboardNames": {
+      "cafeParisien": "Café Parisino",
+      "rivieraMed": "Riviera Mediterránea",
+      "beachClub": "Beach Club",
+      "rooftopUrban": "Rooftop Urban",
+      "loungeLuxe": "Lounge Luxe",
+      "nordicCalm": "Nordic Calm",
+      "naturalOrganic": "Natural & Orgánico"
+    },
+    "moodboardTaglines": {
+      "cafeParisien": "El alma de las terrazas parisinas",
+      "rivieraMed": "Calidez del sur, materiales nobles",
+      "beachClub": "Espíritu Ibiza, confort 5 estrellas",
+      "rooftopUrban": "Sofisticación sobre los tejados",
+      "loungeLuxe": "El gran confort outdoor redefinido",
+      "nordicCalm": "Pureza escandinava, confort 4 estaciones",
+      "naturalOrganic": "La naturaleza como hilo conductor"
+    }
   },
   "footer": {
     "description": "La plataforma europea de proyectos de hostelería. Diseña tu espacio outdoor, descubre soluciones de mobiliario premium y conecta con socios de sourcing.",

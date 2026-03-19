@@ -290,7 +290,69 @@
     "ctaTitle": "Vous ne trouvez pas votre style ?",
     "ctaDesc": "Décrivez votre espace — notre moteur génère 3 concepts sur mesure avec les produits adaptés.",
     "ctaLaunch": "Lancer mon projet →",
-    "ctaCatalogue": "Explorer le catalogue"
+    "ctaCatalogue": "Explorer le catalogue",
+    "filterByVenue": "Par type d'établissement",
+    "filterByStyle": "Par style",
+    "shopTheLook": "Acheter ce look",
+    "inspi": "inspi.",
+    "venues": {
+      "restaurant": "Restaurant",
+      "hotel": "Hôtel",
+      "rooftop": "Rooftop",
+      "beachclub": "Beach Club",
+      "camping": "Camping"
+    },
+    "styles": {
+      "bistro": "Bistro",
+      "mediterranean": "Méditerranéen",
+      "beachClub": "Beach Club",
+      "urban": "Urbain",
+      "lounge": "Lounge",
+      "nordic": "Nordique",
+      "natural": "Naturel"
+    },
+    "moods": {
+      "convivial": "Convivial",
+      "authentic": "Authentique",
+      "industrial": "Fort trafic",
+      "warm": "Chaleureux",
+      "relaxed": "Détendu",
+      "mediterranean": "Al fresco",
+      "beachVibes": "Usage intensif",
+      "contemporary": "Contemporain",
+      "evening": "Soirée",
+      "refined": "Raffiné",
+      "highEnd": "Haut de gamme",
+      "pure": "Épuré",
+      "functional": "Fonctionnel",
+      "fourSeasons": "4 saisons",
+      "durable": "Durable",
+      "ecoFriendly": "Éco-responsable",
+      "ibizaStyle": "Ibiza style",
+      "marineResistance": "Résistance marine",
+      "windResistance": "Résistance vent",
+      "highTraffic": "Fort trafic",
+      "heavyUse": "Usage intensif",
+      "saltResistant": "Résistant au sel"
+    },
+    "moodboardNames": {
+      "cafeParisien": "Café Parisien",
+      "rivieraMed": "Riviera Méditerranée",
+      "beachClub": "Beach Club",
+      "rooftopUrban": "Rooftop Urban",
+      "loungeLuxe": "Lounge Luxe",
+      "nordicCalm": "Nordic Calm",
+      "naturalOrganic": "Naturel & Organique"
+    },
+    "moodboardTaglines": {
+      "cafeParisien": "L'âme des terrasses parisiennes",
+      "rivieraMed": "Chaleur du Sud, matériaux nobles",
+      "beachClub": "L'esprit Ibiza, le confort 5 étoiles",
+      "rooftopUrban": "Sophistication au-dessus des toits",
+      "loungeLuxe": "Le grand confort outdoor redéfini",
+      "nordicCalm": "Épure scandinave, confort 4 saisons",
+      "naturalOrganic": "La nature comme fil conducteur"
+    }
   },
   "footer": {
     "description": "La plateforme européenne de projets hôteliers. Concevez votre espace outdoor, découvrez des solutions mobilier premium et connectez-vous avec des partenaires sourcing.",

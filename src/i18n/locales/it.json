@@ -270,7 +270,6 @@
     "byEstablishment": "Per tipo di struttura",
     "all": "Tutti",
     "moodboards": "Moodboard",
-    "moodboards_plural": "Moodboard",
     "selections": "selezione",
     "selectionsPlural": "selezioni",
     "allStyles": "Tutti gli stili",
@@ -291,7 +290,66 @@
     "ctaTitle": "Non trovi il tuo stile?",
     "ctaDesc": "Descrivi il tuo spazio — il nostro motore genera 3 concept su misura con i prodotti adatti.",
     "ctaLaunch": "Lancia il mio progetto →",
-    "ctaCatalogue": "Esplora il catalogo"
+    "ctaCatalogue": "Esplora il catalogo",
+    "filterByVenue": "Per tipo di struttura",
+    "filterByStyle": "Per stile",
+    "shopTheLook": "Acquista questo look",
+    "inspi": "inspi.",
+    "venues": {
+      "restaurant": "Ristorante",
+      "hotel": "Hotel",
+      "rooftop": "Rooftop",
+      "beachclub": "Beach Club",
+      "camping": "Camping"
+    },
+    "styles": {
+      "bistro": "Bistro",
+      "mediterranean": "Mediterraneo",
+      "beachClub": "Beach Club",
+      "urban": "Urbano",
+      "lounge": "Lounge",
+      "nordic": "Nordico",
+      "natural": "Naturale"
+    },
+    "moods": {
+      "convivial": "Conviviale",
+      "authentic": "Autentico",
+      "warm": "Caldo",
+      "relaxed": "Rilassato",
+      "contemporary": "Contemporaneo",
+      "evening": "Serata",
+      "refined": "Raffinato",
+      "highEnd": "Alta gamma",
+      "pure": "Essenziale",
+      "functional": "Funzionale",
+      "fourSeasons": "4 stagioni",
+      "durable": "Durevole",
+      "ecoFriendly": "Eco-responsabile",
+      "ibizaStyle": "Stile Ibiza",
+      "marineResistance": "Resistenza marina",
+      "windResistance": "Resistenza al vento",
+      "highTraffic": "Alto traffico",
+      "heavyUse": "Uso intensivo",
+      "saltResistant": "Resistente al sale"
+    },
+    "moodboardNames": {
+      "cafeParisien": "Café Parisien",
+      "rivieraMed": "Riviera Mediterranea",
+      "beachClub": "Beach Club",
+      "rooftopUrban": "Rooftop Urban",
+      "loungeLuxe": "Lounge Luxe",
+      "nordicCalm": "Nordic Calm",
+      "naturalOrganic": "Naturale & Organico"
+    },
+    "moodboardTaglines": {
+      "cafeParisien": "L'anima delle terrazze parigine",
+      "rivieraMed": "Calore del sud, materiali nobili",
+      "beachClub": "Spirito Ibiza, comfort 5 stelle",
+      "rooftopUrban": "Sofisticazione sopra i tetti",
+      "loungeLuxe": "Il grande comfort outdoor ridefinito",
+      "nordicCalm": "Purezza scandinava, comfort 4 stagioni",
+      "naturalOrganic": "La natura come filo conduttore"
+    }
   },
   "footer": {
     "description": "La piattaforma europea per progetti hospitality. Progetta il tuo spazio outdoor, scopri soluzioni di arredo premium e connettiti con partner di sourcing.",

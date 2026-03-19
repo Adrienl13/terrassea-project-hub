@@ -290,7 +290,69 @@
     "ctaTitle": "Can't find your style?",
     "ctaDesc": "Describe your space — our engine generates 3 custom concepts with matched products.",
     "ctaLaunch": "Launch my project →",
-    "ctaCatalogue": "Explore catalogue"
+    "ctaCatalogue": "Explore catalogue",
+    "filterByVenue": "By venue type",
+    "filterByStyle": "By style",
+    "shopTheLook": "Shop the look",
+    "inspi": "inspi.",
+    "venues": {
+      "restaurant": "Restaurant",
+      "hotel": "Hotel",
+      "rooftop": "Rooftop",
+      "beachclub": "Beach Club",
+      "camping": "Camping"
+    },
+    "styles": {
+      "bistro": "Bistro",
+      "mediterranean": "Mediterranean",
+      "beachClub": "Beach Club",
+      "urban": "Urban",
+      "lounge": "Lounge",
+      "nordic": "Nordic",
+      "natural": "Natural"
+    },
+    "moods": {
+      "convivial": "Convivial",
+      "authentic": "Authentic",
+      "industrial": "Industrial",
+      "warm": "Warm",
+      "relaxed": "Relaxed",
+      "mediterranean": "Mediterranean",
+      "beachVibes": "Beach vibes",
+      "contemporary": "Contemporary",
+      "evening": "Evening",
+      "refined": "Refined",
+      "highEnd": "High-end",
+      "pure": "Pure",
+      "functional": "Functional",
+      "fourSeasons": "4 seasons",
+      "durable": "Durable",
+      "ecoFriendly": "Eco-friendly",
+      "ibizaStyle": "Ibiza style",
+      "marineResistance": "Marine resistance",
+      "windResistance": "Wind resistance",
+      "highTraffic": "High traffic",
+      "heavyUse": "Heavy use",
+      "saltResistant": "Salt resistant"
+    },
+    "moodboardNames": {
+      "cafeParisien": "Café Parisien",
+      "rivieraMed": "Riviera Mediterranean",
+      "beachClub": "Beach Club",
+      "rooftopUrban": "Rooftop Urban",
+      "loungeLuxe": "Lounge Luxe",
+      "nordicCalm": "Nordic Calm",
+      "naturalOrganic": "Natural & Organic"
+    },
+    "moodboardTaglines": {
+      "cafeParisien": "The soul of Parisian terraces",
+      "rivieraMed": "Southern warmth, noble materials",
+      "beachClub": "Ibiza spirit, 5-star comfort",
+      "rooftopUrban": "Sophistication above the rooftops",
+      "loungeLuxe": "Outdoor comfort redefined",
+      "nordicCalm": "Scandinavian purity, 4-season comfort",
+      "naturalOrganic": "Nature as a guiding thread"
+    }
   },
   "footer": {
     "description": "The European hospitality project platform. Design your outdoor space, discover premium furniture solutions, and connect with sourcing partners.",
