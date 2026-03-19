@@ -421,24 +421,24 @@ const Index = () => {
             {[
             {
               number: "01",
-              title: "Simplified sourcing",
-              text: "Compare offers from multiple suppliers on a single product. Price, stock, delivery times — all at a glance.",
+              title: t('valueProp.card1Title'),
+              text: t('valueProp.card1Text'),
               accent: "#D4603A",
-              tag: "Multi-supplier"
+              tag: t('valueProp.card1Tag')
             },
             {
               number: "02",
-              title: "Tailored projects",
-              text: "Our engine generates curated selections adapted to your establishment type, style and budget.",
+              title: t('valueProp.card2Title'),
+              text: t('valueProp.card2Text'),
               accent: "#4A90A4",
-              tag: "AI-powered"
+              tag: t('valueProp.card2Tag')
             },
             {
               number: "03",
-              title: "Verified partners",
-              text: "Every supplier is selected for CHR-grade quality, delivery reliability and professional service across Europe.",
+              title: t('valueProp.card3Title'),
+              text: t('valueProp.card3Text'),
               accent: "#6B7B5E",
-              tag: "Europe-wide"
+              tag: t('valueProp.card3Tag')
             }].
             map((item, i) =>
             <motion.div
