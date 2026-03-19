@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
