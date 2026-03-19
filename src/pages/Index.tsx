@@ -279,22 +279,28 @@ const Index = () => {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="flex items-end justify-between mb-12">
             <div>
               <span className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
-                By establishment
+                {t('spaces.byEstablishment')}
               </span>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-1">
-                Explore spaces
+                {t('spaces.exploreSpaces')}
               </h2>
             </div>
             <button
               onClick={() => navigate("/inspirations")}
               className="hidden md:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors group">
               
-              All inspirations
+              {t('spaces.allInspirations')}
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {spaces.map((space, i) =>
+            {[
+              { name: t('spaces.restaurants'), image: spaceRestaurant, description: t('spaces.restaurantsDesc') },
+              { name: t('spaces.hotels'), image: spaceHotel, description: t('spaces.hotelsDesc') },
+              { name: t('spaces.rooftops'), image: spaceRooftop, description: t('spaces.rooftopsDesc') },
+              { name: t('spaces.beachClubs'), image: spaceBeachclub, description: t('spaces.beachClubsDesc') },
+              { name: t('spaces.campings'), image: spaceCamping, description: t('spaces.campingsDesc') },
+            ].map((space, i) =>
             <SpaceCard key={space.name} {...space} index={i} />
             )}
           </div>
