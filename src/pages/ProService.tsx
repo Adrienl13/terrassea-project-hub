@@ -451,10 +451,10 @@ const ProService = () => {
                 <div className="pt-2">
                   <button onClick={handleSubmit} disabled={submitting}
                     className="w-full py-4 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2">
-                    {submitting ? "Submitting..." : <>Submit project brief <ArrowRight className="h-4 w-4" /></>}
+                    {submitting ? t('common.submitting') : <>{t('proService.formSubmitButton')} <ArrowRight className="h-4 w-4" /></>}
                   </button>
                   <p className="text-[10px] text-muted-foreground font-body text-center mt-3 leading-relaxed">
-                    No commitment · Our team confirms eligibility within 24h · Free for the client
+                    {t('proService.formDisclaimer')}
                   </p>
                 </div>
               </div>
