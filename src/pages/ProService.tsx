@@ -186,23 +186,22 @@ const ProService = () => {
               {/* Thresholds */}
               <div className="flex flex-wrap items-center gap-3 text-sm font-body mb-8">
                 {[
-                  { value: "100+ covers", label: "or more" },
-                  { value: "€35,000+", label: "indicative budget" },
-                  { value: "2+ spaces", label: "simultaneously" },
-                ].map((t, i) => (
+                  t('proService.covers'),
+                  t('proService.budget'),
+                  t('proService.spaces'),
+                ].map((val, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    {i > 0 && <span className="text-muted-foreground text-xs">or</span>}
+                    {i > 0 && <span className="text-muted-foreground text-xs">{t('common.or')}</span>}
                     <div className="flex items-center gap-2 bg-muted/50 rounded-full px-4 py-2">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      <span className="font-semibold">{t.value}</span>
-                      <span className="text-muted-foreground">{t.label}</span>
+                      <span className="font-semibold">{val}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
               <a href="#brief" className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90 transition-opacity">
-                Submit your brief <ArrowRight className="h-4 w-4" />
+                {t('proService.submitBrief')} <ArrowRight className="h-4 w-4" />
               </a>
             </motion.div>
 
