@@ -160,7 +160,7 @@ const Header = () => {
 
       {/* Category nav bar */}
       <div className="bg-[#2C2C2A] border-t border-white/5 relative z-50">
-        <div className="container mx-auto px-6 overflow-x-auto no-scrollbar">
+        <div className="container mx-auto px-6 overflow-x-auto overflow-y-visible no-scrollbar">
           <div className="flex items-center gap-7 py-2.5 min-w-max">
             <Link
               to="/products"
