@@ -440,7 +440,7 @@ const ProjectCart = () => {
                     <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Describe your requirements, deadline, specific finishes..."
+                    placeholder={t('projectCart.notesPlaceholder')}
                     rows={3}
                     className="w-full bg-card rounded-sm border border-border p-4 text-sm font-body text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-foreground resize-none" />
                   
