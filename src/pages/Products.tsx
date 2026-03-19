@@ -255,10 +255,10 @@ const Products = () => {
         <section className="px-6 mb-8">
           <div className="container mx-auto">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
-              Product Hub
+              {t('products.title')}
             </h1>
             <p className="text-sm text-muted-foreground font-body max-w-xl">
-              Professional furniture sourcing — search, compare and select from our curated catalog.
+              {t('products.subtitle')}
             </p>
 
             {/* Search bar */}
