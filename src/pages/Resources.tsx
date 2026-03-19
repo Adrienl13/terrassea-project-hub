@@ -628,7 +628,7 @@ const Resources = () => {
               <div className="mb-12">
                 <h3 className="font-display text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                   <ChevronDown className="h-4 w-4" />
-                  Frequently asked questions
+                  {t('resources.faqTitle')}
                 </h3>
                 <FAQAccordion faqs={topic.faqs} />
               </div>
