@@ -31,8 +31,8 @@ export const EMPTY_FILTERS: FilterState = {
 };
 
 export const CATEGORY_OPTIONS = [
-  "Chairs", "Armchairs", "Stools", "Tables", "Coffee Tables",
-  "High Tables", "Sofas", "Sun Loungers", "Parasols", "Benches",
+  "Chairs", "Armchairs", "Stools", "Tables", "Table Bases", "Tabletops",
+  "Coffee Tables", "High Tables", "Sofas", "Sun Loungers", "Parasols", "Benches",
 ];
 
 export const USAGE_OPTIONS = [
