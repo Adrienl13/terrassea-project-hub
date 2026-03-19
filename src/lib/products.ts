@@ -226,7 +226,7 @@ export async function fetchTagDefinitions(
 
 // ── Normalize raw Supabase row → DBProduct ─────────────────
 
-function normalizeProduct(raw: any): DBProduct {
+export function normalizeProduct(raw: any): DBProduct {
   return {
     ...raw,
     style_tags:      raw.style_tags      ?? [],
