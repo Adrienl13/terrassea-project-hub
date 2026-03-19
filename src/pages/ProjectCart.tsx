@@ -27,43 +27,35 @@ function getCurrentStep(items: CartItem[]): number {
   return 3;
 }
 
-function ProgressSteps({ current }: {current: number;}) {
+function ProgressSteps({ current, t }: {current: number; t: (k: string) => string}) {
   return (
     <div className="flex items-center justify-between mb-8">
-      {STEPS.map((step, i) => {
-        const isDone = current > step.id;
-        const isActive = current === step.id;
-        const isLast = i === STEPS.length - 1;
+      {STEP_KEYS.map((key, i) => {
+        const stepId = i + 1;
+        const isDone = current > stepId;
+        const isActive = current === stepId;
+        const isLast = i === STEP_KEYS.length - 1;
         return (
-          <div key={step.id} className="flex items-center flex-1">
+          <div key={key} className="flex items-center flex-1">
             <div className="flex flex-col items-center">
               <div
                 className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-display font-bold transition-colors ${
                 isDone || isActive ?
                 "bg-foreground text-primary-foreground" :
-                "bg-muted text-muted-foreground"}`
-                }>
-                
-                {isDone ? "✓" : step.id}
+                "bg-muted text-muted-foreground"}`}>
+                {isDone ? "✓" : stepId}
               </div>
               <span
                 className={`hidden md:block text-[10px] font-display uppercase tracking-wider mt-1 ${
-                isDone || isActive ? "text-foreground font-semibold" : "text-muted-foreground"}`
-                }>
-                
-                {step.label}
+                isDone || isActive ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
+                {t(`projectCart.${key}`)}
               </span>
             </div>
             {!isLast &&
-            <div
-              className={`flex-1 h-px mx-2 ${isDone ? "bg-foreground" : "bg-border"}`} />
-
-            }
+            <div className={`flex-1 h-px mx-2 ${isDone ? "bg-foreground" : "bg-border"}`} />}
           </div>);
-
       })}
     </div>);
-
 }
 
 // ── SIREN lookup ──────────────────────────────────────────────────────────────
