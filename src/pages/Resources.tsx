@@ -711,7 +711,7 @@ const Resources = () => {
                         <t.icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                         <div>
                           <p className="text-xs font-display font-semibold text-foreground">{t.label}</p>
-                          <p className="text-[10px] text-muted-foreground">{t.faqs.length} questions</p>
+                          <p className="text-[10px] text-muted-foreground">{t.faqs.length} {t('resources.questions')}</p>
                         </div>
                       </button>
                     ))}
