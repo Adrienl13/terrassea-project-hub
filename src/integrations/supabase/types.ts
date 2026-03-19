@@ -772,7 +772,88 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_products_multilang: {
+        Args: {
+          category_filter?: string
+          lang?: string
+          limit_count?: number
+          search_query: string
+        }
+        Returns: {
+          ambience_tags: string[] | null
+          archetype_confidence: number | null
+          archetype_id: string | null
+          availability_type: string | null
+          available_colors: string[] | null
+          brand_source: string | null
+          category: string
+          collection: string | null
+          color_variants: Json | null
+          combinable: boolean | null
+          combined_capacity_if_joined: number | null
+          country_of_manufacture: string | null
+          created_at: string
+          customizable: boolean | null
+          data_quality_score: number | null
+          default_seating_capacity: number | null
+          dimensions_height_cm: number | null
+          dimensions_length_cm: number | null
+          dimensions_width_cm: number | null
+          dismountable: boolean | null
+          documents: Json | null
+          easy_maintenance: boolean | null
+          estimated_delivery_days: number | null
+          fire_retardant: boolean | null
+          gallery_urls: string[] | null
+          id: string
+          image_url: string | null
+          indicative_price: string | null
+          is_chr_heavy_use: boolean | null
+          is_outdoor: boolean | null
+          is_stackable: boolean | null
+          lightweight: boolean | null
+          long_description: string | null
+          main_color: string | null
+          maintenance_info: string | null
+          material_seat: string | null
+          material_structure: string | null
+          material_tags: string[] | null
+          name: string
+          palette_tags: string[] | null
+          popularity_score: number | null
+          price_max: number | null
+          price_min: number | null
+          priority_score: number | null
+          product_family: string | null
+          product_type_tags: Json | null
+          publish_status: string
+          recommended_seating_max: number | null
+          recommended_seating_min: number | null
+          requires_assembly: boolean | null
+          seat_height_cm: number | null
+          secondary_color: string | null
+          short_description: string | null
+          stock_quantity: number | null
+          stock_status: string | null
+          style_tags: string[] | null
+          subcategory: string | null
+          supplier_internal: string | null
+          table_shape: string | null
+          technical_tags: string[] | null
+          updated_at: string
+          use_case_tags: string[] | null
+          uv_resistant: boolean | null
+          warranty: string | null
+          weather_resistant: boolean | null
+          weight_kg: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       partner_type: "brand" | "manufacturer" | "reseller" | "designer"
