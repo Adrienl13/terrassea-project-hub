@@ -28,7 +28,7 @@ const PLANS = [
       { ok: false, label: "Verified Partner badge" },
       { ok: false, label: "Leads 24h in advance" },
     ],
-    note: "Automatically upgrades to Growth at your 3rd confirmed order.",
+    note: "6-month renewable contract. Automatically upgrades to Growth at your 3rd confirmed order.",
   },
   {
     id: "growth",
@@ -47,7 +47,7 @@ const PLANS = [
       { ok: true, label: "Leads 24h before Starter partners" },
       { ok: true, label: "Stock sync via CSV" },
     ],
-    note: "At €5,000/month in orders, the commission saving covers the subscription.",
+    note: "6-month renewable contract. At €5,000/month in orders, the commission saving covers the subscription.",
     featured: true,
   },
   {
@@ -69,7 +69,7 @@ const PLANS = [
       { ok: true, label: "Co-marketing with Terrassea" },
       { ok: true, label: "Access to Pro Service leads" },
     ],
-    note: "For established brands with significant CHR volume. Contact us to discuss terms and pricing.",
+    note: "6-month renewable contract. For established brands with significant CHR volume. Contact us to discuss terms and pricing.",
   },
 ];
 
