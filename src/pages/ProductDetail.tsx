@@ -297,24 +297,24 @@ const ProductDetail = () => {
                 {/* Technical specs */}
                 <div className="border-t border-border pt-6 space-y-4">
                   <h2 className="font-display text-sm font-bold text-foreground uppercase tracking-wider">
-                    Technical specifications
+                    {t('productDetail.technicalSpecs')}
                   </h2>
                   <div className="grid grid-cols-2 gap-3 text-xs font-body">
-                    {product.category && <SpecRow label="Category" value={product.category} />}
-                    {product.subcategory && <SpecRow label="Subcategory" value={product.subcategory} />}
-                    {dimensions.length > 0 && <SpecRow label="Dimensions" value={dimensions.join(" × ")} />}
-                    {product.seat_height_cm && <SpecRow label="Seat height" value={`${product.seat_height_cm} cm`} />}
-                    {product.weight_kg && <SpecRow label="Weight" value={`${product.weight_kg} kg`} />}
-                    {product.material_structure && <SpecRow label="Structure" value={product.material_structure} />}
-                    {product.material_seat && <SpecRow label="Seat / Top" value={product.material_seat} />}
-                    {product.main_color && <SpecRow label="Main color" value={product.main_color} />}
+                    {product.category && <SpecRow label={t('productDetail.category')} value={product.category} />}
+                    {product.subcategory && <SpecRow label={t('productDetail.subcategory')} value={product.subcategory} />}
+                    {dimensions.length > 0 && <SpecRow label={t('productDetail.dimensions')} value={dimensions.join(" × ")} />}
+                    {product.seat_height_cm && <SpecRow label={t('productDetail.seatHeight')} value={`${product.seat_height_cm} cm`} />}
+                    {product.weight_kg && <SpecRow label={t('productDetail.weight')} value={`${product.weight_kg} kg`} />}
+                    {product.material_structure && <SpecRow label={t('productDetail.structure')} value={product.material_structure} />}
+                    {product.material_seat && <SpecRow label={t('productDetail.seatTop')} value={product.material_seat} />}
+                    {product.main_color && <SpecRow label={t('productDetail.mainColor')} value={product.main_color} />}
                     {product.available_colors.length > 0 && (
-                      <SpecRow label="Available colors" value={product.available_colors.join(", ")} />
+                      <SpecRow label={t('productDetail.availableColors')} value={product.available_colors.join(", ")} />
                     )}
-                    {product.country_of_manufacture && <SpecRow label="Made in" value={product.country_of_manufacture} />}
-                    {product.warranty && <SpecRow label="Warranty" value={product.warranty} />}
-                    {product.requires_assembly && <SpecRow label="Assembly" value="Required" />}
-                    {product.maintenance_info && <SpecRow label="Maintenance" value={product.maintenance_info} />}
+                    {product.country_of_manufacture && <SpecRow label={t('productDetail.madeIn')} value={product.country_of_manufacture} />}
+                    {product.warranty && <SpecRow label={t('productDetail.warranty')} value={product.warranty} />}
+                    {product.requires_assembly && <SpecRow label={t('productDetail.assembly')} value={t('productDetail.assemblyRequired')} />}
+                    {product.maintenance_info && <SpecRow label={t('productDetail.maintenance')} value={product.maintenance_info} />}
                   </div>
                 </div>
 
