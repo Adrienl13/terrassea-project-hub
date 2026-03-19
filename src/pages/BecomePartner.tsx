@@ -21,9 +21,9 @@ const PLANS = [
     features: [
       { ok: true, label: "Up to 30 products" },
       { ok: true, label: "8% commission on confirmed orders" },
-      { ok: true, label: 'Anonymous profile — "Verified Supplier"' },
+      { ok: true, label: "Logo + description visible on partner profile" },
       { ok: true, label: "Access to incoming quote requests" },
-      { ok: true, label: "Partner profile page (no logo, no name)" },
+      { ok: true, label: "Partner profile page with logo & description" },
       { ok: false, label: "Analytics dashboard" },
       { ok: false, label: "Verified Partner badge" },
       { ok: false, label: "Leads 24h in advance" },
