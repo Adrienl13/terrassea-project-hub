@@ -11,11 +11,11 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const CATEGORIES = [
-  "Chairs", "Armchairs", "Bar Stools", "Benches",
-  "Dining Tables", "Coffee Tables", "High Tables",
-  "Sun Loungers", "Sofas / Lounge", "Parasols",
-  "Pergolas / Shade", "Accessories",
+const CATEGORY_KEYS = [
+  "chairs", "armchairs", "barStools", "benches",
+  "diningTables", "coffeeTables", "highTables",
+  "sunLoungers", "sofas", "parasols",
+  "pergolas", "accessories",
 ];
 
 const COUNTRIES = [
