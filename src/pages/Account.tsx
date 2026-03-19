@@ -34,11 +34,11 @@ const NAV_CLIENT = [
 ];
 
 const NAV_PARTNER = [
-  { id: "overview",     icon: LayoutDashboard, label: "Overview" },
-  { id: "quotes",       icon: Inbox,           label: "Quote requests" },
-  { id: "catalogue",    icon: Package,         label: "My catalogue" },
-  { id: "performance",  icon: BarChart3,       label: "Performance" },
-  { id: "settings",     icon: Settings,        label: "Profile settings" },
+  { id: "overview",     icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "quotes",       icon: Inbox,           labelKey: "account.quoteRequests" },
+  { id: "catalogue",    icon: Package,         labelKey: "account.catalogue" },
+  { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
+  { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
 const NAV_ARCHITECT = [
