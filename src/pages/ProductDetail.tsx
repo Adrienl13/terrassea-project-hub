@@ -251,13 +251,13 @@ const ProductDetail = () => {
                     <FileText className="h-4 w-4" />
                     {t('actions.requestQuote')}
                   </button>
-                  <button
+                   <button
                     onClick={() => addToCompare(product)}
                     disabled={isInCompare(product.id)}
                     className="flex items-center gap-2 px-4 py-3 text-sm font-display font-semibold border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all disabled:opacity-50"
                   >
                     <BarChart3 className="h-4 w-4" />
-                    {isInCompare(product.id) ? "In compare" : "Compare"}
+                    {isInCompare(product.id) ? t('productDetail.inCompare') : t('productDetail.compare')}
                   </button>
                   <button
                     onClick={() => toggleFavourite(product)}
@@ -268,7 +268,7 @@ const ProductDetail = () => {
                     }`}
                   >
                     <Heart className={`h-4 w-4 ${isFavourite(product.id) ? "fill-primary-foreground" : ""}`} />
-                    {isFavourite(product.id) ? "Saved" : "Save"}
+                    {isFavourite(product.id) ? t('productDetail.saved') : t('productDetail.save')}
                   </button>
                 </div>
 
