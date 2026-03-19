@@ -99,7 +99,7 @@ const ProductDetail = () => {
 
   const handleAdd = () => {
     addItem(product);
-    toast.success(`${product.name} added to your project`);
+    toast.success(`${product.name} ${t('success.addedToProject').toLowerCase()}`);
   };
 
   // Related products: same category, exclude self
