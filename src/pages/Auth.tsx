@@ -19,7 +19,11 @@ const Auth = () => {
   const location = useLocation();
   const from = (location.state as any)?.from?.pathname || "/account";
 
-  const [mode, setMode] = useState<Mode>("login");
+  const searchParams = new URLSearchParams(location.search);
+  const defaultType = (searchParams.get('type') as UserType) || 'client';
+  const defaultMode = (searchParams.get('mode') as Mode) || 'login';
+
+  const [mode, setMode] = useState<Mode>(defaultMode);
   const [isLoading, setIsLoading] = useState(false);
   const [sirenValid, setSirenValid] = useState<boolean | null>(null);
   const [sirenChecking, setSirenChecking] = useState(false);
