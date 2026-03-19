@@ -449,7 +449,7 @@ const ProjectCart = () => {
                   {/* Auto-save notice */}
                   <div className="flex items-center gap-2 text-[10px] font-body text-muted-foreground mt-2">
                     <Save className="h-3 w-3" />
-                    <span>Your project details are saved locally</span>
+                    <span>{t('projectCart.savedLocally')}</span>
                   </div>
                 </>
               }
