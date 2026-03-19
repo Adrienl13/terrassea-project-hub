@@ -271,6 +271,7 @@ function EmptyState() {
 // ═══════════════════════════════════════════════════════════
 
 export default function Partners() {
+  const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("all");
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
