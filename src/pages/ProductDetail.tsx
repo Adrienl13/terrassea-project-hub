@@ -203,21 +203,21 @@ const ProductDetail = () => {
                       {t('productDetail.collection')}: {product.collection}
                     </p>
                   )}
-                  <div className="flex items-center gap-3 mt-3">
+                   <div className="flex items-center gap-3 mt-3">
                     <span className="text-lg font-display font-bold text-foreground">
                       {lowestOfferPrice !== null
-                        ? `Starting from €${lowestOfferPrice.toFixed(2)}`
-                        : product.indicative_price || "Price on request"}
+                        ? `${t('productDetail.startingFrom')} €${lowestOfferPrice.toFixed(2)}`
+                        : product.indicative_price || t('productDetail.onRequest')}
                     </span>
                     <StockBadge status={product.stock_status} />
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground font-body">
                     {offersCount > 0 && (
-                      <span>{offersCount} seller{offersCount !== 1 ? "s" : ""}</span>
+                      <span>{offersCount} {t('productDetail.sellers')}</span>
                     )}
                     {fastestDelivery !== null && (
                       <span className="flex items-center gap-1">
-                        <Truck className="h-3 w-3" /> From {fastestDelivery} days
+                        <Truck className="h-3 w-3" /> {t('productDetail.fromDays')} {fastestDelivery} {t('productDetail.fromDays') === 'From' ? 'days' : t('productDetail.fromDays') === 'Dès' ? 'jours' : 'días'}
                       </span>
                     )}
                   </div>
