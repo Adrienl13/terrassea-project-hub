@@ -463,8 +463,8 @@ const ProjectCart = () => {
                 {/* Required fields */}
                 <div className="space-y-3">
                   <div>
-                    <label className={labelClass}>Full name *</label>
-                    <input type="text" value={formData.name} onChange={handle("name")} placeholder="Jean Dupont" className={inputClass} />
+                    <label className={labelClass}>{t('projectCart.fullName')} *</label>
+                    <input type="text" value={formData.name} onChange={handle("name")} placeholder={t('projectCart.placeholders.fullName')} className={inputClass} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
