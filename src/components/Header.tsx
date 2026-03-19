@@ -160,11 +160,12 @@ const Header = () => {
 
       {/* Category nav bar */}
       <div className="bg-[#2C2C2A] border-t border-white/5 relative z-50">
-        <div className="container mx-auto px-6 overflow-x-auto overflow-y-visible no-scrollbar">
+        <div className="container mx-auto px-6 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-7 py-2.5 min-w-max">
             <Link
               to="/products"
               className="text-[11px] font-display font-semibold text-white/60 hover:text-white transition-colors whitespace-nowrap"
+              onMouseEnter={() => setOpenCat(null)}
             >
               All
             </Link>
@@ -173,7 +174,11 @@ const Header = () => {
               <div
                 key={cat.label}
                 className="relative"
-                onMouseEnter={() => setOpenCat(cat.label)}
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setDropdownPos({ left: rect.left, top: rect.bottom });
+                  setOpenCat(cat.label);
+                }}
                 onMouseLeave={() => setOpenCat(null)}
               >
                 <Link
@@ -186,26 +191,6 @@ const Header = () => {
                 >
                   {cat.label}
                 </Link>
-
-                {openCat === cat.label && (
-                  <div
-                    className="absolute top-full left-0 bg-[#2C2C2A] border border-white/10 rounded-xl shadow-lg py-3 min-w-[200px] z-50"
-                  >
-                    <p className="text-[9px] font-display font-bold uppercase tracking-widest text-white/40 px-4 mb-2">
-                      {cat.label}
-                    </p>
-                    {cat.subcategories.map((sub) => (
-                      <Link
-                        key={sub.label}
-                        to={sub.href}
-                        onClick={() => setOpenCat(null)}
-                        className="block px-4 py-2 text-sm font-body text-white/60 hover:bg-white/5 hover:text-terracotta transition-colors"
-                      >
-                        {sub.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
               </div>
             ))}
 
@@ -216,6 +201,30 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      {/* Dropdown rendered outside scrollable container */}
+      {openCat && (
+        <div
+          className="fixed bg-[#2C2C2A] border border-white/10 rounded-xl shadow-lg py-3 min-w-[200px] z-[60]"
+          style={{ left: dropdownPos.left, top: dropdownPos.top }}
+          onMouseEnter={() => setOpenCat(openCat)}
+          onMouseLeave={() => setOpenCat(null)}
+        >
+          <p className="text-[9px] font-display font-bold uppercase tracking-widest text-white/40 px-4 mb-2">
+            {openCat}
+          </p>
+          {CATEGORIES.find((c) => c.label === openCat)?.subcategories.map((sub) => (
+            <Link
+              key={sub.label}
+              to={sub.href}
+              onClick={() => setOpenCat(null)}
+              className="block px-4 py-2 text-sm font-body text-white/60 hover:bg-white/5 hover:text-terracotta transition-colors"
+            >
+              {sub.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </motion.header>
   );
 };
