@@ -430,7 +430,7 @@ const ProService = () => {
                         <input type="text" value={form.constraints} onChange={handle("constraints")} placeholder="Wind-exposed terrace, stackable for winter storage" className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Additional notes</label>
+                        <label className={labelClass}>{t('proService.formFields.notes')}</label>
                         <textarea value={form.notes} onChange={handle("notes")} placeholder="Anything else we should know..." rows={3} className={`${inputClass} rounded-2xl`} />
                       </div>
                     </motion.div>
