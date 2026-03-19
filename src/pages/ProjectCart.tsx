@@ -247,15 +247,14 @@ const ProjectCart = () => {
             <div className="w-16 h-16 rounded-full bg-green-500/10 text-green-700 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
               ✓
             </div>
-            <h1 className="font-display text-3xl font-bold text-foreground">Project submitted</h1>
+            <h1 className="font-display text-3xl font-bold text-foreground">{t('projectCart.submittedTitle')}</h1>
             <p className="text-muted-foreground font-body mt-4 max-w-md mx-auto">
-              Thank you! Our sourcing team will review your project and send precise quotes from each supplier within 48 hours.
+              {t('projectCart.submittedDesc')}
             </p>
             <Link
               to="/"
               className="inline-flex items-center gap-2 mt-8 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full">
-              
-              Back to homepage
+              {t('projectCart.backToHomepage')}
             </Link>
           </motion.div>
         </div>
