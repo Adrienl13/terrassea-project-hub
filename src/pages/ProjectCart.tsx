@@ -173,15 +173,15 @@ const ProjectCart = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.email || !formData.phone || !formData.siren) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t('projectCart.fillRequired'));
       return;
     }
     if (formData.siren.length !== 9) {
-      toast.error("SIREN must be 9 digits.");
+      toast.error(t('projectCart.sirenDigits'));
       return;
     }
     if (items.length === 0) {
-      toast.error("Add at least one product to your project.");
+      toast.error(t('projectCart.addProduct'));
       return;
     }
     setSubmitting(true);
