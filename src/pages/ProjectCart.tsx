@@ -427,7 +427,7 @@ const ProjectCart = () => {
 
                   {hasBudget &&
                 <p className="text-[10px] text-muted-foreground font-body mt-2 text-center">
-                      Indicative total · excl. delivery & VAT · final quotes may vary by volume and supplier conditions
+                      {t('projectCart.indicativeNotice')}
                     </p>
                 }
 
