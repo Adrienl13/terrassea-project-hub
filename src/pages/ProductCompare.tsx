@@ -56,10 +56,10 @@ const ProductCompare = () => {
         <Header />
         <div className="pt-24 px-6 container mx-auto text-center py-20">
           <p className="text-sm text-muted-foreground font-body mb-4">
-            Select at least 2 products to compare.
+            {t('products.noResults')}
           </p>
           <Link to="/products" className="text-sm font-display font-semibold text-foreground underline">
-            Back to products
+            {t('actions.back')}
           </Link>
         </div>
         <Footer />
