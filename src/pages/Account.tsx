@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
@@ -25,28 +26,28 @@ type Section =
 // ── Nav config per profile ────────────────────────────────────────────────────
 
 const NAV_CLIENT = [
-  { id: "overview",   icon: LayoutDashboard, label: "Overview" },
-  { id: "projects",   icon: FolderOpen,      label: "My projects" },
-  { id: "quotes",     icon: MessageSquare,   label: "Quote requests" },
-  { id: "favourites", icon: Heart,           label: "Favourites" },
-  { id: "settings",   icon: Settings,        label: "Profile settings" },
+  { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "projects",   icon: FolderOpen,      labelKey: "account.myProjects" },
+  { id: "quotes",     icon: MessageSquare,   labelKey: "account.quoteRequests" },
+  { id: "favourites", icon: Heart,           labelKey: "account.favourites" },
+  { id: "settings",   icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
 const NAV_PARTNER = [
-  { id: "overview",     icon: LayoutDashboard, label: "Overview" },
-  { id: "quotes",       icon: Inbox,           label: "Quote requests" },
-  { id: "catalogue",    icon: Package,         label: "My catalogue" },
-  { id: "performance",  icon: BarChart3,       label: "Performance" },
-  { id: "settings",     icon: Settings,        label: "Profile settings" },
+  { id: "overview",     icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "quotes",       icon: Inbox,           labelKey: "account.quoteRequests" },
+  { id: "catalogue",    icon: Package,         labelKey: "account.catalogue" },
+  { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
+  { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
 const NAV_ARCHITECT = [
-  { id: "overview",   icon: LayoutDashboard, label: "Overview" },
-  { id: "projects",   icon: FolderOpen,      label: "Client projects" },
-  { id: "quotes",     icon: MessageSquare,   label: "Multi-quotes" },
-  { id: "favourites", icon: Heart,           label: "Favourites" },
-  { id: "pro",        icon: Percent,         label: "Pro pricing" },
-  { id: "settings",   icon: Settings,        label: "Profile settings" },
+  { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "projects",   icon: FolderOpen,      labelKey: "account.clientProjects" },
+  { id: "quotes",     icon: MessageSquare,   labelKey: "account.multiQuotes" },
+  { id: "favourites", icon: Heart,           labelKey: "account.favourites" },
+  { id: "pro",        icon: Percent,         labelKey: "account.proPricing" },
+  { id: "settings",   icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
 // ── Profile colors ────────────────────────────────────────────────────────────
@@ -355,6 +356,7 @@ function SettingsSection({ profile }: { profile: any }) {
 // ── Main Account component ────────────────────────────────────────────────────
 
 const Account = () => {
+  const { t } = useTranslation();
   const { profile, isLoading, signOut } = useAuth();
   const { favourites, toggleFavourite } = useFavourites();
   const navigate = useNavigate();
@@ -447,7 +449,7 @@ const Account = () => {
                       }`}
                     >
                       <item.icon className="h-4 w-4" />
-                      {item.label}
+                      {t(item.labelKey)}
                       {item.id === "favourites" && favourites.length > 0 && (
                         <span className="ml-auto text-[9px] font-display font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
                           {favourites.length}
@@ -467,7 +469,7 @@ const Account = () => {
                     className="flex items-center gap-2 text-xs font-body text-muted-foreground hover:text-foreground transition-colors px-3"
                   >
                     <LogOut className="h-3.5 w-3.5" />
-                    Sign out
+                    {t('account.signOut')}
                   </button>
                 </div>
               </motion.div>
@@ -478,13 +480,13 @@ const Account = () => {
                   onClick={() => navigate("/projects/new")}
                   className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
                 >
-                  <Plus className="h-3.5 w-3.5" /> New project
+                  <Plus className="h-3.5 w-3.5" /> {t('account.newProject')}
                 </button>
                 <button
                   onClick={() => navigate("/products")}
                   className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
                 >
-                  Browse catalogue
+                  {t('account.browseCatalogue')}
                 </button>
               </div>
             </div>

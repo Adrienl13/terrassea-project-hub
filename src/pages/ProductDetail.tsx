@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
   const { isFavourite, toggleFavourite } = useFavourites();
@@ -97,7 +99,7 @@ const ProductDetail = () => {
 
   const handleAdd = () => {
     addItem(product);
-    toast.success(`${product.name} added to your project`);
+    toast.success(`${product.name} ${t('success.addedToProject').toLowerCase()}`);
   };
 
   // Related products: same category, exclude self
@@ -240,14 +242,14 @@ const ProductDetail = () => {
                     className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
                   >
                     <Plus className="h-4 w-4" />
-                    Add to project
+                    {t('actions.addToProject')}
                   </button>
                   <button
                     onClick={() => setQuoteModalOpen(true)}
                     className="flex items-center gap-2 px-6 py-3 text-sm font-display font-semibold border border-foreground text-foreground rounded-full hover:bg-foreground hover:text-primary-foreground transition-all"
                   >
                     <FileText className="h-4 w-4" />
-                    Request a quote
+                    {t('actions.requestQuote')}
                   </button>
                   <button
                     onClick={() => addToCompare(product)}

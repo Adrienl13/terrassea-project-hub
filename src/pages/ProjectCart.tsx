@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler, Truck, X, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
@@ -101,6 +102,7 @@ async function lookupSiren(siren: string): Promise<SirenResult | null> {
 // ── Main component ────────────────────────────────────────────────────────────
 
 const ProjectCart = () => {
+  const { t } = useTranslation();
   const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus } =
   useProjectCart();
 

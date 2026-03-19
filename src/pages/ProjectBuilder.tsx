@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Sparkles } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProjectBuilderStepper from "@/components/project-builder/ProjectBuilderStepper";
@@ -103,6 +104,7 @@ function inferFromStyles(styles: string[]) {
 }
 
 const ProjectBuilder = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { data: products = [], isLoading: productsLoading } = useProducts();
 

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { ArrowLeft, X, Plus, Check } from "lucide-react";
 import Header from "@/components/Header";
@@ -47,6 +48,7 @@ const COMPARE_ROWS: { label: string; getValue: (p: DBProduct) => string }[] = [
 const ProductCompare = () => {
   const { items, removeFromCompare } = useCompare();
   const { addItem } = useProjectCart();
+  const { t } = useTranslation();
 
   if (items.length < 2) {
     return (
@@ -54,10 +56,10 @@ const ProductCompare = () => {
         <Header />
         <div className="pt-24 px-6 container mx-auto text-center py-20">
           <p className="text-sm text-muted-foreground font-body mb-4">
-            Select at least 2 products to compare.
+            {t('products.noResults')}
           </p>
           <Link to="/products" className="text-sm font-display font-semibold text-foreground underline">
-            Back to products
+            {t('actions.back')}
           </Link>
         </div>
         <Footer />
@@ -67,7 +69,7 @@ const ProductCompare = () => {
 
   const handleAdd = (product: DBProduct) => {
     addItem(product);
-    toast.success(`${product.name} added to your project`);
+    toast.success(`${product.name} ${t('success.addedToProject').toLowerCase()}`);
   };
 
   return (
@@ -123,7 +125,7 @@ const ProductCompare = () => {
                           onClick={() => handleAdd(product)}
                           className="mt-2 inline-flex items-center gap-1 text-[10px] font-display font-semibold border border-foreground text-foreground rounded-full px-3 py-1.5 hover:bg-foreground hover:text-primary-foreground transition-all"
                         >
-                          <Plus className="h-3 w-3" /> Add to project
+                          <Plus className="h-3 w-3" /> {t('actions.addToProject')}
                         </button>
                       </div>
                     </th>
