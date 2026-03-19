@@ -139,7 +139,7 @@ const BecomePartner = () => {
           Become a Partner
         </p>
         <h1 className="font-display text-3xl font-bold text-foreground text-center mb-10">
-          What best describes you?
+          {t('becomePartner.title')}
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-2xl">
           <button onClick={() => setPath('supplier')}
