@@ -198,7 +198,7 @@ const Index = () => {
             className="w-px h-6 bg-gradient-to-b from-muted-foreground/30 to-transparent" />
           
           <span className="text-[9px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground/35 -rotate-90 origin-left translate-y-3">
-            Scroll
+            {t('home.scroll')}
           </span>
         </motion.div>
       </section>
