@@ -171,16 +171,16 @@ const ProService = () => {
             {/* Left — copy */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <span className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4 block">
-                Terrassea Pro Service
+                {t('proService.badge')}
               </span>
               <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-6">
-                Not for every project —<br />
-                for the ones where{" "}
-                <span className="underline decoration-terracotta decoration-2 underline-offset-4">getting it wrong</span>
-                {" "}is expensive.
+                {t('proService.headline').split('—')[0]}—<br />
+                {t('proService.headline').split('—')[1]?.replace('getting it wrong', '')}
+                <span className="underline decoration-terracotta decoration-2 underline-offset-4">{t('proService.headline').includes('getting it wrong') ? 'getting it wrong' : t('proService.headline').includes('se tromper') ? 'se tromper' : ''}</span>
+                {t('proService.headline').split('getting it wrong')[1] || t('proService.headline').split('se tromper')[1] || t('proService.headline').split('sbagliare')[1] || t('proService.headline').split('equivocarse')[1] || ''}
               </h1>
               <p className="text-base font-body text-muted-foreground leading-relaxed max-w-xl mb-8">
-                For large-scale hospitality projects — hotels, resorts, restaurant openings, beach clubs — our sourcing experts handle everything from brief to delivery. One contact, multiple suppliers, zero sourcing headaches.
+                {t('proService.subtitle')}
               </p>
 
               {/* Thresholds */}
