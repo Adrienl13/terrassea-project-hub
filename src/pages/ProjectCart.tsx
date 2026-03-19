@@ -436,7 +436,6 @@ const ProjectCart = () => {
                     <label className="font-display font-semibold text-sm text-foreground block mb-2">
                       {t('projectCart.projectNotes')}
                     </label>
-                    </label>
                     <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
