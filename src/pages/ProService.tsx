@@ -232,7 +232,7 @@ const ProService = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
             {/* Left — How it works */}
             <div>
-              <h2 className="font-display text-xl font-bold tracking-tight mb-8">How it works</h2>
+              <h2 className="font-display text-xl font-bold tracking-tight mb-8">{t('proService.howItWorks')}</h2>
               <div className="grid grid-cols-2 gap-8">
                 {STEPS.map((step, i) => (
                   <div key={i} className="p-6 bg-white rounded-xl border border-border flex flex-col">
