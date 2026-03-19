@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 
 type Mode = "login" | "register";
-type UserType = "client" | "partner" | "architect";
+type UserType = "client" | "partner" | "architect" | "designer";
 
 const USER_TYPES: { value: UserType; label: string; desc: string; icon: string }[] = [
   { value: "client",    label: "Client",      desc: "Restaurant, hotel, venue owner", icon: "🍽" },
@@ -19,7 +19,11 @@ const Auth = () => {
   const location = useLocation();
   const from = (location.state as any)?.from?.pathname || "/account";
 
-  const [mode, setMode] = useState<Mode>("login");
+  const searchParams = new URLSearchParams(location.search);
+  const defaultType = (searchParams.get('type') as UserType) || 'client';
+  const defaultMode = (searchParams.get('mode') as Mode) || 'login';
+
+  const [mode, setMode] = useState<Mode>(defaultMode);
   const [isLoading, setIsLoading] = useState(false);
   const [sirenValid, setSirenValid] = useState<boolean | null>(null);
   const [sirenChecking, setSirenChecking] = useState(false);
@@ -43,7 +47,7 @@ const Auth = () => {
   }, []);
   const [form, setForm] = useState({
     email: "", password: "", firstName: "", lastName: "",
-    company: "", siren: "", phone: "", userType: "client" as UserType,
+    company: "", siren: "", phone: "", userType: defaultType,
   });
 
   const handle = (field: string) =>
