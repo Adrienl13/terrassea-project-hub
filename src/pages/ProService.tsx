@@ -440,7 +440,7 @@ const ProService = () => {
                 {/* SIREN */}
                 <div>
                   <label className={labelClass}>
-                    SIREN *
+                    {t('proService.formFields.siren')} *
                   </label>
                   <input type="text" value={form.siren}
                     onChange={e => setForm(p => ({ ...p, siren: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
