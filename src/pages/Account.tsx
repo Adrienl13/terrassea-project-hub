@@ -480,7 +480,7 @@ const Account = () => {
                   onClick={() => navigate("/projects/new")}
                   className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
                 >
-                  <Plus className="h-3.5 w-3.5" /> New project
+                  <Plus className="h-3.5 w-3.5" /> {t('account.newProject')}
                 </button>
                 <button
                   onClick={() => navigate("/products")}
