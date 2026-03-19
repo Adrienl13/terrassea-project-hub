@@ -534,7 +534,7 @@ const ProjectCart = () => {
                   onClick={() => setShowOptional(!showOptional)}
                   className="w-full text-xs font-body text-muted-foreground hover:text-foreground transition-colors text-left flex items-center justify-between py-1">
                   
-                  <span>{showOptional ? "Hide" : "+"} optional details (budget, timeline...)</span>
+                  <span>{showOptional ? t('projectCart.hideOptional') : t('projectCart.optionalDetails')}</span>
                   <span>{showOptional ? "−" : "+"}</span>
                 </button>
 
