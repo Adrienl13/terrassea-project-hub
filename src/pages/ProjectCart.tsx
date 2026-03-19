@@ -458,7 +458,7 @@ const ProjectCart = () => {
             {/* ── RIGHT — Form ──────────────────────────────────────────── */}
             <div className="lg:col-span-2">
               <div className="lg:sticky lg:top-28 space-y-4">
-                <h2 className="font-display font-bold text-base text-foreground">Contact & delivery</h2>
+                <h2 className="font-display font-bold text-base text-foreground">{t('projectCart.contactDelivery')}</h2>
 
                 {/* Required fields */}
                 <div className="space-y-3">
