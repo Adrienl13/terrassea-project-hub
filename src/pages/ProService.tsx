@@ -336,11 +336,11 @@ const ProService = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Email *</label>
+                    <label className={labelClass}>{t('proService.formFields.email')} *</label>
                     <input type="email" value={form.email} onChange={handle("email")} placeholder="jean@hotel.fr" className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Phone *</label>
+                    <label className={labelClass}>{t('proService.formFields.phone')} *</label>
                     <input type="tel" value={form.phone} onChange={handle("phone")} placeholder="+33 6 12 34 56 78" className={inputClass} />
                   </div>
                 </div>
