@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { LayoutRecommendation, TableGroup } from "@/engine/types";
 import { TableProperties, Pencil, Plus, Trash2, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ const TABLE_FORMAT_OPTIONS = [
 ];
 
 const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props) => {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [groups, setGroups] = useState<TableGroup[]>(layout.tableGroups);
 
@@ -86,13 +88,13 @@ const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props
           {layout.label}
         </span>
         <span className="ml-auto text-xs font-body text-muted-foreground">
-          {displayTotal} seats
+          {displayTotal} {t('projectBuilder.editableLayout.seats')}
         </span>
         {onLayoutChange && !editing && (
           <button
             onClick={() => setEditing(true)}
             className="ml-2 text-muted-foreground hover:text-foreground transition-colors"
-            title="Edit layout"
+            title={t('projectBuilder.editableLayout.editLayout')}
           >
             <Pencil className="h-3.5 w-3.5" />
           </button>
@@ -106,9 +108,7 @@ const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props
               <>
                 <div className="flex items-center gap-2 flex-1">
                   <Input
-                    type="number"
-                    min={0}
-                    value={group.quantity}
+                    type="number" min={0} value={group.quantity}
                     onChange={(e) => updateGroup(i, parseInt(e.target.value) || 0)}
                     className="w-16 h-8 text-xs"
                   />
@@ -120,7 +120,7 @@ const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props
                   >
                     {TABLE_FORMAT_OPTIONS.map((fmt) => (
                       <option key={fmt.format} value={fmt.format}>
-                        {fmt.format} ({fmt.seats} seats)
+                        {fmt.format} ({fmt.seats} {t('projectBuilder.editableLayout.seats')})
                       </option>
                     ))}
                   </select>
@@ -133,11 +133,11 @@ const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props
               <>
                 <span className="text-foreground">
                   <span className="font-display font-semibold">{group.quantity}×</span>{" "}
-                  {group.tableFormat} tables
+                  {group.tableFormat} {t('projectBuilder.editableLayout.tables')}
                   <span className="text-muted-foreground ml-1.5 text-xs">({group.shape})</span>
                 </span>
                 <span className="text-muted-foreground text-xs">
-                  {group.seatsPerTable} seats each → {group.totalSeats} seats
+                  {group.seatsPerTable} {t('projectBuilder.editableLayout.seatsEach')} → {group.totalSeats} {t('projectBuilder.editableLayout.seats')}
                 </span>
               </>
             )}
@@ -151,20 +151,20 @@ const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props
             onClick={addGroup}
             className="flex items-center gap-1 text-[10px] font-body text-muted-foreground hover:text-foreground border border-dashed border-border rounded-sm px-2 py-1 transition-colors"
           >
-            <Plus className="h-3 w-3" /> Add table format
+            <Plus className="h-3 w-3" /> {t('projectBuilder.editableLayout.addTableFormat')}
           </button>
           <div className="ml-auto flex gap-2">
             <button
               onClick={cancelEdit}
               className="flex items-center gap-1 text-xs font-body text-muted-foreground hover:text-foreground transition-colors"
             >
-              <X className="h-3.5 w-3.5" /> Cancel
+              <X className="h-3.5 w-3.5" /> {t('projectBuilder.editableLayout.cancel')}
             </button>
             <button
               onClick={applyChanges}
               className="flex items-center gap-1 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full px-3 py-1 hover:opacity-90 transition-opacity"
             >
-              <Check className="h-3.5 w-3.5" /> Apply
+              <Check className="h-3.5 w-3.5" /> {t('projectBuilder.editableLayout.apply')}
             </button>
           </div>
         </div>
@@ -172,26 +172,24 @@ const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props
 
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
         <span className="text-xs font-body text-muted-foreground">
-          Chairs needed: <span className="font-semibold text-foreground">{editing ? displayTotal : layout.chairCount}</span>
+          {t('projectBuilder.editableLayout.chairsNeeded')} <span className="font-semibold text-foreground">{editing ? displayTotal : layout.chairCount}</span>
         </span>
       </div>
 
-      {/* Spatial metrics */}
       {layout.spatialMetrics && !editing && (
         <SpatialMetricsDisplay metrics={layout.spatialMetrics} />
       )}
 
-      {/* Budget estimate */}
       {budgetEstimate && (
         <div className="mt-3 pt-3 border-t border-border">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-body text-muted-foreground">Estimated furniture budget</span>
+            <span className="text-xs font-body text-muted-foreground">{t('projectBuilder.editableLayout.estimatedBudget')}</span>
             <span className="text-sm font-display font-semibold text-foreground">
               €{budgetEstimate.min.toLocaleString()} – €{budgetEstimate.max.toLocaleString()}
             </span>
           </div>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-[10px] font-body text-muted-foreground">Average per seat</span>
+            <span className="text-[10px] font-body text-muted-foreground">{t('projectBuilder.editableLayout.avgPerSeat')}</span>
             <span className="text-xs font-body text-muted-foreground">
               €{budgetEstimate.avgPerSeat.toFixed(0)}
             </span>

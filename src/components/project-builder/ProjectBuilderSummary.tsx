@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ProjectParameters } from "@/engine/types";
 import { getDensityInfo } from "@/engine/spatialEngine";
 
@@ -6,52 +7,27 @@ interface ProjectBuilderSummaryProps {
   currentStep: number;
 }
 
-const LAYOUT_LABELS: Record<string, string> = {
-  "mostly-2": "Mostly 2-seater tables",
-  "balanced-2-4": "Mix of 2 & 4-seaters",
-  "mostly-4": "Mostly 4-seater tables",
-  modular: "Flexible modular",
-  group: "Group dining",
-  custom: "Custom mix",
-};
-
-const PRIORITY_LABELS: Record<string, string> = {
-  "max-capacity": "Maximize capacity",
-  balanced: "Balanced comfort & capacity",
-  spacious: "Spacious premium",
-  "flexible-groups": "Flexible for groups",
-  couples: "Couple seating",
-  groups: "Group seating",
-};
-
-const BUDGET_LABELS: Record<string, string> = {
-  economy: "€50–80 / seat",
-  mid: "€80–120 / seat",
-  premium: "€120–180 / seat",
-  luxury: "€180+ / seat",
-};
-
 const ProjectBuilderSummary = ({ params }: ProjectBuilderSummaryProps) => {
+  const { t } = useTranslation();
   const surface = params.terraceSurfaceM2 ??
     (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
-
   const density = getDensityInfo(params.seatingCapacity, surface);
 
   const rows = [
-    { label: "Mode", value: params.builderMode === "expert" ? "Expert" : params.builderMode === "guided" ? "Guided" : "" },
-    { label: "Project type", value: params.establishmentType },
-    { label: "Zone", value: params.projectZone },
-    { label: "Capacity", value: params.seatingCapacity ? `${params.seatingCapacity} seats` : "" },
-    { label: "Terrace", value: surface ? `${surface} m²` : "" },
+    { label: t('projectBuilder.summary.mode'), value: params.builderMode === "expert" ? t('projectBuilder.summary.expert') : params.builderMode === "guided" ? t('projectBuilder.summary.guided') : "" },
+    { label: t('projectBuilder.summary.projectType'), value: params.establishmentType },
+    { label: t('projectBuilder.summary.zone'), value: params.projectZone },
+    { label: t('projectBuilder.summary.capacity'), value: params.seatingCapacity ? `${params.seatingCapacity} ${t('projectBuilder.review.seats')}` : "" },
+    { label: t('projectBuilder.summary.terrace'), value: surface ? `${surface} m²` : "" },
     ...(density ? [
-      { label: "m²/seat", value: `${density.spacePerSeat} m²` },
-      { label: "Density", value: density.label },
-      { label: "Feasibility", value: density.feasibilityLabel },
+      { label: t('projectBuilder.summary.m2Seat'), value: `${density.spacePerSeat} m²` },
+      { label: t('projectBuilder.summary.density'), value: density.label },
+      { label: t('projectBuilder.summary.feasibility'), value: density.feasibilityLabel },
     ] : []),
-    { label: "Layout", value: LAYOUT_LABELS[params.seatingLayout] || "" },
-    { label: "Priority", value: PRIORITY_LABELS[params.layoutPriority] || "" },
-    { label: "Style", value: params.style.join(", ") },
-    { label: "Budget", value: BUDGET_LABELS[params.budgetLevel] || "" },
+    { label: t('projectBuilder.summary.layout'), value: params.seatingLayout ? t(`projectBuilder.layouts.${params.seatingLayout}`, { defaultValue: "" }) : "" },
+    { label: t('projectBuilder.summary.priority'), value: params.layoutPriority ? t(`projectBuilder.priorities.${params.layoutPriority}`, { defaultValue: "" }) : "" },
+    { label: t('projectBuilder.summary.style'), value: params.style.join(", ") },
+    { label: t('projectBuilder.summary.budget'), value: params.budgetLevel ? t(`projectBuilder.budgetLabels.${params.budgetLevel}`, { defaultValue: "" }) : "" },
   ];
 
   const hasAnyData = rows.some((r) => !!r.value);
@@ -60,12 +36,12 @@ const ProjectBuilderSummary = ({ params }: ProjectBuilderSummaryProps) => {
     <div className="sticky top-28">
       <div className="bg-card rounded-sm border border-border p-6">
         <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-[0.1em] mb-5">
-          Project Summary
+          {t('projectBuilder.summary.title')}
         </h3>
 
         {!hasAnyData ? (
           <p className="text-xs font-body text-muted-foreground italic">
-            Start selecting options to build your project brief...
+            {t('projectBuilder.summary.emptyHint')}
           </p>
         ) : (
           <div className="space-y-3">

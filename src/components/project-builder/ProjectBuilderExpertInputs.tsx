@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProjectParameters, TableMixEntry } from "@/engine/types";
@@ -14,19 +15,20 @@ interface Props {
 }
 
 const TABLE_FORMATS = [
-  { format: "70×70", seats: 2, label: "70×70 cm — 2 seats" },
-  { format: "80×80", seats: 4, label: "80×80 cm — 4 seats" },
-  { format: "120×70", seats: 4, label: "120×70 cm — 4 seats" },
-  { format: "120×80", seats: 4, label: "120×80 cm — 4 seats" },
-  { format: "160×80", seats: 6, label: "160×80 cm — 6 seats" },
-  { format: "200×90", seats: 8, label: "200×90 cm — 8 seats" },
-  { format: "Ø80", seats: 4, label: "Ø80 cm round — 4 seats" },
-  { format: "Ø120", seats: 6, label: "Ø120 cm round — 6 seats" },
+  { format: "70×70", seats: 2, label: "70×70 cm — 2" },
+  { format: "80×80", seats: 4, label: "80×80 cm — 4" },
+  { format: "120×70", seats: 4, label: "120×70 cm — 4" },
+  { format: "120×80", seats: 4, label: "120×80 cm — 4" },
+  { format: "160×80", seats: 6, label: "160×80 cm — 6" },
+  { format: "200×90", seats: 8, label: "200×90 cm — 8" },
+  { format: "Ø80", seats: 4, label: "Ø80 cm — 4" },
+  { format: "Ø120", seats: 6, label: "Ø120 cm — 6" },
 ];
 
 const ESTABLISHMENT_TYPES = ["restaurant", "hotel", "rooftop", "beach-club", "bar", "camping", "event", "pool"];
 
 const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props) => {
+  const { t } = useTranslation();
   const [tableMix, setTableMix] = useState<TableMixEntry[]>(
     params.tableMix?.length ? params.tableMix : [
       { format: "70×70", quantity: 10, seatsPerTable: 2 },
@@ -37,8 +39,8 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
   const surface = params.terraceSurfaceM2 ??
     (params.terraceLength && params.terraceWidth ? params.terraceLength * params.terraceWidth : null);
 
-  const totalSeatsFromMix = tableMix.reduce((sum, t) => sum + t.quantity * t.seatsPerTable, 0);
-  const totalTables = tableMix.reduce((sum, t) => sum + t.quantity, 0);
+  const totalSeatsFromMix = tableMix.reduce((sum, entry) => sum + entry.quantity * entry.seatsPerTable, 0);
+  const totalTables = tableMix.reduce((sum, entry) => sum + entry.quantity, 0);
   const effectiveSeats = params.seatingCapacity ?? totalSeatsFromMix;
   const densityInfo = getDensityInfo(effectiveSeats, surface);
 
@@ -47,7 +49,7 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
   };
 
   const addTableRow = () => {
-    const unused = TABLE_FORMATS.find(f => !tableMix.some(t => t.format === f.format));
+    const unused = TABLE_FORMATS.find(f => !tableMix.some(entry => entry.format === f.format));
     if (unused) {
       setTableMix(prev => [...prev, { format: unused.format, quantity: 1, seatsPerTable: unused.seats }]);
     }
@@ -58,7 +60,7 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
   };
 
   const handleFormatChange = (index: number, format: string) => {
-    const f = TABLE_FORMATS.find(t => t.format === format);
+    const f = TABLE_FORMATS.find(entry => entry.format === format);
     updateTableMix(index, { format, seatsPerTable: f?.seats ?? 2 });
   };
 
@@ -73,17 +75,17 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
       transition={{ duration: 0.3 }}
     >
       <h2 className="font-display text-xl md:text-2xl font-bold text-foreground mb-1">
-        Technical configurator
+        {t('projectBuilder.expertInputs.title')}
       </h2>
       <p className="text-sm font-body text-muted-foreground mb-8">
-        Enter your project specifications directly. All parameters in one view.
+        {t('projectBuilder.expertInputs.subtitle')}
       </p>
 
       <div className="space-y-6">
-        {/* ── Section 1: Establishment ── */}
+        {/* Establishment */}
         <fieldset className="border border-border rounded-sm p-4">
           <legend className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground px-2">
-            Establishment
+            {t('projectBuilder.expertInputs.establishment')}
           </legend>
           <div className="flex flex-wrap gap-1.5">
             {ESTABLISHMENT_TYPES.map(type => (
@@ -102,15 +104,15 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
           </div>
         </fieldset>
 
-        {/* ── Section 2: Dimensions & Capacity ── */}
+        {/* Space & Capacity */}
         <fieldset className="border border-border rounded-sm p-4">
           <legend className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground px-2">
-            Space & Capacity
+            {t('projectBuilder.expertInputs.spaceCapacity')}
           </legend>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
             <div>
-              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">Seats (target)</Label>
+              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">{t('projectBuilder.expertInputs.seatsTarget')}</Label>
               <Input
                 type="number" min={1} max={500} placeholder="60"
                 value={params.seatingCapacity ?? ""}
@@ -118,7 +120,7 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
               />
             </div>
             <div>
-              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">Length (m)</Label>
+              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">{t('projectBuilder.expertInputs.length')}</Label>
               <Input
                 type="number" min={1} placeholder="12"
                 value={params.terraceLength ?? ""}
@@ -130,7 +132,7 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
               />
             </div>
             <div>
-              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">Width (m)</Label>
+              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">{t('projectBuilder.expertInputs.width')}</Label>
               <Input
                 type="number" min={1} placeholder="8"
                 value={params.terraceWidth ?? ""}
@@ -142,7 +144,7 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
               />
             </div>
             <div>
-              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">Area (m²)</Label>
+              <Label className="text-[10px] font-body text-muted-foreground mb-1 block">{t('projectBuilder.expertInputs.area')}</Label>
               <Input
                 type="number" min={1} placeholder="96"
                 value={params.terraceSurfaceM2 ?? (params.terraceLength && params.terraceWidth ? Math.round(params.terraceLength * params.terraceWidth) : "")}
@@ -151,7 +153,6 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
             </div>
           </div>
 
-          {/* Density & feasibility indicators */}
           {densityInfo && (
             <div className="space-y-2 py-2 px-3 rounded-sm bg-muted/50">
               <div className="flex items-center gap-2">
@@ -160,7 +161,7 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
                   {densityInfo.label}
                 </span>
                 <span className="text-[10px] font-body text-muted-foreground">
-                  — {densityInfo.spacePerSeat} m²/seat
+                  — {densityInfo.spacePerSeat} m²/{t('projectBuilder.review.seats').charAt(0)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -177,25 +178,25 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
               </div>
               {surface && (
                 <p className="text-[10px] font-body text-muted-foreground">
-                  Recommended: {getMaxSeats(surface, "dense")}–{getMaxSeats(surface, "comfortable")} seats for {surface} m²
+                  {t('projectBuilder.expertInputs.recommended', { min: getMaxSeats(surface, "dense"), max: getMaxSeats(surface, "comfortable"), surface })}
                 </p>
               )}
             </div>
           )}
         </fieldset>
 
-        {/* ── Section 3: Table Mix ── */}
+        {/* Table Mix */}
         <fieldset className="border border-border rounded-sm p-4">
           <legend className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground px-2">
-            Table Mix Configuration
+            {t('projectBuilder.expertInputs.tableMix')}
           </legend>
 
           <div className="space-y-2">
             <div className="grid grid-cols-[1fr_80px_80px_80px_32px] gap-2 text-[10px] font-body text-muted-foreground uppercase tracking-wider">
-              <span>Format</span>
-              <span>Qty</span>
-              <span>Seats/tbl</span>
-              <span>Subtotal</span>
+              <span>{t('projectBuilder.expertInputs.format')}</span>
+              <span>{t('projectBuilder.expertInputs.qty')}</span>
+              <span>{t('projectBuilder.expertInputs.seatsPerTable')}</span>
+              <span>{t('projectBuilder.expertInputs.subtotal')}</span>
               <span />
             </div>
 
@@ -239,28 +240,28 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
               onClick={addTableRow}
               className="flex items-center gap-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors mt-3"
             >
-              <Plus className="h-3.5 w-3.5" /> Add table format
+              <Plus className="h-3.5 w-3.5" /> {t('projectBuilder.expertInputs.addTableFormat')}
             </button>
           )}
 
           <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
             <span className="text-xs font-body text-muted-foreground">
-              {totalTables} tables
+              {totalTables} {t('projectBuilder.expertInputs.tables')}
             </span>
             <span className="text-sm font-display font-bold text-foreground">
-              {totalSeatsFromMix} seats from table mix
+              {t('projectBuilder.expertInputs.seatsFromMix', { count: totalSeatsFromMix })}
             </span>
           </div>
         </fieldset>
 
-        {/* ── Section 4: Style & Budget ── */}
+        {/* Style & Budget */}
         <fieldset className="border border-border rounded-sm p-4">
           <legend className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground px-2">
-            Style & Budget
+            {t('projectBuilder.expertInputs.styleBudget')}
           </legend>
 
           <div className="mb-4">
-            <Label className="text-[10px] font-body text-muted-foreground mb-1.5 block">Style</Label>
+            <Label className="text-[10px] font-body text-muted-foreground mb-1.5 block">{t('projectBuilder.expertInputs.style')}</Label>
             <div className="flex flex-wrap gap-1.5">
               {["mediterranean", "modern", "bistro", "natural", "industrial", "luxury", "coastal", "tropical"].map(s => (
                 <button
@@ -279,13 +280,13 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
           </div>
 
           <div>
-            <Label className="text-[10px] font-body text-muted-foreground mb-1.5 block">Budget per seat</Label>
+            <Label className="text-[10px] font-body text-muted-foreground mb-1.5 block">{t('projectBuilder.expertInputs.budgetPerSeat')}</Label>
             <div className="flex flex-wrap gap-1.5">
               {[
-                { value: "economy", label: "€50–80" },
-                { value: "mid", label: "€80–120" },
-                { value: "premium", label: "€120–180" },
-                { value: "luxury", label: "€180+" },
+                { value: "economy", label: t('projectBuilder.budget.economy') },
+                { value: "mid", label: t('projectBuilder.budget.mid') },
+                { value: "premium", label: t('projectBuilder.budget.premium') },
+                { value: "luxury", label: t('projectBuilder.budget.luxury') },
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -304,21 +305,19 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
         </fieldset>
       </div>
 
-      {/* Navigation */}
       <div className="flex items-center justify-between mt-10">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" /> Back
+          <ArrowLeft className="h-4 w-4" /> {t('projectBuilder.expertInputs.back')}
         </button>
         <button
           onClick={() => {
             if (!params.seatingCapacity && totalSeatsFromMix > 0) {
               onChange({ seatingCapacity: totalSeatsFromMix });
             }
-            // Pass table mix to params so layout engine respects user formats
-            onChange({ tableMix: tableMix.filter(t => t.quantity > 0) });
+            onChange({ tableMix: tableMix.filter(entry => entry.quantity > 0) });
             onNext();
           }}
           disabled={!canProceed}
@@ -328,7 +327,7 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
               : "bg-border text-muted-foreground cursor-not-allowed"
           }`}
         >
-          Review & Generate <ArrowRight className="h-4 w-4" />
+          {t('projectBuilder.expertInputs.reviewGenerate')} <ArrowRight className="h-4 w-4" />
         </button>
       </div>
     </motion.div>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Sparkles } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -39,46 +39,6 @@ const DEFAULT_PARAMS: ProjectParameters = {
   tableMix: [],
 };
 
-const GUIDED_STEPS = [
-  { id: "mode",     label: "Start",    description: "How to begin?" },
-  { id: "type",     label: "Type",     description: "Establishment type" },
-  { id: "budget",   label: "Budget",   description: "Budget per seat" },
-  { id: "capacity", label: "Capacity", description: "Guests & space" },
-  { id: "style",    label: "Style",    description: "Aesthetic direction" },
-  { id: "review",   label: "Review",   description: "Confirm brief" },
-];
-
-const EXPERT_STEPS = [
-  { id: "mode",   label: "Start",        description: "How to begin?" },
-  { id: "expert", label: "Requirements", description: "Define all parameters" },
-  { id: "review", label: "Review",       description: "Confirm your brief" },
-];
-
-const STEP_OPTIONS: Record<string, { question: string; options: { value: string; label: string; description?: string }[] }> = {
-  type: {
-    question: "What type of establishment?",
-    options: [
-      { value: "restaurant", label: "Restaurant",   description: "Terraces, patios & outdoor dining" },
-      { value: "hotel",      label: "Hotel",         description: "Lobbies, pool decks & garden lounges" },
-      { value: "rooftop",    label: "Rooftop",       description: "Sky bars & urban terraces" },
-      { value: "beach-club", label: "Beach Club",    description: "Beachfront lounges & daybeds" },
-      { value: "bar",        label: "Bar / Lounge",  description: "Cocktail bars & wine bars" },
-      { value: "camping",    label: "Camping",       description: "Glamping & outdoor communal areas" },
-      { value: "event",      label: "Event Space",   description: "Banquets, weddings & receptions" },
-      { value: "pool",       label: "Pool Area",     description: "Poolside & deck furniture" },
-    ],
-  },
-  budget: {
-    question: "What is your budget per seat?",
-    options: [
-      { value: "economy", label: "€50–80",   description: "Functional & cost-effective" },
-      { value: "mid",     label: "€80–120",  description: "Mid-range, solid quality" },
-      { value: "premium", label: "€120–180", description: "Premium materials & design" },
-      { value: "luxury",  label: "€180+",    description: "Luxury & bespoke" },
-    ],
-  },
-};
-
 const STYLE_INFERENCE: Record<string, { ambience: string[]; colorPalette: string[] }> = {
   mediterranean: { ambience: ["warm", "convivial", "relaxed"], colorPalette: ["warm", "natural", "cool"] },
   bistro:        { ambience: ["convivial", "warm", "authentic"], colorPalette: ["black", "warm"] },
@@ -111,6 +71,46 @@ const ProjectBuilder = () => {
   const urlStyle = searchParams.get("style");
   const urlFrom  = searchParams.get("from");
 
+  const guidedSteps = useMemo(() => [
+    { id: "mode",     label: t('projectBuilder.steps.start'),    description: t('projectBuilder.stepDescriptions.howToBegin') },
+    { id: "type",     label: t('projectBuilder.steps.type'),     description: t('projectBuilder.stepDescriptions.establishmentType') },
+    { id: "budget",   label: t('projectBuilder.steps.budget'),   description: t('projectBuilder.stepDescriptions.budgetPerSeat') },
+    { id: "capacity", label: t('projectBuilder.steps.capacity'), description: t('projectBuilder.stepDescriptions.guestsSpace') },
+    { id: "style",    label: t('projectBuilder.steps.style'),    description: t('projectBuilder.stepDescriptions.aestheticDirection') },
+    { id: "review",   label: t('projectBuilder.steps.review'),   description: t('projectBuilder.stepDescriptions.confirmBrief') },
+  ], [t]);
+
+  const expertSteps = useMemo(() => [
+    { id: "mode",   label: t('projectBuilder.steps.start'),        description: t('projectBuilder.stepDescriptions.howToBegin') },
+    { id: "expert", label: t('projectBuilder.steps.requirements'), description: t('projectBuilder.stepDescriptions.defineParameters') },
+    { id: "review", label: t('projectBuilder.steps.review'),       description: t('projectBuilder.stepDescriptions.confirmBrief') },
+  ], [t]);
+
+  const stepOptions = useMemo(() => ({
+    type: {
+      question: t('projectBuilder.type.question'),
+      options: [
+        { value: "restaurant", label: t('projectBuilder.type.restaurant'), description: t('projectBuilder.type.restaurantDesc') },
+        { value: "hotel",      label: t('projectBuilder.type.hotel'),      description: t('projectBuilder.type.hotelDesc') },
+        { value: "rooftop",    label: t('projectBuilder.type.rooftop'),    description: t('projectBuilder.type.rooftopDesc') },
+        { value: "beach-club", label: t('projectBuilder.type.beachClub'),  description: t('projectBuilder.type.beachClubDesc') },
+        { value: "bar",        label: t('projectBuilder.type.bar'),        description: t('projectBuilder.type.barDesc') },
+        { value: "camping",    label: t('projectBuilder.type.camping'),    description: t('projectBuilder.type.campingDesc') },
+        { value: "event",      label: t('projectBuilder.type.event'),      description: t('projectBuilder.type.eventDesc') },
+        { value: "pool",       label: t('projectBuilder.type.pool'),       description: t('projectBuilder.type.poolDesc') },
+      ],
+    },
+    budget: {
+      question: t('projectBuilder.budget.question'),
+      options: [
+        { value: "economy", label: t('projectBuilder.budget.economy'), description: t('projectBuilder.budget.economyDesc') },
+        { value: "mid",     label: t('projectBuilder.budget.mid'),     description: t('projectBuilder.budget.midDesc') },
+        { value: "premium", label: t('projectBuilder.budget.premium'), description: t('projectBuilder.budget.premiumDesc') },
+        { value: "luxury",  label: t('projectBuilder.budget.luxury'),  description: t('projectBuilder.budget.luxuryDesc') },
+      ],
+    },
+  }), [t]);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [params, setParams] = useState<ProjectParameters>(() => {
     const initial = { ...DEFAULT_PARAMS };
@@ -138,7 +138,7 @@ const ProjectBuilder = () => {
   }, [urlStyle, urlFrom]);
 
   const isExpert     = params.builderMode === "expert";
-  const steps        = isExpert ? EXPERT_STEPS : GUIDED_STEPS;
+  const steps        = isExpert ? expertSteps : guidedSteps;
   const stepId       = steps[currentStep]?.id;
   const isModeStep   = stepId === "mode";
   const isReviewStep = stepId === "review";
@@ -222,7 +222,7 @@ const ProjectBuilder = () => {
                 onClick={handleReset}
                 className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
               >
-                <RotateCcw className="h-4 w-4" /> New project
+                <RotateCcw className="h-4 w-4" /> {t('projectBuilder.newProject')}
               </button>
             </div>
           </div>
@@ -255,23 +255,23 @@ const ProjectBuilder = () => {
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 mb-4">
                   <Sparkles className="h-3 w-3 text-accent-foreground" />
                   <span className="text-xs font-body text-accent-foreground capitalize">
-                    Style {urlStyle} pre-selected from Inspirations
+                    {t('projectBuilder.stylePreSelected', { style: urlStyle })}
                   </span>
                 </div>
               )}
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Sparkles className="h-4 w-4 text-foreground" />
                 <span className="text-xs font-body uppercase tracking-[0.2em] text-muted-foreground">
-                  Project Builder
+                  {t('projectBuilder.badge')}
                 </span>
               </div>
               <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground tracking-tight">
-                Build your hospitality project
+                {t('projectBuilder.title')}
               </h1>
               <p className="text-muted-foreground font-body text-sm md:text-base mt-4 max-w-lg mx-auto">
                 {urlFrom === "inspirations"
-                  ? "Your style is set — just add your capacity and budget to generate concepts."
-                  : "Define your needs · Get layout suggestions · Discover matching products"}
+                  ? t('projectBuilder.subtitleFromInspirations')
+                  : t('projectBuilder.subtitle')}
               </p>
             </motion.div>
           </div>
@@ -307,7 +307,7 @@ const ProjectBuilder = () => {
                     >
                       <div className="w-10 h-10 border-2 border-foreground border-t-transparent rounded-full animate-spin mb-4" />
                       <p className="text-sm font-body text-muted-foreground">
-                        Generating your project concepts...
+                        {t('projectBuilder.generating')}
                       </p>
                     </motion.div>
                   ) : isModeStep ? (
@@ -349,7 +349,7 @@ const ProjectBuilder = () => {
                     <ProjectBuilderStep
                       key={stepId}
                       stepId={stepId}
-                      stepConfig={STEP_OPTIONS[stepId]}
+                      stepConfig={stepOptions[stepId as keyof typeof stepOptions]}
                       selectedValue={getSelectedValue(stepId)}
                       onSelect={(val) => handleSelectOption(stepId, val)}
                       onBack={currentStep > 0 ? () => setCurrentStep(currentStep - 1) : undefined}
