@@ -35,26 +35,28 @@ const App = () => (
           <CompareProvider>
             <Sonner />
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/products/compare" element={<ProductCompare />} />
-                <Route path="/products/:id" element={<ProductDetail />} />
-                <Route path="/project-cart" element={<ProjectCart />} />
-                <Route path="/projects/new" element={<ProjectBuilder />} />
-                <Route path="/inspirations" element={<Inspirations />} />
-                <Route path="/resources" element={<Resources />} />
-                <Route path="/pro-service" element={<ProService />} />
-                <Route path="/partners" element={<Partners />} />
-                <Route path="/become-partner" element={<BecomePartner />} />
-                <Route path="/partners/:slug" element={<PartnerDetail />} />
-                <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
-                <Route path="/login" element={<Auth />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/reset-password" element={<Auth />} />
-                <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <div className="pt-[var(--header-height)]">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/products/compare" element={<ProductCompare />} />
+                  <Route path="/products/:id" element={<ProductDetail />} />
+                  <Route path="/project-cart" element={<ProjectCart />} />
+                  <Route path="/projects/new" element={<ProjectBuilder />} />
+                  <Route path="/inspirations" element={<Inspirations />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route path="/pro-service" element={<ProService />} />
+                  <Route path="/partners" element={<Partners />} />
+                  <Route path="/become-partner" element={<BecomePartner />} />
+                  <Route path="/partners/:slug" element={<PartnerDetail />} />
+                  <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+                  <Route path="/login" element={<Auth />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/reset-password" element={<Auth />} />
+                  <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
             </BrowserRouter>
           </CompareProvider>
         </ProjectCartProvider>
