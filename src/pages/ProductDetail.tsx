@@ -380,7 +380,7 @@ const ProductDetail = () => {
           <section className="px-6 mt-20">
             <div className="container mx-auto">
               <h2 className="font-display text-lg font-bold text-foreground mb-6">
-                Similar products
+                {t('productDetail.similarProducts')}
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 {similar.map((p) => (
