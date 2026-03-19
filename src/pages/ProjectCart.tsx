@@ -501,7 +501,7 @@ const ProjectCart = () => {
                         const val = e.target.value.replace(/\D/g, "").slice(0, 9);
                         setFormData((p) => ({ ...p, siren: val }));
                       }}
-                      placeholder="123456789"
+                      placeholder={t('projectCart.placeholders.siren')}
                       className={`${inputClass} ${sirenResult ? "border-green-500" : sirenError ? "border-destructive" : ""}`} />
                     
 
