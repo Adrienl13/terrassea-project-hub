@@ -47,7 +47,7 @@ const PLANS = [
       { ok: true, label: "Leads 24h before Starter partners" },
       { ok: true, label: "Stock sync via CSV" },
     ],
-    note: "At €5,000/month in orders, the commission saving covers the subscription.",
+    note: "6-month renewable contract. At €5,000/month in orders, the commission saving covers the subscription.",
     featured: true,
   },
   {
