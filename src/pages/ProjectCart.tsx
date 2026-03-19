@@ -473,8 +473,8 @@ const ProjectCart = () => {
                       <input type="email" value={formData.email} onChange={handle("email")} placeholder={t('projectCart.placeholders.email')} className={inputClass} />
                     </div>
                     <div>
-                      <label className={labelClass}>Phone *</label>
-                      <input type="tel" value={formData.phone} onChange={handle("phone")} placeholder="+33 6 12 34 56 78" className={inputClass} />
+                      <label className={labelClass}>{t('projectCart.phone')} *</label>
+                      <input type="tel" value={formData.phone} onChange={handle("phone")} placeholder={t('projectCart.placeholders.phone')} className={inputClass} />
                     </div>
                   </div>
 
