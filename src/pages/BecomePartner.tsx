@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import {
   CheckCircle2, ArrowRight, Shield, TrendingUp,
-  Package, BarChart3, ChevronDown, Zap,
+  Package, BarChart3, ChevronDown, Zap, Factory, Palette,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
