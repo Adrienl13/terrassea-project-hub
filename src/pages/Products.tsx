@@ -297,14 +297,14 @@ const Products = () => {
               <div className="flex-1 min-w-0">
                 {/* Controls bar */}
                 <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3">
                     {isMobile && (
                       <button
                         onClick={() => setMobileFilterOpen(true)}
                         className="flex items-center gap-2 text-xs font-display font-semibold border border-border rounded-full px-4 py-2 hover:border-foreground transition-colors"
                       >
                         <SlidersHorizontal className="h-3.5 w-3.5" />
-                        Filters
+                        {t('filters.filters')}
                         {activeFilterCount > 0 && (
                           <span className="bg-foreground text-primary-foreground text-[10px] rounded-full w-5 h-5 flex items-center justify-center">
                             {activeFilterCount}
@@ -313,7 +313,7 @@ const Products = () => {
                       </button>
                     )}
                     <span className="text-xs text-muted-foreground font-body">
-                      {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+                      {filtered.length} {filtered.length !== 1 ? t('filters.products') : t('filters.product')}
                     </span>
                   </div>
 
@@ -327,7 +327,7 @@ const Products = () => {
                       >
                         {SORT_OPTIONS.map((opt) => (
                           <option key={opt.key} value={opt.key}>
-                            {opt.label}
+                            {t(opt.labelKey)}
                           </option>
                         ))}
                       </select>
