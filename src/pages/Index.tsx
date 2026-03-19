@@ -23,26 +23,8 @@ import spaceRooftop from "@/assets/space-rooftop.jpg";
 import spaceBeachclub from "@/assets/space-beachclub.jpg";
 import spaceCamping from "@/assets/space-camping.jpg";
 
-const spaces = [
-{ name: "Restaurants", image: spaceRestaurant, description: "Terraces, patios & outdoor dining" },
-{ name: "Hotels", image: spaceHotel, description: "Lobbies, pool decks & garden lounges" },
-{ name: "Rooftops", image: spaceRooftop, description: "Sky bars & urban terraces" },
-{ name: "Beach Clubs", image: spaceBeachclub, description: "Beachfront lounges & daybeds" },
-{ name: "Campings", image: spaceCamping, description: "Glamping & outdoor communal areas" }];
+// spaces and stats/steps are now translated inline via t()
 
-
-const stats = [
-{ value: "500+", label: "Curated products" },
-{ value: "10+", label: "Partner suppliers" },
-{ value: "5", label: "European countries" },
-{ value: "5", label: "Space categories" }];
-
-
-const steps = [
-{ icon: Sparkles, title: "Describe", text: "Your space, style and requirements" },
-{ icon: Compass, title: "Refine", text: "A few questions to shape your brief" },
-{ icon: Layers, title: "Select", text: "3 curated concepts with products" },
-{ icon: Send, title: "Submit", text: "Your project goes to sourcing" }];
 
 
 type FlowPhase = "idle" | "product_search" | "discovery" | "results";
