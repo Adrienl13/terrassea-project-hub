@@ -152,7 +152,7 @@ const Index = () => {
 
           {/* Subline */}
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.3 }} className="text-muted-foreground font-body text-base md:text-lg mt-8 max-w-xl mx-auto leading-relaxed">
-            Search a product or describe your project — we connect hospitality professionals with the best suppliers across Europe.
+            {t('home.subtitle')}
           </motion.p>
 
           {/* Search */}
