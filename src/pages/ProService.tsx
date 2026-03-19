@@ -417,7 +417,7 @@ const ProService = () => {
                           <input type="text" value={form.spaces} onChange={handle("spaces")} placeholder="Terrace, pool deck, garden" className={inputClass} />
                         </div>
                         <div>
-                          <label className={labelClass}>Timeline</label>
+                          <label className={labelClass}>{t('proService.formFields.timeline')}</label>
                           <input type="text" value={form.timeline} onChange={handle("timeline")} placeholder="Opening June 2026" className={inputClass} />
                         </div>
                       </div>
