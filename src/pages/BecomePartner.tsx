@@ -114,10 +114,52 @@ type Phase = "form" | "submitted";
 
 const BecomePartner = () => {
   const navigate = useNavigate();
+  const [path, setPath] = useState<'supplier' | null>(null);
   const [phase, setPhase] = useState<Phase>("form");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
+
+  if (!path) return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
+        <p className="text-[10px] font-display font-bold uppercase tracking-[.2em] text-muted-foreground mb-4">
+          Become a Partner
+        </p>
+        <h1 className="font-display text-3xl font-bold text-foreground text-center mb-10">
+          What best describes you?
+        </h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-2xl">
+          <button onClick={() => setPath('supplier')}
+            className="text-left border border-border rounded-xl p-7 hover:border-foreground transition-all group bg-card">
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center mb-5">
+              <Factory className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </div>
+            <p className="font-display font-bold text-lg text-foreground mb-2">
+              Brand, Manufacturer or Reseller
+            </p>
+            <p className="text-sm font-body text-muted-foreground leading-relaxed">
+              You supply outdoor CHR furniture and want to reach hospitality buyers across Europe.
+            </p>
+          </button>
+          <Link to="/pro-service"
+            className="text-left border border-border rounded-xl p-7 hover:border-foreground transition-all group bg-card">
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center mb-5">
+              <Palette className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </div>
+            <p className="font-display font-bold text-lg text-foreground mb-2">
+              Designer or Architect
+            </p>
+            <p className="text-sm font-body text-muted-foreground leading-relaxed">
+              You design hospitality spaces. Sourcing support and curated products — at no cost.
+            </p>
+          </Link>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
 
   const [form, setForm] = useState({
     companyName: "", contactName: "", email: "", phone: "",
