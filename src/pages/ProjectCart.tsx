@@ -17,11 +17,7 @@ import type { CartItem } from "@/contexts/ProjectCartContext";
 
 // ── Progress steps ────────────────────────────────────────────────────────────
 
-const STEPS = [
-{ id: 1, label: "Selection" },
-{ id: 2, label: "Suppliers" },
-{ id: 3, label: "Details" },
-{ id: 4, label: "Submit" }];
+const STEP_KEYS = ["selection", "suppliers", "details", "submit"] as const;
 
 
 function getCurrentStep(items: CartItem[]): number {
