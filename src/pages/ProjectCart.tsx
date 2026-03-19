@@ -357,7 +357,7 @@ const ProjectCart = () => {
 
                             <div className="inline-flex items-center gap-1.5 mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-body" style={{ background: "rgba(186,117,23,.08)", color: "#854F0B", border: "0.5px solid rgba(186,117,23,.2)" }}>
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-                                    No supplier
+                                    {t('projectCart.noSupplier')}
                                   </div>
                             }
                               </div>
