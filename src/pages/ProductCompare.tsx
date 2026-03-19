@@ -125,7 +125,7 @@ const ProductCompare = () => {
                           onClick={() => handleAdd(product)}
                           className="mt-2 inline-flex items-center gap-1 text-[10px] font-display font-semibold border border-foreground text-foreground rounded-full px-3 py-1.5 hover:bg-foreground hover:text-primary-foreground transition-all"
                         >
-                          <Plus className="h-3 w-3" /> Add to project
+                          <Plus className="h-3 w-3" /> {t('actions.addToProject')}
                         </button>
                       </div>
                     </th>
