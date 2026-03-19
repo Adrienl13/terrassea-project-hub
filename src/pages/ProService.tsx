@@ -405,7 +405,7 @@ const ProService = () => {
                 {/* Optional details */}
                 <button type="button" onClick={() => setShowOptional(!showOptional)}
                   className="w-full flex items-center justify-between text-xs font-body text-muted-foreground hover:text-foreground transition-colors py-1">
-                  + Project details (spaces, style, timeline, constraints)
+                  {t('proService.formFields.optionalDetails')}
                   <ChevronDown className={`h-4 w-4 transition-transform ${showOptional ? "rotate-180" : ""}`} />
                 </button>
                 <AnimatePresence>
