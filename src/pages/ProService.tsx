@@ -348,9 +348,9 @@ const ProService = () => {
                 {/* Project */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Establishment type *</label>
+                    <label className={labelClass}>{t('proService.formFields.establishmentType')} *</label>
                     <select value={form.establishmentType} onChange={handle("establishmentType")} className={inputClass}>
-                      <option value="">Select...</option>
+                      <option value="">{t('proService.formFields.select')}</option>
                       <option value="hotel">Hotel</option>
                       <option value="resort">Resort</option>
                       <option value="restaurant">Restaurant</option>
