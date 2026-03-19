@@ -498,15 +498,15 @@ const Index = () => {
         <div className="container mx-auto relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center max-w-2xl mx-auto">
             <motion.span initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-[10px] font-body uppercase tracking-[0.3em] text-muted-foreground">
-              Ready to start?
+              {t('cta.label')}
             </motion.span>
 
             <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mt-4 leading-tight">
-              Design your outdoor space<br />in just a few clicks.
+              {t('cta.title1')}<br />{t('cta.title2')}
             </h2>
 
             <p className="text-muted-foreground font-body mt-6 max-w-lg mx-auto leading-relaxed">
-              Join the hospitality professionals who trust Terrassea to source their outdoor furniture across Europe.
+              {t('cta.subtitle')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
@@ -514,13 +514,13 @@ const Index = () => {
                 onClick={() => navigate("/projects/new")}
                 className="px-8 py-4 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
                 
-                Launch my project →
+                {t('cta.launchProject')}
               </button>
               <button
                 onClick={() => navigate("/products")}
                 className="px-8 py-4 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all">
                 
-                Browse catalogue
+                {t('cta.browseCatalogue')}
               </button>
             </div>
           </motion.div>
