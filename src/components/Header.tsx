@@ -199,7 +199,7 @@ const Header = () => {
                         key={sub.label}
                         to={sub.href}
                         onClick={() => setOpenCat(null)}
-                        className="block px-4 py-2 text-sm font-body text-foreground hover:bg-muted hover:text-terracotta transition-colors"
+                        className="block px-4 py-2 text-sm font-body text-white/60 hover:bg-white/5 hover:text-terracotta transition-colors"
                       >
                         {sub.label}
                       </Link>
