@@ -115,13 +115,32 @@ const Products = () => {
       });
     }
 
-    if (filters.categories.length > 0)
-      result = result.filter((p) =>
-        filters.categories.some(
+    if (filters.categories.length > 0) {
+      // Special sub-type filters for table parts
+      const specialCats = ["Table Bases", "Tabletops"];
+      const normalCats = filters.categories.filter((c) => !specialCats.includes(c));
+      const hasTableBases = filters.categories.includes("Table Bases");
+      const hasTabletops = filters.categories.includes("Tabletops");
+
+      result = result.filter((p) => {
+        // Check normal category match
+        const normalMatch = normalCats.length > 0 && normalCats.some(
           (c) => p.category.toLowerCase() === c.toLowerCase() ||
             p.subcategory?.toLowerCase() === c.toLowerCase()
-        )
-      );
+        );
+        // Check Table Bases
+        const baseMatch = hasTableBases && (
+          p.subcategory?.toLowerCase().includes("base") ||
+          (p.product_type_tags as any)?.table_type === "base-only"
+        );
+        // Check Tabletops
+        const topMatch = hasTabletops && (
+          p.subcategory?.toLowerCase().includes("top") ||
+          (p.product_type_tags as any)?.table_type === "top-only"
+        );
+        return normalMatch || baseMatch || topMatch;
+      });
+    }
 
     if (filters.usage.length > 0)
       result = result.filter((p) =>
