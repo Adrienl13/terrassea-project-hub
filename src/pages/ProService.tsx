@@ -115,10 +115,10 @@ const ProService = () => {
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="font-display text-2xl font-bold tracking-tight mb-2">Request received</h1>
-            <p className="text-sm font-body text-muted-foreground mb-4">We'll be in touch within 24 hours.</p>
+            <h1 className="font-display text-2xl font-bold tracking-tight mb-2">{t('proService.requestReceived')}</h1>
+            <p className="text-sm font-body text-muted-foreground mb-4">{t('proService.requestReceivedDesc')}</p>
             <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">
-              Our sourcing team has your brief. We'll review it and confirm we can help — then get started on your 3 proposals within 5 business days.
+              {t('proService.requestReceivedDetail')}
             </p>
             <button onClick={() => navigate("/")} className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90">
               Back to homepage
