@@ -603,7 +603,7 @@ const ProjectCart = () => {
         quantity={selectedProduct ? items.find((i) => i.product.id === selectedProduct.id)?.quantity : undefined}
         showSuppliers
         onAddToQuotation={() => {
-          toast.success(`${selectedProduct?.name} confirmed`);
+          toast.success(`${selectedProduct?.name} ${t('projectCart.confirmed')}`);
           setDrawerOpen(false);
         }} />
       
