@@ -559,7 +559,7 @@ const ProjectCart = () => {
                         <textarea
                         value={formData.notes}
                         onChange={handle("notes")}
-                        placeholder="Any specific requirements..."
+                        placeholder={t('projectCart.additionalNotesPlaceholder')}
                         rows={3}
                         className="w-full text-sm font-body bg-card border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50 resize-none" />
                       
