@@ -521,7 +521,7 @@ const ProjectCart = () => {
                             {sirenResult.address}
                           </p>
                           <p className="text-[10px] text-muted-foreground font-body mt-1">
-                            Delivery costs will be calculated per supplier based on this address
+                            {t('projectCart.deliveryCosts')}
                           </p>
                         </motion.div>
                       }
