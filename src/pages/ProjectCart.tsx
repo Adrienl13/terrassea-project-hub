@@ -586,7 +586,7 @@ const ProjectCart = () => {
                 </div>
 
                 <p className="text-[10px] text-muted-foreground font-body text-center leading-relaxed">
-                  Precise quotes from each supplier within 48h · No commitment required
+                  {t('projectCart.preciseQuotes')}
                 </p>
               </div>
             </div>
