@@ -488,18 +488,18 @@ const BecomePartner = () => {
                   <span className="font-normal normal-case tracking-normal">({t('becomePartnerPage.selectAllApply')})</span>
                 </label>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {CATEGORIES.map((cat) => (
+                  {CATEGORY_KEYS.map((key) => (
                     <button
-                      key={cat}
+                      key={key}
                       type="button"
-                      onClick={() => toggleCategory(cat)}
+                      onClick={() => toggleCategory(key)}
                       className={`text-[11px] font-body px-2.5 py-1 rounded-full border transition-all ${
-                        form.productCategories.includes(cat)
+                        form.productCategories.includes(key)
                           ? "bg-foreground text-primary-foreground border-foreground"
                           : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
                       }`}
                     >
-                      {cat}
+                      {t(`categories.${key}`)}
                     </button>
                   ))}
                 </div>
