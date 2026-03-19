@@ -115,6 +115,7 @@ type Phase = "form" | "submitted";
 
 const BecomePartner = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [path, setPath] = useState<'supplier' | null>(null);
   const [phase, setPhase] = useState<Phase>("form");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
