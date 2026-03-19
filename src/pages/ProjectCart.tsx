@@ -409,7 +409,7 @@ const ProjectCart = () => {
                   <div className="flex items-center justify-around p-4 bg-card rounded-sm mt-6">
                     <div className="text-center">
                       <span className="font-display font-bold text-lg text-foreground block">{items.length}</span>
-                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Products</span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">{t('projectCart.products')}</span>
                     </div>
                     <div className="text-center">
                       <span className="font-display font-bold text-lg text-foreground block">
