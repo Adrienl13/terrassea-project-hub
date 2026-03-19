@@ -150,7 +150,7 @@ const ProService = () => {
                 Launch Project Builder <ArrowRight className="h-4 w-4" />
               </button>
               <button onClick={() => setPhase("form")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all">
-                Update my project details
+                {t('proService.updateDetails')}
               </button>
             </div>
           </motion.div>
