@@ -69,7 +69,7 @@ const ProductCompare = () => {
 
   const handleAdd = (product: DBProduct) => {
     addItem(product);
-    toast.success(`${product.name} added to your project`);
+    toast.success(`${product.name} ${t('success.addedToProject').toLowerCase()}`);
   };
 
   return (
