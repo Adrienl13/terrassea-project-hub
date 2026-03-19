@@ -88,9 +88,9 @@ const ProductDetail = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="pt-24 px-6 container mx-auto text-center py-20">
-          <p className="text-muted-foreground font-body">Product not found.</p>
+          <p className="text-muted-foreground font-body">{t('productDetail.productNotFound')}</p>
           <Link to="/products" className="text-sm font-display font-semibold text-foreground underline mt-4 inline-block">
-            Back to products
+            {t('productDetail.backToProducts')}
           </Link>
         </div>
       </div>
