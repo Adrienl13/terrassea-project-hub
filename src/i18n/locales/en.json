@@ -1,13 +1,10 @@
 {
-  "nav": {
-    "explore": "Explore",
-    "products": "Products",
-    "inspirations": "Inspirations",
-    "guide": "Guide",
-    "partners": "Partners",
-    "proService": "Pro Service",
-    "myProject": "My Project",
-    "myAccount": "My Account",
-    "launchProject": "Launch my project"
-  }
+  "nav": { "explore": "Explore", "products": "Products", "inspirations": "Inspirations", "guide": "Guide", "partners": "Partners", "proService": "Pro Service", "myProject": "My Project", "myAccount": "My Account", "launchProject": "Launch my project" },
+  "home": { "badge": "Outdoor & Indoor Hospitality Platform", "headline1": "Design & source", "headline2": "your outdoor space.", "subtitle": "200+ CHR-grade products from verified European suppliers.", "searchPlaceholder": "Search by product, material, style...", "search": "Search", "trending": "Trending", "launchProject": "Launch project →", "browseCatalogue": "Browse catalogue" },
+  "categories": { "all": "All", "chairs": "Chairs", "armchairs": "Armchairs", "tables": "Tables", "tableBases": "Table Bases", "tabletops": "Tabletops", "parasols": "Parasols", "sunLoungers": "Sun Loungers", "sofas": "Sofas", "barStools": "Bar Stools", "accessories": "Accessories", "indoorSoon": "Indoor — soon ✦" },
+  "products": { "title": "Product Hub", "subtitle": "Professional furniture sourcing — search, compare and select.", "searchPlaceholder": "Search by name, material, color, style...", "noResults": "No products match your criteria.", "addToProject": "Add", "added": "Added", "inStock": "In stock", "lowStock": "Low stock", "onRequest": "On request" },
+  "partners": { "title": "Partner Network", "becomePartner": "Become a Partner", "verifiedSupplier": "Verified Supplier", "sourceViaTerrassea": "Source via Terrassea →" },
+  "becomePartner": { "title": "What best describes you?", "supplier": "Brand, Manufacturer or Reseller", "supplierDesc": "You supply outdoor CHR furniture and want to reach hospitality buyers across Europe.", "designer": "Designer or Architect", "designerDesc": "You design hospitality spaces. Sourcing support and curated products — at no cost." },
+  "trust": { "products": "200+ products", "sourcing": "Free sourcing", "certified": "EN 12727" },
+  "common": { "seeAll": "See all →", "back": "Back", "save": "Save", "cancel": "Cancel", "loading": "Loading...", "error": "Something went wrong.", "required": "Required" }
 }
