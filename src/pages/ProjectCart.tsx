@@ -279,9 +279,9 @@ const ProjectCart = () => {
 
           {/* Title */}
           <div className="mb-6">
-            <h1 className="font-display text-3xl font-bold text-foreground">My Project</h1>
+            <h1 className="font-display text-3xl font-bold text-foreground">{t('projectCart.title')}</h1>
             <p className="text-sm text-muted-foreground font-body mt-1">
-              Review your selection, confirm suppliers and submit for sourcing
+              {t('projectCart.subtitle')}
             </p>
           </div>
 
