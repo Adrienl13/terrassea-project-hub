@@ -140,14 +140,14 @@ const Index = () => {
 
           {/* Headline */}
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-foreground tracking-tight leading-[1.05]">
-            Your clients' outdoor
+            {t('home.headline1')}
             <br />
             <span className="relative inline-block">
-              space starts
+              {t('home.headline2')}
               <motion.span initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.8, delay: 0.8 }} className="absolute -bottom-1 left-0 right-0 h-[3px] origin-left bg-[#d4613a]" />
             </span>
             <br />
-            here.
+            {t('home.headline3')}
           </motion.h1>
 
           {/* Subline */}
