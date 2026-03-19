@@ -357,17 +357,17 @@ const Index = () => {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="flex items-end justify-between mb-12">
             <div>
               <span className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
-                Catalogue
+                {t('popularProducts.label')}
               </span>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-1">
-                Popular products
+                {t('popularProducts.title')}
               </h2>
             </div>
             <button
               onClick={() => navigate("/products")}
               className="hidden md:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors group">
               
-              View all <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+              {t('popularProducts.viewAll')} <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </motion.div>
 
@@ -394,7 +394,7 @@ const Index = () => {
               onClick={() => navigate("/products")}
               className="flex items-center gap-2 text-sm font-body text-muted-foreground border border-border rounded-full px-5 py-2.5 hover:border-foreground hover:text-foreground transition-all">
               
-              View all products <ArrowRight className="h-4 w-4" />
+              {t('popularProducts.viewAllProducts')} <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
