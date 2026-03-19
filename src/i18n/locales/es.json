@@ -1,5 +1,15 @@
 {
-  "nav": { "explore": "Explorar", "products": "Productos", "inspirations": "Inspiraciones", "guide": "Guía", "partners": "Socios", "proService": "Pro Service", "myProject": "Mi Proyecto", "myAccount": "Mi Cuenta", "launchProject": "Lanzar mi proyecto" },
+  "nav": {
+    "explore": "Explorar",
+    "products": "Productos",
+    "inspirations": "Inspiraciones",
+    "guide": "Guía",
+    "partners": "Socios",
+    "proService": "Pro Service",
+    "myProject": "Mi Proyecto",
+    "myAccount": "Mi Cuenta",
+    "launchProject": "Lanzar mi proyecto"
+  },
   "home": {
     "badge": "Sourcing mobiliario outdoor — B2B",
     "headline1": "El espacio outdoor",
@@ -77,10 +87,61 @@
     "launchProject": "Lanzar mi proyecto →",
     "browseCatalogue": "Ver catálogo"
   },
-  "categories": { "all": "Todo", "chairs": "Sillas", "armchairs": "Sillones", "tables": "Mesas", "tableBases": "Bases de mesa", "tabletops": "Tableros", "parasols": "Parasoles", "sunLoungers": "Tumbonas", "sofas": "Sofás", "barStools": "Taburetes de bar", "accessories": "Accesorios", "indoorSoon": "Interior — próximamente ✦" },
-  "products": { "title": "Catálogo de Productos", "subtitle": "Sourcing profesional — busca, compara y selecciona.", "searchPlaceholder": "Buscar por nombre, material, color, estilo...", "noResults": "Ningún producto coincide con tus criterios.", "addToProject": "Añadir", "added": "Añadido", "inStock": "En stock", "lowStock": "Stock limitado", "onRequest": "Bajo consulta" },
-  "partners": { "title": "Red de Socios", "becomePartner": "Convertirse en Socio", "verifiedSupplier": "Proveedor Verificado", "sourceViaTerrassea": "Obtener vía Terrassea →", "heroTitle1": "La red de confianza", "heroTitle2": "para mobiliario outdoor", "heroTitle3": "CHR.", "heroSubtitle": "Un ecosistema verificado de fabricantes, marcas y distribuidores al servicio de la hostelería europea.", "browseSuppliers": "Ver proveedores", "verifiedSuppliersCount": "Proveedores verificados", "countriesCovered": "Países cubiertos", "chrReviewed": "Control CHR", "supplierIdentity": "Identidad proveedor", "protected": "Protegida", "featuredTitle": "Aparece en lo más alto de la red", "featuredDesc": "Los proveedores destacados son vistos primero por los profesionales.", "learnMore": "Más información", "noPartnersTitle": "Aún no hay socios en esta categoría", "noPartnersDesc": "Sé el primero — plazas destacadas disponibles.", "applyAsPartner": "Solicitar como socio", "identityNotice": "La identidad del proveedor se revela solo en un presupuesto confirmado" },
-  "becomePartner": { "title": "¿Cómo te describes?", "supplier": "Marca, Fabricante o Distribuidor", "supplierDesc": "Suministras mobiliario CHR outdoor y quieres llegar a compradores europeos.", "designer": "Diseñador o Arquitecto", "designerDesc": "Diseñas espacios de hostelería. Soporte sourcing y productos seleccionados — sin coste." },
+  "categories": {
+    "all": "Todo",
+    "chairs": "Sillas",
+    "armchairs": "Sillones",
+    "tables": "Mesas",
+    "tableBases": "Bases de mesa",
+    "tabletops": "Tableros",
+    "parasols": "Parasoles",
+    "sunLoungers": "Tumbonas",
+    "sofas": "Sofás",
+    "barStools": "Taburetes de bar",
+    "accessories": "Accesorios",
+    "indoorSoon": "Interior — próximamente ✦"
+  },
+  "products": {
+    "title": "Catálogo de Productos",
+    "subtitle": "Sourcing profesional — busca, compara y selecciona.",
+    "searchPlaceholder": "Buscar por nombre, material, color, estilo...",
+    "noResults": "Ningún producto coincide con tus criterios.",
+    "addToProject": "Añadir",
+    "added": "Añadido",
+    "inStock": "En stock",
+    "lowStock": "Stock limitado",
+    "onRequest": "Bajo consulta"
+  },
+  "partners": {
+    "title": "Red de Socios",
+    "becomePartner": "Convertirse en Socio",
+    "verifiedSupplier": "Proveedor Verificado",
+    "sourceViaTerrassea": "Obtener vía Terrassea →",
+    "heroTitle1": "La red de confianza",
+    "heroTitle2": "para mobiliario outdoor",
+    "heroTitle3": "CHR.",
+    "heroSubtitle": "Un ecosistema verificado de fabricantes, marcas y distribuidores al servicio de la hostelería europea.",
+    "browseSuppliers": "Ver proveedores",
+    "verifiedSuppliersCount": "Proveedores verificados",
+    "countriesCovered": "Países cubiertos",
+    "chrReviewed": "Control CHR",
+    "supplierIdentity": "Identidad proveedor",
+    "protected": "Protegida",
+    "featuredTitle": "Aparece en lo más alto de la red",
+    "featuredDesc": "Los proveedores destacados son vistos primero por los profesionales.",
+    "learnMore": "Más información",
+    "noPartnersTitle": "Aún no hay socios en esta categoría",
+    "noPartnersDesc": "Sé el primero — plazas destacadas disponibles.",
+    "applyAsPartner": "Solicitar como socio",
+    "identityNotice": "La identidad del proveedor se revela solo en un presupuesto confirmado"
+  },
+  "becomePartner": {
+    "title": "¿Cómo te describes?",
+    "supplier": "Marca, Fabricante o Distribuidor",
+    "supplierDesc": "Suministras mobiliario CHR outdoor y quieres llegar a compradores europeos.",
+    "designer": "Diseñador o Arquitecto",
+    "designerDesc": "Diseñas espacios de hostelería. Soporte sourcing y productos seleccionados — sin coste."
+  },
   "proService": {
     "badge": "Terrassea Pro Service",
     "headline": "No para todos los proyectos — para los que equivocarse es caro.",
@@ -222,7 +283,11 @@
     "startProject": "Iniciar un proyecto",
     "largeProject": "¿Gran proyecto? Pro Service →",
     "anonymityNotice": "La identidad completa del proveedor se revela solo en un presupuesto confirmado. Todo el sourcing pasa por Terrassea.",
-    "trustSignals": ["No se necesita contacto directo con el proveedor", "Precios consolidados en un presupuesto", "Gratis para profesionales de hostelería"],
+    "trustSignals": [
+      "No se necesita contacto directo con el proveedor",
+      "Precios consolidados en un presupuesto",
+      "Gratis para profesionales de hostelería"
+    ],
     "notFound": "Proveedor no encontrado",
     "backToPartners": "← Volver a socios"
   },
@@ -288,6 +353,93 @@
     "passwordsNoMatch": "Las contraseñas no coinciden.",
     "fillBothFields": "Rellena ambos campos."
   },
-  "trust": { "products": "200+ productos", "sourcing": "Sourcing gratuito", "certified": "EN 12727" },
-  "common": { "seeAll": "Ver todo →", "back": "Volver", "save": "Guardar", "cancel": "Cancelar", "loading": "Cargando...", "error": "Algo salió mal.", "required": "Requerido", "or": "o", "submitting": "Enviando..." }
+  "trust": {
+    "products": "200+ productos",
+    "sourcing": "Sourcing gratuito",
+    "certified": "EN 12727"
+  },
+  "common": {
+    "seeAll": "Ver todo →",
+    "back": "Volver",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "loading": "Cargando...",
+    "error": "Algo salió mal.",
+    "required": "Requerido",
+    "or": "o",
+    "submitting": "Enviando..."
+  },
+  "actions": {
+    "submit": "Enviar",
+    "send": "Enviar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "remove": "Quitar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "continue": "Continuar",
+    "apply": "Aplicar",
+    "reset": "Restablecer",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "view": "Ver",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "createAccount": "Crear cuenta",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "resetPassword": "Restablecer contraseña",
+    "updatePassword": "Actualizar contraseña",
+    "submitBrief": "Enviar mi brief",
+    "launchProject": "Lanzar proyecto",
+    "browseProducts": "Ver productos",
+    "addToProject": "Añadir al proyecto",
+    "requestQuote": "Solicitar presupuesto",
+    "contactUs": "Contáctanos",
+    "learnMore": "Más información",
+    "seeAll": "Ver todo",
+    "viewDetails": "Ver detalles",
+    "getStarted": "Empezar"
+  },
+  "forms": {
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Email",
+    "password": "Contraseña",
+    "company": "Empresa",
+    "phone": "Teléfono",
+    "message": "Mensaje",
+    "subject": "Asunto",
+    "required": "Requerido",
+    "optional": "Opcional",
+    "confirmPassword": "Confirmar contraseña",
+    "newPassword": "Nueva contraseña",
+    "passwordHint": "Mínimo 8 caracteres"
+  },
+  "errors": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Dirección de email inválida",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "somethingWrong": "Algo salió mal. Por favor inténtalo de nuevo.",
+    "notFound": "Página no encontrada",
+    "unauthorized": "Debes iniciar sesión"
+  },
+  "success": {
+    "saved": "Guardado correctamente",
+    "sent": "Mensaje enviado correctamente",
+    "accountCreated": "¡Cuenta creada! Revisa tu email.",
+    "passwordUpdated": "Contraseña actualizada",
+    "addedToProject": "Añadido al proyecto"
+  },
+  "guide": {
+    "title": "La Guía CHR Outdoor",
+    "faq": "FAQ",
+    "readMore": "Leer más"
+  }
 }
