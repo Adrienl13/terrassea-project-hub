@@ -469,8 +469,8 @@ const ProjectCart = () => {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className={labelClass}>Email *</label>
-                      <input type="email" value={formData.email} onChange={handle("email")} placeholder="jean@restaurant.fr" className={inputClass} />
+                      <label className={labelClass}>{t('projectCart.email')} *</label>
+                      <input type="email" value={formData.email} onChange={handle("email")} placeholder={t('projectCart.placeholders.email')} className={inputClass} />
                     </div>
                     <div>
                       <label className={labelClass}>Phone *</label>
