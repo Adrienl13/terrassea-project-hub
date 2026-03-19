@@ -28,7 +28,7 @@ const PLANS = [
       { ok: false, label: "Verified Partner badge" },
       { ok: false, label: "Leads 24h in advance" },
     ],
-    note: "Automatically upgrades to Growth at your 3rd confirmed order.",
+    note: "6-month renewable contract. Automatically upgrades to Growth at your 3rd confirmed order.",
   },
   {
     id: "growth",
