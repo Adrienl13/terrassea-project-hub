@@ -154,7 +154,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
           {/* Anonymous identity */}
           <div className="mb-3">
             <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground mb-1">
-              Verified Supplier
+              {t('partners.verifiedSupplier')}
             </p>
             <h3 className="font-display font-bold text-foreground text-base leading-tight group-hover:text-foreground/80 transition-colors">
               {getAnonymousLabel(partner)}
