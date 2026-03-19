@@ -357,7 +357,7 @@ export default function Partners() {
                 className="mt-8 flex items-center gap-3"
               >
                 <Link to="/become-partner" className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#D4603A] text-white font-display font-semibold text-sm hover:bg-[#C05030] transition-colors">
-                  Become a Partner <ArrowRight className="h-4 w-4" />
+                  {t('partners.becomePartner')} <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a href="#partners-grid" className="px-6 py-3 rounded-full border border-border font-display font-semibold text-sm text-foreground hover:bg-muted transition-colors">
                   Browse suppliers

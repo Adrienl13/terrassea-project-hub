@@ -160,10 +160,10 @@ const BecomePartner = () => {
               <Palette className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
             </div>
             <p className="font-display font-bold text-lg text-foreground mb-2">
-              Designer or Architect
+              {t('becomePartner.designer')}
             </p>
             <p className="text-sm font-body text-muted-foreground leading-relaxed">
-              You design hospitality spaces. Sourcing support and curated products — at no cost.
+              {t('becomePartner.designerDesc')}
             </p>
           </Link>
         </div>

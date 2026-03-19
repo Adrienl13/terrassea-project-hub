@@ -373,7 +373,7 @@ const Products = () => {
                 ) : filtered.length === 0 ? (
                   <div className="text-center py-20">
                     <p className="text-sm text-muted-foreground font-body">
-                      No products match your criteria. Try adjusting your filters.
+                      {t('products.noResults')}
                     </p>
                   </div>
                 ) : viewMode === "grid" ? (

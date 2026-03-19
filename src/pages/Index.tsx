@@ -48,6 +48,7 @@ const steps = [
 type FlowPhase = "idle" | "product_search" | "discovery" | "results";
 
 const Index = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const heroRef = useRef<HTMLDivElement>(null);
   const { data: products = [], isLoading: productsLoading } = useProducts();
