@@ -399,7 +399,7 @@ const Products = () => {
       <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
         <SheetContent side="left" className="w-full sm:w-80 p-0">
           <SheetHeader className="sr-only">
-            <SheetTitle>Filters</SheetTitle>
+            <SheetTitle>{t('filters.filters')}</SheetTitle>
           </SheetHeader>
           <ProductFilterSidebar
             filters={filters}
