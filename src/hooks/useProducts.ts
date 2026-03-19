@@ -15,7 +15,7 @@ export function useProducts(searchTerm?: string, categoryFilter?: string) {
     queryFn: async () => {
       if (debouncedSearch && debouncedSearch.trim().length > 1) {
         const { data, error } = await supabase
-          .rpc("search_products_multilang", {
+          .rpc("fuzzy_search_products", {
             search_query: debouncedSearch.trim(),
             lang: lang,
             category_filter: categoryFilter || null,
