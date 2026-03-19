@@ -551,8 +551,8 @@ const ProjectCart = () => {
                         <input type="text" value={formData.budget} onChange={handle("budget")} placeholder={t('projectCart.budgetPlaceholder')} className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Timeline</label>
-                        <input type="text" value={formData.timeline} onChange={handle("timeline")} placeholder="June 2026" className={inputClass} />
+                        <label className={labelClass}>{t('projectCart.timeline')}</label>
+                        <input type="text" value={formData.timeline} onChange={handle("timeline")} placeholder={t('projectCart.timelinePlaceholder')} className={inputClass} />
                       </div>
                       <div>
                         <label className={labelClass}>Additional notes</label>
