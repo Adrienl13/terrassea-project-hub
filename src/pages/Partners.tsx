@@ -86,6 +86,7 @@ function isFeatured(partner: Partner): boolean {
 // ═══════════════════════════════════════════════════════════
 
 function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
+  const { t } = useTranslation();
   const type     = TYPE_CONFIG[partner.partner_type] || TYPE_CONFIG.brand;
   const flag     = partner.country ? (COUNTRY_FLAGS[partner.country] || "🌍") : "🌍";
   const featured = isFeatured(partner);
