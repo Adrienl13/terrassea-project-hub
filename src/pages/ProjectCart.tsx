@@ -302,9 +302,9 @@ const ProjectCart = () => {
             <div className="lg:col-span-3">
               {items.length === 0 ?
               <div className="bg-card rounded-sm p-12 text-center">
-                  <p className="text-muted-foreground font-body">No products in your project yet.</p>
+                  <p className="text-muted-foreground font-body">{t('projectCart.noProducts')}</p>
                   <Link to="/" className="text-sm font-display font-semibold text-foreground mt-4 inline-block hover:underline">
-                    Start designing →
+                    {t('projectCart.startDesigning')}
                   </Link>
                 </div> :
 
