@@ -95,6 +95,7 @@ const CATEGORIES = [
 const Header = () => {
   const { itemCount } = useProjectCart();
   const [openCat, setOpenCat] = useState<string | null>(null);
+  const [dropdownPos, setDropdownPos] = useState({ left: 0, top: 0 });
 
   return (
     <motion.header
