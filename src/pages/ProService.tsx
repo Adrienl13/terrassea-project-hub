@@ -252,7 +252,7 @@ const ProService = () => {
               <h2 className="font-display text-xl font-bold tracking-tight mb-8">{t('proService.isThisForYou')}</h2>
 
               {/* Yes */}
-              <p className="text-xs font-display font-semibold uppercase tracking-widest text-green-600 mb-3">This is for you if…</p>
+              <p className="text-xs font-display font-semibold uppercase tracking-widest text-green-600 mb-3">{t('proService.forYouIf')}</p>
               <div className="space-y-2.5 mb-6">
                 {FOR_WHO_YES.map((item, i) => (
                   <div key={i} className="flex gap-3 p-3 rounded-xl border border-green-200 bg-green-50/50">
