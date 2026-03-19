@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Header from "@/components/Header";
@@ -8,13 +9,8 @@ import Header from "@/components/Header";
 type Mode = "login" | "register";
 type UserType = "client" | "partner" | "architect" | "designer";
 
-const USER_TYPES: { value: UserType; label: string; desc: string; icon: string }[] = [
-  { value: "client",    label: "Client",      desc: "Restaurant, hotel, venue owner", icon: "🍽" },
-  { value: "partner",   label: "Partner",     desc: "Supplier, manufacturer, distributor", icon: "🏭" },
-  { value: "architect", label: "Architect",   desc: "Designer, interior architect, decorator", icon: "📐" },
-];
-
 const Auth = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as any)?.from?.pathname || "/account";
@@ -32,12 +28,10 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    // Check hash on mount for recovery token
     const hash = window.location.hash;
     if (hash.includes("type=recovery")) {
       setIsRecovery(true);
     }
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsRecovery(true);
@@ -45,6 +39,13 @@ const Auth = () => {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const USER_TYPES: { value: UserType; label: string; desc: string; icon: string }[] = [
+    { value: "client",    label: t('auth.client'),    desc: t('auth.clientDesc'),    icon: "🍽" },
+    { value: "partner",   label: t('auth.partner'),   desc: t('auth.partnerDesc'),   icon: "🏭" },
+    { value: "architect", label: t('auth.architect'),  desc: t('auth.architectDesc'), icon: "📐" },
+  ];
+
   const [form, setForm] = useState({
     email: "", password: "", firstName: "", lastName: "",
     company: "", siren: "", phone: "", userType: defaultType,
@@ -71,28 +72,16 @@ const Auth = () => {
   };
 
   const handleRegister = async () => {
-    window.alert("handleRegister called");
-
     if (!form.email || !form.password || !form.firstName || !form.company || !form.siren) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t('auth.fillRequired'));
       return;
     }
     if (form.siren.length !== 9) {
-      toast.error("SIREN number must be 9 digits.");
+      toast.error(t('auth.sirenDigits'));
       return;
     }
     setIsLoading(true);
     try {
-      console.log("Signing up with data:", {
-        email: form.email,
-        firstName: form.firstName,
-        lastName: form.lastName,
-        userType: form.userType,
-        company: form.company,
-        siren: form.siren,
-        phone: form.phone,
-      });
-
       const { data, error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
@@ -108,19 +97,11 @@ const Auth = () => {
           },
         },
       });
-
-      if (error) {
-        console.error("supabase.auth.signUp error:", error);
-        console.error("supabase.auth.signUp full response:", { data, error });
-        throw error;
-      }
-
-      console.log("supabase.auth.signUp success:", { data, error });
-      toast.success("Account created! Check your email to confirm.");
+      if (error) throw error;
+      toast.success(t('auth.accountCreated'));
       navigate(from);
     } catch (err: any) {
-      console.error("handleRegister catch error:", err);
-      toast.error(err.message || "Something went wrong.");
+      toast.error(err.message || t('errors.somethingWrong'));
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +109,7 @@ const Auth = () => {
 
   const handleLogin = async () => {
     if (!form.email || !form.password) {
-      toast.error("Email and password required.");
+      toast.error(t('auth.emailPasswordRequired'));
       return;
     }
     setIsLoading(true);
@@ -140,7 +121,7 @@ const Auth = () => {
       if (error) throw error;
       navigate(from);
     } catch (err: any) {
-      toast.error(err.message || "Invalid credentials.");
+      toast.error(err.message || t('errors.somethingWrong'));
     } finally {
       setIsLoading(false);
     }
@@ -161,9 +142,9 @@ const Auth = () => {
         >
           {isRecovery ? (
             <div className="space-y-4">
-              <h2 className="text-lg font-display font-bold text-foreground">Reset your password</h2>
+              <h2 className="text-lg font-display font-bold text-foreground">{t('auth.resetPassword')}</h2>
               <div>
-                <span className={labelClass}>New password *</span>
+                <span className={labelClass}>{t('auth.newPassword')} *</span>
                 <input
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -173,7 +154,7 @@ const Auth = () => {
                 />
               </div>
               <div>
-                <span className={labelClass}>Confirm password *</span>
+                <span className={labelClass}>{t('auth.confirmPassword')} *</span>
                 <input
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -185,33 +166,28 @@ const Auth = () => {
               <button
                 onClick={async () => {
                   if (!newPassword || !confirmPassword) {
-                    toast.error("Please fill in both fields.");
+                    toast.error(t('auth.fillBothFields'));
                     return;
                   }
                   if (newPassword !== confirmPassword) {
-                    toast.error("Passwords do not match.");
+                    toast.error(t('auth.passwordsNoMatch'));
                     return;
                   }
                   setIsLoading(true);
                   try {
-                    const { error } = await supabase.auth.updateUser({ 
-                      password: newPassword 
-                    });
+                    const { error } = await supabase.auth.updateUser({ password: newPassword });
                     if (error) throw error;
-                    toast.success("Password updated successfully!");
-                    // Hard reload vers home — nettoie le hash et repart proprement
-                    setTimeout(() => {
-                      window.location.replace("/");
-                    }, 1500);
+                    toast.success(t('auth.passwordUpdated'));
+                    setTimeout(() => { window.location.replace("/"); }, 1500);
                   } catch (err: any) {
-                    toast.error(err.message || "Could not update password.");
+                    toast.error(err.message || t('errors.somethingWrong'));
                     setIsLoading(false);
                   }
                 }}
                 disabled={isLoading}
                 className="w-full py-3 bg-foreground text-primary-foreground font-display font-semibold text-sm rounded-full hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {isLoading ? "..." : "Update password"}
+                {isLoading ? "..." : t('auth.updatePassword')}
               </button>
             </div>
           ) : (
@@ -228,7 +204,7 @@ const Auth = () => {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {m === "login" ? "Sign in" : "Create account"}
+                {m === "login" ? t('auth.signIn') : t('auth.createAccount')}
               </button>
             ))}
           </div>
@@ -238,7 +214,7 @@ const Auth = () => {
               <>
                 {/* User type */}
                 <div>
-                  <span className={labelClass}>I am *</span>
+                  <span className={labelClass}>{t('auth.iAm')} *</span>
                   <div className="grid grid-cols-3 gap-2">
                     {USER_TYPES.map(({ value, label: lbl, desc, icon }) => (
                       <button
@@ -260,26 +236,26 @@ const Auth = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className={labelClass}>First name *</span>
+                    <span className={labelClass}>{t('auth.firstName')} *</span>
                     <input value={form.firstName} onChange={handle("firstName")} className={inputClass} />
                   </div>
                   <div>
-                    <span className={labelClass}>Last name</span>
+                    <span className={labelClass}>{t('auth.lastName')}</span>
                     <input value={form.lastName} onChange={handle("lastName")} className={inputClass} />
                   </div>
                 </div>
 
                 <div>
-                  <span className={labelClass}>Company *</span>
+                  <span className={labelClass}>{t('auth.company')} *</span>
                   <input value={form.company} onChange={handle("company")} className={inputClass} />
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className={labelClass + " mb-0"}>SIREN number *</span>
-                    {sirenChecking && <span className="text-[9px] text-muted-foreground">Checking...</span>}
-                    {sirenValid === true && <span className="text-[9px] text-green-600">✓ Valid</span>}
-                    {sirenValid === false && <span className="text-[9px] text-destructive">Not found</span>}
+                    <span className={labelClass + " mb-0"}>{t('auth.sirenNumber')} *</span>
+                    {sirenChecking && <span className="text-[9px] text-muted-foreground">{t('auth.checking')}</span>}
+                    {sirenValid === true && <span className="text-[9px] text-green-600">{t('auth.valid')}</span>}
+                    {sirenValid === false && <span className="text-[9px] text-destructive">{t('auth.notFound')}</span>}
                   </div>
                   <input
                     value={form.siren}
@@ -295,19 +271,19 @@ const Auth = () => {
                 </div>
 
                 <div>
-                  <span className={labelClass}>Phone</span>
+                  <span className={labelClass}>{t('auth.phone')}</span>
                   <input value={form.phone} onChange={handle("phone")} className={inputClass} />
                 </div>
               </>
             )}
 
             <div>
-              <span className={labelClass}>Email *</span>
-              <input value={form.email} onChange={handle("email")} type="email" placeholder="hello@restaurant.fr" className={inputClass} />
+              <span className={labelClass}>{t('auth.email')} *</span>
+              <input value={form.email} onChange={handle("email")} type="email" placeholder={t('forms.emailPlaceholder')} className={inputClass} />
             </div>
 
             <div>
-              <span className={labelClass}>Password *</span>
+              <span className={labelClass}>{t('auth.password')} *</span>
               <input value={form.password} onChange={handle("password")} type="password" placeholder="••••••••" className={inputClass} />
             </div>
 
@@ -316,7 +292,7 @@ const Auth = () => {
                 type="button"
                 onClick={async () => {
                   if (!form.email) {
-                    toast.error("Enter your email first.");
+                    toast.error(t('auth.enterEmailFirst'));
                     return;
                   }
                   try {
@@ -324,14 +300,14 @@ const Auth = () => {
                       redirectTo: `${window.location.origin}/auth`,
                     });
                     if (error) throw error;
-                    toast.success("Password reset email sent! Check your inbox.");
+                    toast.success(t('auth.resetEmailSent'));
                   } catch (err: any) {
-                    toast.error(err.message || "Could not send reset email.");
+                    toast.error(err.message || t('errors.somethingWrong'));
                   }
                 }}
                 className="text-xs font-body text-muted-foreground hover:text-foreground transition-colors self-end"
               >
-                Forgot password?
+                {t('auth.forgotPassword')}
               </button>
             )}
 
@@ -340,7 +316,7 @@ const Auth = () => {
               disabled={isLoading}
               className="w-full py-3 bg-foreground text-primary-foreground font-display font-semibold text-sm rounded-full hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {isLoading ? "..." : mode === "login" ? "Sign in" : "Create my account"}
+              {isLoading ? "..." : mode === "login" ? t('auth.signIn') : t('auth.createMyAccount')}
             </button>
           </div>
             </>
