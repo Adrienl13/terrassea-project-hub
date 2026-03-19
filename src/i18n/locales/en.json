@@ -1,6 +1,82 @@
 {
   "nav": { "explore": "Explore", "products": "Products", "inspirations": "Inspirations", "guide": "Guide", "partners": "Partners", "proService": "Pro Service", "myProject": "My Project", "myAccount": "My Account", "launchProject": "Launch my project" },
-  "home": { "badge": "Outdoor & Indoor Hospitality Platform", "headline1": "Design & source", "headline2": "your outdoor space.", "subtitle": "200+ CHR-grade products from verified European suppliers.", "searchPlaceholder": "Search by product, material, style...", "search": "Search", "trending": "Trending", "launchProject": "Launch project →", "browseCatalogue": "Browse catalogue" },
+  "home": {
+    "badge": "Outdoor furniture sourcing — B2B",
+    "headline1": "Your clients' outdoor",
+    "headline2": "space starts",
+    "headline3": "here.",
+    "subtitle": "Search a product or describe your project — we connect hospitality professionals with the best suppliers across Europe.",
+    "searchPlaceholder": "Search by product, material, style...",
+    "search": "Search",
+    "trending": "Trending",
+    "launchProject": "Launch project →",
+    "browseCatalogue": "Browse catalogue",
+    "getInspired": "Get inspired",
+    "startGuided": "Start a guided project",
+    "scroll": "Scroll"
+  },
+  "stats": {
+    "curatedProducts": "Curated products",
+    "partnerSuppliers": "Partner suppliers",
+    "europeanCountries": "European countries",
+    "spaceCategories": "Space categories"
+  },
+  "spaces": {
+    "byEstablishment": "By establishment",
+    "exploreSpaces": "Explore spaces",
+    "allInspirations": "All inspirations",
+    "restaurants": "Restaurants",
+    "restaurantsDesc": "Terraces, patios & outdoor dining",
+    "hotels": "Hotels",
+    "hotelsDesc": "Lobbies, pool decks & garden lounges",
+    "rooftops": "Rooftops",
+    "rooftopsDesc": "Sky bars & urban terraces",
+    "beachClubs": "Beach Clubs",
+    "beachClubsDesc": "Beachfront lounges & daybeds",
+    "campings": "Campings",
+    "campingsDesc": "Glamping & outdoor communal areas"
+  },
+  "howItWorks": {
+    "label": "How it works",
+    "title": "From idea to project in minutes",
+    "getStarted": "Get started",
+    "step1Title": "Describe",
+    "step1Text": "Your space, style and requirements",
+    "step2Title": "Refine",
+    "step2Text": "A few questions to shape your brief",
+    "step3Title": "Select",
+    "step3Text": "3 curated concepts with products",
+    "step4Title": "Submit",
+    "step4Text": "Your project goes to sourcing"
+  },
+  "popularProducts": {
+    "label": "Catalogue",
+    "title": "Popular products",
+    "viewAll": "View all",
+    "viewAllProducts": "View all products"
+  },
+  "valueProp": {
+    "label": "Why Terrassea",
+    "title": "Built for hospitality professionals",
+    "subtitle": "Everything you need to source, compare and order outdoor furniture — in one place.",
+    "card1Tag": "Multi-supplier",
+    "card1Title": "Simplified sourcing",
+    "card1Text": "Compare offers from multiple suppliers on a single product. Price, stock, delivery times — all at a glance.",
+    "card2Tag": "AI-powered",
+    "card2Title": "Tailored projects",
+    "card2Text": "Our engine generates curated selections adapted to your establishment type, style and budget.",
+    "card3Tag": "Europe-wide",
+    "card3Title": "Verified partners",
+    "card3Text": "Every supplier is selected for CHR-grade quality, delivery reliability and professional service across Europe."
+  },
+  "cta": {
+    "label": "Ready to start?",
+    "title1": "Design your outdoor space",
+    "title2": "in just a few clicks.",
+    "subtitle": "Join the hospitality professionals who trust Terrassea to source their outdoor furniture across Europe.",
+    "launchProject": "Launch my project →",
+    "browseCatalogue": "Browse catalogue"
+  },
   "categories": { "all": "All", "chairs": "Chairs", "armchairs": "Armchairs", "tables": "Tables", "tableBases": "Table Bases", "tabletops": "Tabletops", "parasols": "Parasols", "sunLoungers": "Sun Loungers", "sofas": "Sofas", "barStools": "Bar Stools", "accessories": "Accessories", "indoorSoon": "Indoor — soon ✦" },
   "products": { "title": "Product Hub", "subtitle": "Professional furniture sourcing — search, compare and select.", "searchPlaceholder": "Search by name, material, color, style...", "noResults": "No products match your criteria.", "addToProject": "Add", "added": "Added", "inStock": "In stock", "lowStock": "Low stock", "onRequest": "On request" },
   "partners": { "title": "Partner Network", "becomePartner": "Become a Partner", "verifiedSupplier": "Verified Supplier", "sourceViaTerrassea": "Source via Terrassea →" },
