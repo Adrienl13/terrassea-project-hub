@@ -481,9 +481,9 @@ const ProjectCart = () => {
                   {/* SIREN */}
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
-                      <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">SIREN *</label>
+                      <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('projectCart.siren')} *</label>
                       {sirenChecking &&
-                      <span className="text-[10px] text-muted-foreground animate-pulse">Checking...</span>
+                      <span className="text-[10px] text-muted-foreground animate-pulse">{t('projectCart.checking')}</span>
                       }
                       {sirenResult && !sirenChecking &&
                       <span className="text-[10px] text-green-600 font-semibold">
