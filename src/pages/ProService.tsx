@@ -213,13 +213,13 @@ const ProService = () => {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="grid grid-cols-2 gap-4"
             >
-              {INCLUDES.map((item, i) => (
+              {INCLUDES_ICONS.map((item, i) => (
                 <div key={i} className="p-4 rounded-2xl border border-border bg-card flex flex-col gap-3">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: item.accent }}>
                     <item.icon className="h-4 w-4" style={{ color: item.iconColor }} />
                   </div>
-                  <h3 className="font-display font-semibold text-sm leading-snug">{item.title}</h3>
-                  <p className="text-xs font-body text-muted-foreground leading-relaxed">{item.desc}</p>
+                  <h3 className="font-display font-semibold text-sm leading-snug">{t(item.titleKey)}</h3>
+                  <p className="text-xs font-body text-muted-foreground leading-relaxed">{t(item.descKey)}</p>
                 </div>
               ))}
             </motion.div>
