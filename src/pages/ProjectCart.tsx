@@ -421,7 +421,7 @@ const ProjectCart = () => {
                       <span className="font-display font-bold text-lg text-foreground block">
                         {hasBudget ? `~€${totalBudget.toLocaleString("fr-FR")}` : "—"}
                       </span>
-                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">Indicative</span>
+                      <span className="text-[10px] font-body uppercase tracking-wider text-muted-foreground">{t('projectCart.indicative')}</span>
                     </div>
                   </div>
 
