@@ -133,7 +133,7 @@ const Index = () => {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex items-center justify-center gap-2 mb-8">
             <div className="w-8 h-px bg-border" />
             <span className="text-[10px] font-body uppercase tracking-[0.3em] text-muted-foreground">
-              Outdoor furniture sourcing — B2B
+              {t('home.badge')}
             </span>
             <div className="w-8 h-px bg-border" />
           </motion.div>
