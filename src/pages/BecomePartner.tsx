@@ -120,7 +120,14 @@ const BecomePartner = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
 
-  if (!path) return (
+  const [form, setForm] = useState({
+    companyName: "", contactName: "", email: "", phone: "",
+    website: "", vatNumber: "", country: "",
+    partnerType: "" as "manufacturer" | "brand" | "reseller" | "",
+    productCategories: [] as string[],
+    estimatedVolume: "", deliveryCountries: [] as string[],
+    message: "",
+  });
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
