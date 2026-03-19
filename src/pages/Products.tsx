@@ -34,6 +34,7 @@ type ViewMode = "grid" | "list";
 type SortKey = typeof SORT_OPTIONS[number]["key"];
 
 const Products = () => {
+  const { t } = useTranslation();
   const { data: products = [], isLoading } = useProducts();
   const { addItem } = useProjectCart();
   const isMobile = useIsMobile();
