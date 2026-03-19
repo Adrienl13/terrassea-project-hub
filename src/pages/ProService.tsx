@@ -315,8 +315,8 @@ const ProService = () => {
                     <span className={`text-sm font-semibold ${qualified ? 'text-green-600' : 'text-amber-600'}`}>{qualified ? "✓" : "○"}</span>
                     <p className={`text-sm font-body ${qualified ? 'text-green-700' : 'text-amber-700'}`}>
                       {qualified
-                        ? "Your project qualifies for Pro Service — submit to confirm."
-                        : `Pro Service is for projects with 100+ covers or €35,000+ budget. Below this threshold, our Project Builder is the right tool.`}
+                        ? t('proService.qualifiedMsg')
+                        : t('proService.notQualifiedMsg')}
                     </p>
                   </motion.div>
                 )}
