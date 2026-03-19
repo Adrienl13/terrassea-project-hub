@@ -148,10 +148,10 @@ const BecomePartner = () => {
               <Factory className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
             </div>
             <p className="font-display font-bold text-lg text-foreground mb-2">
-              Brand, Manufacturer or Reseller
+              {t('becomePartner.supplier')}
             </p>
             <p className="text-sm font-body text-muted-foreground leading-relaxed">
-              You supply outdoor CHR furniture and want to reach hospitality buyers across Europe.
+              {t('becomePartner.supplierDesc')}
             </p>
           </button>
           <Link to="/auth?mode=register&type=designer"
