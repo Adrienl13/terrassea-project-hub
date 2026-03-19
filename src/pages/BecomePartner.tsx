@@ -69,7 +69,7 @@ const PLANS = [
       { ok: true, label: "Co-marketing with Terrassea" },
       { ok: true, label: "Access to Pro Service leads" },
     ],
-    note: "For established brands with significant CHR volume. Contact us to discuss terms and pricing.",
+    note: "6-month renewable contract. For established brands with significant CHR volume. Contact us to discuss terms and pricing.",
   },
 ];
 
