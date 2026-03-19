@@ -362,7 +362,7 @@ const ProService = () => {
                     </select>
                   </div>
                   <div>
-                    <label className={labelClass}>Location *</label>
+                    <label className={labelClass}>{t('proService.formFields.location')} *</label>
                     <input type="text" value={form.location} onChange={handle("location")} placeholder="Nice, France" className={inputClass} />
                   </div>
                 </div>
