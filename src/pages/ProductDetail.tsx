@@ -343,9 +343,9 @@ const ProductDetail = () => {
 
                 {/* Documents */}
                 {product.documents.length > 0 && (
-                  <div className="border-t border-border pt-6">
+                   <div className="border-t border-border pt-6">
                     <h2 className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-3">
-                      Documents
+                      {t('productDetail.documents')}
                     </h2>
                     <div className="space-y-2">
                       {product.documents.map((doc: any, i: number) => (
