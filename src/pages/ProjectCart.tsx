@@ -555,7 +555,7 @@ const ProjectCart = () => {
                         <input type="text" value={formData.timeline} onChange={handle("timeline")} placeholder={t('projectCart.timelinePlaceholder')} className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Additional notes</label>
+                        <label className={labelClass}>{t('projectCart.additionalNotes')}</label>
                         <textarea
                         value={formData.notes}
                         onChange={handle("notes")}
