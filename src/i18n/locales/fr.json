@@ -352,6 +352,50 @@
       "loungeLuxe": "Le grand confort outdoor redéfini",
       "nordicCalm": "Épure scandinave, confort 4 saisons",
       "naturalOrganic": "La nature comme fil conducteur"
+    },
+    "materials": {
+      "cafeParisien": {
+        "0": { "label": "Rotin canné tressé main", "pro": "Signature bistrot" },
+        "1": { "label": "Fer forgé / métal laqué", "pro": "Très résistant" },
+        "2": { "label": "Zinc (plateaux guéridons)", "pro": "Authentique" },
+        "3": { "label": "Aluminium laqué empilable", "pro": "Facile à ranger" }
+      },
+      "rivieraMed": {
+        "0": { "label": "Teck massif", "pro": "Résistant au sel" },
+        "1": { "label": "Corde / rotin synthétique", "pro": "UV résistant" },
+        "2": { "label": "Aluminium thermolaqué", "pro": "Anti-corrosion" },
+        "3": { "label": "Céramique / grès", "pro": "Plateaux premium" }
+      },
+      "beachClub": {
+        "0": { "label": "Teck grade A", "pro": "Anti-sel certifié" },
+        "1": { "label": "Rotin synthétique UV+", "pro": "Résistance marine" },
+        "2": { "label": "Textilène / Batyline®", "pro": "Séchage rapide" },
+        "3": { "label": "Alu inox", "pro": "Résistance marine" }
+      },
+      "rooftopUrban": {
+        "0": { "label": "Acier thermolaqué mat", "pro": "Résistance vent" },
+        "1": { "label": "Laiton brossé (détails)", "pro": "Premium" },
+        "2": { "label": "Bois traité fumé / HPL", "pro": "Intempéries" },
+        "3": { "label": "Béton ciré (plateaux)", "pro": "Design signature" }
+      },
+      "loungeLuxe": {
+        "0": { "label": "Tissu outdoor Sunbrella®", "pro": "Référence luxe" },
+        "1": { "label": "Laiton / acier doré", "pro": "Finition haute gamme" },
+        "2": { "label": "Marbre / pierre naturelle", "pro": "Plateau signature" },
+        "3": { "label": "Teck huilé premium", "pro": "Longévité garantie" }
+      },
+      "nordicCalm": {
+        "0": { "label": "Bois clair (chêne / bouleau)", "pro": "4 saisons" },
+        "1": { "label": "Aluminium poudré blanc", "pro": "Léger & durable" },
+        "2": { "label": "Toile lin / coton outdoor", "pro": "Naturel" },
+        "3": { "label": "Polypropylène recyclé", "pro": "Éco-responsable" }
+      },
+      "naturalOrganic": {
+        "0": { "label": "Teck / acacia FSC", "pro": "Certifié durable" },
+        "1": { "label": "Rotin naturel / bambou", "pro": "Bio-sourcé" },
+        "2": { "label": "Corde naturelle / chanvre", "pro": "Authentique" },
+        "3": { "label": "PP recyclé éco-conçu", "pro": "Recyclable" }
+      }
     }
   },
   "footer": {
