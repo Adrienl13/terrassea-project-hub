@@ -637,10 +637,10 @@ const Resources = () => {
               <div className="bg-foreground rounded-lg p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
                   <h3 className="font-display text-lg font-bold text-primary-foreground mb-1">
-                    Ready to put this into practice?
+                    {t('resources.readyTitle')}
                   </h3>
                   <p className="text-sm text-primary-foreground/60">
-                    Describe your project — our engine generates a curated selection matched to your space, style and budget.
+                    {t('resources.readyDesc')}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
