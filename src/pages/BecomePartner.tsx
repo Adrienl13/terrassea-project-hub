@@ -61,7 +61,7 @@ const PLANS = [
       { ok: true, label: "Product catalogue — volume defined by contract" },
       { ok: true, label: "3% commission only" },
       { ok: true, label: "Logo + Brand name visible across the platform" },
-      { ok: true, label: "Maximum priority in recommendation engine — 10 featured products" },
+      { ok: true, label: "10 featured products — maximum priority" },
       { ok: true, label: "Dedicated branded page with gallery & showroom photos" },
       { ok: true, label: "Dedicated account manager" },
       { ok: true, label: "Real-time API stock sync" },
