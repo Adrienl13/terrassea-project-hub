@@ -42,12 +42,12 @@ const NAV_PARTNER = [
 ];
 
 const NAV_ARCHITECT = [
-  { id: "overview",   icon: LayoutDashboard, label: "Overview" },
-  { id: "projects",   icon: FolderOpen,      label: "Client projects" },
-  { id: "quotes",     icon: MessageSquare,   label: "Multi-quotes" },
-  { id: "favourites", icon: Heart,           label: "Favourites" },
-  { id: "pro",        icon: Percent,         label: "Pro pricing" },
-  { id: "settings",   icon: Settings,        label: "Profile settings" },
+  { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "projects",   icon: FolderOpen,      labelKey: "account.clientProjects" },
+  { id: "quotes",     icon: MessageSquare,   labelKey: "account.multiQuotes" },
+  { id: "favourites", icon: Heart,           labelKey: "account.favourites" },
+  { id: "pro",        icon: Percent,         labelKey: "account.proPricing" },
+  { id: "settings",   icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
 // ── Profile colors ────────────────────────────────────────────────────────────
