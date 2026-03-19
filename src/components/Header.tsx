@@ -189,7 +189,7 @@ const Header = () => {
 
                 {openCat === cat.label && (
                   <div
-                    className="absolute top-full left-0 bg-white border border-border rounded-xl shadow-lg py-3 min-w-[200px] z-50"
+                    className="absolute top-full left-0 bg-[#2C2C2A] border border-white/10 rounded-xl shadow-lg py-3 min-w-[200px] z-50"
                   >
                     <p className="text-[9px] font-display font-bold uppercase tracking-widest text-muted-foreground px-4 mb-2">
                       {cat.label}
