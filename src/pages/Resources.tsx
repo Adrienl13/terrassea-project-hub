@@ -536,7 +536,7 @@ const Resources = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTopic, setActiveTopic] = useState("seating");
-  const topic = TOPICS.find(t => t.id === activeTopic)!;
+  const topic = TOPICS.find(tp => tp.id === activeTopic)!;
 
   const handleTopicChange = (id: string) => {
     setActiveTopic(id);
