@@ -11,92 +11,6 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const PLANS = [
-  {
-    id: "starter",
-    name: "Starter",
-    price: "Free",
-    sub: "Until your 3rd confirmed order then 8% commission",
-    commission: "8%",
-    badge: { label: "No risk", bg: "hsl(var(--accent))", color: "hsl(var(--accent-foreground))" },
-    features: [
-      { ok: true, label: "Up to 30 products" },
-      { ok: true, label: "8% commission on confirmed orders" },
-      { ok: true, label: "Logo + description visible on partner profile" },
-      { ok: true, label: "Access to incoming quote requests" },
-      { ok: true, label: "Partner profile page with logo & description" },
-      { ok: false, label: "Analytics dashboard" },
-      { ok: false, label: "Verified Partner badge" },
-      { ok: false, label: "Leads 24h in advance" },
-    ],
-    note: "6-month renewable contract. Automatically upgrades to Growth at your 3rd confirmed order.",
-  },
-  {
-    id: "growth",
-    name: "Growth",
-    price: "249€ HT",
-    sub: "/month · auto-activated at your 3rd confirmed order · 5% commission",
-    commission: "5%",
-    badge: { label: "Most popular", bg: "hsl(var(--foreground))", color: "hsl(var(--primary-foreground))" },
-    features: [
-      { ok: true, label: "Up to 50 products" },
-      { ok: true, label: "5% commission (save vs 8%)" },
-      { ok: true, label: "Logo visible on partner profile & product cards" },
-      { ok: true, label: "2 featured products boosted in recommendation engine" },
-      { ok: true, label: "Verified Partner badge" },
-      { ok: true, label: "Analytics dashboard — views, quotes, orders" },
-      { ok: true, label: "Leads 24h before Starter partners" },
-      { ok: true, label: "Stock sync via CSV" },
-    ],
-    note: "6-month renewable contract. At €8,300/month in orders, the commission saving covers the subscription.",
-    featured: true,
-  },
-  {
-    id: "elite",
-    name: "Elite",
-    price: "Custom",
-    sub: "Negotiated · for established CHR brands",
-    commission: "3%",
-    badge: { label: "By invitation", bg: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" },
-    features: [
-      { ok: true, label: "Product catalogue — volume defined by contract" },
-      { ok: true, label: "3% commission only" },
-      { ok: true, label: "Logo + Brand name visible across the platform" },
-      { ok: true, label: "10 featured products — maximum priority" },
-      { ok: true, label: "Dedicated branded page with gallery & showroom photos" },
-      { ok: true, label: "Dedicated account manager" },
-      { ok: true, label: "Real-time API stock sync" },
-      { ok: true, label: "Advanced analytics + export" },
-      { ok: true, label: "Co-marketing with Terrassea" },
-      { ok: true, label: "Access to Pro Service leads" },
-    ],
-    note: "6-month renewable contract. For established brands with significant CHR volume. Contact us to discuss terms and pricing.",
-  },
-];
-
-const WHY = [
-  {
-    icon: Zap,
-    title: "Qualified leads",
-    desc: "Every quote request comes with project details, quantity, budget and SIREN. No tyre-kickers.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Growing network",
-    desc: "500+ hospitality professionals across Europe sourcing outdoor furniture. Your products in front of the right buyers.",
-  },
-  {
-    icon: Shield,
-    title: "Controlled marketplace",
-    desc: "Your identity is protected until order confirmation. No direct contact before Terrassea validates the lead.",
-  },
-  {
-    icon: BarChart3,
-    title: "Market data",
-    desc: "See which styles, budgets and regions are most active. Adjust your catalogue and pricing accordingly.",
-  },
-];
-
 const CATEGORIES = [
   "Chairs", "Armchairs", "Bar Stools", "Benches",
   "Dining Tables", "Coffee Tables", "High Tables",
@@ -131,12 +45,82 @@ const BecomePartner = () => {
     message: "",
   });
 
+  const PLANS = [
+    {
+      id: "starter",
+      name: t('becomePartnerPage.starterName'),
+      price: t('becomePartnerPage.starterPrice'),
+      sub: t('becomePartnerPage.starterSub'),
+      commission: "8%",
+      badge: { label: t('becomePartnerPage.starterBadge'), bg: "hsl(var(--accent))", color: "hsl(var(--accent-foreground))" },
+      features: [
+        { ok: true, label: t('becomePartnerPage.starterF1') },
+        { ok: true, label: t('becomePartnerPage.starterF2') },
+        { ok: true, label: t('becomePartnerPage.starterF3') },
+        { ok: true, label: t('becomePartnerPage.starterF4') },
+        { ok: true, label: t('becomePartnerPage.starterF5') },
+        { ok: false, label: t('becomePartnerPage.starterF6') },
+        { ok: false, label: t('becomePartnerPage.starterF7') },
+        { ok: false, label: t('becomePartnerPage.starterF8') },
+      ],
+      note: t('becomePartnerPage.starterNote'),
+    },
+    {
+      id: "growth",
+      name: t('becomePartnerPage.growthName'),
+      price: t('becomePartnerPage.growthPrice'),
+      sub: t('becomePartnerPage.growthSub'),
+      commission: "5%",
+      badge: { label: t('becomePartnerPage.growthBadge'), bg: "hsl(var(--foreground))", color: "hsl(var(--primary-foreground))" },
+      features: [
+        { ok: true, label: t('becomePartnerPage.growthF1') },
+        { ok: true, label: t('becomePartnerPage.growthF2') },
+        { ok: true, label: t('becomePartnerPage.growthF3') },
+        { ok: true, label: t('becomePartnerPage.growthF4') },
+        { ok: true, label: t('becomePartnerPage.growthF5') },
+        { ok: true, label: t('becomePartnerPage.growthF6') },
+        { ok: true, label: t('becomePartnerPage.growthF7') },
+        { ok: true, label: t('becomePartnerPage.growthF8') },
+      ],
+      note: t('becomePartnerPage.growthNote'),
+      featured: true,
+    },
+    {
+      id: "elite",
+      name: t('becomePartnerPage.eliteName'),
+      price: t('becomePartnerPage.elitePrice'),
+      sub: t('becomePartnerPage.eliteSub'),
+      commission: "3%",
+      badge: { label: t('becomePartnerPage.eliteBadge'), bg: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" },
+      features: [
+        { ok: true, label: t('becomePartnerPage.eliteF1') },
+        { ok: true, label: t('becomePartnerPage.eliteF2') },
+        { ok: true, label: t('becomePartnerPage.eliteF3') },
+        { ok: true, label: t('becomePartnerPage.eliteF4') },
+        { ok: true, label: t('becomePartnerPage.eliteF5') },
+        { ok: true, label: t('becomePartnerPage.eliteF6') },
+        { ok: true, label: t('becomePartnerPage.eliteF7') },
+        { ok: true, label: t('becomePartnerPage.eliteF8') },
+        { ok: true, label: t('becomePartnerPage.eliteF9') },
+        { ok: true, label: t('becomePartnerPage.eliteF10') },
+      ],
+      note: t('becomePartnerPage.eliteNote'),
+    },
+  ];
+
+  const WHY_ITEMS = [
+    { icon: Zap, titleKey: "qualifiedLeads", descKey: "qualifiedLeadsDesc", color: "#D4603A", bg: "rgba(212,96,58,0.08)" },
+    { icon: TrendingUp, titleKey: "growingNetwork", descKey: "growingNetworkDesc", color: "#4A90A4", bg: "rgba(74,144,164,0.08)" },
+    { icon: Shield, titleKey: "protectedIdentity", descKey: "protectedIdentityDesc", color: "#6B7B5E", bg: "rgba(107,123,94,0.08)" },
+    { icon: BarChart3, titleKey: "marketData", descKey: "marketDataDesc", color: "#C4956A", bg: "rgba(196,149,106,0.08)" },
+  ];
+
   if (!path) return (
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
         <p className="text-[10px] font-display font-bold uppercase tracking-[.2em] text-muted-foreground mb-4">
-          Become a Partner
+          {t('becomePartner.title')}
         </p>
         <h1 className="font-display text-3xl font-bold text-foreground text-center mb-10">
           {t('becomePartner.title')}
@@ -195,11 +179,11 @@ const BecomePartner = () => {
 
   const handleSubmit = async () => {
     if (!form.companyName || !form.contactName || !form.email || !form.country || !form.partnerType) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t('becomePartnerPage.fillRequired'));
       return;
     }
     if (form.productCategories.length === 0) {
-      toast.error("Please select at least one product category.");
+      toast.error(t('becomePartnerPage.selectCategory'));
       return;
     }
 
@@ -224,7 +208,7 @@ const BecomePartner = () => {
       setPhase("submitted");
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t('becomePartnerPage.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -250,27 +234,26 @@ const BecomePartner = () => {
               <CheckCircle2 className="h-8 w-8 text-accent-foreground" />
             </div>
             <h1 className="font-display text-3xl font-bold text-foreground">
-              Application received
+              {t('becomePartnerPage.applicationReceived')}
             </h1>
             <p className="mt-2 font-display text-lg text-muted-foreground">
-              Thank you, {form.companyName}
+              {t('becomePartnerPage.thankYou')} {form.companyName}
             </p>
             <p className="mt-4 font-body text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
-              We'll review your application and get back to you within 48–72 hours.
-              If approved, you'll receive an email with your access link and onboarding instructions.
+              {t('becomePartnerPage.applicationReviewDesc')}
             </p>
             <div className="flex items-center justify-center gap-3 mt-8">
               <button
                 onClick={() => navigate("/")}
                 className="px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
               >
-                Back to homepage
+                {t('becomePartnerPage.backToHomepage')}
               </button>
               <button
                 onClick={() => navigate("/products")}
                 className="px-6 py-3 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all"
               >
-                Browse catalogue
+                {t('becomePartnerPage.browseCatalogue')}
               </button>
             </div>
           </motion.div>
@@ -293,30 +276,22 @@ const BecomePartner = () => {
         <div className="container mx-auto max-w-3xl text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-              Terrassea Partner Programme
+              {t('becomePartnerPage.badge')}
             </p>
-            <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
-              Reach Europe's hospitality
-              <br className="hidden md:block" />
-              {" "}professionals directly.
+            <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight whitespace-pre-line">
+              {t('becomePartnerPage.heroTitle')}
             </h1>
             <p className="mt-6 font-body text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              Join the Terrassea partner network and put your outdoor furniture catalogue
-              in front of restaurants, hotels, beach clubs and architects actively sourcing for their projects.
+              {t('becomePartnerPage.heroDesc')}
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-              {[
-                "500+ hospitality professionals",
-                "12 European countries",
-                "Qualified leads with project details",
-                "Free to start",
-              ].map((item) => (
+              {(['stat1', 'stat2', 'stat3', 'stat4'] as const).map((key) => (
                 <span
-                  key={item}
+                  key={key}
                   className="flex items-center gap-1.5 text-xs font-body text-muted-foreground"
                 >
                   <CheckCircle2 className="h-3.5 w-3.5 text-foreground" />
-                  {item}
+                  {t(`becomePartnerPage.${key}`)}
                 </span>
               ))}
             </div>
@@ -327,14 +302,9 @@ const BecomePartner = () => {
       <section className="py-10 px-6 border-b border-border">
         <div className="container mx-auto max-w-4xl">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { icon: Zap, title: "Qualified leads", desc: "Project details, quantity, budget and SIREN. No tyre-kickers.", color: "#D4603A", bg: "rgba(212,96,58,0.08)" },
-              { icon: TrendingUp, title: "Growing network", desc: "500+ hospitality professionals across Europe actively sourcing.", color: "#4A90A4", bg: "rgba(74,144,164,0.08)" },
-              { icon: Shield, title: "Protected identity", desc: "Your name is revealed only after order confirmation.", color: "#6B7B5E", bg: "rgba(107,123,94,0.08)" },
-              { icon: BarChart3, title: "Market data", desc: "See which styles and regions are most active.", color: "#C4956A", bg: "rgba(196,149,106,0.08)" },
-            ].map((item, i) => (
+            {WHY_ITEMS.map((item, i) => (
               <motion.div
-                key={item.title}
+                key={item.titleKey}
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -346,8 +316,8 @@ const BecomePartner = () => {
                 <div className="w-7 h-7 rounded-full flex items-center justify-center mb-3" style={{ background: `${item.color}20` }}>
                   <item.icon className="h-3.5 w-3.5" style={{ color: item.color }} />
                 </div>
-                <p className="font-display font-bold text-xs text-foreground mb-1">{item.title}</p>
-                <p className="text-[10px] font-body text-muted-foreground leading-relaxed">{item.desc}</p>
+                <p className="font-display font-bold text-xs text-foreground mb-1">{t(`becomePartnerPage.${item.titleKey}`)}</p>
+                <p className="text-[10px] font-body text-muted-foreground leading-relaxed">{t(`becomePartnerPage.${item.descKey}`)}</p>
               </motion.div>
             ))}
           </div>
@@ -359,14 +329,13 @@ const BecomePartner = () => {
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-              Partner plans
+              {t('becomePartnerPage.partnerPlans')}
             </p>
             <h2 className="font-display text-3xl font-bold text-foreground">
-              Start free, grow on your terms
+              {t('becomePartnerPage.plansTitle')}
             </h2>
             <p className="mt-3 font-body text-sm text-muted-foreground max-w-lg mx-auto">
-              No upfront cost. You pay commission only on confirmed orders.
-              Growth unlocks automatically at your 3rd confirmed order.
+              {t('becomePartnerPage.plansDesc')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -379,7 +348,7 @@ const BecomePartner = () => {
               >
                 {plan.featured && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-foreground text-primary-foreground text-[10px] font-display font-semibold px-3 py-1 rounded-full">
-                    Most popular
+                    {t('becomePartnerPage.growthBadge')}
                   </div>
                 )}
                 <div className="flex items-center justify-between mb-4">
@@ -395,7 +364,7 @@ const BecomePartner = () => {
                 <p className="text-xs font-body text-muted-foreground mt-1">{plan.sub}</p>
                 <div className="mt-4 mb-5 inline-flex items-center gap-1.5 bg-muted rounded-full px-3 py-1.5">
                   <span className="font-display font-bold text-sm text-foreground">{plan.commission}</span>
-                  <span className="text-[10px] font-body text-muted-foreground">commission</span>
+                  <span className="text-[10px] font-body text-muted-foreground">{t('becomePartnerPage.commission')}</span>
                 </div>
                 <ul className="space-y-2.5">
                   {plan.features.map((f) => (
@@ -424,7 +393,7 @@ const BecomePartner = () => {
                       : "border border-border text-muted-foreground hover:border-foreground hover:text-foreground"
                   }`}
                 >
-                  {plan.id === "elite" ? "Contact us →" : "Apply with this plan →"}
+                  {plan.id === "elite" ? t('becomePartnerPage.contactUs') : t('becomePartnerPage.applyWithPlan')}
                 </button>
                 <p className="mt-5 text-[10px] font-body text-muted-foreground leading-relaxed border-t border-border pt-4">
                   {plan.note}
@@ -448,67 +417,66 @@ const BecomePartner = () => {
               <div className="flex items-center gap-2 mb-6 px-4 py-2.5 bg-card border border-border rounded-full w-fit">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
                 <span className="text-xs font-display font-semibold text-foreground capitalize">
-                  {selectedPlan} plan selected
+                  {selectedPlan} {t('becomePartnerPage.planSelected')}
                 </span>
                 <button onClick={() => setSelectedPlan(null)} className="text-muted-foreground hover:text-foreground ml-1 text-sm">×</button>
               </div>
             )}
             <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-              Apply to join
+              {t('becomePartnerPage.applyToJoin')}
             </p>
             <h2 className="font-display text-2xl font-bold text-foreground">
-              Partner application
+              {t('becomePartnerPage.partnerApplication')}
             </h2>
             <p className="mt-3 font-body text-sm text-muted-foreground leading-relaxed max-w-md">
-              We review every application manually. If approved, you'll receive access
-              within 48–72 hours and start on the Starter plan — free until your 3rd confirmed order.
+              {t('becomePartnerPage.applicationDesc')}
             </p>
 
             <div className="mt-8 space-y-5">
               {/* Company info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Company name *</label>
+                  <label className={labelClass}>{t('becomePartnerPage.companyName')} *</label>
                   <input value={form.companyName} onChange={handle("companyName")} className={inputClass} />
                 </div>
                 <div>
-                  <label className={labelClass}>Contact name *</label>
+                  <label className={labelClass}>{t('becomePartnerPage.contactName')} *</label>
                   <input value={form.contactName} onChange={handle("contactName")} className={inputClass} />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Email *</label>
-                  <input type="email" value={form.email} onChange={handle("email")} placeholder="you@company.com" className={inputClass} />
+                  <label className={labelClass}>{t('forms.email')} *</label>
+                  <input type="email" value={form.email} onChange={handle("email")} placeholder={t('forms.emailPlaceholder')} className={inputClass} />
                 </div>
                 <div>
-                  <label className={labelClass}>Phone</label>
-                  <input value={form.phone} onChange={handle("phone")} placeholder="+33…" className={inputClass} />
+                  <label className={labelClass}>{t('forms.phone')}</label>
+                  <input value={form.phone} onChange={handle("phone")} placeholder={t('forms.phonePlaceholder')} className={inputClass} />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Country *</label>
+                  <label className={labelClass}>{t('forms.country')} *</label>
                   <select value={form.country} onChange={handle("country")} className={inputClass}>
-                    <option value="">Select country...</option>
+                    <option value="">{t('becomePartnerPage.selectCountry')}</option>
                     {COUNTRIES.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className={labelClass}>Type *</label>
+                  <label className={labelClass}>{t('becomePartnerPage.type')} *</label>
                   <select
                     value={form.partnerType}
                     onChange={(e) => setForm((p) => ({ ...p, partnerType: e.target.value as any }))}
                     className={inputClass}
                   >
-                    <option value="">Select type...</option>
-                    <option value="manufacturer">Manufacturer</option>
-                    <option value="brand">Brand</option>
-                    <option value="reseller">Reseller / Distributor</option>
+                    <option value="">{t('becomePartnerPage.selectType')}</option>
+                    <option value="manufacturer">{t('becomePartnerPage.manufacturer')}</option>
+                    <option value="brand">{t('becomePartnerPage.brand')}</option>
+                    <option value="reseller">{t('becomePartnerPage.resellerDistributor')}</option>
                   </select>
                 </div>
               </div>
@@ -516,8 +484,8 @@ const BecomePartner = () => {
               {/* Product categories */}
               <div>
                 <label className={labelClass}>
-                  Product categories *{" "}
-                  <span className="font-normal normal-case tracking-normal">(select all that apply)</span>
+                  {t('becomePartnerPage.productCategories')} *{" "}
+                  <span className="font-normal normal-case tracking-normal">({t('becomePartnerPage.selectAllApply')})</span>
                 </label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {CATEGORIES.map((cat) => (
@@ -543,7 +511,7 @@ const BecomePartner = () => {
                 onClick={() => setShowOptional(!showOptional)}
                 className="w-full flex items-center justify-between text-xs font-body text-muted-foreground hover:text-foreground transition-colors py-1"
               >
-                + Additional details (website, VAT, delivery countries, annual volume)
+                + {t('becomePartnerPage.additionalDetails')}
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showOptional ? "rotate-180" : ""}`} />
               </button>
 
@@ -557,18 +525,18 @@ const BecomePartner = () => {
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className={labelClass}>Website</label>
+                        <label className={labelClass}>{t('forms.website')}</label>
                         <input value={form.website} onChange={handle("website")} placeholder="https://…" className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>VAT / SIRET number</label>
+                        <label className={labelClass}>{t('becomePartnerPage.vatSiret')}</label>
                         <input value={form.vatNumber} onChange={handle("vatNumber")} className={inputClass} />
                       </div>
                     </div>
                     <div>
-                      <label className={labelClass}>Estimated annual CHR volume</label>
+                      <label className={labelClass}>{t('becomePartnerPage.estimatedVolume')}</label>
                       <select value={form.estimatedVolume} onChange={handle("estimatedVolume")} className={inputClass}>
-                        <option value="">Select range...</option>
+                        <option value="">{t('becomePartnerPage.selectRange')}</option>
                         <option value="under_50k">Under €50,000</option>
                         <option value="50k_200k">€50,000 – €200,000</option>
                         <option value="200k_500k">€200,000 – €500,000</option>
@@ -576,7 +544,7 @@ const BecomePartner = () => {
                       </select>
                     </div>
                     <div>
-                      <label className={labelClass}>Delivery countries</label>
+                      <label className={labelClass}>{t('becomePartnerPage.deliveryCountries')}</label>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {COUNTRIES.slice(0, 12).map((c) => (
                           <button
@@ -601,14 +569,14 @@ const BecomePartner = () => {
               {/* Message */}
               <div>
                 <label className={labelClass}>
-                  Tell us about your catalogue <span className="font-normal normal-case tracking-normal">(optional)</span>
+                  {t('becomePartnerPage.tellAboutCatalogue')} <span className="font-normal normal-case tracking-normal">({t('becomePartnerPage.optional')})</span>
                 </label>
                 <textarea
                   value={form.message}
                   onChange={handle("message")}
                   rows={3}
                   className="w-full text-sm font-body bg-card border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50 resize-none"
-                  placeholder="Materials, styles, price range, anything relevant…"
+                  placeholder={t('forms.messagePlaceholder')}
                 />
               </div>
 
@@ -618,16 +586,15 @@ const BecomePartner = () => {
                 disabled={submitting}
                 className="w-full py-4 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
               >
-                {submitting ? "Submitting..." : (
-                  <>Submit application <ArrowRight className="h-4 w-4" /></>
+                {submitting ? t('becomePartnerPage.submitting') : (
+                  <>{t('becomePartnerPage.submitApplication')} <ArrowRight className="h-4 w-4" /></>
                 )}
               </button>
 
               <div className="flex items-center gap-2 mt-2">
                 <Shield className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                 <p className="text-[10px] font-body text-muted-foreground leading-relaxed">
-                  Every application is reviewed manually. We reply within 48–72h.
-                  Approved partners start on the Starter plan — free until their 3rd confirmed order.
+                  {t('becomePartnerPage.reviewNotice')}
                 </p>
               </div>
             </div>
