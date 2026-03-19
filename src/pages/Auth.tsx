@@ -194,7 +194,8 @@ const Auth = () => {
                     if (error) throw error;
                     toast.success("Password updated successfully!");
                     setIsRecovery(false);
-                    navigate("/account");
+                    // Attendre que la session soit établie avant de naviguer
+                    setTimeout(() => navigate("/"), 1000);
                   } catch (err: any) {
                     toast.error(err.message || "Could not update password.");
                   } finally {
