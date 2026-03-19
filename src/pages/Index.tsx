@@ -406,14 +406,14 @@ const Index = () => {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
             <div>
               <p className="text-[10px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Why Terrassea
+                {t('valueProp.label')}
               </p>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                Built for hospitality professionals
+                {t('valueProp.title')}
               </h2>
             </div>
             <p className="text-sm font-body text-muted-foreground max-w-xs leading-relaxed">
-              Everything you need to source, compare and order outdoor furniture — in one place.
+              {t('valueProp.subtitle')}
             </p>
           </div>
 
