@@ -328,7 +328,7 @@ export default function Partners() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-xs font-display font-semibold uppercase tracking-widest text-[#D4603A] mb-4"
               >
-                Partner Network
+                {t('partners.title')}
               </motion.p>
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
