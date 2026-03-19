@@ -35,24 +35,7 @@ const INCLUDES_ICONS = [
   { icon: Shield, accent: "#E1F5EE", iconColor: "#1D9E75", titleKey: "proService.card4Title", descKey: "proService.card4Desc" },
 ];
 
-const FOR_WHO_YES = [
-  { label: "Hotel with multiple outdoor spaces", sub: "Terrace + pool deck + garden = complex multi-supplier coordination" },
-  { label: "New restaurant opening, 100+ covers", sub: "Volume + deadline + first-time procurement = you need an expert" },
-  { label: "Resort or seasonal beach club", sub: "Marine-grade specs + volume orders + tight seasonal deadlines" },
-  { label: "Architect managing several client projects", sub: "Multi-project coordination and pro pricing across all orders" },
-];
-
-const FOR_WHO_NO = [
-  { label: "Restaurant under 100 covers, budget < €25k", sub: "→ Our Project Builder is built exactly for you" },
-  { label: "Replacing a few individual pieces", sub: "→ Browse the catalogue and request a direct quote" },
-];
-
-const STEPS = [
-  { n: "01", title: "You describe", desc: "Fill in the project brief below. 5 minutes, no commitment.", duration: "5 min" },
-  { n: "02", title: "We qualify", desc: "Our team reviews your request within 24 hours and confirms we can help.", duration: "24h" },
-  { n: "03", title: "We source", desc: "3 curated proposals with matched suppliers and pricing, within 5 business days.", duration: "5 days" },
-  { n: "04", title: "You decide", desc: "You choose what fits. We handle the rest — orders, delivery, follow-up.", duration: "Your choice" },
-];
+// FOR_WHO and STEPS data moved inside component to use t()
 
 // ── Main component ────────────────────────────────────────────────────────────
 
