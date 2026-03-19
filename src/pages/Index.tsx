@@ -167,19 +167,19 @@ const Index = () => {
               onClick={() => navigate("/projects/new")}
               className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
               
-                <Sparkles className="h-3 w-3" /> Start a guided project
+                <Sparkles className="h-3 w-3" /> {t('home.startGuided')}
               </button>
               <button
               onClick={() => navigate("/products")}
               className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
               
-                <Search className="h-3 w-3" /> Browse catalogue
+                <Search className="h-3 w-3" /> {t('home.browseCatalogue')}
               </button>
               <button
               onClick={() => navigate("/inspirations")}
               className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
               
-                <Compass className="h-3 w-3" /> Get inspired
+                <Compass className="h-3 w-3" /> {t('home.getInspired')}
               </button>
             </motion.div>
           }
