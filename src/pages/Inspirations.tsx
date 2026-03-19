@@ -535,13 +535,13 @@ const Inspirations = () => {
                 <div className="max-w-md">
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="w-4 h-4 text-muted-foreground" />
-                    <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-[0.15em]">Moteur de projet</p>
+                    <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-[0.15em]">{t('inspirations.ctaBadge')}</p>
                   </div>
                   <h3 className="text-lg font-display font-bold text-foreground mb-1">
-                    Vous ne trouvez pas votre style ?
+                    {t('inspirations.ctaTitle')}
                   </h3>
                   <p className="text-xs text-muted-foreground font-body leading-relaxed">
-                    Décrivez votre espace — notre moteur génère 3 concepts sur mesure avec les produits adaptés.
+                    {t('inspirations.ctaDesc')}
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
