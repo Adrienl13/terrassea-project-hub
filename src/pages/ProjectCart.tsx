@@ -547,8 +547,8 @@ const ProjectCart = () => {
                     className="space-y-3">
                     
                       <div>
-                        <label className={labelClass}>Budget range</label>
-                        <input type="text" value={formData.budget} onChange={handle("budget")} placeholder="€5,000 – €15,000" className={inputClass} />
+                        <label className={labelClass}>{t('projectCart.budgetRange')}</label>
+                        <input type="text" value={formData.budget} onChange={handle("budget")} placeholder={t('projectCart.budgetPlaceholder')} className={inputClass} />
                       </div>
                       <div>
                         <label className={labelClass}>Timeline</label>
