@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Layers, Sparkles, X } from "lucide-react";
 import Header from "@/components/Header";
@@ -378,6 +379,7 @@ function DetailPanel({ board, onClose }: { board: Moodboard; onClose: () => void
 
 const Inspirations = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [activeSpace, setActiveSpace] = useState(searchParams.get("space") || "all");
   const [activeStyle,    setActiveStyle]    = useState("Tous les styles");
@@ -413,14 +415,14 @@ const Inspirations = () => {
             <div className="max-w-2xl">
               <div className="space-y-3">
                 <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-[0.2em]">
-                  Inspirations
+                  {t('inspirations.badge')}
                 </p>
                 <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground leading-[1.1]">
-                  Trouvez le style{"\n"}de votre espace
+                  {t('inspirations.headline')}
                 </h1>
               </div>
               <p className="text-sm text-muted-foreground font-body mt-4 max-w-lg leading-relaxed">
-                Palettes, matériaux et produits — chaque sélection est directement liée à notre catalogue.
+                {t('inspirations.subtitle')}
               </p>
             </div>
           </div>
@@ -430,7 +432,7 @@ const Inspirations = () => {
         <section className="border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
             <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">
-              Par type d'établissement
+              {t('inspirations.byEstablishment')}
             </p>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {SPACES.map((space, i) => (
@@ -500,7 +502,7 @@ const Inspirations = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             {filtered.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-sm text-muted-foreground">Aucun moodboard pour cette combinaison.</p>
+                <p className="text-sm text-muted-foreground">{t('inspirations.noMoodboards')}</p>
               </div>
             ) : (
               <AnimatePresence mode="wait">
@@ -534,13 +536,13 @@ const Inspirations = () => {
                 <div className="max-w-md">
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="w-4 h-4 text-muted-foreground" />
-                    <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-[0.15em]">Moteur de projet</p>
+                    <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-[0.15em]">{t('inspirations.ctaBadge')}</p>
                   </div>
                   <h3 className="text-lg font-display font-bold text-foreground mb-1">
-                    Vous ne trouvez pas votre style ?
+                    {t('inspirations.ctaTitle')}
                   </h3>
                   <p className="text-xs text-muted-foreground font-body leading-relaxed">
-                    Décrivez votre espace — notre moteur génère 3 concepts sur mesure avec les produits adaptés.
+                    {t('inspirations.ctaDesc')}
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -548,13 +550,13 @@ const Inspirations = () => {
                     onClick={() => navigate("/projects/new")}
                     className="px-8 py-3.5 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity whitespace-nowrap"
                   >
-                    Lancer mon projet →
+                    {t('inspirations.ctaLaunch')}
                   </button>
                   <button
                     onClick={() => navigate("/products")}
                     className="px-8 py-3.5 text-sm font-display font-semibold border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all whitespace-nowrap text-center"
                   >
-                    Explorer le catalogue
+                    {t('inspirations.ctaCatalogue')}
                   </button>
                 </div>
               </div>

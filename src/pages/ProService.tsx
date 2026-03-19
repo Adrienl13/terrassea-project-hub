@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowRight, CheckCircle2, Sparkles, Clock, Shield, Users, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -26,55 +27,15 @@ function parseBudget(val: string): number | null {
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
-const INCLUDES = [
-  {
-    icon: Clock,
-    title: "48h expert brief",
-    desc: "A Terrassea sourcing expert analyses your project and comes back with a tailored approach within 48 business hours.",
-    accent: "#FAECE7",
-    iconColor: "#D85A30",
-  },
-  {
-    icon: Sparkles,
-    title: "3 curated proposals",
-    desc: "Products matched to your space, style, budget and technical constraints — with matched suppliers and net pricing.",
-    accent: "#E6F1FB",
-    iconColor: "#378ADD",
-  },
-  {
-    icon: Users,
-    title: "Multi-supplier coordination",
-    desc: "One point of contact for all quotes, delivery scheduling and supplier follow-up. We consolidate the complexity.",
-    accent: "#E6F1FB",
-    iconColor: "#378ADD",
-  },
-  {
-    icon: Shield,
-    title: "Free for the client",
-    desc: "Our fee is paid by suppliers on confirmed orders. You get expert sourcing at zero cost.",
-    accent: "#E1F5EE",
-    iconColor: "#1D9E75",
-  },
+// INCLUDES icons config (titles/desc come from t())
+const INCLUDES_ICONS = [
+  { icon: Clock, accent: "#FAECE7", iconColor: "#D85A30", titleKey: "proService.card1Title", descKey: "proService.card1Desc" },
+  { icon: Sparkles, accent: "#E6F1FB", iconColor: "#378ADD", titleKey: "proService.card2Title", descKey: "proService.card2Desc" },
+  { icon: Users, accent: "#E6F1FB", iconColor: "#378ADD", titleKey: "proService.card3Title", descKey: "proService.card3Desc" },
+  { icon: Shield, accent: "#E1F5EE", iconColor: "#1D9E75", titleKey: "proService.card4Title", descKey: "proService.card4Desc" },
 ];
 
-const FOR_WHO_YES = [
-  { label: "Hotel with multiple outdoor spaces", sub: "Terrace + pool deck + garden = complex multi-supplier coordination" },
-  { label: "New restaurant opening, 100+ covers", sub: "Volume + deadline + first-time procurement = you need an expert" },
-  { label: "Resort or seasonal beach club", sub: "Marine-grade specs + volume orders + tight seasonal deadlines" },
-  { label: "Architect managing several client projects", sub: "Multi-project coordination and pro pricing across all orders" },
-];
-
-const FOR_WHO_NO = [
-  { label: "Restaurant under 100 covers, budget < €25k", sub: "→ Our Project Builder is built exactly for you" },
-  { label: "Replacing a few individual pieces", sub: "→ Browse the catalogue and request a direct quote" },
-];
-
-const STEPS = [
-  { n: "01", title: "You describe", desc: "Fill in the project brief below. 5 minutes, no commitment.", duration: "5 min" },
-  { n: "02", title: "We qualify", desc: "Our team reviews your request within 24 hours and confirms we can help.", duration: "24h" },
-  { n: "03", title: "We source", desc: "3 curated proposals with matched suppliers and pricing, within 5 business days.", duration: "5 days" },
-  { n: "04", title: "You decide", desc: "You choose what fits. We handle the rest — orders, delivery, follow-up.", duration: "Your choice" },
-];
+// FOR_WHO and STEPS data moved inside component to use t()
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -82,9 +43,27 @@ type Phase = "form" | "not_qualified" | "submitted";
 
 const ProService = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>("form");
   const [submitting, setSubmitting] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
+
+  const FOR_WHO_YES = [
+    { label: t('proService.forYes1'), sub: t('proService.forYes1Sub') },
+    { label: t('proService.forYes2'), sub: t('proService.forYes2Sub') },
+    { label: t('proService.forYes3'), sub: t('proService.forYes3Sub') },
+    { label: t('proService.forYes4'), sub: t('proService.forYes4Sub') },
+  ];
+  const FOR_WHO_NO = [
+    { label: t('proService.forNo1'), sub: t('proService.forNo1Sub') },
+    { label: t('proService.forNo2'), sub: t('proService.forNo2Sub') },
+  ];
+  const STEPS = [
+    { n: "01", title: t('proService.step1Title'), desc: t('proService.step1Desc'), duration: "5 min" },
+    { n: "02", title: t('proService.step2Title'), desc: t('proService.step2Desc'), duration: "24h" },
+    { n: "03", title: t('proService.step3Title'), desc: t('proService.step3Desc'), duration: "5 days" },
+    { n: "04", title: t('proService.step4Title'), desc: t('proService.step4Desc'), duration: "Your choice" },
+  ];
 
   const [form, setForm] = useState({
     name: "", email: "", phone: "", company: "", siren: "",
@@ -136,13 +115,13 @@ const ProService = () => {
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="font-display text-2xl font-bold tracking-tight mb-2">Request received</h1>
-            <p className="text-sm font-body text-muted-foreground mb-4">We'll be in touch within 24 hours.</p>
+            <h1 className="font-display text-2xl font-bold tracking-tight mb-2">{t('proService.requestReceived')}</h1>
+            <p className="text-sm font-body text-muted-foreground mb-4">{t('proService.requestReceivedDesc')}</p>
             <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">
-              Our sourcing team has your brief. We'll review it and confirm we can help — then get started on your 3 proposals within 5 business days.
+              {t('proService.requestReceivedDetail')}
             </p>
             <button onClick={() => navigate("/")} className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90">
-              Back to homepage
+              {t('proService.backToHome')}
             </button>
           </motion.div>
         </div>
@@ -161,17 +140,17 @@ const ProService = () => {
               <Sparkles className="h-8 w-8 text-amber-600" />
             </div>
             <h1 className="font-display text-xl font-bold tracking-tight mb-4">
-              Great news — your project is a perfect fit for our Project Builder.
+              {t('proService.notQualifiedTitle')}
             </h1>
             <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">
-              Pro Service is designed for projects above {MIN_COVERS} covers or €{MIN_BUDGET.toLocaleString()} budget. Your project is well-served by our self-service tools — faster, simpler, and just as effective.
+              {t('proService.notQualifiedDesc', { covers: MIN_COVERS, budget: MIN_BUDGET.toLocaleString() })}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => navigate("/projects/new")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90">
                 Launch Project Builder <ArrowRight className="h-4 w-4" />
               </button>
               <button onClick={() => setPhase("form")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all">
-                Update my project details
+                {t('proService.updateDetails')}
               </button>
             </div>
           </motion.div>
@@ -192,38 +171,37 @@ const ProService = () => {
             {/* Left — copy */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <span className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4 block">
-                Terrassea Pro Service
+                {t('proService.badge')}
               </span>
               <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-6">
-                Not for every project —<br />
-                for the ones where{" "}
-                <span className="underline decoration-terracotta decoration-2 underline-offset-4">getting it wrong</span>
-                {" "}is expensive.
+                {t('proService.headline').split('—')[0]}—<br />
+                {t('proService.headline').split('—')[1]?.replace('getting it wrong', '')}
+                <span className="underline decoration-terracotta decoration-2 underline-offset-4">{t('proService.headline').includes('getting it wrong') ? 'getting it wrong' : t('proService.headline').includes('se tromper') ? 'se tromper' : ''}</span>
+                {t('proService.headline').split('getting it wrong')[1] || t('proService.headline').split('se tromper')[1] || t('proService.headline').split('sbagliare')[1] || t('proService.headline').split('equivocarse')[1] || ''}
               </h1>
               <p className="text-base font-body text-muted-foreground leading-relaxed max-w-xl mb-8">
-                For large-scale hospitality projects — hotels, resorts, restaurant openings, beach clubs — our sourcing experts handle everything from brief to delivery. One contact, multiple suppliers, zero sourcing headaches.
+                {t('proService.subtitle')}
               </p>
 
               {/* Thresholds */}
               <div className="flex flex-wrap items-center gap-3 text-sm font-body mb-8">
                 {[
-                  { value: "100+ covers", label: "or more" },
-                  { value: "€35,000+", label: "indicative budget" },
-                  { value: "2+ spaces", label: "simultaneously" },
-                ].map((t, i) => (
+                  t('proService.covers'),
+                  t('proService.budget'),
+                  t('proService.spaces'),
+                ].map((val, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    {i > 0 && <span className="text-muted-foreground text-xs">or</span>}
+                    {i > 0 && <span className="text-muted-foreground text-xs">{t('common.or')}</span>}
                     <div className="flex items-center gap-2 bg-muted/50 rounded-full px-4 py-2">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      <span className="font-semibold">{t.value}</span>
-                      <span className="text-muted-foreground">{t.label}</span>
+                      <span className="font-semibold">{val}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
               <a href="#brief" className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90 transition-opacity">
-                Submit your brief <ArrowRight className="h-4 w-4" />
+                {t('proService.submitBrief')} <ArrowRight className="h-4 w-4" />
               </a>
             </motion.div>
 
@@ -234,13 +212,13 @@ const ProService = () => {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="grid grid-cols-2 gap-4"
             >
-              {INCLUDES.map((item, i) => (
+              {INCLUDES_ICONS.map((item, i) => (
                 <div key={i} className="p-4 rounded-2xl border border-border bg-card flex flex-col gap-3">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: item.accent }}>
                     <item.icon className="h-4 w-4" style={{ color: item.iconColor }} />
                   </div>
-                  <h3 className="font-display font-semibold text-sm leading-snug">{item.title}</h3>
-                  <p className="text-xs font-body text-muted-foreground leading-relaxed">{item.desc}</p>
+                  <h3 className="font-display font-semibold text-sm leading-snug">{t(item.titleKey)}</h3>
+                  <p className="text-xs font-body text-muted-foreground leading-relaxed">{t(item.descKey)}</p>
                 </div>
               ))}
             </motion.div>
@@ -254,7 +232,7 @@ const ProService = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
             {/* Left — How it works */}
             <div>
-              <h2 className="font-display text-xl font-bold tracking-tight mb-8">How it works</h2>
+              <h2 className="font-display text-xl font-bold tracking-tight mb-8">{t('proService.howItWorks')}</h2>
               <div className="grid grid-cols-2 gap-8">
                 {STEPS.map((step, i) => (
                   <div key={i} className="p-6 bg-white rounded-xl border border-border flex flex-col">
@@ -271,10 +249,10 @@ const ProService = () => {
 
             {/* Right — Is this right for you */}
             <div>
-              <h2 className="font-display text-xl font-bold tracking-tight mb-8">Is this right for you?</h2>
+              <h2 className="font-display text-xl font-bold tracking-tight mb-8">{t('proService.isThisForYou')}</h2>
 
               {/* Yes */}
-              <p className="text-xs font-display font-semibold uppercase tracking-widest text-green-600 mb-3">This is for you if…</p>
+              <p className="text-xs font-display font-semibold uppercase tracking-widest text-green-600 mb-3">{t('proService.forYouIf')}</p>
               <div className="space-y-2.5 mb-6">
                 {FOR_WHO_YES.map((item, i) => (
                   <div key={i} className="flex gap-3 p-3 rounded-xl border border-green-200 bg-green-50/50">
@@ -288,7 +266,7 @@ const ProService = () => {
               </div>
 
               {/* No */}
-              <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-3">Better options for you if…</p>
+              <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-3">{t('proService.betterOptions')}</p>
               <div className="space-y-2.5 mb-4">
                 {FOR_WHO_NO.map((item, i) => (
                   <div key={i} className="flex gap-3 p-3 rounded-xl border border-border bg-card">
@@ -303,12 +281,12 @@ const ProService = () => {
 
               {/* Redirect CTA */}
               <div className="p-4 rounded-xl border border-border bg-card">
-                <p className="text-sm font-display font-semibold mb-1">Under 100 covers?</p>
+                <p className="text-sm font-display font-semibold mb-1">{t('proService.under100')}</p>
                 <p className="text-xs font-body text-muted-foreground leading-relaxed mb-3">
-                  Our Project Builder generates curated product concepts in minutes — free, no commitment.
+                  {t('proService.under100Desc')}
                 </p>
                 <button onClick={() => navigate("/projects/new")} className="inline-flex items-center gap-1.5 text-[11px] font-display font-bold text-foreground hover:opacity-70 transition-opacity">
-                  Launch Project Builder <ArrowRight className="h-3 w-3" />
+                  {t('proService.launchBuilder')} <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
             </div>
@@ -321,10 +299,10 @@ const ProService = () => {
         <div className="container mx-auto px-4 md:px-6 max-w-6xl">
           <div className="max-w-2xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-              <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-2">Tell us about your project</p>
-              <h2 className="font-display text-2xl font-bold tracking-tight mb-2 text-terracotta">Submit your brief</h2>
+              <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t('proService.formTitle')}</p>
+              <h2 className="font-display text-2xl font-bold tracking-tight mb-2 text-terracotta">{t('proService.submitBrief')}</h2>
               <p className="text-sm font-body text-muted-foreground leading-relaxed mb-10">
-                5 minutes. No commitment. If your project qualifies, we'll confirm within 24 hours and start working on your proposals.
+                {t('proService.formSubtitle')}
               </p>
 
               {/* Qualification indicator */}
@@ -337,8 +315,8 @@ const ProService = () => {
                     <span className={`text-sm font-semibold ${qualified ? 'text-green-600' : 'text-amber-600'}`}>{qualified ? "✓" : "○"}</span>
                     <p className={`text-sm font-body ${qualified ? 'text-green-700' : 'text-amber-700'}`}>
                       {qualified
-                        ? "Your project qualifies for Pro Service — submit to confirm."
-                        : `Pro Service is for projects with 100+ covers or €35,000+ budget. Below this threshold, our Project Builder is the right tool.`}
+                        ? t('proService.qualifiedMsg')
+                        : t('proService.notQualifiedMsg')}
                     </p>
                   </motion.div>
                 )}
@@ -348,21 +326,21 @@ const ProService = () => {
                 {/* Contact */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Full name *</label>
+                    <label className={labelClass}>{t('proService.formFields.fullName')} *</label>
                     <input type="text" value={form.name} onChange={handle("name")} placeholder="Jean Dupont" className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Company *</label>
+                    <label className={labelClass}>{t('proService.formFields.company')} *</label>
                     <input type="text" value={form.company} onChange={handle("company")} placeholder="Hôtel Les Pins" className={inputClass} />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Email *</label>
+                    <label className={labelClass}>{t('proService.formFields.email')} *</label>
                     <input type="email" value={form.email} onChange={handle("email")} placeholder="jean@hotel.fr" className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Phone *</label>
+                    <label className={labelClass}>{t('proService.formFields.phone')} *</label>
                     <input type="tel" value={form.phone} onChange={handle("phone")} placeholder="+33 6 12 34 56 78" className={inputClass} />
                   </div>
                 </div>
@@ -370,9 +348,9 @@ const ProService = () => {
                 {/* Project */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Establishment type *</label>
+                    <label className={labelClass}>{t('proService.formFields.establishmentType')} *</label>
                     <select value={form.establishmentType} onChange={handle("establishmentType")} className={inputClass}>
-                      <option value="">Select...</option>
+                      <option value="">{t('proService.formFields.select')}</option>
                       <option value="hotel">Hotel</option>
                       <option value="resort">Resort</option>
                       <option value="restaurant">Restaurant</option>
@@ -384,7 +362,7 @@ const ProService = () => {
                     </select>
                   </div>
                   <div>
-                    <label className={labelClass}>Location *</label>
+                    <label className={labelClass}>{t('proService.formFields.location')} *</label>
                     <input type="text" value={form.location} onChange={handle("location")} placeholder="Nice, France" className={inputClass} />
                   </div>
                 </div>
@@ -392,13 +370,13 @@ const ProService = () => {
                 {/* Qualification fields */}
                 <div className="border border-border rounded-2xl p-5 bg-muted/20">
                   <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-                    Project scale — used to confirm eligibility
+                    {t('proService.formFields.scale')}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className={labelClass}>
-                        Number of covers / seats
-                        <span className="font-normal normal-case tracking-normal text-muted-foreground"> (all spaces)</span>
+                        {t('proService.formFields.covers')}
+                        <span className="font-normal normal-case tracking-normal text-muted-foreground"> {t('proService.formFields.coversAll')}</span>
                       </label>
                       <input type="number" value={form.covers} onChange={handle("covers")} placeholder="e.g. 200"
                         className={`${inputClass} ${coversNum && coversNum >= MIN_COVERS ? "border-green-500" : coversNum && coversNum < MIN_COVERS ? "border-amber-400" : ""}`} />
@@ -410,8 +388,8 @@ const ProService = () => {
                     </div>
                     <div>
                       <label className={labelClass}>
-                        Indicative budget
-                        <span className="font-normal normal-case tracking-normal text-muted-foreground"> (excl. delivery)</span>
+                        {t('proService.formFields.budget')}
+                        <span className="font-normal normal-case tracking-normal text-muted-foreground"> {t('proService.formFields.budgetExcl')}</span>
                       </label>
                       <input type="text" value={form.budget} onChange={handle("budget")} placeholder="e.g. €50,000"
                         className={`${inputClass} ${parseBudget(form.budget) && parseBudget(form.budget)! >= MIN_BUDGET ? "border-green-500" : parseBudget(form.budget) && parseBudget(form.budget)! < MIN_BUDGET ? "border-amber-400" : ""}`} />
@@ -427,7 +405,7 @@ const ProService = () => {
                 {/* Optional details */}
                 <button type="button" onClick={() => setShowOptional(!showOptional)}
                   className="w-full flex items-center justify-between text-xs font-body text-muted-foreground hover:text-foreground transition-colors py-1">
-                  + Project details (spaces, style, timeline, constraints)
+                  {t('proService.formFields.optionalDetails')}
                   <ChevronDown className={`h-4 w-4 transition-transform ${showOptional ? "rotate-180" : ""}`} />
                 </button>
                 <AnimatePresence>
@@ -435,24 +413,24 @@ const ProService = () => {
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className={labelClass}>Spaces to furnish</label>
+                          <label className={labelClass}>{t('proService.formFields.spaces')}</label>
                           <input type="text" value={form.spaces} onChange={handle("spaces")} placeholder="Terrace, pool deck, garden" className={inputClass} />
                         </div>
                         <div>
-                          <label className={labelClass}>Timeline</label>
+                          <label className={labelClass}>{t('proService.formFields.timeline')}</label>
                           <input type="text" value={form.timeline} onChange={handle("timeline")} placeholder="Opening June 2026" className={inputClass} />
                         </div>
                       </div>
                       <div>
-                        <label className={labelClass}>Style direction</label>
+                        <label className={labelClass}>{t('proService.formFields.style')}</label>
                         <input type="text" value={form.style} onChange={handle("style")} placeholder="Mediterranean, natural tones, rope & teak" className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Technical constraints</label>
+                        <label className={labelClass}>{t('proService.formFields.constraints')}</label>
                         <input type="text" value={form.constraints} onChange={handle("constraints")} placeholder="Wind-exposed terrace, stackable for winter storage" className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Additional notes</label>
+                        <label className={labelClass}>{t('proService.formFields.notes')}</label>
                         <textarea value={form.notes} onChange={handle("notes")} placeholder="Anything else we should know..." rows={3} className={`${inputClass} rounded-2xl`} />
                       </div>
                     </motion.div>
@@ -462,7 +440,7 @@ const ProService = () => {
                 {/* SIREN */}
                 <div>
                   <label className={labelClass}>
-                    SIREN *
+                    {t('proService.formFields.siren')} *
                   </label>
                   <input type="text" value={form.siren}
                     onChange={e => setForm(p => ({ ...p, siren: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
@@ -473,10 +451,10 @@ const ProService = () => {
                 <div className="pt-2">
                   <button onClick={handleSubmit} disabled={submitting}
                     className="w-full py-4 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2">
-                    {submitting ? "Submitting..." : <>Submit project brief <ArrowRight className="h-4 w-4" /></>}
+                    {submitting ? t('common.submitting') : <>{t('proService.formSubmitButton')} <ArrowRight className="h-4 w-4" /></>}
                   </button>
                   <p className="text-[10px] text-muted-foreground font-body text-center mt-3 leading-relaxed">
-                    No commitment · Our team confirms eligibility within 24h · Free for the client
+                    {t('proService.formDisclaimer')}
                   </p>
                 </div>
               </div>
