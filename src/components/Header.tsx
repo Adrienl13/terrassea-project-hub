@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { FolderOpen, User } from "lucide-react";
+import { FolderOpen, User, Menu, X, ChevronDown } from "lucide-react";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -92,141 +92,283 @@ const CATEGORIES = [
   },
 ];
 
+const NAV_LINKS = [
+  { label: "Explore", href: "/" },
+  { label: "Products", href: "/products" },
+  { label: "Inspirations", href: "/inspirations" },
+  { label: "Guide", href: "/resources" },
+  { label: "Partners", href: "/partners" },
+  { label: "Pro Service", href: "/pro-service" },
+];
+
 const Header = () => {
   const { itemCount } = useProjectCart();
   const [openCat, setOpenCat] = useState<string | null>(null);
   const [dropdownPos, setDropdownPos] = useState({ left: 0, top: 0 });
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileAccordion, setMobileAccordion] = useState<string | null>(null);
+
+  const closeMobile = () => {
+    setMobileOpen(false);
+    setMobileAccordion(null);
+  };
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md"
-    >
-      <div className="container mx-auto flex items-center justify-between py-5 px-6">
-        <Link to="/" className="font-display text-xl font-bold tracking-tight text-foreground">
-          TERRASSEA <span className="text-terracotta">HUB</span>
-        </Link>
+    <>
+      <motion.header
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md"
+      >
+        <div className="container mx-auto flex items-center justify-between py-5 px-6">
+          <Link to="/" className="font-display text-xl font-bold tracking-tight text-foreground">
+            TERRASSEA <span className="text-terracotta">HUB</span>
+          </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
-          <Link to="/" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
-            Explore
-          </Link>
-          <Link to="/products" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
-            Products
-          </Link>
-          <Link to="/inspirations" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
-            Inspirations
-          </Link>
-          <Link to="/resources" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
-            Guide
-          </Link>
-          <Link to="/partners" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
-            Partners
-          </Link>
-          <Link to="/pro-service" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">
-            Pro Service
-          </Link>
-        </nav>
+          <nav className="hidden md:flex items-center gap-8">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                to={link.href}
+                className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
-        <div className="flex items-center gap-4">
-          <Link
-            to="/project-cart"
-            className="relative flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <FolderOpen className="h-5 w-5" />
-            <span className="hidden sm:inline">My Project</span>
-            {itemCount > 0 && (
-              <span className="absolute -top-2 -right-2 sm:-right-6 h-5 w-5 rounded-full bg-foreground text-primary-foreground text-xs flex items-center justify-center font-display font-bold">
-                {itemCount}
-              </span>
-            )}
-          </Link>
-          <Link
-            to="/account"
-            className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <User className="h-5 w-5" />
-            <span className="hidden sm:inline">My Account</span>
-          </Link>
-          <Link
-            to="/projects/new"
-            className="hidden sm:inline-flex px-5 py-2.5 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
-          >
-            Launch my project
-          </Link>
-        </div>
-      </div>
-
-      {/* Category nav bar */}
-      <div className="bg-[#2C2C2A] border-t border-white/5 relative z-50">
-        <div className="container mx-auto px-6 overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-7 py-2.5 min-w-max">
+          <div className="flex items-center gap-4">
             <Link
-              to="/products"
-              className="text-[11px] font-display font-semibold text-white/60 hover:text-white transition-colors whitespace-nowrap"
-              onMouseEnter={() => setOpenCat(null)}
+              to="/project-cart"
+              className="relative flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
             >
-              All
+              <FolderOpen className="h-5 w-5" />
+              <span className="hidden sm:inline">My Project</span>
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 sm:-right-6 h-5 w-5 rounded-full bg-foreground text-primary-foreground text-xs flex items-center justify-center font-display font-bold">
+                  {itemCount}
+                </span>
+              )}
+            </Link>
+            <Link
+              to="/account"
+              className="hidden sm:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <User className="h-5 w-5" />
+              <span className="hidden sm:inline">My Account</span>
+            </Link>
+            <Link
+              to="/projects/new"
+              className="hidden sm:inline-flex px-5 py-2.5 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+            >
+              Launch my project
             </Link>
 
-            {CATEGORIES.map((cat) => (
-              <div
-                key={cat.label}
-                className="relative"
-                onMouseEnter={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setDropdownPos({ left: rect.left, top: rect.bottom });
-                  setOpenCat(cat.label);
-                }}
-                onMouseLeave={() => setOpenCat(null)}
-              >
-                <Link
-                  to={cat.href}
-                  className={`text-[11px] font-display font-semibold whitespace-nowrap py-2.5 border-b-2 transition-all block ${
-                    openCat === cat.label
-                      ? "text-white border-terracotta"
-                      : "text-white/60 hover:text-white border-transparent hover:border-terracotta"
-                  }`}
-                >
-                  {cat.label}
-                </Link>
-              </div>
-            ))}
-
-            <div className="w-px h-4 bg-white/10 mx-1" />
-            <span className="text-[11px] font-display font-semibold text-white/25 cursor-default whitespace-nowrap">
-              Indoor — soon ✦
-            </span>
+            {/* Mobile hamburger */}
+            <button
+              className="md:hidden p-1.5 text-foreground"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Dropdown rendered outside scrollable container */}
-      {openCat && (
-        <div
-          className="fixed bg-[#2C2C2A] border border-white/10 rounded-xl shadow-lg py-3 min-w-[200px] z-[60]"
-          style={{ left: dropdownPos.left, top: dropdownPos.top }}
-          onMouseEnter={() => setOpenCat(openCat)}
-          onMouseLeave={() => setOpenCat(null)}
-        >
-          <p className="text-[9px] font-display font-bold uppercase tracking-widest text-white/40 px-4 mb-2">
-            {openCat}
-          </p>
-          {CATEGORIES.find((c) => c.label === openCat)?.subcategories.map((sub) => (
-            <Link
-              key={sub.label}
-              to={sub.href}
-              onClick={() => setOpenCat(null)}
-              className="block px-4 py-2 text-sm font-body text-white/60 hover:bg-white/5 hover:text-terracotta transition-colors"
-            >
-              {sub.label}
-            </Link>
-          ))}
+        {/* Desktop category nav bar */}
+        <div className="hidden md:block bg-[#2C2C2A] border-t border-white/5 relative z-50">
+          <div className="container mx-auto px-6 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-7 py-2.5 min-w-max">
+              <Link
+                to="/products"
+                className="text-[11px] font-display font-semibold text-white/60 hover:text-white transition-colors whitespace-nowrap"
+                onMouseEnter={() => setOpenCat(null)}
+              >
+                All
+              </Link>
+
+              {CATEGORIES.map((cat) => (
+                <div
+                  key={cat.label}
+                  className="relative"
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setDropdownPos({ left: rect.left, top: rect.bottom });
+                    setOpenCat(cat.label);
+                  }}
+                  onMouseLeave={() => setOpenCat(null)}
+                >
+                  <Link
+                    to={cat.href}
+                    className={`text-[11px] font-display font-semibold whitespace-nowrap py-2.5 border-b-2 transition-all block ${
+                      openCat === cat.label
+                        ? "text-white border-terracotta"
+                        : "text-white/60 hover:text-white border-transparent hover:border-terracotta"
+                    }`}
+                  >
+                    {cat.label}
+                  </Link>
+                </div>
+              ))}
+
+              <div className="w-px h-4 bg-white/10 mx-1" />
+              <span className="text-[11px] font-display font-semibold text-white/25 cursor-default whitespace-nowrap">
+                Indoor — soon ✦
+              </span>
+            </div>
+          </div>
         </div>
-      )}
-    </motion.header>
+
+        {/* Desktop dropdown */}
+        {openCat && (
+          <div
+            className="hidden md:block fixed bg-[#2C2C2A] border border-white/10 rounded-xl shadow-lg py-3 min-w-[200px] z-[60]"
+            style={{ left: dropdownPos.left, top: dropdownPos.top }}
+            onMouseEnter={() => setOpenCat(openCat)}
+            onMouseLeave={() => setOpenCat(null)}
+          >
+            <p className="text-[9px] font-display font-bold uppercase tracking-widest text-white/40 px-4 mb-2">
+              {openCat}
+            </p>
+            {CATEGORIES.find((c) => c.label === openCat)?.subcategories.map((sub) => (
+              <Link
+                key={sub.label}
+                to={sub.href}
+                onClick={() => setOpenCat(null)}
+                className="block px-4 py-2 text-sm font-body text-white/60 hover:bg-white/5 hover:text-terracotta transition-colors"
+              >
+                {sub.label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </motion.header>
+
+      {/* Mobile menu overlay */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 md:hidden"
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/40" onClick={closeMobile} />
+
+            {/* Panel */}
+            <motion.nav
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.25 }}
+              className="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-background shadow-xl overflow-y-auto"
+            >
+              {/* Close header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+                <span className="font-display text-lg font-bold text-foreground">Menu</span>
+                <button onClick={closeMobile} className="p-1 text-muted-foreground">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Nav links */}
+              <div className="px-6 py-4 space-y-1 border-b border-border">
+                {NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    onClick={closeMobile}
+                    className="block py-2.5 text-sm font-body text-foreground hover:text-terracotta transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Categories with accordion */}
+              <div className="px-6 py-4">
+                <p className="text-[9px] font-display font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                  Categories
+                </p>
+
+                <Link
+                  to="/products"
+                  onClick={closeMobile}
+                  className="block py-2.5 text-sm font-body text-foreground hover:text-terracotta transition-colors"
+                >
+                  All products
+                </Link>
+
+                {CATEGORIES.map((cat) => (
+                  <div key={cat.label} className="border-b border-border/50 last:border-0">
+                    <button
+                      onClick={() =>
+                        setMobileAccordion(mobileAccordion === cat.label ? null : cat.label)
+                      }
+                      className="flex items-center justify-between w-full py-2.5 text-sm font-body text-foreground hover:text-terracotta transition-colors"
+                    >
+                      {cat.label}
+                      <ChevronDown
+                        className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                          mobileAccordion === cat.label ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    <AnimatePresence>
+                      {mobileAccordion === cat.label && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pl-4 pb-2 space-y-0.5">
+                            {cat.subcategories.map((sub) => (
+                              <Link
+                                key={sub.label}
+                                to={sub.href}
+                                onClick={closeMobile}
+                                className="block py-2 text-xs font-body text-muted-foreground hover:text-terracotta transition-colors"
+                              >
+                                {sub.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bottom actions */}
+              <div className="px-6 py-4 border-t border-border space-y-3">
+                <Link
+                  to="/account"
+                  onClick={closeMobile}
+                  className="flex items-center gap-2 py-2 text-sm font-body text-foreground"
+                >
+                  <User className="h-4 w-4" />
+                  My Account
+                </Link>
+                <Link
+                  to="/projects/new"
+                  onClick={closeMobile}
+                  className="block w-full text-center px-5 py-3 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                >
+                  Launch my project
+                </Link>
+              </div>
+            </motion.nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
