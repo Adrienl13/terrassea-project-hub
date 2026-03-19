@@ -196,7 +196,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
           {/* CTA */}
           <div className="pt-4 border-t border-border space-y-2">
             <span className="flex items-center gap-1.5 text-sm font-display font-semibold text-foreground group-hover:text-[#D4603A] transition-colors">
-              Source via Terrassea <ArrowRight className="h-3.5 w-3.5" />
+              {t('partners.sourceViaTerrassea')} <ArrowRight className="h-3.5 w-3.5" />
             </span>
             <div className="flex items-center gap-1.5">
               <Lock className="h-3 w-3 text-muted-foreground" />
