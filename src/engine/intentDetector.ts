@@ -41,12 +41,15 @@ const TERM_TO_CATEGORY_SLUG: Record<string, string> = {
   sgabello: "bar stools",
   divano: "lounge seating",
   ombrellone: "parasols",
+  lettino: "sun loungers",
   // ES
   silla: "chairs", sillas: "chairs",
   sillón: "armchairs", sillon: "armchairs",
   mesa: "tables", mesas: "tables",
   taburete: "bar stools",
   sofá: "lounge seating",
+  sombrilla: "parasols",
+  tumbona: "sun loungers",
   // DE
   stuhl: "chairs", stühle: "chairs", stuhle: "chairs",
   sessel: "armchairs",
@@ -66,6 +69,7 @@ const TERM_TO_COLOR_SLUG: Record<string, string> = {
   bronze: "bronze", teak: "teak", walnut: "walnut",
   brown: "dark-brown", taupe: "taupe", silver: "silver",
   copper: "copper", yellow: "yellow", mustard: "mustard",
+  ivory: "ivory",
   // FR
   bleu: "blue", bleue: "blue", marine: "navy",
   blanc: "white", blanche: "white",
@@ -77,9 +81,11 @@ const TERM_TO_COLOR_SLUG: Record<string, string> = {
   // IT
   blu: "blue", bianco: "white", nero: "black",
   grigio: "grey", verde: "green", rosso: "red",
+  sabbia: "sand", avorio: "ivory", ruggine: "rust",
   // ES
   azul: "blue", blanco: "white", negro: "black",
   rojo: "red",
+  arena: "sand", marfil: "ivory", óxido: "rust",
   // DE
   blau: "blue", weiß: "white", weiss: "white",
   schwarz: "black", grau: "grey", grün: "green",
@@ -116,6 +122,10 @@ const TERM_TO_MATERIAL_SLUG: Record<string, string> = {
   hpl: "hpl", marble: "marble-effect", marbre: "marble-effect",
   fabric: "fabric", tissu: "fabric", sunbrella: "fabric",
   concrete: "concrete", béton: "concrete",
+  // IT
+  corda: "rope", alluminio: "aluminium", legno: "wood", vimini: "synthetic-rattan",
+  // ES
+  cuerda: "rope", teca: "teak", aluminio: "aluminium", madera: "wood", mimbre: "synthetic-rattan",
 };
 
 // ── Normalized query structure ────────────────────────────

@@ -10,27 +10,15 @@ export function useProducts(searchTerm?: string, categoryFilter?: string) {
   return useQuery<DBProduct[]>({
     queryKey: ["products", searchTerm, categoryFilter, lang],
     queryFn: async () => {
-      // If search term present → server-side ilike filtering
+      // If search term present → multilang RPC
       if (searchTerm && searchTerm.trim().length > 0) {
-        let query = supabase
-          .from("products")
-          .select("*")
-          .eq("publish_status", "published")
-          .neq("availability_type", "discontinued");
-
-        if (categoryFilter) {
-          query = query.ilike("category", `%${categoryFilter}%`);
-        }
-
-        // Search across name, category, subcategory, style_tags
-        const term = searchTerm.trim();
-        query = query.or(
-          `name.ilike.%${term}%,category.ilike.%${term}%,subcategory.ilike.%${term}%,short_description.ilike.%${term}%`
-        );
-
-        const { data, error } = await query
-          .order("priority_score", { ascending: false })
-          .limit(50);
+        const { data, error } = await supabase
+          .rpc('search_products_multilang', {
+            search_query: searchTerm.trim(),
+            lang: lang,
+            category_filter: categoryFilter || null,
+            limit_count: 50
+          });
         if (error) throw error;
         return (data ?? []).map(normalizeProduct);
       }
