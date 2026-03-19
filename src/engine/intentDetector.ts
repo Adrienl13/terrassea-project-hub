@@ -119,6 +119,10 @@ const TERM_TO_MATERIAL_SLUG: Record<string, string> = {
   hpl: "hpl", marble: "marble-effect", marbre: "marble-effect",
   fabric: "fabric", tissu: "fabric", sunbrella: "fabric",
   concrete: "concrete", béton: "concrete",
+  // IT
+  corda: "rope", alluminio: "aluminium", legno: "wood", vimini: "synthetic-rattan",
+  // ES
+  cuerda: "rope", teca: "teak", aluminio: "aluminium", madera: "wood", mimbre: "synthetic-rattan",
 };
 
 // ── Normalized query structure ────────────────────────────
