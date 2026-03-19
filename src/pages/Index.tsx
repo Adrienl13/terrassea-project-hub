@@ -313,22 +313,27 @@ const Index = () => {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="grid md:grid-cols-[1fr_2fr] gap-16 items-start">
             <div>
               <span className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
-                How it works
+                {t('howItWorks.label')}
               </span>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-2">
-                From idea to project in minutes
+                {t('howItWorks.title')}
               </h2>
               <button
                 onClick={() => navigate("/projects/new")}
                 className="mt-6 flex items-center gap-2 text-sm font-display font-semibold text-foreground border border-foreground rounded-full px-5 py-2.5 hover:bg-foreground hover:text-primary-foreground transition-all group">
                 
-                Get started <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                {t('howItWorks.getStarted')} <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-              {steps.map((step, i) =>
-              <motion.div key={step.title} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="space-y-3">
+              {[
+                { icon: Sparkles, titleKey: "howItWorks.step1Title", textKey: "howItWorks.step1Text" },
+                { icon: Compass, titleKey: "howItWorks.step2Title", textKey: "howItWorks.step2Text" },
+                { icon: Layers, titleKey: "howItWorks.step3Title", textKey: "howItWorks.step3Text" },
+                { icon: Send, titleKey: "howItWorks.step4Title", textKey: "howItWorks.step4Text" },
+              ].map((step, i) =>
+              <motion.div key={step.titleKey} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
                       <step.icon className="h-4 w-4 text-foreground" />
@@ -337,8 +342,8 @@ const Index = () => {
                       {String(i + 1).padStart(2, "0")}
                     </span>
                   </div>
-                  <h3 className="font-display font-semibold text-sm text-foreground">{step.title}</h3>
-                  <p className="text-xs text-muted-foreground font-body leading-relaxed">{step.text}</p>
+                  <h3 className="font-display font-semibold text-sm text-foreground">{t(step.titleKey)}</h3>
+                  <p className="text-xs text-muted-foreground font-body leading-relaxed">{t(step.textKey)}</p>
                 </motion.div>
               )}
             </div>
