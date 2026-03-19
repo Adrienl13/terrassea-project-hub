@@ -159,16 +159,12 @@ const Header = () => {
       </div>
 
       {/* Category nav bar */}
-      <div
-        className="bg-[#2C2C2A] border-t border-white/5 relative"
-        onMouseLeave={() => setOpenCat(null)}
-      >
+      <div className="bg-[#2C2C2A] border-t border-white/5 relative z-50">
         <div className="container mx-auto px-6 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-7 py-2.5 min-w-max">
             <Link
               to="/products"
-              className="text-[11px] font-display font-semibold text-white/60 hover:text-white transition-colors whitespace-nowrap py-0.5 border-b-2 border-transparent hover:border-terracotta"
-              onMouseEnter={() => setOpenCat(null)}
+              className="text-[11px] font-display font-semibold text-white/60 hover:text-white transition-colors whitespace-nowrap"
             >
               All
             </Link>
@@ -178,54 +174,47 @@ const Header = () => {
                 key={cat.label}
                 className="relative"
                 onMouseEnter={() => setOpenCat(cat.label)}
+                onMouseLeave={() => setOpenCat(null)}
               >
                 <Link
                   to={cat.href}
-                  className={`text-[11px] font-display font-semibold transition-colors whitespace-nowrap py-0.5 border-b-2 ${
+                  className={`text-[11px] font-display font-semibold whitespace-nowrap py-2.5 border-b-2 transition-all block ${
                     openCat === cat.label
                       ? "text-white border-terracotta"
-                      : "text-white/60 border-transparent hover:text-white hover:border-terracotta"
+                      : "text-white/60 hover:text-white border-transparent hover:border-terracotta"
                   }`}
                 >
                   {cat.label}
                 </Link>
+
+                {openCat === cat.label && (
+                  <div
+                    className="absolute top-full left-0 bg-white border border-border rounded-xl shadow-lg py-3 min-w-[200px] z-50"
+                  >
+                    <p className="text-[9px] font-display font-bold uppercase tracking-widest text-muted-foreground px-4 mb-2">
+                      {cat.label}
+                    </p>
+                    {cat.subcategories.map((sub) => (
+                      <Link
+                        key={sub.label}
+                        to={sub.href}
+                        onClick={() => setOpenCat(null)}
+                        className="block px-4 py-2 text-sm font-body text-foreground hover:bg-muted hover:text-terracotta transition-colors"
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
 
             <div className="w-px h-4 bg-white/10 mx-1" />
-            <span className="text-[11px] font-display font-semibold text-white/25 whitespace-nowrap cursor-default">
+            <span className="text-[11px] font-display font-semibold text-white/25 cursor-default whitespace-nowrap">
               Indoor — soon ✦
             </span>
           </div>
         </div>
-
-        {/* Dropdown */}
-        <AnimatePresence>
-          {openCat && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.15 }}
-              className="absolute left-0 right-0 bg-[#2C2C2A] border-t border-white/5 shadow-lg z-50"
-            >
-              <div className="container mx-auto px-6 py-4">
-                <div className="flex flex-wrap gap-x-8 gap-y-2">
-                  {CATEGORIES.find((c) => c.label === openCat)?.subcategories.map((sub) => (
-                    <Link
-                      key={sub.label}
-                      to={sub.href}
-                      onClick={() => setOpenCat(null)}
-                      className="text-xs font-body text-white/50 hover:text-white transition-colors whitespace-nowrap py-1"
-                    >
-                      {sub.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </motion.header>
   );
