@@ -199,8 +199,8 @@ const ProductDetail = () => {
                     {product.name}
                   </h1>
                   {product.collection && (
-                    <p className="text-xs text-muted-foreground font-body mt-1">
-                      Collection: {product.collection}
+                   <p className="text-xs text-muted-foreground font-body mt-1">
+                      {t('productDetail.collection')}: {product.collection}
                     </p>
                   )}
                   <div className="flex items-center gap-3 mt-3">
