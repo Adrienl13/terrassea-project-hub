@@ -431,7 +431,7 @@ const Inspirations = () => {
         <section className="border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
             <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">
-              Par type d'établissement
+              {t('inspirations.byEstablishment')}
             </p>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {SPACES.map((space, i) => (
