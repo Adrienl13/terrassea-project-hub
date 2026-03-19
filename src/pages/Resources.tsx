@@ -682,10 +682,10 @@ const Resources = () => {
                   style={{ borderColor: topic.color + "30", background: topic.color + "08" }}
                 >
                   <p className="font-display font-bold text-sm text-foreground mb-1">
-                    Not sure what you need?
+                    {t('resources.notSure')}
                   </p>
                   <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                    Our Project Builder selects the right products for your space automatically.
+                    {t('resources.notSureDesc')}
                   </p>
                   <button
                     onClick={() => navigate("/projects/new")}
