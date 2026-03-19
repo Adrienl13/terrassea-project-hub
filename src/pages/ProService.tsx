@@ -326,11 +326,11 @@ const ProService = () => {
                 {/* Contact */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Full name *</label>
+                    <label className={labelClass}>{t('proService.formFields.fullName')} *</label>
                     <input type="text" value={form.name} onChange={handle("name")} placeholder="Jean Dupont" className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Company *</label>
+                    <label className={labelClass}>{t('proService.formFields.company')} *</label>
                     <input type="text" value={form.company} onChange={handle("company")} placeholder="Hôtel Les Pins" className={inputClass} />
                   </div>
                 </div>
