@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface StepOption {
   value: string;
@@ -24,6 +25,8 @@ const ProjectBuilderStep = ({
   onBack,
   onNext,
 }: ProjectBuilderStepProps) => {
+  const { t } = useTranslation();
+
   return (
     <motion.div
       key={stepId}
@@ -64,14 +67,13 @@ const ProjectBuilderStep = ({
         })}
       </div>
 
-      {/* Navigation */}
       <div className="flex items-center justify-between mt-10">
         {onBack ? (
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('projectBuilder.capacity.back')}
           </button>
         ) : (
           <div />
@@ -86,7 +88,7 @@ const ProjectBuilderStep = ({
             }`}
             disabled={!selectedValue}
           >
-            Next <ArrowRight className="h-4 w-4" />
+            {t('projectBuilder.capacity.next')} <ArrowRight className="h-4 w-4" />
           </button>
         )}
       </div>

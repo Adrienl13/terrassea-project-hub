@@ -826,5 +826,171 @@
       "phone": "+39 333 123 4567",
       "siren": "123456789"
     }
+  },
+  "projectBuilder": {
+    "badge": "Project Builder",
+    "title": "Costruisci il tuo progetto hospitality",
+    "subtitle": "Definisci le tue esigenze · Ottieni suggerimenti di layout · Scopri i prodotti",
+    "subtitleFromInspirations": "Il tuo stile è impostato — aggiungi capacità e budget per generare concetti.",
+    "stylePreSelected": "Stile {{style}} preselezionato dalle Ispirazioni",
+    "generating": "Generazione dei concetti di progetto...",
+    "newProject": "Nuovo progetto",
+    "steps": {
+      "start": "Inizio", "type": "Tipo", "budget": "Budget",
+      "capacity": "Capacità", "style": "Stile", "review": "Revisione",
+      "requirements": "Requisiti"
+    },
+    "stepDescriptions": {
+      "howToBegin": "Come iniziare?",
+      "establishmentType": "Tipo di struttura",
+      "budgetPerSeat": "Budget per posto",
+      "guestsSpace": "Posti e spazio",
+      "aestheticDirection": "Direzione estetica",
+      "confirmBrief": "Conferma brief",
+      "defineParameters": "Definisci tutti i parametri"
+    },
+    "type": {
+      "question": "Che tipo di struttura?",
+      "restaurant": "Ristorante", "restaurantDesc": "Terrazze, patii e pranzo all'aperto",
+      "hotel": "Hotel", "hotelDesc": "Lobby, bordo piscina e giardini lounge",
+      "rooftop": "Rooftop", "rooftopDesc": "Sky bar e terrazze urbane",
+      "beachClub": "Beach Club", "beachClubDesc": "Lounge fronte mare e lettini",
+      "bar": "Bar / Lounge", "barDesc": "Cocktail bar e wine bar",
+      "camping": "Camping", "campingDesc": "Glamping e aree comuni all'aperto",
+      "event": "Spazio eventi", "eventDesc": "Banchetti, matrimoni e ricevimenti",
+      "pool": "Area piscina", "poolDesc": "Arredo bordo piscina"
+    },
+    "budget": {
+      "question": "Qual è il tuo budget per posto?",
+      "economy": "€50–80", "economyDesc": "Funzionale ed economico",
+      "mid": "€80–120", "midDesc": "Fascia media, buona qualità",
+      "premium": "€120–180", "premiumDesc": "Materiali premium e design",
+      "luxury": "€180+", "luxuryDesc": "Lusso e su misura"
+    },
+    "review": {
+      "badge": "Brief Progetto — Revisione",
+      "title": "Rivedi la configurazione del tuo progetto",
+      "establishment": "Struttura", "zone": "Zona",
+      "capacity": "Capacità", "terrace": "Terrazza",
+      "spaceSeat": "Spazio/posto", "circulation": "Circolazione",
+      "feasibility": "Fattibilità", "layoutStrategy": "Strategia di layout",
+      "layoutPriority": "Priorità layout", "style": "Stile",
+      "budget": "Budget", "notSpecified": "Non specificato",
+      "seats": "posti", "generate": "Genera la mia raccomandazione",
+      "editAnswers": "Modifica risposte", "startOver": "Ricomincia"
+    },
+    "layouts": {
+      "mostly-2": "Principalmente tavoli da 2",
+      "balanced-2-4": "Mix equilibrato da 2 e 4",
+      "mostly-4": "Principalmente tavoli da 4",
+      "modular": "Layout modulare flessibile",
+      "group": "Adatto ai gruppi",
+      "custom": "Mix personalizzato"
+    },
+    "priorities": {
+      "max-capacity": "Massimizzare la capacità",
+      "balanced": "Comfort e capacità equilibrati",
+      "spacious": "Layout spazioso premium",
+      "flexible-groups": "Tavoli flessibili per gruppi",
+      "couples": "Principalmente coppie",
+      "groups": "Principalmente gruppi"
+    },
+    "budgetLabels": {
+      "economy": "€50–80 per posto", "mid": "€80–120 per posto",
+      "premium": "€120–180 per posto", "luxury": "€180+ per posto"
+    },
+    "modeSelect": {
+      "header": "A che punto sei del tuo progetto?",
+      "headerDesc": "Adattiamo l'esperienza alla tua situazione — stesso risultato, il percorso giusto.",
+      "guided": "Ho un progetto in mente",
+      "guidedRecommended": "Consigliato",
+      "guidedDesc": "Voglio riprogettare una terrazza, un rooftop o uno spazio esterno. Descrivo il progetto — voi costruite il brief e trovate i prodotti.",
+      "guidedCta": "Inizia →",
+      "expert": "Ho specifiche precise",
+      "expertPro": "Pro",
+      "expertDesc": "Architetto, designer o acquirente esperto — ho dimensioni esatte, mix tavoli e vincoli tecnici.",
+      "expertCta": "Configura",
+      "browse": "So già cosa mi serve",
+      "browseQuick": "Veloce",
+      "browseDesc": "Cerco un prodotto specifico — sedia, tavolo, ombrellone o lettino. Sfoglio, confronto e chiedo un preventivo.",
+      "browseCta": "Sfoglia →",
+      "footer": "Tutti i percorsi portano a preventivi dei fornitori e supporto sourcing"
+    },
+    "expertInputs": {
+      "title": "Configuratore tecnico",
+      "subtitle": "Inserisci le tue specifiche direttamente. Tutti i parametri in una vista.",
+      "establishment": "Struttura",
+      "spaceCapacity": "Spazio e Capacità",
+      "seatsTarget": "Posti (obiettivo)",
+      "length": "Lunghezza (m)", "width": "Larghezza (m)", "area": "Superficie (m²)",
+      "recommended": "Consigliato: {{min}}–{{max}} posti per {{surface}} m²",
+      "tableMix": "Configurazione mix tavoli",
+      "format": "Formato", "qty": "Qtà", "seatsPerTable": "Posti/tav.", "subtotal": "Subtotale",
+      "addTableFormat": "Aggiungi formato",
+      "tables": "tavoli",
+      "seatsFromMix": "{{count}} posti dal mix tavoli",
+      "styleBudget": "Stile e Budget",
+      "style": "Stile", "budgetPerSeat": "Budget per posto",
+      "back": "Indietro", "reviewGenerate": "Rivedi e Genera"
+    },
+    "capacity": {
+      "question": "Qual è la tua capacità obiettivo?",
+      "under30": "Meno di 30 posti", "intimate": "Spazio intimo",
+      "30to60": "30–60 posti", "mediumTerrace": "Terrazza media",
+      "60to120": "60–120 posti", "largeTerrace": "Terrazza grande",
+      "120plus": "120+ posti", "highVolume": "Struttura ad alto volume",
+      "exactLabel": "Oppure inserisci il numero esatto di posti",
+      "exactPlaceholder": "es. 72",
+      "dimensionsLabel": "Dimensioni della terrazza (opzionale)",
+      "or": "o",
+      "recommendedCapacity": "Capacità consigliata per questa superficie: {{min}}–{{max}} posti",
+      "back": "Indietro", "next": "Avanti"
+    },
+    "styleStep": {
+      "question": "Quale stile definisce il tuo progetto?",
+      "subtitle": "Seleziona uno o più stili — creeremo concetti che li combinano.",
+      "mediterranean": "Mediterraneo", "mediterraneanDesc": "Riviera, toni terrosi, texture naturali",
+      "bistro": "Bistro / Parigino", "bistroDesc": "Fascino classico della terrazza francese",
+      "natural": "Naturale / Organico", "naturalDesc": "Materiali organici, palette terrea",
+      "modern": "Moderno / Minimal", "modernDesc": "Linee pulite, design contemporaneo",
+      "luxury": "Lusso / Premium", "luxuryDesc": "Materiali di alta gamma, esclusività",
+      "industrial": "Industriale / Urbano", "industrialDesc": "Metallo, finiture grezze, carattere urbano",
+      "coastal": "Costiero / Nautico", "coastalDesc": "Eleganza marittima",
+      "tropical": "Tropicale / Resort", "tropicalDesc": "Esotico, lussureggiante, stile resort",
+      "multipleHint": "Puoi selezionare più stili per concetti ibridi",
+      "selected": "{{count}} stile selezionato",
+      "selectedPlural": "{{count}} stili selezionati — li combineremo",
+      "back": "Indietro", "reviewBrief": "Rivedi brief"
+    },
+    "summary": {
+      "title": "Riepilogo progetto",
+      "emptyHint": "Inizia a selezionare opzioni per costruire il tuo brief...",
+      "mode": "Modalità", "guided": "Guidato", "expert": "Esperto",
+      "projectType": "Tipo di progetto", "zone": "Zona",
+      "capacity": "Capacità", "terrace": "Terrazza",
+      "m2Seat": "m²/posto", "density": "Densità", "feasibility": "Fattibilità",
+      "layout": "Layout", "priority": "Priorità",
+      "style": "Stile", "budget": "Budget"
+    },
+    "editableLayout": {
+      "seats": "posti",
+      "editLayout": "Modifica layout",
+      "tables": "tavoli",
+      "seatsEach": "posti ciascuno",
+      "addTableFormat": "Aggiungi formato",
+      "cancel": "Annulla", "apply": "Applica",
+      "chairsNeeded": "Sedie necessarie:",
+      "estimatedBudget": "Budget arredo stimato",
+      "avgPerSeat": "Media per posto"
+    },
+    "spatialMetrics": {
+      "title": "Analisi spaziale",
+      "terraceArea": "Superficie terrazza",
+      "totalSeats": "Totale posti",
+      "spacePerSeat": "Spazio per posto",
+      "circulation": "Circolazione",
+      "occupiedSurface": "Superficie occupata",
+      "remainingSpace": "Spazio rimanente"
+    }
   }
 }

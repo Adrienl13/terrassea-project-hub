@@ -898,5 +898,181 @@
       "phone": "+33 6 12 34 56 78",
       "siren": "123456789"
     }
+  },
+  "projectBuilder": {
+    "badge": "Project Builder",
+    "title": "Construisez votre projet hospitality",
+    "subtitle": "Définissez vos besoins · Obtenez des suggestions d'aménagement · Découvrez les produits correspondants",
+    "subtitleFromInspirations": "Votre style est défini — ajoutez votre capacité et budget pour générer des concepts.",
+    "stylePreSelected": "Style {{style}} pré-sélectionné depuis les Inspirations",
+    "generating": "Génération de vos concepts de projet...",
+    "newProject": "Nouveau projet",
+    "steps": {
+      "start": "Démarrer", "type": "Type", "budget": "Budget",
+      "capacity": "Capacité", "style": "Style", "review": "Révision",
+      "requirements": "Exigences"
+    },
+    "stepDescriptions": {
+      "howToBegin": "Comment commencer ?",
+      "establishmentType": "Type d'établissement",
+      "budgetPerSeat": "Budget par couvert",
+      "guestsSpace": "Couverts & espace",
+      "aestheticDirection": "Direction esthétique",
+      "confirmBrief": "Confirmer le brief",
+      "defineParameters": "Définir tous les paramètres"
+    },
+    "type": {
+      "question": "Quel type d'établissement ?",
+      "restaurant": "Restaurant", "restaurantDesc": "Terrasses, patios & repas en extérieur",
+      "hotel": "Hôtel", "hotelDesc": "Lobbies, piscines & jardins lounge",
+      "rooftop": "Rooftop", "rooftopDesc": "Bars en hauteur & terrasses urbaines",
+      "beachClub": "Beach Club", "beachClubDesc": "Lounges en bord de mer & bains de soleil",
+      "bar": "Bar / Lounge", "barDesc": "Bars à cocktails & bars à vins",
+      "camping": "Camping", "campingDesc": "Glamping & espaces communs outdoor",
+      "event": "Espace événementiel", "eventDesc": "Banquets, mariages & réceptions",
+      "pool": "Espace piscine", "poolDesc": "Mobilier bord de piscine"
+    },
+    "budget": {
+      "question": "Quel est votre budget par couvert ?",
+      "economy": "€50–80", "economyDesc": "Fonctionnel & économique",
+      "mid": "€80–120", "midDesc": "Milieu de gamme, bonne qualité",
+      "premium": "€120–180", "premiumDesc": "Matériaux premium & design",
+      "luxury": "€180+", "luxuryDesc": "Luxe & sur mesure"
+    },
+    "review": {
+      "badge": "Brief Projet — Révision",
+      "title": "Vérifiez votre configuration de projet",
+      "establishment": "Établissement", "zone": "Zone",
+      "capacity": "Capacité", "terrace": "Terrasse",
+      "spaceSeat": "Espace/couvert", "circulation": "Circulation",
+      "feasibility": "Faisabilité", "layoutStrategy": "Stratégie d'aménagement",
+      "layoutPriority": "Priorité layout", "style": "Style",
+      "budget": "Budget", "notSpecified": "Non spécifié",
+      "seats": "couverts", "generate": "Générer ma recommandation",
+      "editAnswers": "Modifier mes réponses", "startOver": "Recommencer"
+    },
+    "layouts": {
+      "mostly-2": "Principalement tables de 2",
+      "balanced-2-4": "Mix équilibré 2 & 4 couverts",
+      "mostly-4": "Principalement tables de 4",
+      "modular": "Aménagement modulaire flexible",
+      "group": "Adapté aux groupes",
+      "custom": "Mix personnalisé"
+    },
+    "priorities": {
+      "max-capacity": "Maximiser la capacité",
+      "balanced": "Confort & capacité équilibrés",
+      "spacious": "Layout spacieux premium",
+      "flexible-groups": "Tables flexibles pour groupes",
+      "couples": "Principalement couples",
+      "groups": "Principalement groupes"
+    },
+    "budgetLabels": {
+      "economy": "€50–80 par couvert", "mid": "€80–120 par couvert",
+      "premium": "€120–180 par couvert", "luxury": "€180+ par couvert"
+    },
+    "modeSelect": {
+      "header": "Où en êtes-vous dans votre projet ?",
+      "headerDesc": "Nous adaptons l'expérience à votre situation — même résultat, le bon parcours.",
+      "guided": "J'ai un projet en tête",
+      "guidedRecommended": "Recommandé",
+      "guidedDesc": "Je veux aménager une terrasse, un rooftop ou un espace extérieur. Je décris mon projet — vous construisez le brief et trouvez les produits.",
+      "guidedTags": ["Restaurant · Hôtel · Beach Club", "5 questions", "~3 min", "Sélecteur visuel de style"],
+      "guidedCta": "Commencer →",
+      "expert": "J'ai des spécifications précises",
+      "expertPro": "Pro",
+      "expertDesc": "Architecte, designer ou acheteur expérimenté — j'ai les dimensions exactes, le mix tables et les contraintes techniques.",
+      "expertTags": ["Architecte · Designer", "Dimensions exactes", "Contrôle total", "Mix tables & densité"],
+      "expertCta": "Configurer",
+      "browse": "Je sais déjà ce qu'il me faut",
+      "browseQuick": "Rapide",
+      "browseDesc": "Je cherche un produit spécifique — chaise, table, parasol ou transat. Parcourir, comparer et demander un devis.",
+      "browseTags": ["Sans questions", "Catalogue instantané", "Filtrer par style & matière", "Devis direct"],
+      "browseCta": "Parcourir →",
+      "footer": "Tous les parcours mènent aux devis fournisseurs et à l'accompagnement sourcing"
+    },
+    "expertInputs": {
+      "title": "Configurateur technique",
+      "subtitle": "Entrez vos spécifications directement. Tous les paramètres en une vue.",
+      "establishment": "Établissement",
+      "spaceCapacity": "Espace & Capacité",
+      "seatsTarget": "Couverts (cible)",
+      "length": "Longueur (m)",
+      "width": "Largeur (m)",
+      "area": "Surface (m²)",
+      "recommended": "Recommandé : {{min}}–{{max}} couverts pour {{surface}} m²",
+      "tableMix": "Configuration du mix tables",
+      "format": "Format", "qty": "Qté", "seatsPerTable": "Places/tbl", "subtotal": "Sous-total",
+      "addTableFormat": "Ajouter un format",
+      "tables": "tables",
+      "seatsFromMix": "{{count}} couverts du mix tables",
+      "styleBudget": "Style & Budget",
+      "style": "Style",
+      "budgetPerSeat": "Budget par couvert",
+      "back": "Retour",
+      "reviewGenerate": "Réviser & Générer"
+    },
+    "capacity": {
+      "question": "Quelle est votre capacité d'accueil cible ?",
+      "under30": "Moins de 30 couverts", "intimate": "Espace intimiste",
+      "30to60": "30–60 couverts", "mediumTerrace": "Terrasse moyenne",
+      "60to120": "60–120 couverts", "largeTerrace": "Grande terrasse",
+      "120plus": "120+ couverts", "highVolume": "Établissement à fort volume",
+      "exactLabel": "Ou entrez le nombre exact de couverts",
+      "exactPlaceholder": "ex. 72",
+      "dimensionsLabel": "Dimensions de la terrasse (optionnel)",
+      "or": "ou",
+      "recommendedCapacity": "Capacité recommandée pour cette surface : {{min}}–{{max}} couverts",
+      "back": "Retour",
+      "next": "Suivant"
+    },
+    "styleStep": {
+      "question": "Quel style définit votre projet ?",
+      "subtitle": "Sélectionnez un ou plusieurs styles — nous créerons des concepts qui les combinent.",
+      "mediterranean": "Méditerranéen", "mediterraneanDesc": "Riviera, tons terreux, textures naturelles",
+      "bistro": "Bistro / Parisien", "bistroDesc": "Charme classique de terrasse française",
+      "natural": "Naturel / Organique", "naturalDesc": "Matériaux organiques, palette terreuse",
+      "modern": "Moderne / Minimal", "modernDesc": "Lignes épurées, design contemporain",
+      "luxury": "Luxe / Premium", "luxuryDesc": "Matériaux haut de gamme, ambiance exclusive",
+      "industrial": "Industriel / Urbain", "industrialDesc": "Métal, finitions brutes, caractère urbain",
+      "coastal": "Côtier / Nautique", "coastalDesc": "Élégance maritime, ambiance portuaire",
+      "tropical": "Tropical / Resort", "tropicalDesc": "Exotique, luxuriant, style resort",
+      "multipleHint": "Vous pouvez sélectionner plusieurs styles pour des concepts hybrides",
+      "selected": "{{count}} style sélectionné",
+      "selectedPlural": "{{count}} styles sélectionnés — nous les combinerons",
+      "back": "Retour",
+      "reviewBrief": "Réviser le brief"
+    },
+    "summary": {
+      "title": "Résumé du projet",
+      "emptyHint": "Commencez à sélectionner des options pour construire votre brief...",
+      "mode": "Mode", "guided": "Guidé", "expert": "Expert",
+      "projectType": "Type de projet", "zone": "Zone",
+      "capacity": "Capacité", "terrace": "Terrasse",
+      "m2Seat": "m²/couvert", "density": "Densité", "feasibility": "Faisabilité",
+      "layout": "Layout", "priority": "Priorité",
+      "style": "Style", "budget": "Budget"
+    },
+    "editableLayout": {
+      "seats": "couverts",
+      "editLayout": "Modifier le layout",
+      "tables": "tables",
+      "seatsEach": "places chacune",
+      "addTableFormat": "Ajouter un format",
+      "cancel": "Annuler",
+      "apply": "Appliquer",
+      "chairsNeeded": "Chaises nécessaires :",
+      "estimatedBudget": "Budget mobilier estimé",
+      "avgPerSeat": "Moyenne par couvert"
+    },
+    "spatialMetrics": {
+      "title": "Analyse spatiale",
+      "terraceArea": "Surface terrasse",
+      "totalSeats": "Total couverts",
+      "spacePerSeat": "Espace par couvert",
+      "circulation": "Circulation",
+      "occupiedSurface": "Surface occupée",
+      "remainingSpace": "Espace restant"
+    }
   }
 }
