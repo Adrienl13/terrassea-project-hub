@@ -48,6 +48,7 @@ const COMPARE_ROWS: { label: string; getValue: (p: DBProduct) => string }[] = [
 const ProductCompare = () => {
   const { items, removeFromCompare } = useCompare();
   const { addItem } = useProjectCart();
+  const { t } = useTranslation();
 
   if (items.length < 2) {
     return (
