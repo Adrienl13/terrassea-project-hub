@@ -104,6 +104,7 @@ function inferFromStyles(styles: string[]) {
 }
 
 const ProjectBuilder = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { data: products = [], isLoading: productsLoading } = useProducts();
 

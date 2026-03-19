@@ -102,6 +102,7 @@ async function lookupSiren(siren: string): Promise<SirenResult | null> {
 // ── Main component ────────────────────────────────────────────────────────────
 
 const ProjectCart = () => {
+  const { t } = useTranslation();
   const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus } =
   useProjectCart();
 
