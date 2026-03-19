@@ -515,7 +515,7 @@ const ProjectCart = () => {
                         className="mt-2 p-3 bg-green-500/5 border border-green-500/20 rounded-lg">
                         
                           <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-green-700">
-                            Delivery address — auto-filled
+                            {t('projectCart.deliveryAddress')}
                           </p>
                           <p className="text-sm font-body text-foreground mt-1">
                             {sirenResult.address}
