@@ -6,17 +6,22 @@ import {
   Plus, Pencil, X, Save, ArrowLeft, Package,
   FileText, Users, Eye, ClipboardList, CheckCircle2,
   XCircle, Clock, AlertTriangle, Star, TrendingUp,
-  ChevronDown, ChevronUp, Search,
+  ChevronDown, ChevronUp, Search, LayoutDashboard,
+  Building2, UserCircle, MessageSquare,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import type { DBProduct, ProductTypeTags, TagDefinition } from "@/lib/products";
+import AdminDashboard from "@/components/admin/AdminDashboard";
+import AdminUsers from "@/components/admin/AdminUsers";
+import AdminPartners from "@/components/admin/AdminPartners";
+import AdminMessages from "@/components/admin/AdminMessages";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "applications" | "quotes" | "pro_service" | "products";
+type Tab = "dashboard" | "users" | "partners" | "messages" | "applications" | "quotes" | "pro_service" | "products";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -1428,7 +1433,7 @@ function QuoteRequestsTab({ type = "standard" }: { type?: "standard" | "pro" }) 
 // ═══════════════════════════════════════════════════════════
 
 const Admin = () => {
-  const [tab, setTab] = useState<Tab>("applications");
+  const [tab, setTab] = useState<Tab>("dashboard");
   const { data: products = [] } = useProducts();
 
   const { data: pendingApps = [] } = useQuery({
@@ -1439,20 +1444,18 @@ const Admin = () => {
     },
   });
 
-  const tabs = [
-    { id: "applications", icon: ClipboardList, label: "Applications",   badge: pendingApps.length },
-    { id: "quotes",       icon: FileText,      label: "Quote requests", badge: 0 },
-    { id: "pro_service",  icon: Users,         label: "Pro Service",    badge: 0 },
-    { id: "products",     icon: Package,       label: "Products",       badge: 0 },
-  ];
+  const pendingReviewCount = products.filter(p => (p as any).publish_status === "pending_review").length;
 
-  // Quality stats
-  const qualityStats = {
-    excellent: products.filter(p => p.data_quality_score >= 0.8).length,
-    good:      products.filter(p => p.data_quality_score >= 0.6 && p.data_quality_score < 0.8).length,
-    fair:      products.filter(p => p.data_quality_score >= 0.4 && p.data_quality_score < 0.6).length,
-    incomplete:products.filter(p => p.data_quality_score < 0.4).length,
-  };
+  const tabs = [
+    { id: "dashboard",    icon: LayoutDashboard, label: "Dashboard",       badge: 0 },
+    { id: "users",        icon: UserCircle,      label: "Utilisateurs",    badge: 0 },
+    { id: "partners",     icon: Building2,       label: "Fournisseurs",    badge: 0 },
+    { id: "messages",     icon: MessageSquare,   label: "Messages",        badge: 0 },
+    { id: "applications", icon: ClipboardList,   label: "Candidatures",    badge: pendingApps.length },
+    { id: "quotes",       icon: FileText,        label: "Devis",           badge: 0 },
+    { id: "pro_service",  icon: Users,           label: "Pro Service",     badge: 0 },
+    { id: "products",     icon: Package,         label: "Produits",        badge: pendingReviewCount },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -1462,34 +1465,23 @@ const Admin = () => {
         <div className="flex items-start justify-between mb-8">
           <div>
             <Link to="/" className="inline-flex items-center gap-2 text-xs font-body text-muted-foreground hover:text-foreground mb-2">
-              <ArrowLeft className="h-3 w-3" /> Back to site
+              <ArrowLeft className="h-3 w-3" /> Retour au site
             </Link>
-            <h1 className="font-display text-2xl font-bold text-foreground">Admin Panel</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">Centre de contrôle</h1>
             <p className="text-sm text-muted-foreground font-body mt-0.5">
-              {products.length} products
-              {pendingApps.length > 0 && ` · ${pendingApps.length} application${pendingApps.length > 1 ? "s" : ""} pending`}
+              {products.length} produits · {pendingApps.length} candidature{pendingApps.length > 1 ? "s" : ""} en attente
             </p>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
-                <span className="w-2 h-2 rounded-full bg-green-500" />
-                <span className="text-[10px] font-display font-semibold text-green-700">Admin · full access</span>
-              </div>
-              {products.filter(p => (p as any).publish_status === "pending_review").length > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
-                  <span className="text-[10px] font-display font-semibold text-red-600">
-                    {products.filter(p => (p as any).publish_status === "pending_review").length} awaiting review
-                  </span>
-                </div>
-              )}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-[10px] font-display font-semibold text-green-700">Admin · accès complet</span>
             </div>
-            {products.length > 0 && (
-              <div className="flex items-center gap-2 text-[10px] font-body text-muted-foreground">
-                <span className="text-green-600 font-semibold">{qualityStats.excellent}</span> excellent ·
-                <span className="text-blue-600 font-semibold">{qualityStats.good}</span> good ·
-                <span className="text-amber-600 font-semibold">{qualityStats.fair}</span> fair ·
-                <span className="text-red-500 font-semibold">{qualityStats.incomplete}</span> incomplete
+            {pendingReviewCount > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
+                <span className="text-[10px] font-display font-semibold text-red-600">
+                  {pendingReviewCount} en attente de validation
+                </span>
               </div>
             )}
           </div>
@@ -1514,6 +1506,10 @@ const Admin = () => {
         </div>
 
         {/* Content */}
+        {tab === "dashboard"    && <AdminDashboard />}
+        {tab === "users"        && <AdminUsers />}
+        {tab === "partners"     && <AdminPartners />}
+        {tab === "messages"     && <AdminMessages />}
         {tab === "applications" && <ApplicationsTab />}
         {tab === "quotes"       && <QuoteRequestsTab type="standard" />}
         {tab === "pro_service"  && <QuoteRequestsTab type="pro" />}

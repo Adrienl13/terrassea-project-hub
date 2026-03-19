@@ -4,6 +4,7 @@ import { FolderOpen, User, Menu, X, ChevronDown } from "lucide-react";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import NotificationBell from "@/components/NotificationBell";
 
 const LANGS = [
   { code: "en", flag: "🇬🇧" },
@@ -156,6 +157,8 @@ const Header = () => {
                 </button>
               ))}
             </div>
+
+            <NotificationBell />
 
             <Link
               to="/project-cart"

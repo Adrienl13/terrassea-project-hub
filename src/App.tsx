@@ -21,6 +21,7 @@ import Resources from "./pages/Resources.tsx";
 import ProService from "./pages/ProService.tsx";
 import Auth from "./pages/Auth.tsx";
 import Account from "./pages/Account.tsx";
+import Messages from "./pages/Messages.tsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -50,6 +51,8 @@ const App = () => (
                   <Route path="/become-partner" element={<BecomePartner />} />
                   <Route path="/partners/:slug" element={<PartnerDetail />} />
                   <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+                  <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                  <Route path="/messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                   <Route path="/login" element={<Auth />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/reset-password" element={<Auth />} />
