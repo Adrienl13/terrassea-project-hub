@@ -281,12 +281,12 @@ const ProService = () => {
 
               {/* Redirect CTA */}
               <div className="p-4 rounded-xl border border-border bg-card">
-                <p className="text-sm font-display font-semibold mb-1">Under 100 covers?</p>
+                <p className="text-sm font-display font-semibold mb-1">{t('proService.under100')}</p>
                 <p className="text-xs font-body text-muted-foreground leading-relaxed mb-3">
-                  Our Project Builder generates curated product concepts in minutes — free, no commitment.
+                  {t('proService.under100Desc')}
                 </p>
                 <button onClick={() => navigate("/projects/new")} className="inline-flex items-center gap-1.5 text-[11px] font-display font-bold text-foreground hover:opacity-70 transition-opacity">
-                  Launch Project Builder <ArrowRight className="h-3 w-3" />
+                  {t('proService.launchBuilder')} <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
             </div>
