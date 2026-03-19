@@ -188,14 +188,17 @@ const Auth = () => {
                     toast.error("Passwords do not match.");
                     return;
                   }
+                  if (newPassword.length < 6) {
+                    toast.error("Password must be at least 6 characters.");
+                    return;
+                  }
                   setIsLoading(true);
                   try {
                     const { error } = await supabase.auth.updateUser({ password: newPassword });
                     if (error) throw error;
-                    toast.success("Password updated successfully!");
-                    setIsRecovery(false);
-                    // Attendre que la session soit établie avant de naviguer
-                    setTimeout(() => navigate("/"), 1000);
+                    toast.success("Password updated! Redirecting...");
+                    await supabase.auth.signOut();
+                    window.location.href = "/auth";
                   } catch (err: any) {
                     toast.error(err.message || "Could not update password.");
                   } finally {
