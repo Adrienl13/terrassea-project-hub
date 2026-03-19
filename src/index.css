@@ -6,6 +6,7 @@
 
 @layer base {
   :root {
+    --header-height: 90px;
     --background: 0 0% 100%;
     --foreground: 0 0% 10%;
 
