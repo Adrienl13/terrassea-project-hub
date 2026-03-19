@@ -533,9 +533,10 @@ function TopicPhotoCard({ topic, isActive, onClick }: { topic: Topic; isActive: 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 const Resources = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTopic, setActiveTopic] = useState("seating");
-  const topic = TOPICS.find(t => t.id === activeTopic)!;
+  const topic = TOPICS.find(tp => tp.id === activeTopic)!;
 
   const handleTopicChange = (id: string) => {
     setActiveTopic(id);
@@ -553,25 +554,24 @@ const Resources = () => {
           {/* Header text */}
           <div className="max-w-2xl mb-10">
             <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-4">
-              The Outdoor Hospitality Guide
+              {t('resources.title')}
             </p>
             <h1 className="font-display text-3xl md:text-5xl font-bold leading-[1.1] tracking-tight text-foreground mb-4">
-              Everything you need to know
-              <br />before furnishing your space.
+              {t('resources.heroTitle')}
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed">
-              From materials to regulations, table mix to maintenance — expert answers to the real questions hospitality professionals ask us every day.
+              {t('resources.subtitle')}
             </p>
           </div>
 
           {/* Photo card grid */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {TOPICS.map(t => (
+            {TOPICS.map(tp => (
               <TopicPhotoCard
-                key={t.id}
-                topic={t}
-                isActive={activeTopic === t.id}
-                onClick={() => handleTopicChange(t.id)}
+                key={tp.id}
+                topic={tp}
+                isActive={activeTopic === tp.id}
+                onClick={() => handleTopicChange(tp.id)}
               />
             ))}
           </div>
@@ -618,7 +618,7 @@ const Resources = () => {
               {/* Expert insight */}
               <div className="bg-foreground text-primary-foreground rounded-lg p-6 mb-12">
                 <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-primary-foreground/50 mb-3">
-                  Expert insight
+                  {t('resources.expertInsight')}
                 </p>
                 <p className="text-sm leading-relaxed text-primary-foreground/80 italic">
                   "{topic.expert}"
@@ -629,7 +629,7 @@ const Resources = () => {
               <div className="mb-12">
                 <h3 className="font-display text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                   <ChevronDown className="h-4 w-4" />
-                  Frequently asked questions
+                  {t('resources.faqTitle')}
                 </h3>
                 <FAQAccordion faqs={topic.faqs} />
               </div>
@@ -638,10 +638,10 @@ const Resources = () => {
               <div className="bg-foreground rounded-lg p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
                   <h3 className="font-display text-lg font-bold text-primary-foreground mb-1">
-                    Ready to put this into practice?
+                    {t('resources.readyTitle')}
                   </h3>
                   <p className="text-sm text-primary-foreground/60">
-                    Describe your project — our engine generates a curated selection matched to your space, style and budget.
+                    {t('resources.readyDesc')}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -668,7 +668,7 @@ const Resources = () => {
                 {/* Sidebar header */}
                 <div>
                   <p className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">
-                    Related products
+                    {t('resources.relatedProducts')}
                   </p>
                   <div className="space-y-3">
                     {topic.sidebarProducts.map((product, i) => (
@@ -683,36 +683,36 @@ const Resources = () => {
                   style={{ borderColor: topic.color + "30", background: topic.color + "08" }}
                 >
                   <p className="font-display font-bold text-sm text-foreground mb-1">
-                    Not sure what you need?
+                    {t('resources.notSure')}
                   </p>
                   <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                    Our Project Builder selects the right products for your space automatically.
+                    {t('resources.notSureDesc')}
                   </p>
                   <button
                     onClick={() => navigate("/projects/new")}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 font-display font-semibold text-xs text-white rounded-full transition-opacity hover:opacity-90"
                     style={{ backgroundColor: topic.color }}
                   >
-                    Launch my project <ArrowRight className="h-3 w-3" />
+                    {t('resources.launchMyProject')} <ArrowRight className="h-3 w-3" />
                   </button>
                 </div>
 
                 {/* Topic switcher in sidebar */}
                 <div>
                   <p className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                    Other topics
+                    {t('resources.otherTopics')}
                   </p>
                   <div className="space-y-1">
-                    {TOPICS.filter(t => t.id !== activeTopic).map(t => (
+                    {TOPICS.filter(tp => tp.id !== activeTopic).map(tp => (
                       <button
-                        key={t.id}
-                        onClick={() => handleTopicChange(t.id)}
+                        key={tp.id}
+                        onClick={() => handleTopicChange(tp.id)}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-sm text-left hover:bg-card transition-colors"
                       >
-                        <t.icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <tp.icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                         <div>
-                          <p className="text-xs font-display font-semibold text-foreground">{t.label}</p>
-                          <p className="text-[10px] text-muted-foreground">{t.faqs.length} questions</p>
+                          <p className="text-xs font-display font-semibold text-foreground">{tp.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{tp.faqs.length} {t('resources.questions')}</p>
                         </div>
                       </button>
                     ))}
@@ -728,21 +728,21 @@ const Resources = () => {
       <section className="lg:hidden border-t border-border bg-muted/20">
         <div className="max-w-4xl mx-auto px-6 py-10">
           <p className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-5">
-            Continue reading
+            {t('resources.continueReading')}
           </p>
           <div className="grid grid-cols-2 gap-3">
-            {TOPICS.map(t => (
+            {TOPICS.map(tp => (
               <button
-                key={t.id}
-                onClick={() => handleTopicChange(t.id)}
+                key={tp.id}
+                onClick={() => handleTopicChange(tp.id)}
                 className={`flex flex-col items-start gap-2 p-3 rounded-sm border text-left transition-all ${
-                  activeTopic === t.id ? "border-foreground bg-background" : "border-border hover:border-foreground/30"
+                  activeTopic === tp.id ? "border-foreground bg-background" : "border-border hover:border-foreground/30"
                 }`}
               >
-                <t.icon className="h-4 w-4 text-muted-foreground" />
+                <tp.icon className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs font-display font-semibold text-foreground">{t.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{t.faqs.length} questions</p>
+                  <p className="text-xs font-display font-semibold text-foreground">{tp.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{tp.faqs.length} {t('resources.questions')}</p>
                 </div>
               </button>
             ))}

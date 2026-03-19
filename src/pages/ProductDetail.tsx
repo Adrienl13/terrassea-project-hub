@@ -88,9 +88,9 @@ const ProductDetail = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="pt-24 px-6 container mx-auto text-center py-20">
-          <p className="text-muted-foreground font-body">Product not found.</p>
+          <p className="text-muted-foreground font-body">{t('productDetail.productNotFound')}</p>
           <Link to="/products" className="text-sm font-display font-semibold text-foreground underline mt-4 inline-block">
-            Back to products
+            {t('productDetail.backToProducts')}
           </Link>
         </div>
       </div>
@@ -119,15 +119,15 @@ const ProductDetail = () => {
     .slice(0, 6);
 
   const proFeatures = [
-    product.is_chr_heavy_use && { icon: Shield, label: "Heavy-duty CHR use" },
-    product.is_outdoor && { icon: Sun, label: "Suitable for outdoor terrace" },
-    product.uv_resistant && { icon: Sun, label: "UV resistant" },
-    product.weather_resistant && { icon: CloudRain, label: "Weather resistant" },
-    product.fire_retardant && { icon: Flame, label: "Fire retardant" },
-    product.lightweight && { icon: Feather, label: "Lightweight structure" },
-    product.easy_maintenance && { icon: Wrench, label: "Easy maintenance" },
-    product.is_stackable && { icon: Package, label: "Stackable" },
-    product.customizable && { icon: Palette, label: "Customizable" },
+    product.is_chr_heavy_use && { icon: Shield, label: t('productDetail.heavyDuty') },
+    product.is_outdoor && { icon: Sun, label: t('productDetail.outdoorSuitable') },
+    product.uv_resistant && { icon: Sun, label: t('productDetail.uvResistant') },
+    product.weather_resistant && { icon: CloudRain, label: t('productDetail.weatherResistant') },
+    product.fire_retardant && { icon: Flame, label: t('productDetail.fireRetardant') },
+    product.lightweight && { icon: Feather, label: t('productDetail.lightweightStructure') },
+    product.easy_maintenance && { icon: Wrench, label: t('productDetail.easyMaintenance') },
+    product.is_stackable && { icon: Package, label: t('productDetail.stackable') },
+    product.customizable && { icon: Palette, label: t('productDetail.customizable') },
   ].filter(Boolean) as { icon: any; label: string }[];
 
   const dimensions = [
@@ -144,7 +144,7 @@ const ProductDetail = () => {
         <div className="px-6 container mx-auto mb-6">
           <nav className="flex items-center gap-2 text-xs font-body text-muted-foreground">
             <Link to="/products" className="hover:text-foreground transition-colors flex items-center gap-1">
-              <ArrowLeft className="h-3 w-3" /> Products
+              <ArrowLeft className="h-3 w-3" /> {t('nav.products')}
             </Link>
             <ChevronRight className="h-3 w-3" />
             <span className="capitalize">{product.category}</span>
@@ -199,25 +199,25 @@ const ProductDetail = () => {
                     {product.name}
                   </h1>
                   {product.collection && (
-                    <p className="text-xs text-muted-foreground font-body mt-1">
-                      Collection: {product.collection}
+                   <p className="text-xs text-muted-foreground font-body mt-1">
+                      {t('productDetail.collection')}: {product.collection}
                     </p>
                   )}
-                  <div className="flex items-center gap-3 mt-3">
+                   <div className="flex items-center gap-3 mt-3">
                     <span className="text-lg font-display font-bold text-foreground">
                       {lowestOfferPrice !== null
-                        ? `Starting from €${lowestOfferPrice.toFixed(2)}`
-                        : product.indicative_price || "Price on request"}
+                        ? `${t('productDetail.startingFrom')} €${lowestOfferPrice.toFixed(2)}`
+                        : product.indicative_price || t('productDetail.onRequest')}
                     </span>
                     <StockBadge status={product.stock_status} />
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground font-body">
                     {offersCount > 0 && (
-                      <span>{offersCount} seller{offersCount !== 1 ? "s" : ""}</span>
+                      <span>{offersCount} {t('productDetail.sellers')}</span>
                     )}
                     {fastestDelivery !== null && (
                       <span className="flex items-center gap-1">
-                        <Truck className="h-3 w-3" /> From {fastestDelivery} days
+                        <Truck className="h-3 w-3" /> {t('productDetail.fromDays')} {fastestDelivery} {t('productDetail.fromDays') === 'From' ? 'days' : t('productDetail.fromDays') === 'Dès' ? 'jours' : 'días'}
                       </span>
                     )}
                   </div>
@@ -251,13 +251,13 @@ const ProductDetail = () => {
                     <FileText className="h-4 w-4" />
                     {t('actions.requestQuote')}
                   </button>
-                  <button
+                   <button
                     onClick={() => addToCompare(product)}
                     disabled={isInCompare(product.id)}
                     className="flex items-center gap-2 px-4 py-3 text-sm font-display font-semibold border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all disabled:opacity-50"
                   >
                     <BarChart3 className="h-4 w-4" />
-                    {isInCompare(product.id) ? "In compare" : "Compare"}
+                    {isInCompare(product.id) ? t('productDetail.inCompare') : t('productDetail.compare')}
                   </button>
                   <button
                     onClick={() => toggleFavourite(product)}
@@ -268,7 +268,7 @@ const ProductDetail = () => {
                     }`}
                   >
                     <Heart className={`h-4 w-4 ${isFavourite(product.id) ? "fill-primary-foreground" : ""}`} />
-                    {isFavourite(product.id) ? "Saved" : "Save"}
+                    {isFavourite(product.id) ? t('productDetail.saved') : t('productDetail.save')}
                   </button>
                 </div>
 
@@ -276,19 +276,19 @@ const ProductDetail = () => {
                 <div className="space-y-3">
                   {product.style_tags.length > 0 && (
                     <div className="flex items-baseline gap-3">
-                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">Style</span>
+                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">{t('productDetail.style')}</span>
                       <span className="text-xs font-body text-foreground capitalize">{product.style_tags.join(" / ")}</span>
                     </div>
                   )}
                   {product.material_tags.length > 0 && (
                     <div className="flex items-baseline gap-3">
-                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">Material</span>
+                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">{t('productDetail.material')}</span>
                       <span className="text-xs font-body text-foreground capitalize">{product.material_tags.join(" / ")}</span>
                     </div>
                   )}
                   {product.use_case_tags.length > 0 && (
                     <div className="flex items-baseline gap-3">
-                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">Suitable for</span>
+                      <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground w-20 flex-shrink-0">{t('productDetail.suitableFor')}</span>
                       <span className="text-xs font-body text-foreground capitalize">{product.use_case_tags.join(" / ")}</span>
                     </div>
                   )}
@@ -297,24 +297,24 @@ const ProductDetail = () => {
                 {/* Technical specs */}
                 <div className="border-t border-border pt-6 space-y-4">
                   <h2 className="font-display text-sm font-bold text-foreground uppercase tracking-wider">
-                    Technical specifications
+                    {t('productDetail.technicalSpecs')}
                   </h2>
                   <div className="grid grid-cols-2 gap-3 text-xs font-body">
-                    {product.category && <SpecRow label="Category" value={product.category} />}
-                    {product.subcategory && <SpecRow label="Subcategory" value={product.subcategory} />}
-                    {dimensions.length > 0 && <SpecRow label="Dimensions" value={dimensions.join(" × ")} />}
-                    {product.seat_height_cm && <SpecRow label="Seat height" value={`${product.seat_height_cm} cm`} />}
-                    {product.weight_kg && <SpecRow label="Weight" value={`${product.weight_kg} kg`} />}
-                    {product.material_structure && <SpecRow label="Structure" value={product.material_structure} />}
-                    {product.material_seat && <SpecRow label="Seat / Top" value={product.material_seat} />}
-                    {product.main_color && <SpecRow label="Main color" value={product.main_color} />}
+                    {product.category && <SpecRow label={t('productDetail.category')} value={product.category} />}
+                    {product.subcategory && <SpecRow label={t('productDetail.subcategory')} value={product.subcategory} />}
+                    {dimensions.length > 0 && <SpecRow label={t('productDetail.dimensions')} value={dimensions.join(" × ")} />}
+                    {product.seat_height_cm && <SpecRow label={t('productDetail.seatHeight')} value={`${product.seat_height_cm} cm`} />}
+                    {product.weight_kg && <SpecRow label={t('productDetail.weight')} value={`${product.weight_kg} kg`} />}
+                    {product.material_structure && <SpecRow label={t('productDetail.structure')} value={product.material_structure} />}
+                    {product.material_seat && <SpecRow label={t('productDetail.seatTop')} value={product.material_seat} />}
+                    {product.main_color && <SpecRow label={t('productDetail.mainColor')} value={product.main_color} />}
                     {product.available_colors.length > 0 && (
-                      <SpecRow label="Available colors" value={product.available_colors.join(", ")} />
+                      <SpecRow label={t('productDetail.availableColors')} value={product.available_colors.join(", ")} />
                     )}
-                    {product.country_of_manufacture && <SpecRow label="Made in" value={product.country_of_manufacture} />}
-                    {product.warranty && <SpecRow label="Warranty" value={product.warranty} />}
-                    {product.requires_assembly && <SpecRow label="Assembly" value="Required" />}
-                    {product.maintenance_info && <SpecRow label="Maintenance" value={product.maintenance_info} />}
+                    {product.country_of_manufacture && <SpecRow label={t('productDetail.madeIn')} value={product.country_of_manufacture} />}
+                    {product.warranty && <SpecRow label={t('productDetail.warranty')} value={product.warranty} />}
+                    {product.requires_assembly && <SpecRow label={t('productDetail.assembly')} value={t('productDetail.assemblyRequired')} />}
+                    {product.maintenance_info && <SpecRow label={t('productDetail.maintenance')} value={product.maintenance_info} />}
                   </div>
                 </div>
 
@@ -323,7 +323,7 @@ const ProductDetail = () => {
                   <div className="border border-border rounded-sm p-5 bg-card">
                     <h2 className="font-display text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                       <Info className="h-3.5 w-3.5" />
-                      Professional information
+                      {t('productDetail.professionalInfo')}
                     </h2>
                     <div className="grid grid-cols-2 gap-2">
                       {proFeatures.map(({ icon: Icon, label }) => (
@@ -335,7 +335,7 @@ const ProductDetail = () => {
                     </div>
                     <div className="mt-3 pt-3 border-t border-border">
                       <p className="text-[10px] text-muted-foreground font-body">
-                        Recommended for: {product.use_case_tags.join(", ") || "professional use"}
+                        {t('productDetail.recommendedFor')}: {product.use_case_tags.join(", ") || t('productDetail.professionalUse')}
                       </p>
                     </div>
                   </div>
@@ -343,9 +343,9 @@ const ProductDetail = () => {
 
                 {/* Documents */}
                 {product.documents.length > 0 && (
-                  <div className="border-t border-border pt-6">
+                   <div className="border-t border-border pt-6">
                     <h2 className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-3">
-                      Documents
+                      {t('productDetail.documents')}
                     </h2>
                     <div className="space-y-2">
                       {product.documents.map((doc: any, i: number) => (
@@ -380,7 +380,7 @@ const ProductDetail = () => {
           <section className="px-6 mt-20">
             <div className="container mx-auto">
               <h2 className="font-display text-lg font-bold text-foreground mb-6">
-                Similar products
+                {t('productDetail.similarProducts')}
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 {similar.map((p) => (
@@ -396,10 +396,10 @@ const ProductDetail = () => {
           <section className="px-6 mt-16">
             <div className="container mx-auto">
               <h2 className="font-display text-lg font-bold text-foreground mb-2">
-                Complementary products
+                {t('productDetail.complementaryProducts')}
               </h2>
               <p className="text-xs text-muted-foreground font-body mb-6">
-                Products that pair well with {product.name}
+                {t('productDetail.complementaryDesc')} {product.name}
               </p>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 {complementary.map((p) => (
