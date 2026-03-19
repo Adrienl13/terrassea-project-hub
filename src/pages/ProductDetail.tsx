@@ -323,7 +323,7 @@ const ProductDetail = () => {
                   <div className="border border-border rounded-sm p-5 bg-card">
                     <h2 className="font-display text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                       <Info className="h-3.5 w-3.5" />
-                      Professional information
+                      {t('productDetail.professionalInfo')}
                     </h2>
                     <div className="grid grid-cols-2 gap-2">
                       {proFeatures.map(({ icon: Icon, label }) => (
@@ -335,7 +335,7 @@ const ProductDetail = () => {
                     </div>
                     <div className="mt-3 pt-3 border-t border-border">
                       <p className="text-[10px] text-muted-foreground font-body">
-                        Recommended for: {product.use_case_tags.join(", ") || "professional use"}
+                        {t('productDetail.recommendedFor')}: {product.use_case_tags.join(", ") || t('productDetail.professionalUse')}
                       </p>
                     </div>
                   </div>
