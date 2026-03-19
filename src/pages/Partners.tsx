@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import {
   Building2, Factory, Store, Palette, Handshake,
   ArrowRight, Star, Search, Lock, Package, Globe,
-  ChevronRight, ImageOff,
+  ChevronRight, ImageOff, Utensils,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════
