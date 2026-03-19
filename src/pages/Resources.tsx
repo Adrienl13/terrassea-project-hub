@@ -667,7 +667,7 @@ const Resources = () => {
                 {/* Sidebar header */}
                 <div>
                   <p className="text-[10px] font-display font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">
-                    Related products
+                    {t('resources.relatedProducts')}
                   </p>
                   <div className="space-y-3">
                     {topic.sidebarProducts.map((product, i) => (
