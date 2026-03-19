@@ -469,7 +469,7 @@ const Account = () => {
                     className="flex items-center gap-2 text-xs font-body text-muted-foreground hover:text-foreground transition-colors px-3"
                   >
                     <LogOut className="h-3.5 w-3.5" />
-                    Sign out
+                    {t('account.signOut')}
                   </button>
                 </div>
               </motion.div>
