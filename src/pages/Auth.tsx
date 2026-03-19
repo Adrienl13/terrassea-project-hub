@@ -47,7 +47,7 @@ const Auth = () => {
   }, []);
   const [form, setForm] = useState({
     email: "", password: "", firstName: "", lastName: "",
-    company: "", siren: "", phone: "", userType: "client" as UserType,
+    company: "", siren: "", phone: "", userType: defaultType,
   });
 
   const handle = (field: string) =>

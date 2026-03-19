@@ -152,7 +152,7 @@ const BecomePartner = () => {
               You supply outdoor CHR furniture and want to reach hospitality buyers across Europe.
             </p>
           </button>
-          <Link to="/pro-service"
+          <Link to="/auth?mode=register&type=designer"
             className="text-left border border-border rounded-xl p-7 hover:border-foreground transition-all group bg-card">
             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center mb-5">
               <Palette className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
