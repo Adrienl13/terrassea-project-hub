@@ -128,6 +128,8 @@ const BecomePartner = () => {
     estimatedVolume: "", deliveryCountries: [] as string[],
     message: "",
   });
+
+  if (!path) return (
     <div className="min-h-screen bg-background">
       <Header />
       <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
