@@ -258,10 +258,15 @@ const Index = () => {
       <section className="py-12 px-6 border-y border-border">
         <div className="container mx-auto">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, i) =>
-            <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
+            {[
+              { value: "500+", labelKey: "stats.curatedProducts" },
+              { value: "10+", labelKey: "stats.partnerSuppliers" },
+              { value: "5", labelKey: "stats.europeanCountries" },
+              { value: "5", labelKey: "stats.spaceCategories" },
+            ].map((stat, i) =>
+            <motion.div key={stat.labelKey} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
                 <p className="font-display text-2xl md:text-3xl font-bold text-foreground">{stat.value}</p>
-                <p className="text-xs font-body text-muted-foreground mt-1 uppercase tracking-wider">{stat.label}</p>
+                <p className="text-xs font-body text-muted-foreground mt-1 uppercase tracking-wider">{t(stat.labelKey)}</p>
               </motion.div>
             )}
           </motion.div>
