@@ -390,7 +390,7 @@ const ProjectCart = () => {
                                     <p className="font-display font-semibold text-foreground text-base">~€{((selectedSupplier?.price ?? (product as any).price_min) * quantity).toLocaleString("fr-FR")}</p>
                                   </> :
 
-                            <p className="text-[10px] text-muted-foreground font-body">On request</p>
+                            <p className="text-[10px] text-muted-foreground font-body">{t('projectCart.onRequest')}</p>
                             }
                               </div>
 
