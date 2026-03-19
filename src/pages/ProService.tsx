@@ -422,7 +422,7 @@ const ProService = () => {
                         </div>
                       </div>
                       <div>
-                        <label className={labelClass}>Style direction</label>
+                        <label className={labelClass}>{t('proService.formFields.style')}</label>
                         <input type="text" value={form.style} onChange={handle("style")} placeholder="Mediterranean, natural tones, rope & teak" className={inputClass} />
                       </div>
                       <div>
