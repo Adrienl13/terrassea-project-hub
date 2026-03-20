@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Header from "@/components/Header";
@@ -13,6 +14,7 @@ const Auth = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isPasswordRecovery } = useAuth();
   const from = (location.state as any)?.from?.pathname || "/account";
 
   const searchParams = new URLSearchParams(location.search);
@@ -23,22 +25,8 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sirenValid, setSirenValid] = useState<boolean | null>(null);
   const [sirenChecking, setSirenChecking] = useState(false);
-  const [isRecovery, setIsRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setIsRecovery(true);
-    }
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setIsRecovery(true);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
 
   const USER_TYPES: { value: UserType; label: string; desc: string; icon: string }[] = [
     { value: "client",    label: t('auth.client'),    desc: t('auth.clientDesc'),    icon: "🍽" },
@@ -140,7 +128,7 @@ const Auth = () => {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md mx-auto"
         >
-          {isRecovery ? (
+          {isPasswordRecovery ? (
             <div className="space-y-4">
               <h2 className="text-lg font-display font-bold text-foreground">{t('auth.resetPassword')}</h2>
               <div>

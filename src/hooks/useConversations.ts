@@ -6,6 +6,8 @@ import { useEffect } from "react";
 export type ConversationSummary = {
   id: string;
   subject: string | null;
+  project_ref: string | null;
+  project_name: string | null;
   last_message_at: string | null;
   created_at: string | null;
   // joined data
@@ -118,6 +120,8 @@ export function useConversations() {
       return (convs || []).map(c => ({
         id: c.id,
         subject: c.subject,
+        project_ref: (c as any).project_ref || null,
+        project_name: (c as any).project_name || null,
         last_message_at: c.last_message_at,
         created_at: c.created_at,
         participants: (allParts || [])
@@ -247,11 +251,16 @@ export async function createConversation(
   participantIds: string[],
   subject: string,
   firstMessage?: string,
+  projectRef?: string,
+  projectName?: string,
 ) {
   // Create conversation
+  const insertPayload: any = { subject, created_by: creatorId };
+  if (projectRef) insertPayload.project_ref = projectRef;
+  if (projectName) insertPayload.project_name = projectName;
   const { data: conv, error: cErr } = await supabase
     .from("conversations")
-    .insert({ subject, created_by: creatorId })
+    .insert(insertPayload)
     .select("id")
     .single();
   if (cErr) throw cErr;

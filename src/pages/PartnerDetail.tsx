@@ -2,13 +2,15 @@ import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFavouritePartners } from "@/hooks/useFavouritesDB";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Lock, Package, Globe,
   Calendar, Award, MapPin, Star, ChevronLeft, ChevronRight as ChevronRightIcon,
-  Factory, Layers, Shield,
+  Factory, Layers, Shield, Heart,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════
@@ -125,6 +127,25 @@ function SourcingCTA({ partnerType, slug }: { partnerType: string; slug: string 
 // MAIN PAGE
 // ═══════════════════════════════════════════════════════════
 
+function PartnerFavButton({ partnerId }: { partnerId: string }) {
+  const { user } = useAuth();
+  const { isFavourite, toggle } = useFavouritePartners();
+  if (!user) return null;
+  const isFav = isFavourite(partnerId);
+  return (
+    <button
+      onClick={() => toggle(partnerId)}
+      className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all ${
+        isFav
+          ? "bg-[#D4603A]/10 border-[#D4603A]/20 text-[#D4603A]"
+          : "border-border text-muted-foreground hover:text-[#D4603A] hover:border-[#D4603A]/20"
+      }`}
+    >
+      <Heart className={`h-4 w-4 ${isFav ? "fill-[#D4603A]" : ""}`} />
+    </button>
+  );
+}
+
 export default function PartnerDetail() {
   const { slug } = useParams<{ slug: string }>();
 
@@ -233,9 +254,12 @@ export default function PartnerDetail() {
                 )}
               </div>
 
-              <h1 className="font-display text-2xl font-bold text-foreground">
-                {identityLabel}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="font-display text-2xl font-bold text-foreground">
+                  {identityLabel}
+                </h1>
+                <PartnerFavButton partnerId={partner.id} />
+              </div>
 
               <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground font-body">
                 {partner.country && (

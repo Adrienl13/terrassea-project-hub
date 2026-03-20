@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConversations } from "@/hooks/useConversations";
+import { usePartnerQuotes } from "@/hooks/usePartnerQuotes";
 import { toast } from "sonner";
 
 const AddProductForm = lazy(() => import("./AddProductForm"));
 const ApiConnectionPanel = lazy(() => import("./ApiConnectionPanel"));
+const QuotePdfUploader = lazy(() => import("@/components/quotes/QuotePdfUploader"));
 import {
   TrendingUp, Star, ChevronRight, Inbox, Package, Eye, FileText,
   ArrowUpRight, Lock, Crown, Shield, Zap, BarChart3, Download,
@@ -470,103 +472,115 @@ type QuoteStatus = "all" | "Nouveau" | "En cours" | "Accepté" | "Décliné";
 export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"received" | "sent">("received");
-  const [filter, setFilter] = useState<QuoteStatus>("all");
+  const [filter, setFilter] = useState<string>("all");
   const [expandedQuote, setExpandedQuote] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [proposedPrice, setProposedPrice] = useState<Record<string, string>>({});
   const [proposedDelay, setProposedDelay] = useState<Record<string, string>>({});
+  const [proposedTva, setProposedTva] = useState<Record<string, string>>({});
+  const [proposedValidity, setProposedValidity] = useState<Record<string, string>>({});
+  const [proposedPaymentCond, setProposedPaymentCond] = useState<Record<string, string>>({});
+  const [proposedDeliveryCond, setProposedDeliveryCond] = useState<Record<string, string>>({});
   const config = PLAN_CONFIG[plan];
 
-  type QuoteDetail = {
-    id: string; title: string; client: string; amount: string; date: string;
-    status: "Nouveau" | "En cours" | "Accepté" | "Décliné"; statusStyle: string;
-    // Detail fields
-    products: { name: string; qty: number; unitPrice: number; color?: string }[];
-    projectName?: string; projectType?: string; city?: string;
-    message?: string; timeline?: string; budget?: string;
+  // Real data from Supabase
+  const { quotes: realQuotes, isLoading: quotesLoading, partnerId, updateStatus } = usePartnerQuotes();
+
+  // Map real data to display format
+  const STATUS_MAP: Record<string, { label: string; style: string }> = {
+    pending:  { label: "Nouveau",  style: "bg-blue-50 text-blue-700" },
+    replied:  { label: "Répondu",  style: "bg-amber-50 text-amber-700" },
+    accepted: { label: "Accepté",  style: "bg-green-50 text-green-700" },
+    signed:   { label: "Signé",    style: "bg-emerald-50 text-emerald-700" },
+    expired:  { label: "Expiré",   style: "bg-gray-100 text-gray-500" },
+    cancelled:{ label: "Annulé",   style: "bg-red-50 text-red-600" },
   };
 
-  const receivedQuotes: QuoteDetail[] = [
-    { id: "1", title: "40× Chaise Riviera — Alu blanc", client: "Hotel Le Grand, Paris", amount: "€5 600", date: "il y a 2h", status: "Nouveau", statusStyle: "bg-blue-50 text-blue-700",
-      products: [{ name: "Chaise Riviera", qty: 40, unitPrice: 140, color: "white" }],
-      projectName: "Rénovation terrasse principale", projectType: "hotel", city: "Paris",
-      message: "Nous recherchons 40 chaises empilables blanches pour notre terrasse extérieure. Besoin de résistance intempéries et UV. Possibilité de personnalisation avec notre logo ?", timeline: "2-3-months", budget: "5000-7000" },
-    { id: "2", title: "12× Parasol XL 3m — Beige", client: "Beach Club Cala, Nice", amount: "€3 840", date: "il y a 1j", status: "Nouveau", statusStyle: "bg-blue-50 text-blue-700",
-      products: [{ name: "Parasol XL 3m", qty: 12, unitPrice: 320, color: "beige" }],
-      projectName: "Équipement plage saison 2026", projectType: "beach-club", city: "Nice",
-      message: "Besoin de parasols résistants au vent pour notre beach club. Ouverture fin avril. Livraison possible avant mi-avril ?", timeline: "urgent", budget: "3500-4500" },
-    { id: "3", title: "8× Table ronde 80cm — Anthracite", client: "Brasserie du Port, Marseille", amount: "€1 920", date: "il y a 3j", status: "En cours", statusStyle: "bg-amber-50 text-amber-700",
-      products: [{ name: "Table ronde 80cm", qty: 8, unitPrice: 240, color: "anthracite" }],
-      projectName: "Extension terrasse brasserie", projectType: "restaurant", city: "Marseille",
-      message: "Tables rondes 80cm pour terrasse. Avez-vous aussi des piétements compatibles ? Budget serré, possibilité de remise sur quantité ?", timeline: "1-month", budget: "1500-2200" },
-    { id: "4", title: "20× Fauteuil Lounge — Gris", client: "Rooftop Skybar, Lyon", amount: "€4 200", date: "il y a 5j", status: "Accepté", statusStyle: "bg-green-50 text-green-700",
-      products: [{ name: "Fauteuil Lounge", qty: 20, unitPrice: 210, color: "grey" }],
-      projectName: "Aménagement rooftop", projectType: "rooftop", city: "Lyon",
-      message: "Fauteuils lounge confortables pour zone VIP rooftop.", timeline: "2-3-months", budget: "4000-5000" },
-    { id: "5", title: "6× Banquette 2m — Teck", client: "La Terrasse, Bordeaux", amount: "€2 700", date: "il y a 1sem", status: "Décliné", statusStyle: "bg-red-50 text-red-600",
-      products: [{ name: "Banquette 2m", qty: 6, unitPrice: 450, color: "natural-wood" }],
-      projectName: "Terrasse restaurant gastronomique", projectType: "restaurant", city: "Bordeaux",
-      message: "Banquettes en teck pour terrasse haut de gamme.", timeline: "flexible", budget: "2500-3000" },
-  ];
+  const displayQuotes = realQuotes.map(q => ({
+    id: q.id,
+    title: `${q.quantity}× ${q.product_name}`,
+    client: `${q.client_first_name || "Client"}, ${q.client_city || "—"}`,
+    clientRef: q.client_anonymous_id || "—",
+    amount: q.total_price ? `€${Number(q.total_price).toLocaleString()}` : "Sur demande",
+    totalHT: Number(q.total_price || 0),
+    date: timeAgo(q.created_at),
+    status: STATUS_MAP[q.status]?.label || q.status,
+    statusKey: q.status,
+    statusStyle: STATUS_MAP[q.status]?.style || "bg-gray-100 text-gray-600",
+    products: [{ name: q.product_name, qty: q.quantity, unitPrice: Number(q.unit_price || 0) }],
+    projectName: q.project_name,
+    projectType: q.project_venue_type,
+    city: q.client_city,
+    message: q.message,
+    hasPdf: !!q.latest_pdf_path,
+    isSigned: !!q.signed_at,
+    raw: q,
+  }));
 
-  const sentQuotes: QuoteDetail[] = [
-    { id: "s1", title: "Devis — Hotel Le Grand", client: "Envoyé le 15/03", amount: "€5 320", date: "il y a 4j", status: "En cours", statusStyle: "bg-amber-50 text-amber-700",
-      products: [{ name: "Chaise Riviera", qty: 40, unitPrice: 133 }], message: "Prix négocié -5% pour commande groupée." },
-    { id: "s2", title: "Devis — Rooftop Skybar", client: "Envoyé le 12/03", amount: "€3 990", date: "il y a 1sem", status: "Accepté", statusStyle: "bg-green-50 text-green-700",
-      products: [{ name: "Fauteuil Lounge", qty: 20, unitPrice: 199.5 }], message: "Offre spéciale -5% + livraison offerte." },
-  ];
-
-  const rawQuotes = tab === "received" ? receivedQuotes : sentQuotes;
-  const quotes = filter === "all" ? rawQuotes : rawQuotes.filter(q => q.status === filter);
-
-  const handleAccept = (id: string) => toast.success(t('pd.quotes.acceptedToast'));
-  const handleDecline = (id: string) => toast(t('pd.quotes.declinedToast'), { description: t('pd.quotes.clientNotified') });
-  const handleReply = (id: string) => { navigate("/messages"); toast.info(t('pd.quotes.replyHint')); };
-  const handleAttachDocument = () => toast.info(t('pd.quotes.docsSoon'));
-  const handleAttachPhoto = () => toast.info(t('pd.quotes.photosSoon'));
+  const filtered = filter === "all" ? displayQuotes : displayQuotes.filter(q => q.statusKey === filter);
 
   const handleSendProposal = (id: string) => {
-    const msg = replyText[id];
     const price = proposedPrice[id];
-    const delay = proposedDelay[id];
-    if (!msg && !price) { toast.error(t('pd.quotes.proposalEmpty', { defaultValue: "Ajoutez un message ou un prix proposé." })); return; }
-    toast.success(t('pd.quotes.proposalSent', { defaultValue: "Proposition envoyée au client !" }));
+    if (!price) { toast.error("Ajoutez un prix proposé."); return; }
+    const qty = realQuotes.find(q => q.id === id)?.quantity || 1;
+    updateStatus({
+      quoteId: id,
+      status: "replied",
+      unitPrice: Number(price) / qty,
+      totalPrice: Number(price),
+      tvaRate: Number(proposedTva[id] || 20),
+      deliveryDelayDays: proposedDelay[id] ? Number(proposedDelay[id]) : undefined,
+      deliveryConditions: proposedDeliveryCond[id] || undefined,
+      paymentConditions: proposedPaymentCond[id] || undefined,
+      validityDays: Number(proposedValidity[id] || 30),
+      partnerConditions: replyText[id] || undefined,
+    });
+    toast.success("Proposition envoyée au client !");
     setExpandedQuote(null);
   };
+
+  const handleDecline = (id: string) => {
+    updateStatus({ quoteId: id, status: "cancelled" });
+    toast("Demande déclinée", { description: "Le client sera notifié." });
+  };
+
+  function timeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 1) return "à l'instant";
+    if (hours < 24) return `il y a ${hours}h`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `il y a ${days}j`;
+    return `il y a ${Math.floor(days / 7)}sem`;
+  }
 
   return (
     <div className="space-y-5">
       <CommissionReminder plan={plan} onUpgrade={() => navigate("/become-partner")} />
 
-      {/* Tabs + Filter */}
+      {/* Filter */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-1 bg-card border border-border rounded-sm p-0.5">
-          <button onClick={() => { setTab("received"); setFilter("all"); setExpandedQuote(null); }}
-            className={`px-3 py-1.5 text-xs font-display font-semibold rounded-sm transition-colors ${tab === "received" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            {t('pd.quotes.received')}
-            <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${tab === "received" ? "bg-primary-foreground/20 text-primary-foreground" : "bg-amber-100 text-amber-700"}`}>{receivedQuotes.length}</span>
-          </button>
-          <button onClick={() => { setTab("sent"); setFilter("all"); setExpandedQuote(null); }}
-            className={`px-3 py-1.5 text-xs font-display font-semibold rounded-sm transition-colors ${tab === "sent" ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            {t('pd.quotes.sent')}
-            <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${tab === "sent" ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{sentQuotes.length}</span>
-          </button>
+        <div className="flex gap-1 flex-wrap">
+          {[
+            { id: "all", label: t('pd.quotes.all'), count: displayQuotes.length },
+            { id: "pending", label: t('pd.quotes.new'), count: displayQuotes.filter(q => q.statusKey === "pending").length },
+            { id: "replied", label: "Répondu", count: displayQuotes.filter(q => q.statusKey === "replied").length },
+            { id: "signed", label: "Signé", count: displayQuotes.filter(q => q.statusKey === "signed").length },
+          ].map(f => (
+            <button key={f.id} onClick={() => { setFilter(f.id); setExpandedQuote(null); }}
+              className={`text-[10px] font-display font-semibold px-3 py-1.5 rounded-full transition-all ${
+                filter === f.id ? "bg-foreground text-primary-foreground" : "border border-border text-muted-foreground"
+              }`}>
+              {f.label} ({f.count})
+            </button>
+          ))}
         </div>
-        {tab === "received" && (
-          <select value={filter} onChange={e => setFilter(e.target.value as QuoteStatus)}
-            className="text-[10px] font-body bg-card border border-border rounded-sm px-2 py-1.5 outline-none">
-            <option value="all">{t('pd.quotes.all')} ({receivedQuotes.length})</option>
-            <option value="Nouveau">{t('pd.quotes.new')} ({receivedQuotes.filter(q => q.status === "Nouveau").length})</option>
-            <option value="En cours">{t('pd.quotes.inProgress')} ({receivedQuotes.filter(q => q.status === "En cours").length})</option>
-            <option value="Accepté">{t('pd.quotes.accepted')} ({receivedQuotes.filter(q => q.status === "Accepté").length})</option>
-            <option value="Décliné">{t('pd.quotes.declined')} ({receivedQuotes.filter(q => q.status === "Décliné").length})</option>
-          </select>
-        )}
       </div>
 
       {/* Quote list */}
-      {quotes.length === 0 ? (
+      {quotesLoading ? (
+        <div className="flex items-center justify-center py-12"><div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin" /></div>
+      ) : filtered.length === 0 ? (
         <div className="border border-border rounded-sm px-4 py-8 text-center">
           <FileText className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
           <p className="text-xs font-body text-muted-foreground">{t('pd.quotes.noResults')}</p>
@@ -574,10 +588,10 @@ export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
         </div>
       ) : (
         <div className="space-y-2">
-          {quotes.map(q => {
+          {filtered.map(q => {
             const isOpen = expandedQuote === q.id;
-            const isActionable = tab === "received" && (q.status === "Nouveau" || q.status === "En cours");
-            const totalHT = q.products.reduce((s, p) => s + p.qty * p.unitPrice, 0);
+            const isActionable = q.statusKey === "pending" || q.statusKey === "replied";
+            const totalHT = q.totalHT;
             const commAmount = totalHT * config.commission / 100;
 
             return (
@@ -699,38 +713,82 @@ export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
                       <div className="px-4 py-3 border-t border-border bg-card/30 space-y-3">
                         <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('pd.quotes.yourResponse', { defaultValue: "Votre réponse" })}</p>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        {/* Row 1: Prix + TVA */}
+                        <div className="grid grid-cols-3 gap-3">
                           <div>
-                            <label className="text-[9px] font-display font-semibold text-muted-foreground block mb-1">{t('pd.quotes.proposedPrice', { defaultValue: "Prix proposé HT" })}</label>
-                            <input
-                              type="number"
-                              value={proposedPrice[q.id] || ""}
-                              onChange={e => setProposedPrice(prev => ({ ...prev, [q.id]: e.target.value }))}
-                              placeholder={`€${totalHT}`}
-                              className="w-full bg-background border border-border rounded-sm px-3 py-1.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
-                            />
+                            <label className="text-[9px] font-display font-semibold text-muted-foreground block mb-1">Prix total HT *</label>
+                            <input type="number" value={proposedPrice[q.id] || ""} onChange={e => setProposedPrice(prev => ({ ...prev, [q.id]: e.target.value }))}
+                              placeholder={`€${totalHT}`} className="w-full bg-background border border-border rounded-sm px-3 py-1.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground" />
                             {proposedPrice[q.id] && (
                               <p className="text-[9px] font-body text-amber-600 mt-0.5">
-                                {t('pd.quotes.commLabel', { percent: config.commission })} ≈ €{(Number(proposedPrice[q.id]) * config.commission / 100).toFixed(0)}
+                                Commission {config.commission}% ≈ €{(Number(proposedPrice[q.id]) * config.commission / 100).toFixed(0)}
                               </p>
                             )}
                           </div>
                           <div>
-                            <label className="text-[9px] font-display font-semibold text-muted-foreground block mb-1">{t('pd.quotes.proposedDelay', { defaultValue: "Délai de livraison" })}</label>
-                            <select
-                              value={proposedDelay[q.id] || ""}
-                              onChange={e => setProposedDelay(prev => ({ ...prev, [q.id]: e.target.value }))}
-                              className="w-full bg-background border border-border rounded-sm px-3 py-1.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
-                            >
-                              <option value="">—</option>
-                              <option value="3">{t('pd.quotes.delay3', { defaultValue: "3 jours" })}</option>
-                              <option value="7">{t('pd.quotes.delay7', { defaultValue: "1 semaine" })}</option>
-                              <option value="14">{t('pd.quotes.delay14', { defaultValue: "2 semaines" })}</option>
-                              <option value="21">{t('pd.quotes.delay21', { defaultValue: "3 semaines" })}</option>
-                              <option value="30">{t('pd.quotes.delay30', { defaultValue: "1 mois" })}</option>
-                              <option value="60">{t('pd.quotes.delay60', { defaultValue: "2 mois" })}</option>
+                            <label className="text-[9px] font-display font-semibold text-muted-foreground block mb-1">Taux TVA</label>
+                            <select value={proposedTva[q.id] || "20"} onChange={e => setProposedTva(prev => ({ ...prev, [q.id]: e.target.value }))}
+                              className="w-full bg-background border border-border rounded-sm px-3 py-1.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground">
+                              <option value="0">0% (Export)</option>
+                              <option value="5.5">5,5%</option>
+                              <option value="10">10%</option>
+                              <option value="20">20%</option>
                             </select>
                           </div>
+                          <div>
+                            <label className="text-[9px] font-display font-semibold text-muted-foreground block mb-1">Validité du devis</label>
+                            <select value={proposedValidity[q.id] || "30"} onChange={e => setProposedValidity(prev => ({ ...prev, [q.id]: e.target.value }))}
+                              className="w-full bg-background border border-border rounded-sm px-3 py-1.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground">
+                              <option value="15">15 jours</option>
+                              <option value="30">30 jours</option>
+                              <option value="45">45 jours</option>
+                              <option value="60">60 jours</option>
+                              <option value="90">90 jours</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Row 2: Délai + Conditions livraison */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[9px] font-display font-semibold text-muted-foreground block mb-1">Délai de livraison</label>
+                            <select value={proposedDelay[q.id] || ""} onChange={e => setProposedDelay(prev => ({ ...prev, [q.id]: e.target.value }))}
+                              className="w-full bg-background border border-border rounded-sm px-3 py-1.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground">
+                              <option value="">—</option>
+                              <option value="3">3 jours</option>
+                              <option value="7">1 semaine</option>
+                              <option value="14">2 semaines</option>
+                              <option value="21">3 semaines</option>
+                              <option value="30">1 mois</option>
+                              <option value="60">2 mois</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-display font-semibold text-muted-foreground block mb-1">Conditions de livraison</label>
+                            <input type="text" value={proposedDeliveryCond[q.id] || ""} onChange={e => setProposedDeliveryCond(prev => ({ ...prev, [q.id]: e.target.value }))}
+                              placeholder="Franco de port, EXW, DDP…" className="w-full bg-background border border-border rounded-sm px-3 py-1.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground" />
+                          </div>
+                        </div>
+
+                        {/* Row 3: Conditions de paiement */}
+                        <div>
+                          <label className="text-[9px] font-display font-semibold text-muted-foreground block mb-1">Conditions de paiement</label>
+                          <select value={proposedPaymentCond[q.id] || ""} onChange={e => setProposedPaymentCond(prev => ({ ...prev, [q.id]: e.target.value }))}
+                            className="w-full bg-background border border-border rounded-sm px-3 py-1.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground">
+                            <option value="">—</option>
+                            <option value="30% acompte, solde à livraison">30% acompte, solde à livraison</option>
+                            <option value="50% acompte, 50% à livraison">50% acompte, 50% à livraison</option>
+                            <option value="100% à la commande">100% à la commande</option>
+                            <option value="30 jours fin de mois">30 jours fin de mois</option>
+                          </select>
+                        </div>
+
+                        {/* Legal disclaimer */}
+                        <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-blue-50/50 border border-blue-100">
+                          <Shield className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
+                          <p className="text-[9px] font-body text-blue-700">
+                            En soumettant ce devis, vous confirmez que votre PDF contient vos mentions légales obligatoires (SIREN, n° TVA, CGV). Terrassea transmet ce devis en qualité de mandataire de paiement.
+                          </p>
                         </div>
 
                         <div>
@@ -744,22 +802,30 @@ export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
                           />
                         </div>
 
+                        {/* PDF Upload */}
+                        <Suspense fallback={<div className="h-20 animate-pulse bg-card rounded-xl" />}>
+                          <QuotePdfUploader
+                            quoteRequestId={q.id}
+                            projectName={q.projectName || ""}
+                            productName={q.products[0]?.name || ""}
+                            quantity={q.products[0]?.qty || 0}
+                            supplierAlias={q.clientRef}
+                            totalAmount={proposedPrice[q.id] || q.amount}
+                          />
+                        </Suspense>
+
                         <div className="flex items-center gap-2 flex-wrap">
                           <button onClick={() => handleSendProposal(q.id)}
                             className="flex items-center gap-1.5 px-4 py-2 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
                             <Send className="h-3 w-3" /> {t('pd.quotes.sendProposal', { defaultValue: "Envoyer la proposition" })}
                           </button>
-                          <button onClick={() => handleAccept(q.id)}
+                          <button onClick={() => { updateStatus({ quoteId: q.id, status: "replied" }); toast.success("Demande acceptée"); setExpandedQuote(null); }}
                             className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-display font-semibold border border-green-200 text-green-700 rounded-full hover:bg-green-50 transition-colors">
                             <CheckCircle2 className="h-3 w-3" /> {t('pd.quotes.acceptDirect', { defaultValue: "Accepter tel quel" })}
                           </button>
-                          <button onClick={handleAttachDocument}
+                          <button onClick={() => navigate("/messages")}
                             className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors">
-                            <Paperclip className="h-3 w-3" /> {t('pd.quotes.document')}
-                          </button>
-                          <button onClick={handleAttachPhoto}
-                            className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors">
-                            <Image className="h-3 w-3" /> {t('pd.quotes.photo')}
+                            <MessageSquare className="h-3 w-3" /> Message
                           </button>
                           <div className="flex-1" />
                           <button onClick={() => handleDecline(q.id)}

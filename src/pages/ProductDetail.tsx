@@ -16,6 +16,8 @@ import { fetchProductOffers } from "@/lib/productOffers";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
+import { useAuth } from "@/contexts/AuthContext";
+import AddToProjectModal from "@/components/architect-dashboard/AddToProjectModal";
 import { toast } from "sonner";
 
 const ProductDetail = () => {
@@ -24,7 +26,10 @@ const ProductDetail = () => {
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
   const { isFavourite, toggleFavourite } = useFavourites();
+  const { profile } = useAuth();
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
+  const isArchitect = profile?.user_type === "architect";
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -98,8 +103,17 @@ const ProductDetail = () => {
   }
 
   const handleAdd = () => {
+    if (isArchitect) {
+      setProjectModalOpen(true);
+      return;
+    }
     addItem(product);
     toast.success(`${product.name} ${t('success.addedToProject').toLowerCase()}`);
+  };
+
+  const handleArchitectAddConfirm = (projectId: string, projectName: string, zoneName?: string) => {
+    addItem(product, zoneName || projectName);
+    toast.success(`${product.name} → ${projectName}${zoneName ? ` · ${zoneName}` : ""}`);
   };
 
   // Related products: same category, exclude self
@@ -418,6 +432,15 @@ const ProductDetail = () => {
         offers={offers}
         defaultQuantity={projectQuantity}
       />
+      {isArchitect && (
+        <AddToProjectModal
+          open={projectModalOpen}
+          onClose={() => setProjectModalOpen(false)}
+          product={product}
+          quantity={projectQuantity}
+          onConfirm={handleArchitectAddConfirm}
+        />
+      )}
     </div>
   );
 };

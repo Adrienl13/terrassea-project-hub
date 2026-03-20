@@ -6,7 +6,7 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox,
-  AlertTriangle, Rocket, Briefcase,
+  AlertTriangle, Rocket, Briefcase, Award, Megaphone,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
@@ -25,6 +25,29 @@ import {
   type PartnerPlan,
   type PartnerSectionSetter,
 } from "@/components/partner-dashboard/PartnerSections";
+import {
+  TierBadge, TIER_CONFIG,
+  ArchitectOverview,
+  ArchitectProjectsSection,
+  ArchitectProjectDetail,
+  ArchitectCreateProject,
+  ArchitectQuotesSection,
+  ArchitectCallsSection,
+  ArchitectMessagesSection,
+  ArchitectRewardsSection,
+  type ArchitectTier,
+  type ArchitectSectionSetter,
+} from "@/components/architect-dashboard/ArchitectSections";
+import {
+  ClientOverview as ClientOverviewNew,
+  ClientProjectsSection,
+  ClientProjectDetail,
+  ClientQuotesSection,
+  ClientMessagesSection,
+  ClientFavouritesSection,
+  ClientSettingsSection,
+  type ClientSectionSetter,
+} from "@/components/client-dashboard/ClientSections";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -38,14 +61,18 @@ type Section =
   | "featured"
   | "proleads"
   | "performance"
-  | "settings";
+  | "rewards"
+  | "calls"
+  | "settings"
+  | (string & {}); // allows dynamic sections like "project-detail:id"
 
 // ── Nav config per profile ────────────────────────────────────────────────────
 
 const NAV_CLIENT = [
   { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
   { id: "projects",   icon: FolderOpen,      labelKey: "account.myProjects" },
-  { id: "quotes",     icon: MessageSquare,   labelKey: "account.quoteRequests" },
+  { id: "quotes",     icon: Inbox,           labelKey: "account.quoteRequests" },
+  { id: "messages",   icon: MessageSquare,   labelKey: "account.messages" },
   { id: "favourites", icon: Heart,           labelKey: "account.favourites" },
   { id: "settings",   icon: Settings,        labelKey: "account.profileSettings" },
 ];
@@ -68,8 +95,10 @@ const NAV_ARCHITECT = [
   { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
   { id: "projects",   icon: FolderOpen,      labelKey: "account.clientProjects" },
   { id: "quotes",     icon: MessageSquare,   labelKey: "account.multiQuotes" },
+  { id: "calls",      icon: Megaphone,       labelKey: "account.supplierCalls" },
+  { id: "messages",   icon: MessageSquare,   labelKey: "account.messages" },
+  { id: "rewards",    icon: Award,           labelKey: "account.rewards" },
   { id: "favourites", icon: Heart,           labelKey: "account.favourites" },
-  { id: "pro",        icon: Percent,         labelKey: "account.proPricing" },
   { id: "settings",   icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
@@ -224,46 +253,7 @@ function ClientOverview({ favourites, onToggleFavourite }: { favourites: any[]; 
 
 // PartnerOverview is now imported from PartnerSections
 
-function ArchitectOverview({ favourites, onToggleFavourite }: { favourites: any[]; onToggleFavourite: (p: any) => void }) {
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard value="6" label="Client projects" />
-        <StatCard value="14" label="Multi-quotes sent" trend="+4 this month" trendColor="#3A4D35" />
-        <StatCard value="€45,200" label="Total sourced" />
-        <StatCard value={String(favourites.length)} label="Favourites" />
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-display font-bold text-sm text-foreground">Client projects</p>
-          <button className="text-[10px] font-body text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-            <Plus className="h-3 w-3" /> New project
-          </button>
-        </div>
-        <div className="space-y-2">
-          <ProjectRow title="Restaurant Le Comptoir — Paris" meta="3 zones · 48 products" badge="Active" badgeStyle="bg-green-50 text-green-700" />
-          <ProjectRow title="Boutique Hotel — Bordeaux" meta="2 zones · 24 products" badge="Quoting" badgeStyle="bg-amber-50 text-amber-700" />
-          <ProjectRow title="Rooftop Lounge — Lyon" meta="1 zone · 16 products" badge="Draft" badgeStyle="bg-muted text-muted-foreground" />
-        </div>
-      </div>
-
-      {favourites.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-display font-bold text-sm text-foreground">Favourites</p>
-            <span className="text-[10px] font-body text-muted-foreground">{favourites.length} saved · Pro pricing applies</span>
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-            {favourites.slice(0, 6).map((p) => (
-              <FavMiniCard key={p.id} product={p} onRemove={() => onToggleFavourite(p)} />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+// ArchitectOverview moved to @/components/architect-dashboard/ArchitectSections
 
 function FavouritesSection({ favourites, onToggle }: { favourites: any[]; onToggle: (p: any) => void }) {
   const navigate = useNavigate();
@@ -340,6 +330,10 @@ const Account = () => {
 
   // Partner plan — default to "elite" for demo (would come from partner_subscriptions)
   const partnerPlan: PartnerPlan = "elite";
+  // Architect tier — default to "atelier" for demo (would come from architect_rewards)
+  const architectTier: ArchitectTier = "atelier";
+  // Architect created projects (local state — would come from Supabase in prod)
+  const [createdProjects, setCreatedProjects] = useState<any[]>([]);
 
   if (isLoading) {
     return (
@@ -364,12 +358,11 @@ const Account = () => {
   };
 
   const renderSection = () => {
-    if (section === "settings") return <SettingsSection profile={profile} />;
-    if (section === "favourites") return <FavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
-
     // Partner-specific sections
     const handlePartnerNav: PartnerSectionSetter = (s) => setSection(s as Section);
     if (userType === "partner") {
+      if (section === "settings") return <SettingsSection profile={profile} />;
+      if (section === "favourites") return <FavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
       switch (section) {
         case "overview":    return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
         case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
@@ -382,11 +375,54 @@ const Account = () => {
       }
     }
 
-    switch (userType) {
-      case "architect":
-        return <ArchitectOverview favourites={favourites} onToggleFavourite={toggleFavourite} />;
-      default:
-        return <ClientOverview favourites={favourites} onToggleFavourite={toggleFavourite} />;
+    // Architect-specific sections
+    if (userType === "architect") {
+      if (section === "settings") return <SettingsSection profile={profile} />;
+      if (section === "favourites") return <FavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
+      const handleArchitectNav: ArchitectSectionSetter = (s) => setSection(s as Section);
+
+      // Handle project-detail:id pattern from overview clicks
+      if (section.startsWith("project-detail:" as any)) {
+        const projectId = (section as string).replace("project-detail:", "");
+        return <ArchitectProjectDetail projectId={projectId} onBack={() => setSection("projects")} extraProjects={createdProjects} />;
+      }
+
+      // Handle create project
+      if (section === ("create-project" as any)) {
+        return <ArchitectCreateProject onBack={() => setSection("projects")} onCreated={(project) => {
+          setCreatedProjects(prev => [project, ...prev]);
+          setSection("projects");
+        }} />;
+      }
+
+      switch (section) {
+        case "overview":   return <ArchitectOverview tier={architectTier} onNavigate={handleArchitectNav} favourites={favourites} onToggleFavourite={toggleFavourite} />;
+        case "projects":   return <ArchitectProjectsSection tier={architectTier} onNavigate={handleArchitectNav} extraProjects={createdProjects} />;
+        case "quotes":     return <ArchitectQuotesSection tier={architectTier} />;
+        case "calls":      return <ArchitectCallsSection tier={architectTier} />;
+        case "messages":   return <ArchitectMessagesSection />;
+        case "rewards":    return <ArchitectRewardsSection tier={architectTier} />;
+        default:           return <ArchitectOverview tier={architectTier} onNavigate={handleArchitectNav} favourites={favourites} onToggleFavourite={toggleFavourite} />;
+      }
+    }
+
+    // Client-specific sections (default)
+    const handleClientNav: ClientSectionSetter = (s) => setSection(s as Section);
+
+    // Handle project-detail:id pattern
+    if (section.startsWith("project-detail:" as any)) {
+      const projectId = (section as string).replace("project-detail:", "");
+      return <ClientProjectDetail projectId={projectId} onBack={() => setSection("projects")} />;
+    }
+
+    switch (section) {
+      case "overview":    return <ClientOverviewNew onNavigate={handleClientNav} favourites={favourites} onToggleFavourite={toggleFavourite} />;
+      case "projects":    return <ClientProjectsSection onNavigate={handleClientNav} />;
+      case "quotes":      return <ClientQuotesSection onNavigate={handleClientNav} />;
+      case "messages":    return <ClientMessagesSection />;
+      case "favourites":  return <ClientFavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
+      case "settings":    return <ClientSettingsSection profile={profile} />;
+      default:            return <ClientOverviewNew onNavigate={handleClientNav} favourites={favourites} onToggleFavourite={toggleFavourite} />;
     }
   };
 
@@ -430,6 +466,9 @@ const Account = () => {
                     {userType === "partner" && (
                       <PlanBadge plan={partnerPlan} />
                     )}
+                    {userType === "architect" && (
+                      <TierBadge tier={architectTier} />
+                    )}
                   </div>
                   {/* Commission reminder for partners */}
                   {userType === "partner" && (
@@ -443,6 +482,21 @@ const Account = () => {
                     >
                       <AlertTriangle className="h-3 w-3 shrink-0" />
                       <span>Commission : <strong>{PLAN_CONFIG[partnerPlan].commission}%</strong></span>
+                    </div>
+                  )}
+                  {/* Discount reminder for architects */}
+                  {userType === "architect" && (
+                    <div
+                      className="flex items-center gap-1.5 mt-2.5 px-2.5 py-1.5 rounded-sm border text-[9px] font-body cursor-pointer"
+                      style={{
+                        background: TIER_CONFIG[architectTier].bg,
+                        borderColor: TIER_CONFIG[architectTier].border,
+                        color: TIER_CONFIG[architectTier].color,
+                      }}
+                      onClick={() => setSection("rewards")}
+                    >
+                      <Award className="h-3 w-3 shrink-0" />
+                      <span>2 350 pts · <strong>{TIER_CONFIG[architectTier].label}</strong></span>
                     </div>
                   )}
                 </div>
@@ -500,7 +554,28 @@ const Account = () => {
 
               {/* Quick actions */}
               <div className="mt-6 space-y-2">
-                {userType === "partner" ? (
+                {userType === "architect" ? (
+                  <>
+                    <button
+                      onClick={() => setSection("create-project" as Section)}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> {t('account.newProject')}
+                    </button>
+                    <button
+                      onClick={() => setSection("calls")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
+                    >
+                      <Megaphone className="h-3.5 w-3.5" /> {t('account.newSupplierCall')}
+                    </button>
+                    <button
+                      onClick={() => navigate("/products")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
+                    >
+                      {t('account.browseCatalogue')}
+                    </button>
+                  </>
+                ) : userType === "partner" ? (
                   <>
                     <button
                       onClick={() => setSection("catalogue")}
@@ -546,6 +621,12 @@ const Account = () => {
                       className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
                     >
                       {t('account.browseCatalogue')}
+                    </button>
+                    <button
+                      onClick={() => navigate("/pro-service")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
+                    >
+                      {t('cd.quickActions.talkExpert')}
                     </button>
                   </>
                 )}

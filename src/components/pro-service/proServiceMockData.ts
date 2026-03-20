@@ -36,6 +36,8 @@ export interface ProProject {
   clientCompany?: string;
 }
 
+export type ProVisibility = "anonymous" | "standard" | "featured";
+
 export interface ProProfessional {
   id: string;
   name: string;
@@ -43,9 +45,51 @@ export interface ProProfessional {
   type: ProfessionalType;
   specialties: string[];
   location: string;
+  country?: string;
+  countryCode?: string;
   rating: number;
   projectsCompleted: number;
   avatar?: string;
+  plan?: "starter" | "growth" | "elite";
+  visibility?: ProVisibility;
+  reviewHighlights?: string[];
+}
+
+// ── Visibility helpers ────────────────────────────────────────────────────────
+
+export function getProVisibility(pro: ProProfessional): ProVisibility {
+  if (pro.visibility) return pro.visibility;
+  if (pro.plan === "elite") return "featured";
+  if (pro.plan === "growth") return "standard";
+  return "anonymous";
+}
+
+export function getProDisplayName(pro: ProProfessional): string {
+  const vis = getProVisibility(pro);
+  if (vis === "featured") return pro.name;
+  if (vis === "standard") {
+    const parts = pro.name.split(" ");
+    return parts.length > 1 ? `${parts[0]} ${parts[1][0]}.` : parts[0];
+  }
+  const typeLabel = pro.type === "supplier" ? "Fournisseur" : "Architecte";
+  return `${typeLabel} vérifié #${pro.id.replace(/\D/g, "").slice(-2) || "00"}`;
+}
+
+export function getProDisplayCompany(pro: ProProfessional): string | null {
+  return getProVisibility(pro) === "featured" ? pro.company : null;
+}
+
+export function getProDisplayLocation(pro: ProProfessional): string {
+  const vis = getProVisibility(pro);
+  if (vis === "featured" || vis === "standard") return pro.location;
+  return pro.country || pro.location.split(",").pop()?.trim() || "Europe";
+}
+
+export function getProFlag(pro: ProProfessional): string {
+  if (!pro.countryCode || pro.countryCode.length !== 2) return "";
+  return String.fromCodePoint(
+    ...pro.countryCode.toUpperCase().split("").map((c: string) => 0x1f1e6 + c.charCodeAt(0) - 65)
+  );
 }
 
 export interface ProConnection {
@@ -224,8 +268,12 @@ export const MOCK_PROFESSIONALS: ProProfessional[] = [
     type: "supplier",
     specialties: ["teak furniture", "marine-grade", "custom"],
     location: "Milan, Italy",
+    country: "Italy",
+    countryCode: "IT",
     rating: 4.8,
     projectsCompleted: 45,
+    plan: "elite",
+    reviewHighlights: ["Qualité exceptionnelle du teck", "Livraison ponctuelle pour 40 tables", "Service après-vente réactif"],
   },
   {
     id: "pro-002",
@@ -234,8 +282,12 @@ export const MOCK_PROFESSIONALS: ProProfessional[] = [
     type: "architect",
     specialties: ["hospitality design", "rooftops", "terraces"],
     location: "Paris, France",
+    country: "France",
+    countryCode: "FR",
     rating: 4.9,
     projectsCompleted: 32,
+    plan: "elite",
+    reviewHighlights: ["Design raffiné et fonctionnel", "Excellente gestion du projet", "Très à l'écoute des besoins client"],
   },
   {
     id: "pro-003",
@@ -244,8 +296,12 @@ export const MOCK_PROFESSIONALS: ProProfessional[] = [
     type: "supplier",
     specialties: ["aluminium", "parasols", "shade structures"],
     location: "Amsterdam, Netherlands",
+    country: "Netherlands",
+    countryCode: "NL",
     rating: 4.7,
     projectsCompleted: 58,
+    plan: "growth",
+    reviewHighlights: ["Parasols résistants au vent", "Bon rapport qualité-prix"],
   },
   {
     id: "pro-004",
@@ -254,8 +310,12 @@ export const MOCK_PROFESSIONALS: ProProfessional[] = [
     type: "architect",
     specialties: ["beach clubs", "resorts", "landscape"],
     location: "Barcelona, Spain",
+    country: "Spain",
+    countryCode: "ES",
     rating: 4.9,
     projectsCompleted: 27,
+    plan: "growth",
+    reviewHighlights: ["Ambiance beach club parfaite", "Créative et pragmatique"],
   },
   {
     id: "pro-005",
@@ -264,8 +324,12 @@ export const MOCK_PROFESSIONALS: ProProfessional[] = [
     type: "supplier",
     specialties: ["contract furniture", "stackable", "high-volume"],
     location: "Lyon, France",
+    country: "France",
+    countryCode: "FR",
     rating: 4.6,
     projectsCompleted: 72,
+    plan: "starter",
+    reviewHighlights: ["Gros volumes bien gérés", "Chaises empilables solides"],
   },
   {
     id: "pro-006",
@@ -274,8 +338,12 @@ export const MOCK_PROFESSIONALS: ProProfessional[] = [
     type: "supplier",
     specialties: ["rattan", "woven", "coastal styles"],
     location: "Valencia, Spain",
+    country: "Spain",
+    countryCode: "ES",
     rating: 4.7,
     projectsCompleted: 38,
+    plan: "starter",
+    reviewHighlights: ["Style côtier authentique", "Mobilier résistant aux intempéries"],
   },
 ];
 

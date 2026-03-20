@@ -7,7 +7,8 @@ import {
   FileText, Users, Eye, ClipboardList, CheckCircle2,
   XCircle, Clock, AlertTriangle, Star, TrendingUp,
   ChevronDown, ChevronUp, Search, LayoutDashboard,
-  Building2, UserCircle, MessageSquare,
+  Building2, UserCircle, MessageSquare, BarChart3, Settings,
+  CreditCard,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,12 +17,19 @@ import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminPartners from "@/components/admin/AdminPartners";
 import AdminMessages from "@/components/admin/AdminMessages";
+import AdminPartnerVisibility from "@/components/admin/AdminPartnerVisibility";
+import AdminQuoteWorkflow from "@/components/admin/AdminQuoteWorkflow";
+import AdminOrderTracking from "@/components/admin/AdminOrderTracking";
+import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import AdminSettings from "@/components/admin/AdminSettings";
+import AdminRatingsModeration from "@/components/admin/AdminRatingsModeration";
+import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "messages" | "applications" | "quotes" | "pro_service" | "products";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "settings";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -1104,8 +1112,9 @@ function ApplicationsTab() {
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["partner_applications"] });
       queryClient.invalidateQueries({ queryKey: ["partner_applications_pending"] });
-      if (status === "approved") toast.success("Application approved.");
-      else if (status === "rejected") toast.success("Application rejected.");
+      queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
+      if (status === "approved") toast.success("Candidature approuvée — le profil partenaire a été créé automatiquement.");
+      else if (status === "rejected") toast.success("Candidature rejetée.");
       setSelected((prev: any) => prev ? { ...prev, status, rejection_reason: reason } : null);
       setShowRejectForm(false);
       setRejectionReason("");
@@ -1450,11 +1459,17 @@ const Admin = () => {
     { id: "dashboard",    icon: LayoutDashboard, label: "Dashboard",       badge: 0 },
     { id: "users",        icon: UserCircle,      label: "Utilisateurs",    badge: 0 },
     { id: "partners",     icon: Building2,       label: "Fournisseurs",    badge: 0 },
+    { id: "partner_visibility", icon: Eye,        label: "Visibilité",      badge: 0 },
+    { id: "subscriptions", icon: CreditCard,      label: "Abonnements",     badge: 0 },
+    { id: "ratings",       icon: Star,             label: "Avis",            badge: 0 },
     { id: "messages",     icon: MessageSquare,   label: "Messages",        badge: 0 },
     { id: "applications", icon: ClipboardList,   label: "Candidatures",    badge: pendingApps.length },
-    { id: "quotes",       icon: FileText,        label: "Devis",           badge: 0 },
+    { id: "quotes",       icon: FileText,        label: "Workflow devis",  badge: 0 },
+    { id: "orders",       icon: Package,         label: "Commandes",       badge: 0 },
+    { id: "analytics",    icon: BarChart3,       label: "Analytics",       badge: 0 },
     { id: "pro_service",  icon: Users,           label: "Pro Service",     badge: 0 },
     { id: "products",     icon: Package,         label: "Produits",        badge: pendingReviewCount },
+    { id: "settings",     icon: Settings,        label: "Configuration",   badge: 0 },
   ];
 
   return (
@@ -1509,9 +1524,15 @@ const Admin = () => {
         {tab === "dashboard"    && <AdminDashboard />}
         {tab === "users"        && <AdminUsers />}
         {tab === "partners"     && <AdminPartners />}
+        {tab === "partner_visibility" && <AdminPartnerVisibility />}
+        {tab === "subscriptions"      && <AdminSubscriptions />}
+        {tab === "ratings"            && <AdminRatingsModeration />}
         {tab === "messages"     && <AdminMessages />}
         {tab === "applications" && <ApplicationsTab />}
-        {tab === "quotes"       && <QuoteRequestsTab type="standard" />}
+        {tab === "quotes"       && <AdminQuoteWorkflow />}
+        {tab === "orders"       && <AdminOrderTracking />}
+        {tab === "analytics"    && <AdminAnalytics />}
+        {tab === "settings"     && <AdminSettings />}
         {tab === "pro_service"  && <QuoteRequestsTab type="pro" />}
         {tab === "products"     && <ProductsTab />}
       </div>

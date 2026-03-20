@@ -3,13 +3,15 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFavouritePartners } from "@/hooks/useFavouritesDB";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import {
   Building2, Factory, Store, Palette, Handshake,
   ArrowRight, Star, Search, Lock, Package, Globe,
-  ChevronRight, ImageOff,
+  ChevronRight, ImageOff, Heart,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════
@@ -87,6 +89,9 @@ function isFeatured(partner: Partner): boolean {
 
 function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { isFavourite, toggle } = useFavouritePartners();
+  const isFav = isFavourite(partner.id);
   const type     = TYPE_CONFIG[partner.partner_type] || TYPE_CONFIG.brand;
   const flag     = partner.country ? (COUNTRY_FLAGS[partner.country] || "🌍") : "🌍";
   const featured = isFeatured(partner);
@@ -98,6 +103,20 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
     >
+      <div className="relative">
+      {/* Favourite button */}
+      {user && (
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(partner.id); }}
+          className={`absolute top-3 left-3 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${
+            isFav
+              ? "bg-white text-[#D4603A]"
+              : "bg-white/80 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-[#D4603A]"
+          }`}
+        >
+          <Heart className={`h-4 w-4 ${isFav ? "fill-[#D4603A]" : ""}`} />
+        </button>
+      )}
       <Link
         to={`/partners/${partner.slug}`}
         className="group block rounded-2xl border border-border bg-card overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
@@ -208,6 +227,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
           </div>
         </div>
       </Link>
+      </div>
     </motion.div>
   );
 }

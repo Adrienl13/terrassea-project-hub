@@ -5,21 +5,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Search, MapPin, Star, ArrowRight, ArrowLeft,
   FileText, Users, CheckCircle2, Clock, ChevronRight,
-  Pencil, Send,
+  Pencil, Send, Heart, MessageSquare, Shield, ExternalLink,
 } from "lucide-react";
 import {
   ARCHITECT_REQUEST_STATUS_CONFIG,
   STATUS_CONFIG,
-  type ProProject, type ProProfessional, type ArchitectRequest,
+  getProVisibility, getProDisplayName, getProDisplayCompany, getProDisplayLocation, getProFlag,
+  type ProProject, type ProProfessional, type ArchitectRequest, type ProVisibility,
 } from "./proServiceMockData";
 import { type ProServiceStore } from "./useProServiceStore";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFavouritePartners, useFavouriteArchitects } from "@/hooks/useFavouritesDB";
+import { useClientProjects } from "@/hooks/useClientDashboard";
 
 type Tab = "requests" | "find_architect" | "find_pro" | "completed";
 
 type View =
   | { type: "list" }
   | { type: "request-architect" }
-  | { type: "architect-request-detail"; requestId: string };
+  | { type: "architect-request-detail"; requestId: string }
+  | { type: "pro-detail"; proId: string }
+  | { type: "request-intro"; proId: string };
 
 // ── Establishment type options ────────────────────────────────────────────────
 
@@ -105,6 +111,32 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
         request={req}
         architect={matchedArchitect}
         onBack={() => setView({ type: "list" })}
+        onMessage={() => navigate("/messages")}
+      />
+    );
+  }
+
+  if (view.type === "pro-detail") {
+    const pro = store.professionals.find(p => p.id === view.proId);
+    if (!pro) { setView({ type: "list" }); return null; }
+    return (
+      <ProDetailView
+        pro={pro}
+        onBack={() => setView({ type: "list" })}
+        onRequestIntro={() => setView({ type: "request-intro", proId: view.proId })}
+      />
+    );
+  }
+
+  if (view.type === "request-intro") {
+    const pro = store.professionals.find(p => p.id === view.proId);
+    if (!pro) { setView({ type: "list" }); return null; }
+    return (
+      <RequestIntroForm
+        pro={pro}
+        store={store}
+        onBack={() => setView({ type: "pro-detail", proId: view.proId })}
+        onSubmitted={() => { setView({ type: "list" }); setTab("requests"); }}
       />
     );
   }
@@ -270,7 +302,12 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredPros.map(pro => (
-                  <ProfessionalCard key={pro.id} pro={pro} />
+                  <ProfessionalCard
+                    key={pro.id}
+                    pro={pro}
+                    onClick={() => setView({ type: "pro-detail", proId: pro.id })}
+                    onRequestIntro={() => setView({ type: "request-intro", proId: pro.id })}
+                  />
                 ))}
               </div>
             </div>
@@ -564,11 +601,12 @@ function ArchitectRequestCard({ request, onClick, professionals }: { request: Ar
 // ══════════════════════════════════════════════════════════════════════════════
 
 function ArchitectRequestDetail({
-  request, architect, onBack,
+  request, architect, onBack, onMessage,
 }: {
   request: ArchitectRequest;
   architect?: ProProfessional;
   onBack: () => void;
+  onMessage?: () => void;
 }) {
   const { t } = useTranslation();
   const sc = ARCHITECT_REQUEST_STATUS_CONFIG[request.status];
@@ -676,8 +714,22 @@ function ArchitectRequestDetail({
               <span key={i} className="text-[9px] font-body bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{s}</span>
             ))}
           </div>
+          <button
+            onClick={onMessage}
+            className="mt-4 flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+          >
+            <MessageSquare className="h-4 w-4" /> Contacter via la messagerie Terrassea
+          </button>
         </div>
       )}
+
+      {/* Security reminder */}
+      <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-blue-50/50 border border-blue-100">
+        <Shield className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+        <p className="text-[11px] font-body text-blue-700">
+          Tous les échanges passent par la messagerie Terrassea. Vos coordonnées complètes ne sont pas partagées avec le professionnel.
+        </p>
+      </div>
     </div>
   );
 }
@@ -745,24 +797,48 @@ function ProjectCard({ project }: { project: ProProject }) {
   );
 }
 
-function ProfessionalCard({ pro }: { pro: ProProfessional }) {
+function ProfessionalCard({ pro, onClick, onRequestIntro }: { pro: ProProfessional; onClick: () => void; onRequestIntro: () => void }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { isFavourite: isFavPartner, toggle: togglePartner } = useFavouritePartners();
+  const { isFavourite: isFavArch, toggle: toggleArch } = useFavouriteArchitects();
+  const isFav = pro.type === "supplier" ? isFavPartner(pro.id) : isFavArch(pro.id);
+  const toggleFav = () => pro.type === "supplier" ? togglePartner(pro.id) : toggleArch(pro.id);
+
+  const vis = getProVisibility(pro);
+  const displayName = getProDisplayName(pro);
+  const displayCompany = getProDisplayCompany(pro);
+  const displayLocation = getProDisplayLocation(pro);
+  const flag = getProFlag(pro);
+
   return (
-    <div className="border border-border rounded-xl p-4 hover:border-foreground/20 transition-colors">
+    <div
+      onClick={onClick}
+      className="border border-border rounded-xl p-4 hover:border-foreground/20 transition-colors cursor-pointer group"
+    >
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-sm font-display font-semibold text-foreground">{pro.name}</h3>
+            {vis === "anonymous" && <Shield className="h-3.5 w-3.5 text-muted-foreground" />}
+            <h3 className="text-sm font-display font-semibold text-foreground group-hover:text-[#D4603A] transition-colors">{displayName}</h3>
+            {flag && <span className="text-sm">{flag}</span>}
             <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
               pro.type === "supplier" ? "bg-blue-50 text-blue-700" : "bg-emerald-50 text-emerald-700"
             }`}>
               {pro.type === "supplier" ? t("proHub.common.supplier") : t("proHub.common.architect")}
             </span>
+            {vis === "featured" && (
+              <span className="text-[8px] font-display font-bold uppercase px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                <Star className="h-2.5 w-2.5 inline fill-amber-500 text-amber-500" /> Premium
+              </span>
+            )}
           </div>
-          <p className="text-xs font-body text-muted-foreground">{pro.company}</p>
+          {displayCompany && (
+            <p className="text-xs font-body text-muted-foreground">{displayCompany}</p>
+          )}
           <div className="flex items-center gap-3 text-[10px] font-body text-muted-foreground mt-1.5">
-            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {pro.location}</span>
-            <span className="flex items-center gap-1"><Star className="h-3 w-3 text-amber-500" /> {pro.rating}</span>
+            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {displayLocation}</span>
+            <span className="flex items-center gap-1"><Star className="h-3 w-3 text-amber-500 fill-amber-500" /> {pro.rating}</span>
             <span>{pro.projectsCompleted} {t("proHub.common.projects")}</span>
           </div>
           <div className="flex gap-1.5 mt-2 flex-wrap">
@@ -770,10 +846,31 @@ function ProfessionalCard({ pro }: { pro: ProProfessional }) {
               <span key={i} className="text-[9px] font-body bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{s}</span>
             ))}
           </div>
+          {/* Review highlight (always visible regardless of plan) */}
+          {pro.reviewHighlights && pro.reviewHighlights.length > 0 && (
+            <p className="text-[10px] font-body text-muted-foreground/80 italic mt-2 line-clamp-1">
+              "{pro.reviewHighlights[0]}"
+            </p>
+          )}
         </div>
-        <button className="shrink-0 text-[10px] font-display font-semibold text-foreground border border-border rounded-full px-3 py-1.5 hover:bg-muted transition-colors">
-          {t("proHub.client.requestIntro")}
-        </button>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          {user && (
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleFav(); }}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                isFav ? "bg-[#D4603A]/10 text-[#D4603A]" : "text-muted-foreground hover:text-[#D4603A]"
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${isFav ? "fill-[#D4603A]" : ""}`} />
+            </button>
+          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); onRequestIntro(); }}
+            className="text-[10px] font-display font-semibold text-white bg-[#D4603A] rounded-full px-3 py-1.5 hover:opacity-90 transition-opacity"
+          >
+            {t("proHub.client.requestIntro")}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -784,6 +881,347 @@ function EmptyState({ message }: { message: string }) {
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <FileText className="h-8 w-8 text-muted-foreground/30 mb-3" />
       <p className="text-sm font-body text-muted-foreground">{message}</p>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PRO DETAIL VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+function ProDetailView({
+  pro, onBack, onRequestIntro,
+}: {
+  pro: ProProfessional;
+  onBack: () => void;
+  onRequestIntro: () => void;
+}) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isFavourite: isFavP, toggle: toggleP } = useFavouritePartners();
+  const { isFavourite: isFavA, toggle: toggleA } = useFavouriteArchitects();
+  const isFav = pro.type === "supplier" ? isFavP(pro.id) : isFavA(pro.id);
+  const toggleFav = () => pro.type === "supplier" ? toggleP(pro.id) : toggleA(pro.id);
+
+  const vis = getProVisibility(pro);
+  const displayName = getProDisplayName(pro);
+  const displayCompany = getProDisplayCompany(pro);
+  const displayLocation = getProDisplayLocation(pro);
+  const flag = getProFlag(pro);
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour
+      </button>
+
+      {/* Header */}
+      <div className="border border-border rounded-xl p-6 bg-card">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-lg font-display font-bold text-white ${
+              pro.type === "supplier" ? "bg-blue-600" : "bg-emerald-600"
+            }`}>
+              {vis === "anonymous" ? "?" : displayName.charAt(0)}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                {vis === "anonymous" && <Shield className="h-4 w-4 text-muted-foreground" />}
+                <h2 className="font-display text-xl font-bold text-foreground">{displayName}</h2>
+                {flag && <span className="text-lg">{flag}</span>}
+                <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                  pro.type === "supplier" ? "bg-blue-50 text-blue-700" : "bg-emerald-50 text-emerald-700"
+                }`}>
+                  {pro.type === "supplier" ? t("proHub.common.supplier") : t("proHub.common.architect")}
+                </span>
+                {vis === "featured" && (
+                  <span className="text-[8px] font-display font-bold uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                    <Star className="h-2.5 w-2.5 inline fill-amber-500 text-amber-500" /> Premium
+                  </span>
+                )}
+              </div>
+              {displayCompany ? (
+                <p className="text-sm font-body text-muted-foreground mt-0.5">{displayCompany}</p>
+              ) : (
+                <p className="text-xs font-body text-muted-foreground/60 mt-0.5 italic">Identité révélée après mise en relation</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {user && (
+              <button
+                onClick={toggleFav}
+                className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all ${
+                  isFav ? "bg-[#D4603A]/10 border-[#D4603A]/20 text-[#D4603A]" : "border-border text-muted-foreground hover:text-[#D4603A]"
+                }`}
+              >
+                <Heart className={`h-5 w-5 ${isFav ? "fill-[#D4603A]" : ""}`} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Stats — always visible regardless of plan */}
+        <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-border">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1">
+              <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+              <span className="font-display font-bold text-lg">{pro.rating}</span>
+            </div>
+            <p className="text-[10px] font-body text-muted-foreground">Note moyenne</p>
+          </div>
+          <div className="text-center">
+            <span className="font-display font-bold text-lg">{pro.projectsCompleted}</span>
+            <p className="text-[10px] font-body text-muted-foreground">Projets réalisés</p>
+          </div>
+          <div className="text-center">
+            <span className="font-display font-bold text-lg flex items-center justify-center gap-1">
+              {flag && <span>{flag}</span>}
+              <MapPin className="h-4 w-4 text-muted-foreground" /> {displayLocation}
+            </span>
+            <p className="text-[10px] font-body text-muted-foreground">Localisation</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Specialties — always visible */}
+      <div>
+        <h3 className="font-display font-bold text-sm text-foreground mb-3">Spécialités</h3>
+        <div className="flex gap-2 flex-wrap">
+          {pro.specialties.map((s, i) => (
+            <span key={i} className="text-xs font-body bg-card border border-border text-foreground px-3 py-1.5 rounded-full">
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Review highlights — always visible (key selling point) */}
+      {pro.reviewHighlights && pro.reviewHighlights.length > 0 && (
+        <div>
+          <h3 className="font-display font-bold text-sm text-foreground mb-3">Avis des clients précédents</h3>
+          <div className="space-y-2">
+            {pro.reviewHighlights.map((review, i) => (
+              <div key={i} className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-card border border-border">
+                <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0 mt-0.5" />
+                <p className="text-xs font-body text-muted-foreground italic">"{review}"</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Trust signals */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-card border border-border">
+          <Shield className="h-4 w-4 text-[#D4603A] shrink-0" />
+          <span className="text-[11px] font-body text-muted-foreground">Vérifié par Terrassea</span>
+        </div>
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-card border border-border">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span className="text-[11px] font-body text-muted-foreground">Profil complet</span>
+        </div>
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-card border border-border">
+          <MessageSquare className="h-4 w-4 text-blue-600 shrink-0" />
+          <span className="text-[11px] font-body text-muted-foreground">Répond sous 24h</span>
+        </div>
+      </div>
+
+      {/* Anonymous notice */}
+      {vis !== "featured" && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-amber-50/50 border border-amber-100">
+          <Shield className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-[11px] font-display font-semibold text-amber-800">Identité protégée</p>
+            <p className="text-[10px] font-body text-amber-700">
+              {vis === "anonymous"
+                ? "Ce professionnel n'est pas identifiable pour préserver l'équité du processus. Vous pouvez évaluer sa qualité via sa note, ses avis et ses spécialités. Son identité sera révélée après la mise en relation via Terrassea."
+                : "Le nom complet et la société de ce professionnel seront révélés après une mise en relation validée par Terrassea."}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-3">
+        <button
+          onClick={onRequestIntro}
+          className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-display font-bold bg-[#D4603A] text-white rounded-xl hover:opacity-90 transition-opacity"
+        >
+          <Send className="h-4 w-4" /> Demander une introduction
+        </button>
+        <button
+          onClick={() => navigate("/messages")}
+          className="flex items-center justify-center gap-2 px-5 py-3 text-sm font-display font-semibold border border-border rounded-xl hover:border-foreground/30 transition-colors"
+        >
+          <MessageSquare className="h-4 w-4" /> Message
+        </button>
+      </div>
+
+      {/* How it works */}
+      <div className="border border-border rounded-xl p-5 bg-card">
+        <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">Comment ça marche ?</p>
+        <div className="space-y-2 text-xs font-body text-muted-foreground">
+          <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-[#D4603A] text-white flex items-center justify-center text-[9px] font-bold shrink-0">1</span> Vous demandez une introduction via Terrassea</p>
+          <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-[#D4603A] text-white flex items-center justify-center text-[9px] font-bold shrink-0">2</span> Notre équipe vérifie la compatibilité et met en relation</p>
+          <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-[#D4603A] text-white flex items-center justify-center text-[9px] font-bold shrink-0">3</span> L'identité complète est révélée et vous échangez via Terrassea</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// REQUEST INTRO FORM
+// ══════════════════════════════════════════════════════════════════════════════
+
+function RequestIntroForm({
+  pro, store, onBack, onSubmitted,
+}: {
+  pro: ProProfessional;
+  store: ProServiceStore;
+  onBack: () => void;
+  onSubmitted: () => void;
+}) {
+  const { t } = useTranslation();
+  const { profile } = useAuth();
+  const { data: realProjects = [] } = useClientProjects();
+  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const canSubmit = message.trim().length > 10;
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    // Add connection to store
+    setTimeout(() => {
+      store.addConnection({
+        projectId: selectedProjectId || "general",
+        professionalId: pro.id,
+        status: "pending",
+        connectedAt: new Date().toISOString().split("T")[0],
+      });
+      setSubmitting(false);
+      onSubmitted();
+    }, 800);
+  };
+
+  const inputClass = "w-full text-sm font-body bg-white border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour au profil
+      </button>
+
+      <div>
+        <h2 className="font-display text-lg font-bold tracking-tight mb-1">
+          Demander une introduction
+        </h2>
+        <p className="text-sm font-body text-muted-foreground">
+          Terrassea va mettre en relation {profile?.first_name || "vous"} avec <strong>{getProDisplayName(pro)}</strong>.
+        </p>
+      </div>
+
+      {/* Pro summary */}
+      <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-card border border-border">
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold text-white ${
+          pro.type === "supplier" ? "bg-blue-600" : "bg-emerald-600"
+        }`}>
+          {pro.name.charAt(0)}
+        </div>
+        <div>
+          <p className="text-sm font-display font-semibold text-foreground">{getProDisplayName(pro)}</p>
+          <p className="text-[11px] font-body text-muted-foreground">{getProDisplayCompany(pro) || getProDisplayLocation(pro)}</p>
+        </div>
+        <div className="ml-auto flex items-center gap-1">
+          <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+          <span className="text-xs font-display font-semibold">{pro.rating}</span>
+        </div>
+      </div>
+
+      {/* Link to project (optional, uses real dashboard projects) */}
+      <div>
+        <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">
+          Lier à un projet (optionnel)
+        </label>
+        <select
+          value={selectedProjectId}
+          onChange={(e) => setSelectedProjectId(e.target.value)}
+          className={inputClass}
+        >
+          <option value="">Aucun projet — demande générale</option>
+          {realProjects.map((p) => (
+            <option key={p.id} value={p.id}>{p.name} — {p.city || ""}</option>
+          ))}
+        </select>
+        <p className="text-[9px] font-body text-muted-foreground mt-1">Vos projets du dashboard sont synchronisés ici.</p>
+      </div>
+
+      {/* Message */}
+      <div>
+        <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">
+          Votre message *
+        </label>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Décrivez brièvement votre besoin : type d'établissement, style recherché, délai, budget indicatif…"
+          rows={5}
+          className={`${inputClass} resize-none`}
+        />
+      </div>
+
+      {/* What happens */}
+      <div className="border border-border rounded-xl p-4 bg-card">
+        <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          Que se passe-t-il ensuite ?
+        </p>
+        <div className="space-y-1.5 text-xs font-body text-muted-foreground">
+          <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[9px] font-display font-bold shrink-0">1</span> Votre demande est envoyée à notre équipe</p>
+          <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[9px] font-display font-bold shrink-0">2</span> Nous vérifions la compatibilité et contactons le professionnel</p>
+          <p className="flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[9px] font-display font-bold shrink-0">3</span> Vous recevez une notification et pouvez échanger via la messagerie</p>
+        </div>
+      </div>
+
+      {/* Security note */}
+      <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-blue-50/50 border border-blue-100">
+        <Shield className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+        <p className="text-[11px] font-body text-blue-700">
+          Vos coordonnées ne sont pas partagées. Seul votre prénom et votre ville seront communiqués au professionnel. Tout échange passe par la messagerie Terrassea.
+        </p>
+      </div>
+
+      {/* Submit */}
+      <div className="flex gap-3">
+        <button
+          onClick={handleSubmit}
+          disabled={!canSubmit || submitting}
+          className="flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-[#D4603A] text-white rounded-full hover:opacity-90 transition-opacity disabled:opacity-40"
+        >
+          {submitting ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Send className="h-4 w-4" />
+          )}
+          Envoyer la demande
+        </button>
+        <button
+          onClick={onBack}
+          className="px-6 py-3 font-display font-semibold text-sm text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
+        >
+          Annuler
+        </button>
+      </div>
     </div>
   );
 }
