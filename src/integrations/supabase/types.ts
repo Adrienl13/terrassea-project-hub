@@ -572,6 +572,62 @@ export type Database = {
           },
         ]
       }
+      partner_analytics: {
+        Row: {
+          avg_response_hours: number | null
+          commission_amount: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          id: string
+          orders_count: number | null
+          orders_value: number | null
+          partner_id: string
+          period_date: string
+          quote_requests: number | null
+          quotes_accepted: number | null
+          quotes_sent: number | null
+          views: number | null
+        }
+        Insert: {
+          avg_response_hours?: number | null
+          commission_amount?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          orders_count?: number | null
+          orders_value?: number | null
+          partner_id: string
+          period_date: string
+          quote_requests?: number | null
+          quotes_accepted?: number | null
+          quotes_sent?: number | null
+          views?: number | null
+        }
+        Update: {
+          avg_response_hours?: number | null
+          commission_amount?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          orders_count?: number | null
+          orders_value?: number | null
+          partner_id?: string
+          period_date?: string
+          quote_requests?: number | null
+          quotes_accepted?: number | null
+          quotes_sent?: number | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_analytics_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_api_connections: {
         Row: {
           consecutive_errors: number | null
@@ -864,6 +920,85 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_loyalty: {
+        Row: {
+          created_at: string | null
+          id: string
+          lifetime_points: number | null
+          partner_id: string
+          points_balance: number | null
+          tier: string | null
+          tier_locked_until: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lifetime_points?: number | null
+          partner_id: string
+          points_balance?: number | null
+          tier?: string | null
+          tier_locked_until?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lifetime_points?: number | null
+          partner_id?: string
+          points_balance?: number | null
+          tier?: string | null
+          tier_locked_until?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_loyalty_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: true
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_points_history: {
+        Row: {
+          action: string
+          created_at: string | null
+          description: string | null
+          id: string
+          partner_id: string
+          points: number
+          reference_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          partner_id: string
+          points: number
+          reference_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          partner_id?: string
+          points?: number
+          reference_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_points_history_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]
