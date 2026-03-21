@@ -98,7 +98,7 @@ const Products = () => {
 
     // Supplier filter from URL param — match by partner_id (if partner found) or by slug in text fields
     if (supplierSlug) {
-      const partnerId = supplierPartner ? (supplierPartner as any).id : null;
+      const partnerId = supplierPartner?.id ?? null;
       result = result.filter(
         (p) =>
           (partnerId && p.partner_id === partnerId) ||

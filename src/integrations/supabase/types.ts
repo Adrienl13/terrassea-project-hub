@@ -586,6 +586,59 @@ export type Database = {
           },
         ]
       }
+      partner_contact_requests: {
+        Row: {
+          budget_range: string | null
+          company: string | null
+          created_at: string | null
+          email: string
+          id: string
+          message: string | null
+          name: string
+          partner_id: string | null
+          phone: string | null
+          project_type: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          budget_range?: string | null
+          company?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          partner_id?: string | null
+          phone?: string | null
+          project_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          budget_range?: string | null
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          partner_id?: string | null
+          phone?: string | null
+          project_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_contact_requests_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_featured_products: {
         Row: {
           boosted_at: string | null

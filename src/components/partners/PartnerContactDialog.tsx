@@ -23,17 +23,24 @@ export default function PartnerContactDialog({ open, onOpenChange, partnerId, pa
     e.preventDefault();
     setLoading(true);
 
-    const form = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);
+    const quantity = formData.get("quantity") as string;
+    const date = formData.get("date") as string;
+    const country = formData.get("country") as string;
     const payload = {
       partner_id: partnerId,
-      contact_name: form.get("name") as string,
-      contact_company: form.get("company") as string,
-      contact_country: form.get("country") as string,
-      project_type: form.get("project_type") as string,
-      estimated_quantity: form.get("quantity") as string,
-      budget_range: form.get("budget") as string,
-      project_date: form.get("date") as string,
-      message: form.get("message") as string,
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      company: formData.get("company") as string || null,
+      phone: formData.get("phone") as string || null,
+      project_type: formData.get("project_type") as string || null,
+      budget_range: formData.get("budget") as string || null,
+      message: [
+        formData.get("message") as string,
+        quantity ? `Quantity: ${quantity}` : null,
+        date ? `Date: ${date}` : null,
+        country ? `Country: ${country}` : null,
+      ].filter(Boolean).join("\n") || null,
     };
 
     const { error } = await supabase.from("partner_contact_requests").insert(payload);
@@ -63,8 +70,18 @@ export default function PartnerContactDialog({ open, onOpenChange, partnerId, pa
               <Input name="name" required className="mt-1" />
             </div>
             <div>
+              <Label className="font-display text-xs">{t('auth.email')} *</Label>
+              <Input name="email" type="email" required className="mt-1" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <Label className="font-display text-xs">{t('partners.company')}</Label>
               <Input name="company" className="mt-1" />
+            </div>
+            <div>
+              <Label className="font-display text-xs">{t('auth.phone')}</Label>
+              <Input name="phone" className="mt-1" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
