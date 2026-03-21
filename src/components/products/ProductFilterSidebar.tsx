@@ -57,22 +57,22 @@ export const COLOR_OPTIONS = [
 ];
 
 export const FEATURE_OPTIONS = [
-  { key: "is_stackable", label: "Stackable" },
-  { key: "is_chr_heavy_use", label: "Heavy-duty CHR" },
-  { key: "uv_resistant", label: "UV Resistant" },
-  { key: "weather_resistant", label: "Weather Resistant" },
-  { key: "lightweight", label: "Lightweight" },
-  { key: "easy_maintenance", label: "Easy Maintenance" },
-  { key: "fire_retardant", label: "Fire Retardant" },
-  { key: "customizable", label: "Customizable" },
+  { key: "is_stackable", labelKey: "filters.feat_stackable" },
+  { key: "is_chr_heavy_use", labelKey: "filters.feat_heavyDutyChr" },
+  { key: "uv_resistant", labelKey: "filters.feat_uvResistant" },
+  { key: "weather_resistant", labelKey: "filters.feat_weatherResistant" },
+  { key: "lightweight", labelKey: "filters.feat_lightweight" },
+  { key: "easy_maintenance", labelKey: "filters.feat_easyMaintenance" },
+  { key: "fire_retardant", labelKey: "filters.feat_fireRetardant" },
+  { key: "customizable", labelKey: "filters.feat_customizable" },
 ];
 
 export const STOCK_OPTIONS = [
-  { key: "available", label: "In stock" },
-  { key: "low_stock", label: "Low stock" },
-  { key: "production", label: "Quick production" },
-  { key: "on_order", label: "On order" },
-  { key: "to_confirm", label: "To confirm" },
+  { key: "available", labelKey: "filters.stock_available" },
+  { key: "low_stock", labelKey: "filters.stock_lowStock" },
+  { key: "production", labelKey: "filters.stock_production" },
+  { key: "on_order", labelKey: "filters.stock_onOrder" },
+  { key: "to_confirm", labelKey: "filters.stock_toConfirm" },
 ];
 
 export const SORT_OPTIONS = [
@@ -82,6 +82,72 @@ export const SORT_OPTIONS = [
   { key: "newest", labelKey: "filters.newest" },
   { key: "in_stock", labelKey: "filters.inStockFirst" },
 ];
+
+/** Maps internal option values to their i18n keys inside the "filters" namespace. */
+export const CATEGORY_LABEL_KEYS: Record<string, string> = {
+  "Chairs": "filters.cat_chairs",
+  "Armchairs": "filters.cat_armchairs",
+  "Stools": "filters.cat_stools",
+  "Tables": "filters.cat_tables",
+  "Table Bases": "filters.cat_tableBases",
+  "Tabletops": "filters.cat_tabletops",
+  "Coffee Tables": "filters.cat_coffeeTables",
+  "High Tables": "filters.cat_highTables",
+  "Sofas": "filters.cat_sofas",
+  "Sun Loungers": "filters.cat_sunLoungers",
+  "Parasols": "filters.cat_parasols",
+  "Benches": "filters.cat_benches",
+};
+
+export const USAGE_LABEL_KEYS: Record<string, string> = {
+  "restaurant": "filters.restaurant",
+  "café": "filters.cafe",
+  "hotel": "filters.hotel",
+  "beach": "filters.beach",
+  "pool": "filters.pool",
+  "rooftop": "filters.rooftop",
+  "community": "filters.community",
+  "camping": "filters.camping",
+  "indoor": "filters.indoor",
+  "outdoor": "filters.outdoor",
+};
+
+export const MATERIAL_LABEL_KEYS: Record<string, string> = {
+  "aluminium": "filters.mat_aluminium",
+  "polypropylene": "filters.mat_polypropylene",
+  "wood": "filters.mat_wood",
+  "bamboo": "filters.mat_bamboo",
+  "HPL": "filters.mat_hpl",
+  "steel": "filters.mat_steel",
+  "rope": "filters.mat_rope",
+  "synthetic rattan": "filters.mat_syntheticRattan",
+  "textile": "filters.mat_textile",
+  "technical fabric": "filters.mat_technicalFabric",
+};
+
+export const STYLE_LABEL_KEYS: Record<string, string> = {
+  "bistro": "filters.sty_bistro",
+  "contemporary": "filters.sty_contemporary",
+  "mediterranean": "filters.sty_mediterranean",
+  "design": "filters.sty_design",
+  "natural": "filters.sty_natural",
+  "chic": "filters.sty_chic",
+  "minimalist": "filters.sty_minimalist",
+  "contract": "filters.sty_contract",
+  "traditional": "filters.sty_traditional",
+};
+
+export const COLOR_LABEL_KEYS: Record<string, string> = {
+  "black": "filters.col_black",
+  "white": "filters.col_white",
+  "blue": "filters.col_blue",
+  "green": "filters.col_green",
+  "terracotta": "filters.col_terracotta",
+  "beige": "filters.col_beige",
+  "grey": "filters.col_grey",
+  "wood effect": "filters.col_woodEffect",
+  "custom": "filters.col_custom",
+};
 
 function toggle(arr: string[], value: string): string[] {
   return arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
@@ -124,7 +190,7 @@ export default function ProductFilterSidebar({
               {t('filters.type')}
             </AccordionTrigger>
             <AccordionContent>
-              <CheckboxGroup options={CATEGORY_OPTIONS} selected={filters.categories} onToggle={(v) => update({ categories: toggle(filters.categories, v) })} />
+              <CheckboxGroup options={CATEGORY_OPTIONS} selected={filters.categories} labelKeys={CATEGORY_LABEL_KEYS} onToggle={(v) => update({ categories: toggle(filters.categories, v) })} />
             </AccordionContent>
           </AccordionItem>
 
@@ -133,7 +199,7 @@ export default function ProductFilterSidebar({
               {t('filters.usage')}
             </AccordionTrigger>
             <AccordionContent>
-              <CheckboxGroup options={USAGE_OPTIONS} selected={filters.usage} onToggle={(v) => update({ usage: toggle(filters.usage, v) })} />
+              <CheckboxGroup options={USAGE_OPTIONS} selected={filters.usage} labelKeys={USAGE_LABEL_KEYS} onToggle={(v) => update({ usage: toggle(filters.usage, v) })} />
             </AccordionContent>
           </AccordionItem>
 
@@ -142,7 +208,7 @@ export default function ProductFilterSidebar({
               {t('filters.material')}
             </AccordionTrigger>
             <AccordionContent>
-              <CheckboxGroup options={MATERIAL_OPTIONS} selected={filters.materials} onToggle={(v) => update({ materials: toggle(filters.materials, v) })} />
+              <CheckboxGroup options={MATERIAL_OPTIONS} selected={filters.materials} labelKeys={MATERIAL_LABEL_KEYS} onToggle={(v) => update({ materials: toggle(filters.materials, v) })} />
             </AccordionContent>
           </AccordionItem>
 
@@ -151,7 +217,7 @@ export default function ProductFilterSidebar({
               {t('filters.style')}
             </AccordionTrigger>
             <AccordionContent>
-              <CheckboxGroup options={STYLE_OPTIONS} selected={filters.styles} onToggle={(v) => update({ styles: toggle(filters.styles, v) })} />
+              <CheckboxGroup options={STYLE_OPTIONS} selected={filters.styles} labelKeys={STYLE_LABEL_KEYS} onToggle={(v) => update({ styles: toggle(filters.styles, v) })} />
             </AccordionContent>
           </AccordionItem>
 
@@ -175,10 +241,10 @@ export default function ProductFilterSidebar({
               {t('filters.features')}
             </AccordionTrigger>
             <AccordionContent>
-              <CheckboxGroup
-                options={FEATURE_OPTIONS.map((f) => f.label)}
-                selected={filters.features.map((k) => FEATURE_OPTIONS.find((f) => f.key === k)?.label || k)}
-                onToggle={(label) => { const feat = FEATURE_OPTIONS.find((f) => f.label === label); if (feat) update({ features: toggle(filters.features, feat.key) }); }}
+              <KeyLabelCheckboxGroup
+                options={FEATURE_OPTIONS}
+                selected={filters.features}
+                onToggle={(key) => update({ features: toggle(filters.features, key) })}
               />
             </AccordionContent>
           </AccordionItem>
@@ -188,10 +254,10 @@ export default function ProductFilterSidebar({
               {t('filters.stock')}
             </AccordionTrigger>
             <AccordionContent>
-              <CheckboxGroup
-                options={STOCK_OPTIONS.map((s) => s.label)}
-                selected={filters.stock.map((k) => STOCK_OPTIONS.find((s) => s.key === k)?.label || k)}
-                onToggle={(label) => { const opt = STOCK_OPTIONS.find((s) => s.label === label); if (opt) update({ stock: toggle(filters.stock, opt.key) }); }}
+              <KeyLabelCheckboxGroup
+                options={STOCK_OPTIONS}
+                selected={filters.stock}
+                onToggle={(key) => update({ stock: toggle(filters.stock, key) })}
               />
             </AccordionContent>
           </AccordionItem>
@@ -201,7 +267,7 @@ export default function ProductFilterSidebar({
               {t('filters.color')}
             </AccordionTrigger>
             <AccordionContent>
-              <CheckboxGroup options={COLOR_OPTIONS} selected={filters.colors} onToggle={(v) => update({ colors: toggle(filters.colors, v) })} />
+              <CheckboxGroup options={COLOR_OPTIONS} selected={filters.colors} labelKeys={COLOR_LABEL_KEYS} onToggle={(v) => update({ colors: toggle(filters.colors, v) })} />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -218,13 +284,32 @@ export default function ProductFilterSidebar({
   );
 }
 
-function CheckboxGroup({ options, selected, onToggle }: { options: string[]; selected: string[]; onToggle: (value: string) => void }) {
+function CheckboxGroup({ options, selected, labelKeys, onToggle }: { options: string[]; selected: string[]; labelKeys?: Record<string, string>; onToggle: (value: string) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-2.5 pb-1">
       {options.map((option) => (
         <label key={option} className="flex items-center gap-2.5 cursor-pointer group/check">
           <Checkbox checked={selected.includes(option)} onCheckedChange={() => onToggle(option)} className="h-3.5 w-3.5 rounded-sm border-muted-foreground/40 data-[state=checked]:border-foreground data-[state=checked]:bg-foreground" />
-          <span className="text-xs font-body text-muted-foreground group-hover/check:text-foreground transition-colors capitalize">{option}</span>
+          <span className="text-xs font-body text-muted-foreground group-hover/check:text-foreground transition-colors capitalize">
+            {labelKeys?.[option] ? t(labelKeys[option]) : option}
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function KeyLabelCheckboxGroup({ options, selected, onToggle }: { options: { key: string; labelKey: string }[]; selected: string[]; onToggle: (key: string) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-2.5 pb-1">
+      {options.map((option) => (
+        <label key={option.key} className="flex items-center gap-2.5 cursor-pointer group/check">
+          <Checkbox checked={selected.includes(option.key)} onCheckedChange={() => onToggle(option.key)} className="h-3.5 w-3.5 rounded-sm border-muted-foreground/40 data-[state=checked]:border-foreground data-[state=checked]:bg-foreground" />
+          <span className="text-xs font-body text-muted-foreground group-hover/check:text-foreground transition-colors capitalize">
+            {t(option.labelKey)}
+          </span>
         </label>
       ))}
     </div>

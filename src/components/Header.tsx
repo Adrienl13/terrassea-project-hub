@@ -18,77 +18,77 @@ const CATEGORIES = [
     labelKey: "categories.chairs",
     href: "/products?category=chairs",
     subcategories: [
-      { label: "Bistrot chairs", href: "/products?category=chairs&sub=bistrot" },
-      { label: "Stackable chairs", href: "/products?category=chairs&sub=stackable" },
-      { label: "4-leg chairs", href: "/products?category=chairs&sub=4-leg" },
-      { label: "Folding chairs", href: "/products?category=chairs&sub=folding" },
+      { labelKey: "categories.sub.bistrot", href: "/products?category=chairs&sub=bistrot" },
+      { labelKey: "categories.sub.stackableChairs", href: "/products?category=chairs&sub=stackable" },
+      { labelKey: "categories.sub.fourLegChairs", href: "/products?category=chairs&sub=4-leg" },
+      { labelKey: "categories.sub.foldingChairs", href: "/products?category=chairs&sub=folding" },
     ],
   },
   {
     labelKey: "categories.armchairs",
     href: "/products?category=armchairs",
     subcategories: [
-      { label: "Rope armchairs", href: "/products?category=armchairs&sub=rope" },
-      { label: "Teak armchairs", href: "/products?category=armchairs&sub=teak" },
-      { label: "Lounge armchairs", href: "/products?category=armchairs&sub=lounge" },
+      { labelKey: "categories.sub.ropeArmchairs", href: "/products?category=armchairs&sub=rope" },
+      { labelKey: "categories.sub.teakArmchairs", href: "/products?category=armchairs&sub=teak" },
+      { labelKey: "categories.sub.loungeArmchairs", href: "/products?category=armchairs&sub=lounge" },
     ],
   },
   {
     labelKey: "categories.tables",
     href: "/products?category=tables",
     subcategories: [
-      { label: "Dining tables", href: "/products?category=tables&sub=dining" },
-      { label: "Coffee tables", href: "/products?category=tables&sub=coffee" },
-      { label: "High tables", href: "/products?category=tables&sub=high" },
-      { label: "Folding tables", href: "/products?category=tables&sub=folding" },
-      { label: "Table bases", href: "/products?category=tables&sub=base" },
+      { labelKey: "categories.sub.diningTables", href: "/products?category=tables&sub=dining" },
+      { labelKey: "categories.sub.coffeeTables", href: "/products?category=tables&sub=coffee" },
+      { labelKey: "categories.sub.highTables", href: "/products?category=tables&sub=high" },
+      { labelKey: "categories.sub.foldingTables", href: "/products?category=tables&sub=folding" },
+      { labelKey: "categories.sub.tableBases", href: "/products?category=tables&sub=base" },
     ],
   },
   {
     labelKey: "categories.parasols",
     href: "/products?category=parasols",
     subcategories: [
-      { label: "Centre-pole", href: "/products?category=parasols&sub=centre-pole" },
-      { label: "Cantilever", href: "/products?category=parasols&sub=cantilever" },
-      { label: "Wall-mounted", href: "/products?category=parasols&sub=wall" },
-      { label: "Giant parasols", href: "/products?category=parasols&sub=giant" },
+      { labelKey: "categories.sub.centrePole", href: "/products?category=parasols&sub=centre-pole" },
+      { labelKey: "categories.sub.cantilever", href: "/products?category=parasols&sub=cantilever" },
+      { labelKey: "categories.sub.wallMounted", href: "/products?category=parasols&sub=wall" },
+      { labelKey: "categories.sub.giantParasols", href: "/products?category=parasols&sub=giant" },
     ],
   },
   {
     labelKey: "categories.sunLoungers",
     href: "/products?category=sun-loungers",
     subcategories: [
-      { label: "Pool loungers", href: "/products?category=sun-loungers&sub=pool" },
-      { label: "Beach loungers", href: "/products?category=sun-loungers&sub=beach" },
-      { label: "Daybeds", href: "/products?category=sun-loungers&sub=daybed" },
+      { labelKey: "categories.sub.poolLoungers", href: "/products?category=sun-loungers&sub=pool" },
+      { labelKey: "categories.sub.beachLoungers", href: "/products?category=sun-loungers&sub=beach" },
+      { labelKey: "categories.sub.daybeds", href: "/products?category=sun-loungers&sub=daybed" },
     ],
   },
   {
     labelKey: "categories.sofas",
     href: "/products?category=sofas",
     subcategories: [
-      { label: "2-seater sofas", href: "/products?category=sofas&sub=2-seater" },
-      { label: "3-seater sofas", href: "/products?category=sofas&sub=3-seater" },
-      { label: "Modular sofas", href: "/products?category=sofas&sub=modular" },
+      { labelKey: "categories.sub.twoSeaterSofas", href: "/products?category=sofas&sub=2-seater" },
+      { labelKey: "categories.sub.threeSeaterSofas", href: "/products?category=sofas&sub=3-seater" },
+      { labelKey: "categories.sub.modularSofas", href: "/products?category=sofas&sub=modular" },
     ],
   },
   {
     labelKey: "categories.barStools",
     href: "/products?category=bar-stools",
     subcategories: [
-      { label: "With footrest", href: "/products?category=bar-stools&sub=footrest" },
-      { label: "Adjustable height", href: "/products?category=bar-stools&sub=adjustable" },
-      { label: "Stackable stools", href: "/products?category=bar-stools&sub=stackable" },
+      { labelKey: "categories.sub.withFootrest", href: "/products?category=bar-stools&sub=footrest" },
+      { labelKey: "categories.sub.adjustableHeight", href: "/products?category=bar-stools&sub=adjustable" },
+      { labelKey: "categories.sub.stackableStools", href: "/products?category=bar-stools&sub=stackable" },
     ],
   },
   {
     labelKey: "categories.accessories",
     href: "/products?category=accessories",
     subcategories: [
-      { label: "Cushions", href: "/products?category=accessories&sub=cushions" },
-      { label: "Planters", href: "/products?category=accessories&sub=planters" },
-      { label: "Covers & protection", href: "/products?category=accessories&sub=covers" },
-      { label: "Parasol bases", href: "/products?category=accessories&sub=bases" },
+      { labelKey: "categories.sub.cushions", href: "/products?category=accessories&sub=cushions" },
+      { labelKey: "categories.sub.planters", href: "/products?category=accessories&sub=planters" },
+      { labelKey: "categories.sub.coversProtection", href: "/products?category=accessories&sub=covers" },
+      { labelKey: "categories.sub.parasolBases", href: "/products?category=accessories&sub=bases" },
     ],
   },
 ];
@@ -257,12 +257,12 @@ const Header = () => {
             </p>
             {CATEGORIES.find((c) => c.labelKey === openCat)?.subcategories.map((sub) => (
               <Link
-                key={sub.label}
+                key={sub.labelKey}
                 to={sub.href}
                 onClick={() => setOpenCat(null)}
                 className="block px-4 py-2 text-sm font-body text-white/60 hover:bg-white/5 hover:text-terracotta transition-colors"
               >
-                {sub.label}
+                {t(sub.labelKey)}
               </Link>
             ))}
             <Link
@@ -380,12 +380,12 @@ const Header = () => {
                             <div className="pl-4 pb-2 space-y-0.5">
                               {cat.subcategories.map((sub) => (
                                 <Link
-                                  key={sub.label}
+                                  key={sub.labelKey}
                                   to={sub.href}
                                   onClick={closeMobile}
                                   className="block py-2 text-xs font-body text-muted-foreground hover:text-terracotta transition-colors"
                                 >
-                                  {sub.label}
+                                  {t(sub.labelKey)}
                                 </Link>
                               ))}
                               <Link

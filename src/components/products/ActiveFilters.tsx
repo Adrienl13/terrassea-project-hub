@@ -1,6 +1,15 @@
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import type { FilterState } from "./ProductFilterSidebar";
-import { FEATURE_OPTIONS, STOCK_OPTIONS } from "./ProductFilterSidebar";
+import {
+  FEATURE_OPTIONS,
+  STOCK_OPTIONS,
+  CATEGORY_LABEL_KEYS,
+  USAGE_LABEL_KEYS,
+  MATERIAL_LABEL_KEYS,
+  STYLE_LABEL_KEYS,
+  COLOR_LABEL_KEYS,
+} from "./ProductFilterSidebar";
 
 interface ActiveFiltersProps {
   filters: FilterState;
@@ -14,6 +23,7 @@ interface FilterChip {
 }
 
 export default function ActiveFilters({ filters, onChange, onClearAll }: ActiveFiltersProps) {
+  const { t } = useTranslation();
   const chips: FilterChip[] = [];
 
   const remove = (key: keyof FilterState, value: string) => {
@@ -22,26 +32,28 @@ export default function ActiveFilters({ filters, onChange, onClearAll }: ActiveF
   };
 
   filters.categories.forEach((v) =>
-    chips.push({ label: v, onRemove: () => remove("categories", v) })
+    chips.push({ label: CATEGORY_LABEL_KEYS[v] ? t(CATEGORY_LABEL_KEYS[v]) : v, onRemove: () => remove("categories", v) })
   );
   filters.usage.forEach((v) =>
-    chips.push({ label: v, onRemove: () => remove("usage", v) })
+    chips.push({ label: USAGE_LABEL_KEYS[v] ? t(USAGE_LABEL_KEYS[v]) : v, onRemove: () => remove("usage", v) })
   );
   filters.materials.forEach((v) =>
-    chips.push({ label: v, onRemove: () => remove("materials", v) })
+    chips.push({ label: MATERIAL_LABEL_KEYS[v] ? t(MATERIAL_LABEL_KEYS[v]) : v, onRemove: () => remove("materials", v) })
   );
   filters.styles.forEach((v) =>
-    chips.push({ label: v, onRemove: () => remove("styles", v) })
+    chips.push({ label: STYLE_LABEL_KEYS[v] ? t(STYLE_LABEL_KEYS[v]) : v, onRemove: () => remove("styles", v) })
   );
   filters.colors.forEach((v) =>
-    chips.push({ label: v, onRemove: () => remove("colors", v) })
+    chips.push({ label: COLOR_LABEL_KEYS[v] ? t(COLOR_LABEL_KEYS[v]) : v, onRemove: () => remove("colors", v) })
   );
   filters.features.forEach((v) => {
-    const label = FEATURE_OPTIONS.find((f) => f.key === v)?.label || v;
+    const feat = FEATURE_OPTIONS.find((f) => f.key === v);
+    const label = feat ? t(feat.labelKey) : v;
     chips.push({ label, onRemove: () => remove("features", v) });
   });
   filters.stock.forEach((v) => {
-    const label = STOCK_OPTIONS.find((s) => s.key === v)?.label || v;
+    const opt = STOCK_OPTIONS.find((s) => s.key === v);
+    const label = opt ? t(opt.labelKey) : v;
     chips.push({ label, onRemove: () => remove("stock", v) });
   });
 
@@ -70,7 +82,7 @@ export default function ActiveFilters({ filters, onChange, onClearAll }: ActiveF
         onClick={onClearAll}
         className="text-[11px] font-body text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
       >
-        Clear all
+        {t('filters.clearAll')}
       </button>
     </div>
   );
