@@ -2257,5 +2257,26 @@
     "addToProject": "Ajouter au projet",
     "createProjectCTA": "Créer un projet avec cette sélection",
     "noMatches": "Aucun produit correspondant trouvé. Essayez d'importer une autre photo."
+  },
+  "compatibility": {
+    "title": "Produits compatibles",
+    "exactMatch": "Correspondance exacte",
+    "sizeMatch": "Taille compatible",
+    "styleMatch": "Style similaire",
+    "from": "À partir de",
+    "add": "Ajouter au projet",
+    "sameCollection": "De la même collection",
+    "addCompleteSet": "Ajouter l'ensemble complet au projet",
+    "completeSetAdded": "{{count}} produits compatibles ajoutés au projet",
+    "group": {
+      "compatible_top": "Plateaux compatibles",
+      "compatible_base": "Piètements compatibles",
+      "matching_chair": "Chaises assorties",
+      "matching_table": "Tables assorties",
+      "compatible_parasol": "Parasols compatibles",
+      "compatible_base_parasol": "Pieds de parasol compatibles",
+      "matching_cushion": "Coussins assortis",
+      "same_collection": "Même collection"
+    }
   }
 }

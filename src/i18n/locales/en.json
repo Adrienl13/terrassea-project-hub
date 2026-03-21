@@ -2257,5 +2257,26 @@
     "addToProject": "Add to project",
     "createProjectCTA": "Create a project with this selection",
     "noMatches": "No matching products found. Try uploading a different photo."
+  },
+  "compatibility": {
+    "title": "Compatible products",
+    "exactMatch": "Exact match",
+    "sizeMatch": "Size match",
+    "styleMatch": "Style match",
+    "from": "From",
+    "add": "Add to project",
+    "sameCollection": "From the same collection",
+    "addCompleteSet": "Add complete set to project",
+    "completeSetAdded": "{{count}} compatible products added to project",
+    "group": {
+      "compatible_top": "Compatible tops",
+      "compatible_base": "Compatible bases",
+      "matching_chair": "Matching chairs",
+      "matching_table": "Matching tables",
+      "compatible_parasol": "Compatible parasols",
+      "compatible_base_parasol": "Compatible parasol bases",
+      "matching_cushion": "Matching cushions",
+      "same_collection": "Same collection"
+    }
   }
 }

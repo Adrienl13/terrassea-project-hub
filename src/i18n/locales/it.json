@@ -1992,5 +1992,26 @@
     "addToProject": "Aggiungi al progetto",
     "createProjectCTA": "Crea un progetto con questa selezione",
     "noMatches": "Nessun prodotto corrispondente trovato. Prova a caricare una foto diversa."
+  },
+  "compatibility": {
+    "title": "Prodotti compatibili",
+    "exactMatch": "Corrispondenza esatta",
+    "sizeMatch": "Dimensione compatibile",
+    "styleMatch": "Stile simile",
+    "from": "Da",
+    "add": "Aggiungi al progetto",
+    "sameCollection": "Dalla stessa collezione",
+    "addCompleteSet": "Aggiungi set completo al progetto",
+    "completeSetAdded": "{{count}} prodotti compatibili aggiunti al progetto",
+    "group": {
+      "compatible_top": "Piani compatibili",
+      "compatible_base": "Basi compatibili",
+      "matching_chair": "Sedie abbinate",
+      "matching_table": "Tavoli abbinati",
+      "compatible_parasol": "Ombrelloni compatibili",
+      "compatible_base_parasol": "Basi ombrellone compatibili",
+      "matching_cushion": "Cuscini abbinati",
+      "same_collection": "Stessa collezione"
+    }
   }
 }

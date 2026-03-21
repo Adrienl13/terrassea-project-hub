@@ -12,6 +12,7 @@ import {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import VendorOffers from "@/components/products/VendorOffers";
+import CompatibleProducts from "@/components/products/CompatibleProducts";
 import { fetchProductById, fetchProducts, type DBProduct } from "@/lib/products";
 import { fetchProductOffers } from "@/lib/productOffers";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
@@ -390,6 +391,9 @@ const ProductDetail = () => {
           </div>
         </section>
 
+
+        {/* Compatible products */}
+        <CompatibleProducts product={product} allProducts={allProducts} />
 
         {similar.length > 0 && (
           <section className="px-6 mt-20">

@@ -1992,5 +1992,26 @@
     "addToProject": "Añadir al proyecto",
     "createProjectCTA": "Crear un proyecto con esta selección",
     "noMatches": "No se encontraron productos coincidentes. Prueba a subir otra foto."
+  },
+  "compatibility": {
+    "title": "Productos compatibles",
+    "exactMatch": "Coincidencia exacta",
+    "sizeMatch": "Tamaño compatible",
+    "styleMatch": "Estilo similar",
+    "from": "Desde",
+    "add": "Añadir al proyecto",
+    "sameCollection": "De la misma colección",
+    "addCompleteSet": "Añadir conjunto completo al proyecto",
+    "completeSetAdded": "{{count}} productos compatibles añadidos al proyecto",
+    "group": {
+      "compatible_top": "Tableros compatibles",
+      "compatible_base": "Bases compatibles",
+      "matching_chair": "Sillas a juego",
+      "matching_table": "Mesas a juego",
+      "compatible_parasol": "Sombrillas compatibles",
+      "compatible_base_parasol": "Bases de sombrilla compatibles",
+      "matching_cushion": "Cojines a juego",
+      "same_collection": "Misma colección"
+    }
   }
 }
