@@ -5,14 +5,14 @@ export interface ProductOffer {
   product_id: string;
   partner_id: string;
   price: number | null;
-  currency: string;
-  stock_status: string;
+  currency: string | null;
+  stock_status: string | null;
   stock_quantity: number | null;
   delivery_delay_days: number | null;
-  minimum_order: number;
-  purchase_type: string;
+  minimum_order: number | null;
+  purchase_type: string | null;
   notes: string | null;
-  is_active: boolean;
+  is_active: boolean | null;
   partner?: {
     id: string;
     name: string;

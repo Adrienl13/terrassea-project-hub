@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,6 +67,7 @@ function InfoBlock({ icon, title, items }: {
 // ═══════════════════════════════════════════════════════════
 
 function SourcingCTA({ partnerType, slug }: { partnerType: string; slug: string }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -74,15 +76,15 @@ function SourcingCTA({ partnerType, slug }: { partnerType: string; slug: string 
       <div className="flex items-start gap-3 mb-6 bg-muted/50 rounded-xl p-4">
         <Lock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
         <p className="text-xs font-body text-muted-foreground leading-relaxed">
-          Full supplier identity is revealed only in a confirmed quote. All sourcing goes through Terrassea.
+          {t("partnerDetail.anonymityNotice")}
         </p>
       </div>
 
       <h3 className="font-display font-bold text-base text-foreground mb-2">
-        Source from this supplier
+        {t("partnerDetail.sourceFromSupplier")}
       </h3>
       <p className="text-sm font-body text-muted-foreground mb-5">
-        Browse their catalogue or create a project brief — we'll include this supplier in your curated proposals.
+        {t("partnerDetail.browseOrCreate")}
       </p>
 
       <button
@@ -90,33 +92,29 @@ function SourcingCTA({ partnerType, slug }: { partnerType: string; slug: string 
         className="w-full flex items-center justify-center gap-2 py-3 font-display font-semibold text-sm text-white rounded-full hover:opacity-90 transition-opacity mb-3"
         style={{ background: "#D4603A" }}
       >
-        See their products <ArrowRight className="h-4 w-4" />
+        {t("partnerDetail.seeProducts")} <ArrowRight className="h-4 w-4" />
       </button>
 
       <button
         onClick={() => navigate("/projects/new")}
         className="w-full flex items-center justify-center gap-2 py-2.5 font-display font-semibold text-sm text-foreground rounded-full border border-border hover:bg-muted/50 transition-colors mb-3"
       >
-        Start a project <ArrowRight className="h-4 w-4" />
+        {t("partnerDetail.startProject")} <ArrowRight className="h-4 w-4" />
       </button>
 
       <Link
         to="/pro-service"
         className="block text-center text-xs font-body text-muted-foreground hover:text-foreground transition-colors mb-5"
       >
-        Large project? Pro Service →
+        {t("partnerDetail.largeProjectProService")}
       </Link>
 
       {/* Trust signals */}
       <div className="space-y-2 pt-4 border-t border-border">
-        {[
-          "No direct supplier contact needed",
-          "Pricing consolidated in one quote",
-          "Free for hospitality professionals",
-        ].map(item => (
-          <div key={item} className="flex items-center gap-2 text-xs font-body text-muted-foreground">
+        {(["noDirectContact", "pricingConsolidated", "freeForProfessionals"] as const).map(key => (
+          <div key={key} className="flex items-center gap-2 text-xs font-body text-muted-foreground">
             <Shield className="h-3 w-3 text-green-600 flex-shrink-0" />
-            {item}
+            {t(`partnerDetail.${key}`)}
           </div>
         ))}
       </div>
@@ -148,6 +146,7 @@ function PartnerFavButton({ partnerId }: { partnerId: string }) {
 }
 
 export default function PartnerDetail() {
+  const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
 
   const { data: partner, isLoading } = useQuery({
@@ -189,9 +188,9 @@ export default function PartnerDetail() {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="pt-32 container mx-auto px-6 text-center">
-          <h1 className="font-display text-2xl font-bold text-foreground">Supplier not found</h1>
+          <h1 className="font-display text-2xl font-bold text-foreground">{t("partnerDetail.supplierNotFound")}</h1>
           <Link to="/partners" className="text-sm text-muted-foreground hover:text-foreground mt-4 inline-block">
-            ← Back to Partners
+            {t("partnerDetail.backToPartners")}
           </Link>
         </div>
         <Footer />
@@ -218,7 +217,7 @@ export default function PartnerDetail() {
             to="/partners"
             className="inline-flex items-center gap-1.5 text-sm font-body text-muted-foreground hover:text-foreground transition-colors mb-6"
           >
-            <ArrowLeft className="h-4 w-4" /> Back to Partner Network
+            <ArrowLeft className="h-4 w-4" /> {t("partnerDetail.backToPartnerNetwork")}
           </Link>
 
           <div className="flex items-center gap-5">
@@ -250,7 +249,7 @@ export default function PartnerDetail() {
                 {isFeatured && (
                   <span className="inline-flex items-center gap-1 text-xs font-display font-semibold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full">
                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
-                    Featured Partner
+                    {t("partnerDetail.featuredPartner")}
                   </span>
                 )}
               </div>
@@ -296,7 +295,7 @@ export default function PartnerDetail() {
                     {initial}
                   </div>
                   <p className="text-sm font-body text-muted-foreground">
-                    Gallery coming soon — contact via Terrassea for full catalogue
+                    {t("partnerDetail.galleryComing")}
                   </p>
                 </div>
               </div>
@@ -304,7 +303,7 @@ export default function PartnerDetail() {
               {/* About */}
               {ml(partner, 'description') && (
                 <div>
-                  <h2 className="font-display font-semibold text-lg text-foreground mb-2">About</h2>
+                  <h2 className="font-display font-semibold text-lg text-foreground mb-2">{t("partnerDetail.about")}</h2>
                   <p className="font-body text-muted-foreground leading-relaxed">
                     {ml(partner, 'description')}
                   </p>
@@ -316,19 +315,19 @@ export default function PartnerDetail() {
                 {partner.production_capacity && (
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
                     <p className="font-display font-bold text-foreground">{partner.production_capacity}</p>
-                    <p className="text-xs font-body text-muted-foreground mt-1">Production Capacity</p>
+                    <p className="text-xs font-body text-muted-foreground mt-1">{t("partnerDetail.productionCapacity")}</p>
                   </div>
                 )}
                 {partner.coverage_zone && (
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
                     <p className="font-display font-bold text-foreground">{partner.coverage_zone}</p>
-                    <p className="text-xs font-body text-muted-foreground mt-1">Coverage Zone</p>
+                    <p className="text-xs font-body text-muted-foreground mt-1">{t("partnerDetail.coverageZone")}</p>
                   </div>
                 )}
                 {partner.partner_subtype && (
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
                     <p className="font-display font-bold text-foreground">{partner.partner_subtype}</p>
-                    <p className="text-xs font-body text-muted-foreground mt-1">Subtype</p>
+                    <p className="text-xs font-body text-muted-foreground mt-1">{t("partnerDetail.subtype")}</p>
                   </div>
                 )}
               </div>
@@ -337,22 +336,22 @@ export default function PartnerDetail() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InfoBlock
                   icon={<Layers className="h-4 w-4" />}
-                  title="Specialties"
+                  title={t("partnerDetail.specialties")}
                   items={partner.specialties || []}
                 />
                 <InfoBlock
                   icon={<Award className="h-4 w-4" />}
-                  title="Certifications"
+                  title={t("partnerDetail.certifications")}
                   items={partner.certifications || []}
                 />
                 <InfoBlock
                   icon={<Factory className="h-4 w-4" />}
-                  title="Materials"
+                  title={t("partnerDetail.materials")}
                   items={partner.materials || []}
                 />
                 <InfoBlock
                   icon={<Globe className="h-4 w-4" />}
-                  title="Project Types"
+                  title={t("partnerDetail.projectTypes")}
                   items={partner.project_types || []}
                 />
               </div>
@@ -362,11 +361,10 @@ export default function PartnerDetail() {
                 <Lock className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <div>
                   <h3 className="font-display font-semibold text-sm text-foreground mb-1">
-                    Supplier identity is protected
+                    {t("partnerDetail.identityProtected")}
                   </h3>
                   <p className="text-xs font-body text-muted-foreground leading-relaxed">
-                    The full name and contact details of this supplier are revealed exclusively in a confirmed Terrassea quote.
-                    This protects both parties and ensures fair sourcing conditions for all hospitality professionals.
+                    {t("partnerDetail.identityProtectedDesc")}
                   </p>
                 </div>
               </div>

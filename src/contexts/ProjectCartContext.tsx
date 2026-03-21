@@ -14,10 +14,10 @@ export interface SelectedSupplier {
   partnerName: string;
   partnerCountry?: string | null;
   price: number | null;
-  stockStatus: string;
+  stockStatus: string | null;
   stockQuantity: number | null;
   deliveryDelayDays: number | null;
-  purchaseType: string;
+  purchaseType: string | null;
   score: number;
 }
 

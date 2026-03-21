@@ -221,7 +221,7 @@ export default function ProductPreviewDrawer({ productId, onClose }: ProductPrev
                             offer.stock_status === "low_stock" ? "bg-amber-50 text-amber-700" :
                             "bg-muted text-muted-foreground"
                           }`}>
-                            {offer.stock_status === "available" ? "En stock" : offer.stock_status === "low_stock" ? "Stock limité" : offer.stock_status}
+                            {offer.stock_status === "available" ? "En stock" : offer.stock_status === "low_stock" ? "Stock limité" : offer.stock_status || "N/A"}
                           </span>
                         </div>
                       </div>

@@ -59,6 +59,9 @@ export interface ProductTypeTags {
 export interface DBProduct {
   id:   string;
   name: string;
+  name_fr: string | null;
+  name_es: string | null;
+  name_it: string | null;
   category:       string;
   subcategory:    string | null;
   product_family: string | null;
@@ -66,7 +69,13 @@ export interface DBProduct {
   brand_source:   string | null;
   supplier_internal: string | null;
   short_description: string | null;
+  short_description_fr: string | null;
+  short_description_es: string | null;
+  short_description_it: string | null;
   long_description:  string | null;
+  long_description_fr:  string | null;
+  long_description_es:  string | null;
+  long_description_it:  string | null;
   indicative_price:  string | null;
   archetype_id:         string | null;
   archetype_confidence: number | null;

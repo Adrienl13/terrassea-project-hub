@@ -70,7 +70,7 @@ const FIT_CONFIG: Record<QuantityFit, FitConfig> = {
 };
 
 function evaluateQuantityFit(offer: ProductOffer, quantity: number): QuantityFit {
-  if (offer.minimum_order > 1 && quantity < offer.minimum_order) return "moq_not_met";
+  if (offer.minimum_order != null && offer.minimum_order > 1 && quantity < offer.minimum_order) return "moq_not_met";
   const status = offer.stock_status?.toLowerCase() || "available";
   if (status === "out_of_stock") return "out_of_stock";
   if (status === "production" || status === "on_order") return "production_required";

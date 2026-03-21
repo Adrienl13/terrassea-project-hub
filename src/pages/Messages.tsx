@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useConversations, useMessages, createConversation, type ConversationSummary } from "@/hooks/useConversations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -19,11 +20,11 @@ const USER_TYPE_ICON: Record<string, any> = {
   admin: Shield,
 };
 
-const USER_TYPE_LABEL: Record<string, string> = {
-  client: "Client",
-  partner: "Partenaire",
-  architect: "Architecte",
-  admin: "Admin",
+const USER_TYPE_KEYS: Record<string, string> = {
+  client: "messages.userTypes.client",
+  partner: "messages.userTypes.partner",
+  architect: "messages.userTypes.architect",
+  admin: "messages.userTypes.admin",
 };
 
 const USER_TYPE_COLOR: Record<string, string> = {
@@ -33,16 +34,16 @@ const USER_TYPE_COLOR: Record<string, string> = {
   admin: "text-red-600 bg-red-50",
 };
 
-function timeAgo(date: string) {
+function timeAgo(date: string, nowLabel: string) {
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "maintenant";
+  if (mins < 1) return nowLabel;
   if (mins < 60) return `${mins}min`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h`;
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}j`;
-  return new Date(date).toLocaleDateString("fr-FR");
+  if (days < 7) return `${days}d`;
+  return new Date(date).toLocaleDateString();
 }
 
 function getOtherParticipants(conv: ConversationSummary, myId: string) {
@@ -59,6 +60,7 @@ function NewConversationModal({ onClose, onCreate }: {
   onClose: () => void;
   onCreate: (convId: string) => void;
 }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -87,12 +89,12 @@ function NewConversationModal({ onClose, onCreate }: {
       const convId = await createConversation(
         user!.id,
         [selectedUser.id],
-        subject || `Conversation avec ${selectedUser.first_name || selectedUser.email}`,
+        subject || t("messages.conversationWith", { name: selectedUser.first_name || selectedUser.email }),
         message,
       );
       onCreate(convId);
     } catch (err: any) {
-      toast.error(err.message || "Erreur lors de la création");
+      toast.error(err.message || t("messages.creationError"));
     } finally {
       setCreating(false);
     }
@@ -102,7 +104,7 @@ function NewConversationModal({ onClose, onCreate }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-background border border-border rounded-sm shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h2 className="font-display font-semibold text-sm">Nouvelle conversation</h2>
+          <h2 className="font-display font-semibold text-sm">{t("messages.newConversation")}</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="h-4 w-4" />
           </button>
@@ -111,14 +113,14 @@ function NewConversationModal({ onClose, onCreate }: {
         <div className="p-5 space-y-4">
           {/* Recipient search */}
           <div>
-            <label className="text-xs font-body text-muted-foreground block mb-1">Destinataire</label>
+            <label className="text-xs font-body text-muted-foreground block mb-1">{t("messages.recipient")}</label>
             {selectedUser ? (
               <div className="flex items-center gap-2 bg-card border border-border rounded-sm px-3 py-2">
                 <span className="text-sm font-body text-foreground flex-1">
                   {[selectedUser.first_name, selectedUser.last_name].filter(Boolean).join(" ") || selectedUser.email}
                 </span>
                 <span className={`text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full ${USER_TYPE_COLOR[selectedUser.user_type] || ""}`}>
-                  {USER_TYPE_LABEL[selectedUser.user_type] || selectedUser.user_type}
+                  {USER_TYPE_KEYS[selectedUser.user_type] ? t(USER_TYPE_KEYS[selectedUser.user_type]) : selectedUser.user_type}
                 </span>
                 <button onClick={() => setSelectedUser(null)} className="text-muted-foreground hover:text-foreground">
                   <X className="h-3 w-3" />
@@ -130,7 +132,7 @@ function NewConversationModal({ onClose, onCreate }: {
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Rechercher par nom, email, entreprise..."
+                  placeholder={t("messages.recipientSearchPlaceholder")}
                   className="w-full bg-card border border-border rounded-sm pl-9 pr-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
                 />
                 {users.length > 0 && search.length >= 2 && (
@@ -151,7 +153,7 @@ function NewConversationModal({ onClose, onCreate }: {
                             {u.company && <p className="text-[10px] text-muted-foreground truncate">{u.company}</p>}
                           </div>
                           <span className={`text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full ${USER_TYPE_COLOR[u.user_type] || ""}`}>
-                            {USER_TYPE_LABEL[u.user_type] || u.user_type}
+                            {USER_TYPE_KEYS[u.user_type] ? t(USER_TYPE_KEYS[u.user_type]) : u.user_type}
                           </span>
                         </button>
                       );
@@ -164,22 +166,22 @@ function NewConversationModal({ onClose, onCreate }: {
 
           {/* Subject */}
           <div>
-            <label className="text-xs font-body text-muted-foreground block mb-1">Sujet (optionnel)</label>
+            <label className="text-xs font-body text-muted-foreground block mb-1">{t("messages.subjectOptional")}</label>
             <input
               value={subject}
               onChange={e => setSubject(e.target.value)}
-              placeholder="Sujet de la conversation..."
+              placeholder={t("messages.subjectPlaceholder")}
               className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
             />
           </div>
 
           {/* Message */}
           <div>
-            <label className="text-xs font-body text-muted-foreground block mb-1">Message</label>
+            <label className="text-xs font-body text-muted-foreground block mb-1">{t("messages.message")}</label>
             <textarea
               value={message}
               onChange={e => setMessage(e.target.value)}
-              placeholder="Votre message..."
+              placeholder={t("messages.yourMessagePlaceholder")}
               rows={4}
               className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground resize-none"
             />
@@ -189,7 +191,7 @@ function NewConversationModal({ onClose, onCreate }: {
         <div className="flex justify-end gap-3 px-5 py-4 border-t border-border">
           <button onClick={onClose}
             className="px-4 py-2 font-display font-semibold text-xs border border-border rounded-full hover:border-foreground transition-colors">
-            Annuler
+            {t("messages.cancel")}
           </button>
           <button
             onClick={handleCreate}
@@ -197,7 +199,7 @@ function NewConversationModal({ onClose, onCreate }: {
             className="flex items-center gap-2 px-5 py-2 font-display font-semibold text-xs bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-50"
           >
             <Send className="h-3 w-3" />
-            {creating ? "Envoi..." : "Envoyer"}
+            {creating ? t("messages.sending") : t("messages.send")}
           </button>
         </div>
       </div>
@@ -207,6 +209,7 @@ function NewConversationModal({ onClose, onCreate }: {
 
 // ── Conversation Thread ──
 function ConversationThread({ conversationId, onBack }: { conversationId: string; onBack: () => void }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { messages, sendMessage, markConversationRead } = useMessages(conversationId);
   const { conversations } = useConversations();
@@ -233,7 +236,7 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
       await sendMessage(input);
       setInput("");
     } catch (err: any) {
-      toast.error(err.message || "Erreur d'envoi");
+      toast.error(err.message || t("messages.sendError"));
     } finally {
       setSending(false);
     }
@@ -250,7 +253,7 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
         </button>
         <div className="flex-1 min-w-0">
           <p className="font-display font-semibold text-sm text-foreground truncate">
-            {conv?.subject || others.map(p => participantName(p)).join(", ") || "Conversation"}
+            {conv?.subject || others.map(p => participantName(p)).join(", ") || t("messages.conversation")}
           </p>
           <div className="flex items-center gap-2 mt-0.5">
             {others.map(p => {
@@ -271,7 +274,7 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
         {messages.length === 0 && (
           <div className="text-center py-12">
             <MessageSquare className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
-            <p className="text-xs font-body text-muted-foreground">Aucun message pour l'instant</p>
+            <p className="text-xs font-body text-muted-foreground">{t("messages.noMessagesYet")}</p>
           </div>
         )}
         {messages.map(msg => {
@@ -296,7 +299,7 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
                   {msg.body}
                 </div>
                 <p className={`text-[9px] font-body text-muted-foreground/60 mt-0.5 ${isMe ? "text-right" : ""}`}>
-                  {msg.created_at ? timeAgo(msg.created_at) : ""}
+                  {msg.created_at ? timeAgo(msg.created_at, t("messages.timeNow")) : ""}
                 </p>
               </div>
             </div>
@@ -313,7 +316,7 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
             onKeyDown={e => {
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
             }}
-            placeholder="Votre message..."
+            placeholder={t("messages.yourMessagePlaceholder")}
             rows={1}
             className="flex-1 bg-card border border-border rounded-2xl px-4 py-2.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground resize-none max-h-24"
           />
@@ -332,6 +335,7 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
 
 // ── Main Messages Page ──
 export default function Messages() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { conversationId: urlConvId } = useParams();
   const { conversations, isLoading } = useConversations();
@@ -363,16 +367,16 @@ export default function Messages() {
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="font-display text-2xl font-bold text-foreground">Messages</h1>
+              <h1 className="font-display text-2xl font-bold text-foreground">{t("messages.title")}</h1>
               <p className="text-sm text-muted-foreground font-body mt-0.5">
-                {conversations.length} conversation{conversations.length > 1 ? "s" : ""}
+                {t("messages.conversationCount", { count: conversations.length })}
               </p>
             </div>
             <button
               onClick={() => setShowNew(true)}
               className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90"
             >
-              <Plus className="h-4 w-4" /> Nouveau message
+              <Plus className="h-4 w-4" /> {t("messages.newMessage")}
             </button>
           </div>
 
@@ -386,7 +390,7 @@ export default function Messages() {
                   <input
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    placeholder="Rechercher..."
+                    placeholder={t("messages.searchPlaceholder")}
                     className="w-full bg-card border border-border rounded-sm pl-9 pr-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
                   />
                 </div>
@@ -395,16 +399,16 @@ export default function Messages() {
               {/* List */}
               <div className="flex-1 overflow-y-auto">
                 {isLoading ? (
-                  <p className="text-center py-8 text-xs text-muted-foreground font-body">Chargement...</p>
+                  <p className="text-center py-8 text-xs text-muted-foreground font-body">{t("messages.loading")}</p>
                 ) : filtered.length === 0 ? (
                   <div className="text-center py-12 px-4">
                     <MessageSquare className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
-                    <p className="text-xs font-body text-muted-foreground">Aucune conversation</p>
+                    <p className="text-xs font-body text-muted-foreground">{t("messages.noConversations")}</p>
                     <button
                       onClick={() => setShowNew(true)}
                       className="mt-3 text-[10px] font-display font-semibold text-foreground underline"
                     >
-                      Commencer une conversation
+                      {t("messages.startConversation")}
                     </button>
                   </div>
                 ) : (
@@ -433,10 +437,10 @@ export default function Messages() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <p className={`text-xs font-display truncate ${conv.unread_count > 0 ? "font-bold text-foreground" : "font-semibold text-foreground"}`}>
-                              {conv.subject || others.map(p => participantName(p)).join(", ") || "Conversation"}
+                              {conv.subject || others.map(p => participantName(p)).join(", ") || t("messages.conversation")}
                             </p>
                             <span className="text-[9px] font-body text-muted-foreground whitespace-nowrap ml-2">
-                              {conv.last_message_at ? timeAgo(conv.last_message_at) : ""}
+                              {conv.last_message_at ? timeAgo(conv.last_message_at, t("messages.timeNow")) : ""}
                             </span>
                           </div>
                           {others.length > 0 && conv.subject && (
@@ -473,8 +477,8 @@ export default function Messages() {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
                     <MessageSquare className="h-12 w-12 text-muted-foreground/20 mx-auto mb-3" />
-                    <p className="font-display font-semibold text-sm text-muted-foreground">Sélectionnez une conversation</p>
-                    <p className="text-xs font-body text-muted-foreground/70 mt-1">ou créez-en une nouvelle</p>
+                    <p className="font-display font-semibold text-sm text-muted-foreground">{t("messages.selectConversation")}</p>
+                    <p className="text-xs font-body text-muted-foreground/70 mt-1">{t("messages.orCreateNew")}</p>
                   </div>
                 </div>
               )}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   CheckCircle2, Zap, Star, Package, Truck, FileText, MessageSquare,
   ChevronDown, ChevronUp, TrendingUp,
@@ -14,24 +15,24 @@ interface SupplierRecommendationsProps {
   productName: string;
 }
 
-const BADGE_CONFIG: Record<SupplierBadge, { label: string; icon: typeof Star; className: string }> = {
+const BADGE_CONFIG: Record<SupplierBadge, { labelKey: string; icon: typeof Star; className: string }> = {
   recommended: {
-    label: "Recommended",
+    labelKey: "supplierRecs.badgeRecommended",
     icon: Star,
     className: "bg-primary/10 text-primary border-primary/20",
   },
   best_stock: {
-    label: "Best stock",
+    labelKey: "supplierRecs.badgeBestStock",
     icon: Package,
     className: "bg-green-500/10 text-green-700 border-green-500/20",
   },
   fastest: {
-    label: "Fastest",
+    labelKey: "supplierRecs.badgeFastest",
     icon: Zap,
     className: "bg-amber-500/10 text-amber-700 border-amber-500/20",
   },
   best_project_fit: {
-    label: "Best project fit",
+    labelKey: "supplierRecs.badgeBestProjectFit",
     icon: TrendingUp,
     className: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   },
@@ -62,6 +63,7 @@ function offerToSelectedSupplier(offer: ScoredOffer): SelectedSupplier {
 }
 
 const SupplierRecommendations = ({ productId, productName }: SupplierRecommendationsProps) => {
+  const { t } = useTranslation();
   const { items, selectSupplier } = useProjectCart();
   const [offers, setOffers] = useState<ScoredOffer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +85,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
       console.error("Failed to score supplier offers:", err);
       if (!cancelled) {
         setLoading(false);
-        toast.error("Failed to load supplier recommendations");
+        toast.error(t("supplierRecs.failedToLoad"));
       }
     });
 
@@ -93,14 +95,14 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
 
   const handleSelectSupplier = (offer: ScoredOffer) => {
     selectSupplier(productId, offerToSelectedSupplier(offer));
-    toast.success(`${offer.partner?.name} selected for ${productName}`);
+    toast.success(t("supplierRecs.selectedFor", { supplier: offer.partner?.name, product: productName }));
   };
 
   if (loading) {
     return (
       <div className="mb-6">
         <h3 className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground mb-3">
-          Supplier Options
+          {t("supplierRecs.supplierOptions")}
         </h3>
         <div className="space-y-2">
           {[1, 2].map((i) => (
@@ -132,9 +134,9 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
         }`}
       >
         {selected ? (
-          <><CheckCircle2 className="h-3 w-3" /> Selected</>
+          <><CheckCircle2 className="h-3 w-3" /> {t("supplierRecs.selected")}</>
         ) : (
-          <><FileText className="h-3 w-3" /> {offer.purchase_type === "direct" ? "Select supplier" : "Select for quote"}</>
+          <><FileText className="h-3 w-3" /> {offer.purchase_type === "direct" ? t("supplierRecs.selectSupplier") : t("supplierRecs.selectForQuote")}</>
         )}
       </button>
     );
@@ -143,10 +145,10 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
   return (
     <div className="mb-6">
       <h3 className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground mb-1">
-        Supplier Options
+        {t("supplierRecs.supplierOptions")}
       </h3>
       <p className="text-[10px] font-body text-muted-foreground mb-3">
-        {offers.length} supplier{offers.length !== 1 ? "s" : ""} · Scored for project consistency
+        {t("supplierRecs.supplierCount", { count: offers.length })}
       </p>
 
       {/* Recommended supplier */}
@@ -177,7 +179,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                       className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-display font-semibold border ${config.className}`}
                     >
                       <Icon className="h-2.5 w-2.5" />
-                      {config.label}
+                      {t(config.labelKey)}
                     </span>
                   );
                 })}
@@ -194,11 +196,11 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
 
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <span className="font-display font-bold text-sm text-foreground">
-                  {recommended.price ? `€${recommended.price.toFixed(2)}` : "On request"}
+                  {recommended.price ? `€${recommended.price.toFixed(2)}` : t("supplierRecs.onRequest")}
                 </span>
                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <span className={`w-1.5 h-1.5 rounded-full ${STOCK_DOT[recommended.stock_status] || STOCK_DOT.available}`} />
-                  {recommended.stock_quantity != null ? `${recommended.stock_quantity} units` : recommended.stock_status}
+                  {recommended.stock_quantity != null ? t("supplierRecs.units", { count: recommended.stock_quantity }) : recommended.stock_status || "available"}
                 </span>
                 {recommended.delivery_delay_days && (
                   <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
@@ -222,7 +224,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
 
               <div className="flex gap-2 mt-2.5">
                 {renderSelectButton(recommended)}
-                <button className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title="Contact supplier">
+                <button className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title={t("supplierRecs.contactSupplier")}>
                   <MessageSquare className="h-3 w-3 text-muted-foreground" />
                 </button>
               </div>
@@ -255,18 +257,18 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                       className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-display font-semibold border ${config.className}`}
                     >
                       <Icon className="h-2.5 w-2.5" />
-                      {config.label}
+                      {t(config.labelKey)}
                     </span>
                   );
                 })}
               </div>
               <div className="flex items-center gap-3 mt-1 flex-wrap">
                 <span className="font-display font-bold text-xs text-foreground">
-                  {offer.price ? `€${offer.price.toFixed(2)}` : "On request"}
+                  {offer.price ? `€${offer.price.toFixed(2)}` : t("supplierRecs.onRequest")}
                 </span>
                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <span className={`w-1.5 h-1.5 rounded-full ${STOCK_DOT[offer.stock_status] || STOCK_DOT.available}`} />
-                  {offer.stock_status}
+                  {offer.stock_status || "available"}
                 </span>
                 {offer.delivery_delay_days && (
                   <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
@@ -275,7 +277,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                   </span>
                 )}
                 <span className="text-[9px] text-muted-foreground font-display">
-                  Score: {offer.scores.total}
+                  {t("supplierRecs.score", { score: offer.scores.total })}
                 </span>
               </div>
               <div className="flex gap-2 mt-2">
@@ -293,15 +295,15 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
           className="flex items-center gap-1.5 text-[10px] font-display font-semibold text-muted-foreground hover:text-foreground transition-colors mt-1"
         >
           {expanded ? (
-            <><ChevronUp className="h-3 w-3" /> Show less</>
+            <><ChevronUp className="h-3 w-3" /> {t("supplierRecs.showLess")}</>
           ) : (
-            <><ChevronDown className="h-3 w-3" /> {others.length - 1} more supplier{others.length - 1 > 1 ? "s" : ""}</>
+            <><ChevronDown className="h-3 w-3" /> {t("supplierRecs.moreSuppliers", { count: others.length - 1 })}</>
           )}
         </button>
       )}
 
       <p className="text-[9px] font-body text-muted-foreground italic mt-3">
-        Recommended based on current project configuration · Availability subject to supplier confirmation
+        {t("supplierRecs.footerNote")}
       </p>
 
       <Separator className="mt-4" />
