@@ -55,12 +55,13 @@ const Auth = () => {
     setSirenChecking(true);
     try {
       const res = await fetch(
-        `https://api.insee.fr/entreprises/sirene/V3.11/siren/${siren}`,
-        { headers: { Accept: "application/json" } }
+        `https://recherche-entreprises.api.gouv.fr/search?q=${siren}&mtm_campaign=terrassea`
       );
-      setSirenValid(res.ok);
+      if (!res.ok) { setSirenValid(false); return; }
+      const data = await res.json();
+      setSirenValid(data?.results?.length > 0);
     } catch {
-      setSirenValid(true);
+      setSirenValid(true); // Fallback: accept if API unreachable
     } finally {
       setSirenChecking(false);
     }

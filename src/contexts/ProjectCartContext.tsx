@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from "react";
 import type { DBProduct } from "@/lib/products";
 import type { LayoutRequirementType } from "@/engine/types";
 
@@ -79,9 +79,47 @@ function computeQuotationStatus(items: CartItem[]): QuotationStatus {
   return "ready_for_quotation";
 }
 
+const CART_STORAGE_KEY = "terrassea_cart_items";
+const NOTES_STORAGE_KEY = "terrassea_cart_notes";
+
+function loadCartFromStorage(): CartItem[] {
+  try {
+    const saved = localStorage.getItem(CART_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadNotesFromStorage(): string {
+  try {
+    return localStorage.getItem(NOTES_STORAGE_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
 export function ProjectCartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [notes, setNotes] = useState("");
+  const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
+  const [notes, setNotes] = useState(loadNotesFromStorage);
+
+  // Persist cart items to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } catch (err) {
+      console.warn("Failed to persist cart to localStorage:", err);
+    }
+  }, [items]);
+
+  // Persist notes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(NOTES_STORAGE_KEY, notes);
+    } catch (err) {
+      console.warn("Failed to persist notes to localStorage:", err);
+    }
+  }, [notes]);
 
   const addItem = useCallback((product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta) => {
     const qty = quantity ?? 1;

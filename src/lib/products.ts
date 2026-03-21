@@ -179,6 +179,7 @@ export async function fetchProductById(id: string): Promise<DBProduct | null> {
     .from("products")
     .select("*")
     .eq("id", id)
+    .neq("availability_type", "discontinued")
     .maybeSingle();
 
   if (error) throw error;

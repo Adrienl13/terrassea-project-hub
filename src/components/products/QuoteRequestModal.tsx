@@ -21,17 +21,16 @@ interface SirenResult { companyName: string; address: string; }
 async function lookupSiren(siren: string): Promise<SirenResult | null> {
   try {
     const res = await fetch(
-      `https://api.insee.fr/entreprises/sirene/V3.11/siren/${siren}`,
-      { headers: { Accept: "application/json" } }
+      `https://recherche-entreprises.api.gouv.fr/search?q=${siren}&mtm_campaign=terrassea`
     );
     if (!res.ok) return null;
     const data = await res.json();
-    const unite = data?.uniteLegale;
-    const name = unite?.denominationUniteLegale ||
-      `${unite?.prenom1UniteLegale || ""} ${unite?.nomUniteLegale || ""}`.trim();
-    const adresse = unite?.adresseEtablissementSiege;
-    const address = adresse
-      ? `${adresse.numeroVoieEtablissement || ""} ${adresse.typeVoieEtablissement || ""} ${adresse.libelleVoieEtablissement || ""}, ${adresse.codePostalEtablissement || ""} ${adresse.libelleCommuneEtablissement || ""}`.trim()
+    const result = data?.results?.[0];
+    if (!result) return null;
+    const name = result.nom_complet || result.nom_raison_sociale || "";
+    const siege = result.siege;
+    const address = siege
+      ? `${siege.numero_voie || ""} ${siege.type_voie || ""} ${siege.libelle_voie || ""}, ${siege.code_postal || ""} ${siege.libelle_commune || ""}`.trim()
       : "";
     return { companyName: name, address };
   } catch {

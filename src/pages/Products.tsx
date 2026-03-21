@@ -49,7 +49,7 @@ const Products = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("partners")
-        .select("name, partner_type, country, slug")
+        .select("id, name, partner_type, country, slug")
         .eq("slug", supplierSlug)
         .single();
       if (error) return null;
@@ -96,10 +96,12 @@ const Products = () => {
   const filtered = useMemo(() => {
     let result = products;
 
-    // Supplier filter from URL param
+    // Supplier filter from URL param — match by partner_id (if partner found) or by slug in text fields
     if (supplierSlug) {
+      const partnerId = supplierPartner ? (supplierPartner as any).id : null;
       result = result.filter(
         (p) =>
+          (partnerId && p.partner_id === partnerId) ||
           p.supplier_internal?.toLowerCase() === supplierSlug.toLowerCase() ||
           p.brand_source?.toLowerCase() === supplierSlug.toLowerCase()
       );
