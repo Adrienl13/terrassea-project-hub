@@ -183,22 +183,49 @@ const CGV = () => {
                 sont ceux figurant sur le devis accepté par le Client. Tous les prix sont exprimés
                 en euros hors taxes (HT), sauf mention contraire explicite.
               </p>
-              <h3>5.2 Modalités de paiement</h3>
+              <h3>5.2 Flux de paiement</h3>
               <p>
-                Le paiement s'effectue par virement bancaire selon les modalités suivantes :
+                <strong>Les paiements sont centralisés par Pros Import EURL</strong> (société
+                exploitant la plateforme Terrassea), agissant en qualité de mandataire pour
+                l'encaissement et le reversement des fonds. Le Client effectue ses règlements
+                directement auprès de Pros Import EURL par virement bancaire.
+              </p>
+              <p>
+                À réception des fonds, Pros Import EURL :
+              </p>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>
+                  déduit sa commission au titre des services d'intermédiation (voir Article 6) ;
+                </li>
+                <li>
+                  reverse le solde au Fournisseur concerné dans un délai raisonnable, et au plus
+                  tard dans les 15 jours ouvrés suivant la confirmation de réception des fonds.
+                </li>
+              </ul>
+              <p>
+                Ce mécanisme d'encaissement pour compte de tiers est réalisé dans le cadre du
+                mandat d'intermédiation confié par le Fournisseur à Pros Import EURL. Le Client
+                est valablement libéré de son obligation de paiement envers le Fournisseur dès
+                réception des fonds par Pros Import EURL.
+              </p>
+              <h3>5.3 Modalités de paiement</h3>
+              <p>
+                Le paiement s'effectue par virement bancaire aux coordonnées communiquées par
+                Pros Import EURL selon les modalités suivantes :
               </p>
               <ul className="list-disc pl-6 space-y-1">
                 <li>
                   <strong>Acompte :</strong> Un acompte est requis à la confirmation de la commande.
-                  Le pourcentage de l'acompte est défini par le Fournisseur et indiqué sur le devis
-                  (généralement entre 30 % et 50 % du montant total HT).
+                  Le pourcentage de l'acompte est indiqué sur le devis (généralement entre 30 % et
+                  50 % du montant total HT). L'acompte est versé à Pros Import EURL.
                 </li>
                 <li>
                   <strong>Solde :</strong> Le solde est exigible selon les conditions précisées sur
-                  le devis (avant expédition, à réception, ou selon un échéancier convenu).
+                  le devis (avant expédition, à réception, ou selon un échéancier convenu). Le solde
+                  est versé à Pros Import EURL.
                 </li>
               </ul>
-              <h3>5.3 Retard de paiement</h3>
+              <h3>5.4 Retard de paiement</h3>
               <p>
                 En cas de retard de paiement, des pénalités de retard seront appliquées conformément
                 à l'article L.441-10 du Code de commerce, au taux BCE majoré de 10 points, sans
@@ -209,33 +236,48 @@ const CGV = () => {
 
             {/* ── Article 6 : Commission de Terrassea ────────────────────── */}
             <section>
-              <h2>Article 6 — Commission de Terrassea</h2>
+              <h2>Article 6 — Commission et rémunération de Terrassea</h2>
+              <h3>6.1 Principe de la commission</h3>
               <p>
-                La rémunération de Terrassea au titre de ses services d'intermédiation consiste en
-                une commission appliquée aux Fournisseurs partenaires. Cette commission :
+                La rémunération de Pros Import EURL (Terrassea) au titre de ses services
+                d'intermédiation consiste en une commission prélevée sur le montant des commandes
+                transitant par la Plateforme.
               </p>
+              <h3>6.2 Mécanisme</h3>
+              <p>
+                Conformément au mandat d'intermédiation, Pros Import EURL encaisse les règlements
+                du Client pour le compte du Fournisseur. La commission de Terrassea est déduite
+                du montant encaissé avant reversement au Fournisseur. Ce mécanisme est
+                transparent : le Fournisseur est informé du taux de commission applicable lors de
+                son adhésion à la Plateforme.
+              </p>
+              <h3>6.3 Taux et conditions</h3>
+              <p>La commission :</p>
               <ul className="list-disc pl-6 space-y-1">
                 <li>
                   est calculée sur le montant hors taxes de chaque commande réalisée via la
                   Plateforme ;
                 </li>
                 <li>
-                  varie en fonction du plan d'abonnement du Fournisseur et des conditions
-                  commerciales négociées ;
+                  varie en fonction du plan d'abonnement du Fournisseur (les différents plans et
+                  taux sont communiqués aux Fournisseurs dans leurs conditions particulières) ;
                 </li>
                 <li>
-                  peut être modifiée par Terrassea avec un préavis de 30 jours ;
+                  peut être modifiée par Terrassea avec un préavis de 30 jours notifié au
+                  Fournisseur ;
                 </li>
                 <li>
-                  est facturée directement au Fournisseur par Pros Import EURL.
+                  fait l'objet d'une facturation par Pros Import EURL au Fournisseur.
                 </li>
               </ul>
+              <h3>6.4 Transparence vis-à-vis du Client</h3>
               <p>
                 <strong>
-                  Aucune commission n'est facturée au Client (Acheteur).
+                  Le Client n'est redevable d'aucune commission.
                 </strong>{" "}
-                Le Client ne supporte aucun frais lié à l'utilisation de la Plateforme pour ses
-                demandes de devis et ses commandes.
+                Le prix payé par le Client est le prix figurant sur le devis accepté. La commission
+                de Terrassea est supportée par le Fournisseur et n'impacte pas le prix proposé au
+                Client.
               </p>
             </section>
 

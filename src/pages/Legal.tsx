@@ -54,6 +54,13 @@ const Legal = () => {
                 logistique. Le contrat de vente est conclu directement entre l'acheteur et le
                 fournisseur.
               </p>
+              <p>
+                Dans le cadre de son mandat, Pros Import EURL encaisse les paiements des clients
+                pour le compte des fournisseurs, déduit sa commission au titre de l'intermédiation,
+                et reverse le solde aux fournisseurs concernés. Ce mécanisme d'encaissement pour
+                compte de tiers est opéré conformément au mandat confié par chaque fournisseur
+                partenaire à Pros Import EURL.
+              </p>
             </section>
 
             {/* ── 3. Hébergement ──────────────────────────────────────────── */}
