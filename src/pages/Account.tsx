@@ -382,13 +382,13 @@ const Account = () => {
       const handleArchitectNav: ArchitectSectionSetter = (s) => setSection(s as Section);
 
       // Handle project-detail:id pattern from overview clicks
-      if (section.startsWith("project-detail:" as any)) {
+      if (section.startsWith("project-detail:")) {
         const projectId = (section as string).replace("project-detail:", "");
         return <ArchitectProjectDetail projectId={projectId} onBack={() => setSection("projects")} extraProjects={createdProjects} />;
       }
 
       // Handle create project
-      if (section === ("create-project" as any)) {
+      if (section === "create-project") {
         return <ArchitectCreateProject onBack={() => setSection("projects")} onCreated={(project) => {
           setCreatedProjects(prev => [project, ...prev]);
           setSection("projects");
@@ -410,7 +410,7 @@ const Account = () => {
     const handleClientNav: ClientSectionSetter = (s) => setSection(s as Section);
 
     // Handle project-detail:id pattern
-    if (section.startsWith("project-detail:" as any)) {
+    if (section.startsWith("project-detail:")) {
       const projectId = (section as string).replace("project-detail:", "");
       return <ClientProjectDetail projectId={projectId} onBack={() => setSection("projects")} />;
     }

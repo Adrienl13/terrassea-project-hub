@@ -134,12 +134,12 @@ const Products = () => {
         // Check Table Bases
         const baseMatch = hasTableBases && (
           p.subcategory?.toLowerCase().includes("base") ||
-          (p.product_type_tags as any)?.table_type === "base-only"
+          p.product_type_tags?.table_type === "base-only"
         );
         // Check Tabletops
         const topMatch = hasTabletops && (
           p.subcategory?.toLowerCase().includes("top") ||
-          (p.product_type_tags as any)?.table_type === "top-only"
+          p.product_type_tags?.table_type === "top-only"
         );
         return normalMatch || baseMatch || topMatch;
       });
@@ -176,7 +176,7 @@ const Products = () => {
 
     if (filters.features.length > 0)
       result = result.filter((p) =>
-        filters.features.every((f) => (p as any)[f] === true)
+        filters.features.every((f) => (p as Record<string, unknown>)[f] === true)
       );
 
     if (filters.stock.length > 0)
@@ -523,9 +523,9 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
           </p>
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stock.dot}`} title={stock.label} />
         </div>
-        {(product as any).offers_count > 0 && (
+        {(product.offers_count ?? 0) > 0 && (
           <p className="text-[10px] text-muted-foreground font-body mt-0.5">
-            {(product as any).offers_count} supplier{(product as any).offers_count > 1 ? "s" : ""}
+            {product.offers_count} supplier{(product.offers_count ?? 0) > 1 ? "s" : ""}
           </p>
         )}
       </div>

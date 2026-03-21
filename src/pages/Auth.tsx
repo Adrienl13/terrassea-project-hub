@@ -15,7 +15,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isLoading: authLoading, isPasswordRecovery } = useAuth();
-  const from = (location.state as any)?.from?.pathname || "/account";
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || "/account";
 
   // Redirect already-authenticated users (unless in password recovery flow)
   useEffect(() => {

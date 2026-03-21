@@ -161,11 +161,11 @@ const ProjectCart = () => {
 
   // ── Indicative budget ────────────────────────────────────────────────────────
   const totalBudget = items.reduce((sum, item) => {
-    const price = item.selectedSupplier?.price ?? (item.product as any).price_min ?? null;
+    const price = item.selectedSupplier?.price ?? item.product.price_min ?? null;
     return price !== null ? sum + price * item.quantity : sum;
   }, 0);
   const hasBudget = items.some(
-    (i) => i.selectedSupplier?.price != null || (i.product as any).price_min != null
+    (i) => i.selectedSupplier?.price != null || i.product.price_min != null
   );
 
   const currentStep = getCurrentStep(items);
@@ -391,10 +391,10 @@ const ProjectCart = () => {
 
                               {/* Price */}
                               <div className="text-right">
-                                {selectedSupplier?.price ?? (product as any).price_min ?
+                                {selectedSupplier?.price ?? product.price_min ?
                             <>
-                                    <p className="text-[10px] text-muted-foreground font-body">×€{(selectedSupplier?.price ?? (product as any).price_min)?.toFixed(2)}</p>
-                                    <p className="font-display font-semibold text-foreground text-base">~€{((selectedSupplier?.price ?? (product as any).price_min) * quantity).toLocaleString("fr-FR")}</p>
+                                    <p className="text-[10px] text-muted-foreground font-body">×€{(selectedSupplier?.price ?? product.price_min)?.toFixed(2)}</p>
+                                    <p className="font-display font-semibold text-foreground text-base">~€{((selectedSupplier?.price ?? product.price_min) * quantity).toLocaleString("fr-FR")}</p>
                                   </> :
 
                             <p className="text-[10px] text-muted-foreground font-body">{t('projectCart.onRequest')}</p>

@@ -120,6 +120,10 @@ export interface DBProduct {
   popularity_score:   number;
   priority_score:     number;
   data_quality_score: number;
+  // Computed at fetch time from product_offers
+  offers_count?: number;
+  // Publish workflow field
+  publish_status?: string;
 }
 
 // ── Fetch all products ────────────────────────────────────
@@ -159,7 +163,7 @@ export async function fetchProducts(): Promise<DBProduct[]> {
     const stats   = offerStats.get(raw.id);
     const product = normalizeProduct(raw);
     if (stats) {
-      (product as any).offers_count = stats.count;
+      product.offers_count = stats.count;
       if (stats.minPrice != null && product.price_min == null) {
         product.price_min = stats.minPrice;
       }
@@ -269,7 +273,8 @@ export function getColorLabel(
 ): string {
   const def = tags.find((t) => t.tag_type === "color" && t.slug === slug);
   if (!def) return slug;
-  return (def as any)[`label_${lang}`] ?? def.label_en ?? slug;
+  const labelKey = `label_${lang}` as keyof TagDefinition;
+  return (def[labelKey] as string | null) ?? def.label_en ?? slug;
 }
 
 export function isProductPublishable(product: DBProduct): boolean {

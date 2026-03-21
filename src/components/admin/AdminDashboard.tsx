@@ -128,9 +128,9 @@ export default function AdminDashboard() {
   });
 
   // Product stats
-  const publishedCount = products.filter(p => (p as any).publish_status === "published").length;
-  const pendingReview = products.filter(p => (p as any).publish_status === "pending_review").length;
-  const draftCount = products.filter(p => !(p as any).publish_status || (p as any).publish_status === "draft").length;
+  const publishedCount = products.filter(p => p.publish_status === "published").length;
+  const pendingReview = products.filter(p => p.publish_status === "pending_review").length;
+  const draftCount = products.filter(p => !p.publish_status || p.publish_status === "draft").length;
 
   const qualityStats = {
     excellent: products.filter(p => p.data_quality_score >= 0.8).length,
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
             <MiniBar label="Publiés" value={publishedCount} max={products.length || 1} color="bg-green-500" />
             <MiniBar label="En revue" value={pendingReview} max={products.length || 1} color="bg-amber-500" />
             <MiniBar label="Brouillons" value={draftCount} max={products.length || 1} color="bg-muted-foreground/50" />
-            <MiniBar label="Rejetés" value={products.filter(p => (p as any).publish_status === "rejected").length} max={products.length || 1} color="bg-red-500" />
+            <MiniBar label="Rejetés" value={products.filter(p => p.publish_status === "rejected").length} max={products.length || 1} color="bg-red-500" />
           </div>
         </div>
 

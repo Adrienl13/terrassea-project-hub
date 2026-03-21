@@ -355,7 +355,7 @@ export default function AddProductForm({
       <div className="relative">
         <input
           type={type}
-          value={(form[field] as any) ?? ""}
+          value={String(form[field] ?? "")}
           onChange={e => set(field, type === "number" ? (e.target.value ? Number(e.target.value) : null) : e.target.value)}
           placeholder={placeholder}
           className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
@@ -374,7 +374,7 @@ export default function AddProductForm({
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       <select
-        value={(form[field] as any) ?? ""}
+        value={String(form[field] ?? "")}
         onChange={e => set(field, e.target.value)}
         className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
       >
@@ -456,7 +456,7 @@ export default function AddProductForm({
           {SECTION_TABS.map(s => (
             <button
               key={s.id}
-              onClick={() => setSection(s.id as any)}
+              onClick={() => setSection(s.id as typeof section)}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-[11px] font-display font-semibold border-b-2 -mb-px transition-colors ${
                 section === s.id
                   ? "border-foreground text-foreground"

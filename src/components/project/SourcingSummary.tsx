@@ -37,12 +37,12 @@ function computeStats(items: CartItem[]) {
   else if (supplierCount > 1 || coveredCount < totalCount) complexity = "medium";
 
   const totalBudget = items.reduce((sum, item) => {
-    const price = item.selectedSupplier?.price ?? (item.product as any).price_min ?? null;
+    const price = item.selectedSupplier?.price ?? item.product.price_min ?? null;
     if (price === null) return sum;
     return sum + price * item.quantity;
   }, 0);
   const hasBudget = items.some((i) =>
-    i.selectedSupplier?.price != null || (i.product as any).price_min != null
+    i.selectedSupplier?.price != null || i.product.price_min != null
   );
 
   return {

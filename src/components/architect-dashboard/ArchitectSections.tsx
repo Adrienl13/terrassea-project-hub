@@ -873,7 +873,7 @@ export function ArchitectProjectDetail({
           </div>
           <div className="flex items-center gap-2">
             {editing ? (
-              <select value={editStatus} onChange={e => setEditStatus(e.target.value as any)}
+              <select value={editStatus} onChange={e => setEditStatus(e.target.value)}
                 className="text-[10px] font-display font-semibold px-2.5 py-1 rounded-full border border-border bg-transparent focus:outline-none">
                 {Object.entries(STATUS_STYLES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
@@ -1575,7 +1575,7 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
                   />
                   <select
                     value={row.priority}
-                    onChange={e => setNeedRows(prev => prev.map(r => r.id === row.id ? { ...r, priority: e.target.value as any } : r))}
+                    onChange={e => setNeedRows(prev => prev.map(r => r.id === row.id ? { ...r, priority: e.target.value as NeedRow["priority"] } : r))}
                     className={inputCls + " col-span-2"}
                   >
                     <option value="essential">{t('ad.calls.priorityEssential')}</option>

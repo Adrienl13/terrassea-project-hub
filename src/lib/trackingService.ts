@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const TRACKING_API_KEY = import.meta.env.VITE_TRACKING_API_KEY || "";
 const TRACKING_PROVIDER: "aftership" | "ship24" | "manual" =
-  (import.meta.env.VITE_TRACKING_PROVIDER as any) || "manual";
+  (import.meta.env.VITE_TRACKING_PROVIDER as "aftership" | "ship24" | "manual" | undefined) || "manual";
 
 export const isAutoTrackingEnabled = !!TRACKING_API_KEY && TRACKING_PROVIDER !== "manual";
 

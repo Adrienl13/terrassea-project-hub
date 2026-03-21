@@ -190,7 +190,7 @@ function ProductTypeTagsForm({
       <label className="text-[10px] font-body text-muted-foreground block mb-1">{label}</label>
       {options ? (
         <select
-          value={(value as any)[field] ?? ""}
+          value={value[field] ?? ""}
           onChange={e => set(field, e.target.value || undefined)}
           className="w-full bg-card border border-border rounded-sm px-2.5 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
         >
@@ -200,7 +200,7 @@ function ProductTypeTagsForm({
       ) : (
         <input
           type={type}
-          value={(value as any)[field] ?? ""}
+          value={value[field] ?? ""}
           onChange={e => set(field, type === "number" ? (e.target.value ? Number(e.target.value) : undefined) : e.target.value || undefined)}
           className="w-full bg-card border border-border rounded-sm px-2.5 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
         />
@@ -212,7 +212,7 @@ function ProductTypeTagsForm({
     <label className="flex items-center gap-2 cursor-pointer">
       <input
         type="checkbox"
-        checked={Boolean((value as any)[field])}
+        checked={Boolean(value[field])}
         onChange={e => set(field, e.target.checked)}
         className="rounded"
       />
@@ -400,7 +400,7 @@ function ProductForm({
   const previewScore = (() => {
     let s = 0;
     if (form.archetype_id) s += 0.20;
-    const pttKeys = Object.keys(form.product_type_tags || {}).filter(k => (form.product_type_tags as any)[k] != null).length;
+    const pttKeys = Object.keys(form.product_type_tags || {}).filter(k => form.product_type_tags[k] != null).length;
     if (pttKeys >= 4) s += 0.15;
     if (form.image_url) s += 0.10;
     if (form.gallery_urls.length >= 1) s += 0.05;
@@ -449,7 +449,7 @@ function ProductForm({
       </label>
       <input
         type={type}
-        value={(form[field] as any) ?? ""}
+        value={String(form[field] ?? "")}
         onChange={e => set(field, type === "number" ? (e.target.value ? Number(e.target.value) : null) : e.target.value)}
         className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
       />
@@ -464,7 +464,7 @@ function ProductForm({
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       <select
-        value={(form[field] as any) ?? ""}
+        value={String(form[field] ?? "")}
         onChange={e => set(field, e.target.value)}
         className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
       >
@@ -826,7 +826,7 @@ function ProductsTab() {
     const matchText = p.name.toLowerCase().includes(filter.toLowerCase()) ||
       p.category.toLowerCase().includes(filter.toLowerCase());
     const matchCat = !catFilter || p.category === catFilter;
-    const matchStatus = statusFilter === "all" || (p as any).publish_status === statusFilter;
+    const matchStatus = statusFilter === "all" || p.publish_status === statusFilter;
     return matchText && matchCat && matchStatus;
   });
 
@@ -1001,14 +1001,14 @@ function ProductsTab() {
                   </td>
                   <td className="py-3 px-2">
                     <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full ${
-                      PUBLISH_BADGE[(product as any).publish_status] || PUBLISH_BADGE.draft
+                      PUBLISH_BADGE[product.publish_status] || PUBLISH_BADGE.draft
                     }`}>
-                      {((product as any).publish_status || "draft").replace("_", " ")}
+                      {(product.publish_status || "draft").replace("_", " ")}
                     </span>
                   </td>
                   <td className="py-3 px-2 text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      {(product as any).publish_status === "pending_review" && (
+                      {product.publish_status === "pending_review" && (
                         <>
                           <button
                             onClick={() => handlePublishAction(product.id, "published")}
@@ -1453,7 +1453,7 @@ const Admin = () => {
     },
   });
 
-  const pendingReviewCount = products.filter(p => (p as any).publish_status === "pending_review").length;
+  const pendingReviewCount = products.filter(p => p.publish_status === "pending_review").length;
 
   const tabs = [
     { id: "dashboard",    icon: LayoutDashboard, label: "Dashboard",       badge: 0 },

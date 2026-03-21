@@ -470,7 +470,7 @@ const BecomePartner = () => {
                   <label className={labelClass}>{t('becomePartnerPage.type')} *</label>
                   <select
                     value={form.partnerType}
-                    onChange={(e) => setForm((p) => ({ ...p, partnerType: e.target.value as any }))}
+                    onChange={(e) => setForm((p) => ({ ...p, partnerType: e.target.value as "manufacturer" | "brand" | "reseller" | "" }))}
                     className={inputClass}
                   >
                     <option value="">{t('becomePartnerPage.selectType')}</option>

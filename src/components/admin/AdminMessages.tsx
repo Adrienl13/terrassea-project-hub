@@ -422,7 +422,7 @@ export default function AdminMessages() {
                 <div className="flex-1">
                   <p className="font-display font-semibold text-sm">{activeConvData.subject || "Conversation"}</p>
                   <div className="flex gap-1 mt-0.5">
-                    {(activeConvData as any).participants.map((p: any) => (
+                    {activeConvData.participants.map((p: any) => (
                       <span key={p.user_id} className={`text-[8px] font-display font-semibold px-1 py-0.5 rounded-full border ${USER_TYPE_COLOR[p.profile?.user_type || "client"]}`}>
                         {p.profile ? [p.profile.first_name, p.profile.last_name].filter(Boolean).join(" ") || p.profile.email : "?"}
                       </span>

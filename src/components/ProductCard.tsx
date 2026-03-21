@@ -109,9 +109,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <span className="text-[10px] text-muted-foreground font-body">{stock.label}</span>
           </span>
         </div>
-        {(product as any).offers_count > 0 && (
+        {(product.offers_count ?? 0) > 0 && (
           <p className="text-[10px] text-muted-foreground font-body">
-            {(product as any).offers_count} supplier{(product as any).offers_count > 1 ? "s" : ""}
+            {product.offers_count} supplier{(product.offers_count ?? 0) > 1 ? "s" : ""}
           </p>
         )}
       </div>

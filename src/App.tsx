@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProjectCartProvider } from "@/contexts/ProjectCartContext";
@@ -30,6 +31,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <ErrorBoundary>
       <AuthProvider>
         <FavouritesProvider>
         <ProjectCartProvider>
@@ -42,8 +44,8 @@ const App = () => (
                   <Route path="/products" element={<Products />} />
                   <Route path="/products/compare" element={<ProductCompare />} />
                   <Route path="/products/:id" element={<ProductDetail />} />
-                  <Route path="/project-cart" element={<ProjectCart />} />
-                  <Route path="/projects/new" element={<ProjectBuilder />} />
+                  <Route path="/project-cart" element={<ProtectedRoute><ProjectCart /></ProtectedRoute>} />
+                  <Route path="/projects/new" element={<ProtectedRoute><ProjectBuilder /></ProtectedRoute>} />
                   <Route path="/inspirations" element={<Inspirations />} />
                   <Route path="/resources" element={<Resources />} />
                   <Route path="/pro-service" element={<ProService />} />
@@ -65,6 +67,7 @@ const App = () => (
         </ProjectCartProvider>
         </FavouritesProvider>
       </AuthProvider>
+      </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
 );
