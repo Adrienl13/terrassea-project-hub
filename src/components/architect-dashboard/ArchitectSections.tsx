@@ -2349,7 +2349,6 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
                   className={inputCls}
                   noProjectLabel={t('ad.messages.noProject')}
                 />
-                </select>
               </div>
               {/* Subject */}
               <div>
