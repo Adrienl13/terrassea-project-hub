@@ -28,6 +28,7 @@ const ProjectBuilder = lazy(() => import("./pages/ProjectBuilder"));
 const ProductCompare = lazy(() => import("./pages/ProductCompare"));
 const BecomePartner = lazy(() => import("./pages/BecomePartner"));
 const Account = lazy(() => import("./pages/Account"));
+const MoodBoard = lazy(() => import("./pages/MoodBoard"));
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
                   <Route path="/login" element={<Auth />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/reset-password" element={<Auth />} />
+                  <Route path="/mood-board" element={<ProtectedRoute><MoodBoard /></ProtectedRoute>} />
                   <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

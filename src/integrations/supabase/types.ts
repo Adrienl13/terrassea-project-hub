@@ -94,6 +94,33 @@ export type Database = {
           },
         ]
       }
+      image_analyses: {
+        Row: {
+          analysis_result: Json | null
+          created_at: string | null
+          id: string
+          image_path: string
+          matched_product_ids: string[] | null
+          user_id: string
+        }
+        Insert: {
+          analysis_result?: Json | null
+          created_at?: string | null
+          id?: string
+          image_path: string
+          matched_product_ids?: string[] | null
+          user_id: string
+        }
+        Update: {
+          analysis_result?: Json | null
+          created_at?: string | null
+          id?: string
+          image_path?: string
+          matched_product_ids?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string
