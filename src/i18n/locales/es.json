@@ -3019,7 +3019,10 @@
       "perOrder": "pedido",
       "perReview": "resena",
       "oneTime": "unica vez"
-    }
+    },
+    "eligibleForUpgrade": "¡Eres elegible para {{tier}}!",
+    "eligibleDescription": "Tus puntos de fidelidad te califican para una mejora. Contáctanos para activar tu nuevo nivel y desbloquear beneficios premium.",
+    "requestUpgrade": "Solicitar mejora"
   },
   "partnerAnalytics": {
     "title": "Analiticas de rendimiento",

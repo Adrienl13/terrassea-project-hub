@@ -3019,7 +3019,10 @@
       "perOrder": "ordine",
       "perReview": "recensione",
       "oneTime": "una tantum"
-    }
+    },
+    "eligibleForUpgrade": "Sei idoneo per {{tier}}!",
+    "eligibleDescription": "I tuoi punti fedeltà ti qualificano per un upgrade. Contattaci per attivare il tuo nuovo livello e sbloccare i vantaggi premium.",
+    "requestUpgrade": "Richiedi upgrade"
   },
   "partnerAnalytics": {
     "title": "Analisi delle performance",

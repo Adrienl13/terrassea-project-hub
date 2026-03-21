@@ -473,6 +473,21 @@ export function usePartnerTierConfig(partnerId: string | undefined) {
     },
   });
 
+  // Admin setting: auto tier upgrade from loyalty points
+  const { data: autoUpgradeSetting } = useQuery({
+    queryKey: ["setting-auto-tier-upgrade"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("platform_settings")
+        .select("value")
+        .eq("key", "partner_auto_tier_upgrade")
+        .maybeSingle();
+      return data?.value === "true";
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+  const autoUpgradeEnabled = autoUpgradeSetting ?? false;
+
   const subscriptionPlan: PartnerTier = (() => {
     const plan = partner?.plan;
     if (plan === "elite_prestige" || plan === "elite" || plan === "growth") {
@@ -481,10 +496,19 @@ export function usePartnerTierConfig(partnerId: string | undefined) {
     return "growth";
   })();
 
-  // Effective tier = higher of subscription plan or loyalty tier
-  const subIndex = TIER_ORDER.indexOf(subscriptionPlan);
+  // Effective tier:
+  // - If auto-upgrade enabled by admin: higher of subscription OR loyalty tier
+  // - If auto-upgrade disabled (default): subscription plan ONLY
+  //   Loyalty tier is shown as "eligible" but does NOT grant features
+  const effectiveTier = autoUpgradeEnabled
+    ? TIER_ORDER[Math.max(TIER_ORDER.indexOf(subscriptionPlan), TIER_ORDER.indexOf(loyaltyTier))]
+    : subscriptionPlan;
+
+  // Check if partner is eligible for a higher tier via loyalty
   const loyaltyIndex = TIER_ORDER.indexOf(loyaltyTier);
-  const effectiveTier = TIER_ORDER[Math.max(subIndex, loyaltyIndex)];
+  const subIndex = TIER_ORDER.indexOf(subscriptionPlan);
+  const isEligibleForUpgrade = loyaltyIndex > subIndex && !autoUpgradeEnabled;
+  const eligibleTier = isEligibleForUpgrade ? loyaltyTier : null;
 
   const config = TIER_CONFIG[effectiveTier];
 
@@ -493,6 +517,9 @@ export function usePartnerTierConfig(partnerId: string | undefined) {
     config,
     subscriptionPlan,
     loyaltyTier,
+    autoUpgradeEnabled,
+    isEligibleForUpgrade,
+    eligibleTier,
     isLoading: isLoadingLoyalty || isLoadingPartner,
   };
 }

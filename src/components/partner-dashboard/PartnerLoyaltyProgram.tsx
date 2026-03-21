@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import {
   usePartnerLoyalty,
+  usePartnerTierConfig,
   TIER_CONFIG,
   type PartnerTier,
 } from "@/hooks/usePartnerAnalytics";
@@ -105,6 +106,8 @@ export default function PartnerLoyaltyProgram({ partnerId }: Props) {
       </div>
     );
   }
+
+  const { isEligibleForUpgrade, eligibleTier, subscriptionPlan } = usePartnerTierConfig(partnerId);
 
   const points = loyalty?.pointsBalance ?? 0;
   const lifetimePoints = loyalty?.lifetimePoints ?? 0;
@@ -229,6 +232,31 @@ export default function PartnerLoyaltyProgram({ partnerId }: Props) {
           )}
         </CardContent>
       </Card>
+
+      {/* ── Upgrade eligibility banner ────────────────────────────────── */}
+      {isEligibleForUpgrade && eligibleTier && (
+        <Card className={`border-2 ${TIER_BG[eligibleTier]}`}>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${TIER_GRADIENT[eligibleTier]} flex items-center justify-center shrink-0`}>
+              <Gift className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className={`font-display font-bold text-sm ${TIER_TEXT[eligibleTier]}`}>
+                {t("partnerLoyalty.eligibleForUpgrade", { tier: TIER_CONFIG[eligibleTier].name })}
+              </p>
+              <p className="text-xs font-body text-muted-foreground mt-0.5">
+                {t("partnerLoyalty.eligibleDescription")}
+              </p>
+            </div>
+            <a
+              href="mailto:partners@terrassea.com?subject=Tier%20Upgrade%20Request"
+              className={`shrink-0 px-4 py-2 rounded-full font-display font-semibold text-xs text-white bg-gradient-to-r ${TIER_GRADIENT[eligibleTier]} hover:opacity-90 transition-opacity`}
+            >
+              {t("partnerLoyalty.requestUpgrade")}
+            </a>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── Tier comparison table ──────────────────────────────────────── */}
       <Card>

@@ -3113,7 +3113,10 @@
       "perOrder": "commande",
       "perReview": "avis",
       "oneTime": "unique"
-    }
+    },
+    "eligibleForUpgrade": "Vous êtes éligible au niveau {{tier}} !",
+    "eligibleDescription": "Vos points de fidélité vous qualifient pour un upgrade. Contactez-nous pour activer votre nouveau niveau et débloquer les avantages premium.",
+    "requestUpgrade": "Demander l'upgrade"
   },
   "partnerAnalytics": {
     "title": "Analytiques de performance",

@@ -3113,7 +3113,10 @@
       "perOrder": "order",
       "perReview": "review",
       "oneTime": "one-time"
-    }
+    },
+    "eligibleForUpgrade": "You are eligible for {{tier}}!",
+    "eligibleDescription": "Your loyalty points qualify you for an upgrade. Contact us to activate your new tier and unlock premium benefits.",
+    "requestUpgrade": "Request upgrade"
   },
   "partnerAnalytics": {
     "title": "Performance Analytics",
