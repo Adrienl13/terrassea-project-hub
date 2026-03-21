@@ -79,8 +79,12 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
         setOffers(scored);
         setLoading(false);
       }
-    }).catch(() => {
-      if (!cancelled) setLoading(false);
+    }).catch((err) => {
+      console.error("Failed to score supplier offers:", err);
+      if (!cancelled) {
+        setLoading(false);
+        toast.error("Failed to load supplier recommendations");
+      }
     });
 
     return () => { cancelled = true; };

@@ -51,11 +51,15 @@ export default function AdminQuoteWorkflow() {
   const { data: partners = [] } = useQuery({
     queryKey: ["admin_partners_list"],
     queryFn: async () => {
-      const { data } = await (supabase
+      const { data, error } = await (supabase
         .from("partners" as any)
         .select("id, name, slug, country_code, plan")
         .eq("is_active", true)
         .order("name") as any);
+      if (error) {
+        console.error("Failed to fetch partners list:", error.message);
+        return [];
+      }
       return data || [];
     },
   });
