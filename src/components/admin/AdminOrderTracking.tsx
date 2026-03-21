@@ -10,6 +10,7 @@ import {
   Radio, Loader2,
 } from "lucide-react";
 import { isAutoTrackingEnabled, refreshOrderTracking, refreshAllShippedOrders } from "@/lib/trackingService";
+import AdminPaymentPanel from "@/components/admin/AdminPaymentPanel";
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -195,6 +196,9 @@ export default function AdminOrderTracking() {
             sub={selected.balance_paid_at ? `Reçu le ${new Date(selected.balance_paid_at).toLocaleDateString("fr-FR")}` : selected.balance_due_date ? `Dû avant le ${new Date(selected.balance_due_date).toLocaleDateString("fr-FR")}` : "Après livraison"} />
           <FinCard label={`Commission (${selected.commission_rate}%)`} value={`€${Number(selected.commission_amount || 0).toLocaleString()}`} icon={Banknote} highlight />
         </div>
+
+        {/* Payment management panel */}
+        <AdminPaymentPanel orderId={selected.id} order={selected} />
 
         {/* Tracking info */}
         {(selected.tracking_number || selected.status === "shipped" || selected.status === "delivered") && (

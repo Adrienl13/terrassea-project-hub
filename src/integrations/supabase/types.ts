@@ -413,14 +413,20 @@ export type Database = {
           delivery_confirmed_by: string | null
           delivery_proof_path: string | null
           deposit_amount: number | null
+          deposit_due_date: string | null
           deposit_paid_at: string | null
           deposit_payment_ref: string | null
           deposit_percent: number | null
+          deposit_percentage: number | null
           dispute_reason: string | null
           dispute_resolved_at: string | null
           estimated_delivery_date: string | null
           id: string
+          invoice_number: string | null
+          invoice_pdf_path: string | null
           partner_id: string | null
+          payment_method: string | null
+          payment_reference: string | null
           product_id: string | null
           product_name: string
           production_confirmed_at: string | null
@@ -462,14 +468,20 @@ export type Database = {
           delivery_confirmed_by?: string | null
           delivery_proof_path?: string | null
           deposit_amount?: number | null
+          deposit_due_date?: string | null
           deposit_paid_at?: string | null
           deposit_payment_ref?: string | null
           deposit_percent?: number | null
+          deposit_percentage?: number | null
           dispute_reason?: string | null
           dispute_resolved_at?: string | null
           estimated_delivery_date?: string | null
           id?: string
+          invoice_number?: string | null
+          invoice_pdf_path?: string | null
           partner_id?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
           product_id?: string | null
           product_name: string
           production_confirmed_at?: string | null
@@ -511,14 +523,20 @@ export type Database = {
           delivery_confirmed_by?: string | null
           delivery_proof_path?: string | null
           deposit_amount?: number | null
+          deposit_due_date?: string | null
           deposit_paid_at?: string | null
           deposit_payment_ref?: string | null
           deposit_percent?: number | null
+          deposit_percentage?: number | null
           dispute_reason?: string | null
           dispute_resolved_at?: string | null
           estimated_delivery_date?: string | null
           id?: string
+          invoice_number?: string | null
+          invoice_pdf_path?: string | null
           partner_id?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
           product_id?: string | null
           product_name?: string
           production_confirmed_at?: string | null

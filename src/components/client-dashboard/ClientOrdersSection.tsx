@@ -6,6 +6,7 @@ import {
   CalendarDays, FileText, CircleDot,
 } from "lucide-react";
 import { useClientOrders, useOrderDetail, type ClientOrder } from "@/hooks/useOrders";
+import PaymentInstructions from "@/components/payments/PaymentInstructions";
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -429,6 +430,20 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
           )}
         </div>
       </div>
+
+      {/* Bank transfer instructions */}
+      {order.paymentReference && (
+        <PaymentInstructions
+          reference={order.paymentReference}
+          amount={order.totalPrice}
+          beneficiary="TERRASSEA SAS"
+          iban="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+          bic="QNTOFRP1XXX"
+          bankName="Qonto"
+          dueDate={order.balanceDueDate || new Date(Date.now() + 7 * 86400000).toISOString()}
+          status={order.balancePaidAt ? "paid" : "pending"}
+        />
+      )}
 
       {/* Event timeline */}
       <div className="border border-border rounded-lg p-4">
