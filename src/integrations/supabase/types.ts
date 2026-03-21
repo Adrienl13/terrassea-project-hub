@@ -1862,6 +1862,48 @@ export type Database = {
           },
         ]
       }
+      saved_carts: {
+        Row: {
+          cart_data: Json
+          created_at: string | null
+          id: string
+          item_count: number | null
+          last_synced_at: string | null
+          notes: string | null
+          reminder_count: number | null
+          reminder_sent_at: string | null
+          submitted_at: string | null
+          total_estimated: number | null
+          user_id: string
+        }
+        Insert: {
+          cart_data?: Json
+          created_at?: string | null
+          id?: string
+          item_count?: number | null
+          last_synced_at?: string | null
+          notes?: string | null
+          reminder_count?: number | null
+          reminder_sent_at?: string | null
+          submitted_at?: string | null
+          total_estimated?: number | null
+          user_id: string
+        }
+        Update: {
+          cart_data?: Json
+          created_at?: string | null
+          id?: string
+          item_count?: number | null
+          last_synced_at?: string | null
+          notes?: string | null
+          reminder_count?: number | null
+          reminder_sent_at?: string | null
+          submitted_at?: string | null
+          total_estimated?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       stock_sync_logs: {
         Row: {
           connection_id: string | null

@@ -89,7 +89,7 @@ async function lookupSiren(siren: string): Promise<SirenResult | null> {
 
 const ProjectCart = () => {
   const { t } = useTranslation();
-  const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus } =
+  const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus, markCartSubmitted } =
   useProjectCart();
 
   const [formData, setFormData] = useState({
@@ -232,6 +232,7 @@ const ProjectCart = () => {
       if (ciError) throw ciError;
 
       localStorage.removeItem("terrassea_cart_form");
+      await markCartSubmitted();
       setSubmitted(true);
       toast.success(t('projectCart.submitSuccess'));
     } catch (err) {

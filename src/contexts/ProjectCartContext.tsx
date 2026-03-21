@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from "react";
 import type { DBProduct } from "@/lib/products";
 import type { LayoutRequirementType } from "@/engine/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface CartItemLayoutMeta {
   requirementType?: LayoutRequirementType;
@@ -48,6 +50,24 @@ interface ProjectCartContextType {
   notes: string;
   setNotes: (notes: string) => void;
   quotationStatus: QuotationStatus;
+  markCartSubmitted: () => Promise<void>;
+}
+
+/** Lightweight cart item stored server-side (no full product objects). */
+interface SerializableCartItem {
+  productId: string;
+  quantity: number;
+  conceptName?: string;
+  selectedSupplier?: SelectedSupplier;
+}
+
+function serializeCartItems(items: CartItem[]): SerializableCartItem[] {
+  return items.map((i) => ({
+    productId: i.product.id,
+    quantity: i.quantity,
+    conceptName: i.conceptName,
+    selectedSupplier: i.selectedSupplier,
+  }));
 }
 
 const ProjectCartContext = createContext<ProjectCartContextType | undefined>(undefined);
@@ -100,8 +120,11 @@ function loadNotesFromStorage(): string {
 }
 
 export function ProjectCartProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
   const [notes, setNotes] = useState(loadNotesFromStorage);
+  const serverCartExistsRef = useRef(false);
+  const hasLoadedServerCartRef = useRef(false);
 
   // Persist cart items to localStorage
   useEffect(() => {
@@ -120,6 +143,127 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
       console.warn("Failed to persist notes to localStorage:", err);
     }
   }, [notes]);
+
+  // ── Load server cart on login ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!user) {
+      hasLoadedServerCartRef.current = false;
+      serverCartExistsRef.current = false;
+      return;
+    }
+    if (hasLoadedServerCartRef.current) return;
+    hasLoadedServerCartRef.current = true;
+
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("saved_carts")
+          .select("cart_data, notes")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.warn("Failed to load server cart:", error);
+          return;
+        }
+
+        if (data) {
+          serverCartExistsRef.current = true;
+          // Only load server cart if local cart is empty
+          const localItems = loadCartFromStorage();
+          if (localItems.length === 0 && Array.isArray(data.cart_data)) {
+            const serverItems = data.cart_data as unknown as SerializableCartItem[];
+            if (serverItems.length > 0) {
+              // Hydrate: fetch full product objects for the stored IDs
+              const productIds = serverItems.map((si) => si.productId);
+              const { data: products, error: prodErr } = await supabase
+                .from("products")
+                .select("*")
+                .in("id", productIds);
+
+              if (prodErr || !products) {
+                console.warn("Failed to hydrate server cart products:", prodErr);
+                return;
+              }
+
+              const productMap = new Map(products.map((p) => [p.id, p]));
+              const hydrated: CartItem[] = serverItems
+                .filter((si) => productMap.has(si.productId))
+                .map((si) => ({
+                  product: productMap.get(si.productId)! as unknown as DBProduct,
+                  quantity: si.quantity,
+                  conceptName: si.conceptName,
+                  selectedSupplier: si.selectedSupplier,
+                }));
+
+              if (hydrated.length > 0) {
+                setItems(hydrated);
+              }
+              if (data.notes) {
+                setNotes(data.notes as string);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Error loading server cart:", err);
+      }
+    })();
+  }, [user]);
+
+  // ── Debounced server sync ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!user) return;
+
+    // Don't sync empty cart if no server cart exists (avoid creating empty rows)
+    if (items.length === 0 && !serverCartExistsRef.current) return;
+
+    const totalEstimated = items.reduce((sum, item) => {
+      const price = item.selectedSupplier?.price ?? item.product.price_min ?? null;
+      return price !== null ? sum + price * item.quantity : sum;
+    }, 0);
+
+    const timer = setTimeout(async () => {
+      try {
+        const { error } = await supabase
+          .from("saved_carts")
+          .upsert(
+            {
+              user_id: user.id,
+              cart_data: serializeCartItems(items) as unknown as Record<string, unknown>[],
+              notes,
+              item_count: items.reduce((s, i) => s + i.quantity, 0),
+              total_estimated: totalEstimated,
+              last_synced_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id" }
+          );
+
+        if (error) {
+          console.warn("Failed to sync cart to server:", error);
+        } else {
+          serverCartExistsRef.current = true;
+        }
+      } catch (err) {
+        console.warn("Error syncing cart to server:", err);
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [user, items, notes]);
+
+  // ── Mark cart as submitted ─────────────────────────────────────────────────
+  const markCartSubmitted = useCallback(async () => {
+    if (!user) return;
+    try {
+      await supabase
+        .from("saved_carts")
+        .update({ submitted_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+    } catch (err) {
+      console.warn("Failed to mark cart as submitted:", err);
+    }
+  }, [user]);
 
   const addItem = useCallback((product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta) => {
     const qty = quantity ?? 1;
@@ -186,8 +330,8 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
   const quotationStatus = computeQuotationStatus(items);
 
   const value = useMemo(() => ({
-    items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotes: setNotesCallback, quotationStatus,
-  }), [items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotesCallback, quotationStatus]);
+    items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotes: setNotesCallback, quotationStatus, markCartSubmitted,
+  }), [items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotesCallback, quotationStatus, markCartSubmitted]);
 
   return (
     <ProjectCartContext.Provider value={value}>
@@ -207,6 +351,7 @@ const FALLBACK_CONTEXT: ProjectCartContextType = {
   notes: "",
   setNotes: () => {},
   quotationStatus: "draft",
+  markCartSubmitted: async () => {},
 };
 
 export function useProjectCart() {
