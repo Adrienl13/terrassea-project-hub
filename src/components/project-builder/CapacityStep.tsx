@@ -71,7 +71,10 @@ const CapacityStep = ({ params, onChange, onBack, onNext }: Props) => {
           max={500}
           placeholder={t('projectBuilder.capacity.exactPlaceholder')}
           value={params.seatingCapacity ?? ""}
-          onChange={(e) => onChange({ seatingCapacity: e.target.value ? parseInt(e.target.value) : null })}
+          onChange={(e) => {
+            const raw = parseInt(e.target.value);
+            onChange({ seatingCapacity: e.target.value && !isNaN(raw) ? raw : null });
+          }}
           className="max-w-48"
         />
       </div>
@@ -87,7 +90,8 @@ const CapacityStep = ({ params, onChange, onBack, onNext }: Props) => {
               type="number" min={1} placeholder="12"
               value={params.terraceLength ?? ""}
               onChange={(e) => {
-                const len = e.target.value ? parseFloat(e.target.value) : null;
+                const raw = parseFloat(e.target.value);
+                const len = e.target.value && !isNaN(raw) ? raw : null;
                 const w = params.terraceWidth;
                 onChange({ terraceLength: len, terraceSurfaceM2: len && w ? Math.round(len * w) : params.terraceSurfaceM2 });
               }}
@@ -101,7 +105,8 @@ const CapacityStep = ({ params, onChange, onBack, onNext }: Props) => {
               type="number" min={1} placeholder="8"
               value={params.terraceWidth ?? ""}
               onChange={(e) => {
-                const w = e.target.value ? parseFloat(e.target.value) : null;
+                const raw = parseFloat(e.target.value);
+                const w = e.target.value && !isNaN(raw) ? raw : null;
                 const len = params.terraceLength;
                 onChange({ terraceWidth: w, terraceSurfaceM2: len && w ? Math.round(len * w) : params.terraceSurfaceM2 });
               }}
@@ -114,10 +119,13 @@ const CapacityStep = ({ params, onChange, onBack, onNext }: Props) => {
             <Input
               type="number" min={1} placeholder="96"
               value={params.terraceSurfaceM2 ?? ""}
-              onChange={(e) => onChange({
-                terraceSurfaceM2: e.target.value ? parseFloat(e.target.value) : null,
-                terraceLength: null, terraceWidth: null,
-              })}
+              onChange={(e) => {
+                const raw = parseFloat(e.target.value);
+                onChange({
+                  terraceSurfaceM2: e.target.value && !isNaN(raw) ? raw : null,
+                  terraceLength: null, terraceWidth: null,
+                });
+              }}
               className="max-w-24"
             />
           </div>

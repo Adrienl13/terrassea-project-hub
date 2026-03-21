@@ -23,7 +23,9 @@ function isQualified(covers: number | null, budget: string): boolean {
 
 function parseBudget(val: string): number | null {
   const match = val.replace(/[€\s,]/g, "").match(/\d+/);
-  return match ? parseInt(match[0]) : null;
+  if (!match) return null;
+  const num = parseInt(match[0]);
+  return isNaN(num) ? null : num;
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -107,7 +109,8 @@ export default function ProServiceLanding() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm(p => ({ ...p, [field]: e.target.value }));
 
-  const coversNum = form.covers ? parseInt(form.covers) : null;
+  const rawCovers = parseInt(form.covers);
+  const coversNum = form.covers && !isNaN(rawCovers) ? rawCovers : null;
   const qualified = isQualified(coversNum, form.budget);
 
   const handleSubmit = async () => {

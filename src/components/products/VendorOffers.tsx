@@ -287,7 +287,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
             {t("vendorOffers.quantityNeeded")}
           </label>
           <div className="flex items-center gap-0 border border-border rounded-full overflow-hidden">
-            <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-card transition-colors">
+            <button onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="Decrease quantity" className="px-3 py-2 hover:bg-card transition-colors">
               <Minus className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
             <input
@@ -297,7 +297,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
               onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
               className="w-16 text-center text-sm font-display font-bold bg-transparent border-x border-border py-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
-            <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-2 hover:bg-card transition-colors">
+            <button onClick={() => setQuantity(quantity + 1)} aria-label="Increase quantity" className="px-3 py-2 hover:bg-card transition-colors">
               <Plus className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
           </div>

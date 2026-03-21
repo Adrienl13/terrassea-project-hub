@@ -26,7 +26,7 @@ const CompareBar = () => {
               {items.map((p) => (
                 <div key={p.id} className="flex items-center gap-1.5 bg-primary-foreground/10 rounded-full pl-1.5 pr-2 py-1">
                   <div className="w-6 h-6 rounded-full overflow-hidden bg-primary-foreground/20">
-                    <img src={p.image_url || "/placeholder.svg"} alt="" className="w-full h-full object-cover" />
+                    <img src={p.image_url || "/placeholder.svg"} alt={p.name} className="w-full h-full object-cover" />
                   </div>
                   <span className="text-[10px] font-body truncate max-w-[80px]">{p.name}</span>
                   <button onClick={() => removeFromCompare(p.id)} className="hover:opacity-70">

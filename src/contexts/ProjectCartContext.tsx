@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from "react";
 import type { DBProduct } from "@/lib/products";
 import type { LayoutRequirementType } from "@/engine/types";
 
@@ -83,7 +83,7 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [notes, setNotes] = useState("");
 
-  const addItem = (product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta) => {
+  const addItem = useCallback((product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta) => {
     const qty = quantity ?? 1;
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
@@ -104,14 +104,17 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
       };
       return [...prev, newItem];
     });
-  };
+  }, []);
 
-  const removeItem = (productId: string) => {
+  const removeItem = useCallback((productId: string) => {
     setItems((prev) => prev.filter((i) => i.product.id !== productId));
-  };
+  }, []);
 
-  const updateQuantity = (productId: string, quantity: number, layoutMeta?: CartItemLayoutMeta) => {
-    if (quantity <= 0) { removeItem(productId); return; }
+  const updateQuantity = useCallback((productId: string, quantity: number, layoutMeta?: CartItemLayoutMeta) => {
+    if (quantity <= 0) {
+      setItems((prev) => prev.filter((i) => i.product.id !== productId));
+      return;
+    }
     setItems((prev) =>
       prev.map((i) =>
         i.product.id === productId
@@ -119,31 +122,37 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
           : i
       )
     );
-  };
+  }, []);
 
-  const selectSupplier = (productId: string, supplier: SelectedSupplier) => {
+  const selectSupplier = useCallback((productId: string, supplier: SelectedSupplier) => {
     setItems((prev) =>
       prev.map((i) =>
         i.product.id === productId ? { ...i, selectedSupplier: supplier } : i
       )
     );
-  };
+  }, []);
 
-  const clearSupplier = (productId: string) => {
+  const clearSupplier = useCallback((productId: string) => {
     setItems((prev) =>
       prev.map((i) =>
         i.product.id === productId ? { ...i, selectedSupplier: undefined } : i
       )
     );
-  };
+  }, []);
+
+  const setNotesCallback = useCallback((newNotes: string) => {
+    setNotes(newNotes);
+  }, []);
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const quotationStatus = computeQuotationStatus(items);
 
+  const value = useMemo(() => ({
+    items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotes: setNotesCallback, quotationStatus,
+  }), [items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotesCallback, quotationStatus]);
+
   return (
-    <ProjectCartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotes, quotationStatus }}
-    >
+    <ProjectCartContext.Provider value={value}>
       {children}
     </ProjectCartContext.Provider>
   );

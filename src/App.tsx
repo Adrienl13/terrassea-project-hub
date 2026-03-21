@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -10,21 +11,23 @@ import { FavouritesProvider } from "@/contexts/FavouritesContext";
 import Index from "./pages/Index.tsx";
 import Products from "./pages/Products.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
-import ProductCompare from "./pages/ProductCompare.tsx";
 import ProjectCart from "./pages/ProjectCart.tsx";
 import Partners from "./pages/Partners.tsx";
-import BecomePartner from "./pages/BecomePartner.tsx";
 import PartnerDetail from "./pages/PartnerDetail.tsx";
-import Admin from "./pages/Admin.tsx";
-import ProjectBuilder from "./pages/ProjectBuilder.tsx";
 import Inspirations from "./pages/Inspirations.tsx";
 import Resources from "./pages/Resources.tsx";
 import ProService from "./pages/ProService.tsx";
 import Auth from "./pages/Auth.tsx";
-import Account from "./pages/Account.tsx";
 import Messages from "./pages/Messages.tsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound.tsx";
+
+// Lazy-loaded heavy page components
+const Admin = lazy(() => import("./pages/Admin"));
+const ProjectBuilder = lazy(() => import("./pages/ProjectBuilder"));
+const ProductCompare = lazy(() => import("./pages/ProductCompare"));
+const BecomePartner = lazy(() => import("./pages/BecomePartner"));
+const Account = lazy(() => import("./pages/Account"));
 
 const queryClient = new QueryClient();
 
@@ -39,6 +42,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <div className="pt-[var(--header-height)]">
+                <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/products" element={<Products />} />
@@ -61,6 +65,7 @@ const App = () => (
                   <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </Suspense>
               </div>
             </BrowserRouter>
           </CompareProvider>

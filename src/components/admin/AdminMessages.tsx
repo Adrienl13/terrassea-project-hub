@@ -322,7 +322,7 @@ export default function AdminMessages() {
                 <span className={`text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full border ${USER_TYPE_COLOR[selectedUser.user_type] || ""}`}>
                   {USER_TYPE_LABEL[selectedUser.user_type]}
                 </span>
-                <button onClick={() => setSelectedUser(null)}><X className="h-3 w-3 text-muted-foreground" /></button>
+                <button onClick={() => setSelectedUser(null)} aria-label="Close"><X className="h-3 w-3 text-muted-foreground" /></button>
               </div>
             ) : (
               <div className="relative">

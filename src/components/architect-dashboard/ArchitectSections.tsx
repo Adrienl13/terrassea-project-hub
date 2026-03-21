@@ -2198,7 +2198,7 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
           <div className="bg-background border border-border rounded-sm shadow-xl w-full max-w-md mx-4">
             <div className="flex items-center justify-between px-5 py-3 border-b border-border">
               <p className="font-display font-semibold text-xs">{t('ad.messages.newConv')}</p>
-              <button onClick={() => { setShowNew(false); setSelectedUser(null); setNewSearch(""); }} className="text-muted-foreground hover:text-foreground">
+              <button onClick={() => { setShowNew(false); setSelectedUser(null); setNewSearch(""); }} aria-label="Close" className="text-muted-foreground hover:text-foreground">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -2214,7 +2214,7 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
                     <span className={`text-[8px] font-display font-semibold px-1.5 py-0.5 rounded-full ${USER_TYPE_COLOR[selectedUser.user_type] || ""}`}>
                       {USER_TYPE_LABEL[selectedUser.user_type] || selectedUser.user_type}
                     </span>
-                    <button onClick={() => setSelectedUser(null)} className="text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>
+                    <button onClick={() => setSelectedUser(null)} aria-label="Close" className="text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>
                   </div>
                 ) : (
                   <div className="relative">
