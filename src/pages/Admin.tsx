@@ -13,6 +13,7 @@ import {
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import type { DBProduct, ProductTypeTags, TagDefinition } from "@/lib/products";
+import type { Json } from "@/integrations/supabase/types";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminPartners from "@/components/admin/AdminPartners";
@@ -832,10 +833,12 @@ function ProductsTab() {
 
   const handleSave = async (data: ProductFormData) => {
     const { id, publish_status, ...rest } = data;
-    const dbData: any = {
+    const dbData = {
       ...rest,
-      color_variants:    rest.color_variants as any,
-      product_type_tags: rest.product_type_tags as any,
+      color_variants:    rest.color_variants as unknown as Json,
+      product_type_tags: rest.product_type_tags as unknown as Json,
+      documents:         rest.documents as unknown as Json,
+      publish_status:    undefined as string | undefined,
     };
     // New products default to draft; existing keep their status unless explicitly changed
     if (!id) {
@@ -849,7 +852,7 @@ function ProductsTab() {
         if (error) throw error;
         toast.success("Product updated");
       } else {
-        const { error } = await supabase.from("products").insert(dbData as any);
+        const { error } = await supabase.from("products").insert(dbData);
         if (error) throw error;
         toast.success("Product created");
       }
@@ -863,7 +866,7 @@ function ProductsTab() {
 
   const handlePublishAction = async (productId: string, newStatus: string) => {
     try {
-      const { error } = await supabase.from("products").update({ publish_status: newStatus } as any).eq("id", productId);
+      const { error } = await supabase.from("products").update({ publish_status: newStatus }).eq("id", productId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast.success(newStatus === "published" ? "Product published" : "Product rejected");

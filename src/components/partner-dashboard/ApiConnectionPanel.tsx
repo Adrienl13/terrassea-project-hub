@@ -105,12 +105,12 @@ export default function ApiConnectionPanel({
       .maybeSingle();
 
     if (data) {
-      setConnection(data as any);
-      setSyncMode(data.sync_mode as any);
+      setConnection(data as unknown as ApiConnection);
+      setSyncMode(data.sync_mode as ApiConnection["sync_mode"]);
       setExternalUrl(data.external_api_url || "");
       setExternalKey(data.external_api_key || "");
       setPullInterval(data.pull_interval_minutes || 60);
-      if (data.field_mapping) setFieldMapping(data.field_mapping as any);
+      if (data.field_mapping) setFieldMapping(data.field_mapping as unknown as ApiConnection["field_mapping"]);
 
       // Load logs
       const { data: logsData } = await supabase

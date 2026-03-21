@@ -81,7 +81,7 @@ export default function AdminUsers() {
           company: editForm.company,
           phone: editForm.phone,
           country: editForm.country,
-          user_type: editForm.user_type as any,
+          user_type: editForm.user_type,
         })
         .eq("id", editForm.id);
       if (error) throw error;

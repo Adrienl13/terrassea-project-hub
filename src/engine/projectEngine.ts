@@ -1631,10 +1631,10 @@ function inferRequirementType(product: DBProduct): LayoutRequirementType {
   // Armchairs map to "chair" requirement (unified seating slot)
   if (cat.includes("armchair") || sub.includes("armchair")) return "chair";
   if (cat.includes("chair")    || sub.includes("chair"))    return "chair";
-  if (cat.includes("stool"))                                return "bar_stool" as any;
+  if (cat.includes("stool"))                                return "bar_stool";
   if (cat.includes("parasol"))                              return "parasol";
-  if (cat.includes("lounger") || cat.includes("daybed"))    return "sun_lounger" as any;
-  if (cat.includes("sofa")    || cat.includes("lounge"))    return "sofa" as any;
+  if (cat.includes("lounger") || cat.includes("daybed"))    return "sun_lounger";
+  if (cat.includes("sofa")    || cat.includes("lounge"))    return "sofa";
   if (cat.includes("table")) {
     const ptt: ProductTypeTags = product.product_type_tags || {};
     if (ptt.table_type === "base-only") return "table_base";
