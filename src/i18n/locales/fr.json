@@ -3186,5 +3186,50 @@
     "savingMaterialBoard": "Enregistrement...",
     "materialBoardCreated": "Tableau de materiaux cree avec {{count}} produits",
     "materialBoardError": "Impossible de creer le tableau de materiaux"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer lu",
+    "noNotifications": "Aucune notification",
+    "viewAllMessages": "Voir tous les messages",
+    "unreadMessages": "{{count}} message(s) non lu(s)",
+    "timeAgo": {
+      "justNow": "A l'instant",
+      "minutes": "Il y a {{count}} min",
+      "hours": "Il y a {{count}} h",
+      "days": "Il y a {{count}} j"
+    },
+    "types": {
+      "quote_reply": "Reponse devis",
+      "cart_reminder": "Rappel panier",
+      "order_update": "Mise a jour commande",
+      "review_request": "Demande d'avis",
+      "message": "Message",
+      "info": "Information"
+    }
+  },
+  "adminAnalytics": {
+    "title": "Analytics",
+    "subtitle": "Vue d'ensemble des performances de la plateforme.",
+    "period30": "30 jours",
+    "period90": "90 jours",
+    "period365": "1 an",
+    "kpiUsers": "Utilisateurs totaux",
+    "kpiPartners": "Partenaires actifs",
+    "kpiProducts": "Produits publiés",
+    "kpiOrders": "Commandes",
+    "kpiRevenue": "Chiffre d'affaires",
+    "kpiCommissions": "Commissions",
+    "monthlyRevenue": "Chiffre d'affaires mensuel (12 derniers mois)",
+    "recentOrders": "Commandes récentes",
+    "recentQuotes": "Devis récents",
+    "ordersByStatus": "Commandes par statut",
+    "quotesByStatus": "Devis par statut",
+    "usersByType": "Utilisateurs par type",
+    "topProducts": "Top 5 produits (par devis)",
+    "topPartners": "Top 5 fournisseurs (par CA)",
+    "ordersLabel": "commandes",
+    "quotes": "devis",
+    "noData": "Aucune donnée pour le moment."
   }
 }

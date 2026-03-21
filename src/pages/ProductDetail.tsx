@@ -24,7 +24,7 @@ import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
   const { isFavourite, toggleFavourite } = useFavourites();
@@ -104,18 +104,20 @@ const ProductDetail = () => {
     );
   }
 
+  const localName = ml(product, "name");
+
   const handleAdd = () => {
     if (isArchitect) {
       setProjectModalOpen(true);
       return;
     }
     addItem(product);
-    toast.success(`${product.name} ${t('success.addedToProject').toLowerCase()}`);
+    toast.success(`${localName} ${t('success.addedToProject').toLowerCase()}`);
   };
 
   const handleArchitectAddConfirm = (projectId: string, projectName: string, zoneName?: string) => {
     addItem(product, zoneName || projectName);
-    toast.success(`${product.name} → ${projectName}${zoneName ? ` · ${zoneName}` : ""}`);
+    toast.success(`${localName} → ${projectName}${zoneName ? ` · ${zoneName}` : ""}`);
   };
 
   // Related products: same category, exclude self
@@ -165,7 +167,7 @@ const ProductDetail = () => {
             <ChevronRight className="h-3 w-3" />
             <span className="capitalize">{product.category}</span>
             <ChevronRight className="h-3 w-3" />
-            <span className="text-foreground">{product.name}</span>
+            <span className="text-foreground">{localName}</span>
           </nav>
         </div>
 
@@ -182,7 +184,7 @@ const ProductDetail = () => {
                 <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4">
                   <img
                     src={product.image_url || "/placeholder.svg"}
-                    alt={product.name}
+                    alt={localName}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -212,7 +214,7 @@ const ProductDetail = () => {
                     </p>
                   )}
                   <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                    {product.name}
+                    {localName}
                   </h1>
                   {product.collection && (
                    <p className="text-xs text-muted-foreground font-body mt-1">
@@ -403,7 +405,7 @@ const ProductDetail = () => {
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 {similar.map((p) => (
-                  <RelatedCard key={p.id} product={p} onAdd={() => { addItem(p); toast.success(`${p.name} added`); }} />
+                  <RelatedCard key={p.id} product={p} onAdd={() => { addItem(p); toast.success(`${ml(p, "name")} added`); }} />
                 ))}
               </div>
             </div>
@@ -418,11 +420,11 @@ const ProductDetail = () => {
                 {t('productDetail.complementaryProducts')}
               </h2>
               <p className="text-xs text-muted-foreground font-body mb-6">
-                {t('productDetail.complementaryDesc')} {product.name}
+                {t('productDetail.complementaryDesc')} {localName}
               </p>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 {complementary.map((p) => (
-                  <RelatedCard key={p.id} product={p} onAdd={() => { addItem(p); toast.success(`${p.name} added`); }} />
+                  <RelatedCard key={p.id} product={p} onAdd={() => { addItem(p); toast.success(`${ml(p, "name")} added`); }} />
                 ))}
               </div>
             </div>
@@ -477,6 +479,7 @@ function StockBadge({ status }: { status: string | null }) {
 }
 
 function RelatedCard({ product, onAdd }: { product: DBProduct; onAdd: () => void }) {
+  const relatedName = ml(product, "name");
   const STOCK_DOT: Record<string, { dot: string; label: string }> = {
     available:    { dot: "bg-green-500",       label: "In stock"     },
     low_stock:    { dot: "bg-amber-500",        label: "Low stock"    },
@@ -499,7 +502,7 @@ function RelatedCard({ product, onAdd }: { product: DBProduct; onAdd: () => void
         <div className="aspect-square overflow-hidden bg-card rounded-sm mb-3">
           <img
             src={product.image_url || "/placeholder.svg"}
-            alt={product.name}
+            alt={relatedName}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
@@ -509,7 +512,7 @@ function RelatedCard({ product, onAdd }: { product: DBProduct; onAdd: () => void
         <div className="min-w-0 flex-1">
           <Link to={`/products/${product.id}`}>
             <h3 className="font-display font-semibold text-xs text-foreground truncate hover:underline leading-tight">
-              {product.name}
+              {relatedName}
             </h3>
           </Link>
           <div className="flex items-center justify-between mt-1 gap-1">

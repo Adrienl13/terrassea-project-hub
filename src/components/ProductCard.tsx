@@ -2,7 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, BarChart3, Heart } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { DBProduct } from "@/lib/products";
+import { ml } from "@/lib/i18nFields";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
@@ -25,6 +27,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
   const { isFavourite, toggleFavourite } = useFavourites();
+  const localName = ml(product, "name");
   const inCompare = isInCompare(product.id);
   const fav = isFavourite(product.id);
 
@@ -37,7 +40,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     addItem(product);
-    toast.success(`${product.name} added to your project`);
+    toast.success(`${localName} added to your project`);
   };
 
   return (
@@ -52,7 +55,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4 relative">
           <img
             src={product.image_url || "/placeholder.svg"}
-            alt={product.name}
+            alt={localName}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
@@ -91,7 +94,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <div className="space-y-1">
         <Link to={`/products/${product.id}`}>
           <h3 className="font-display font-semibold text-sm text-foreground truncate group-hover:underline">
-            {product.name}
+            {localName}
           </h3>
         </Link>
         {product.brand_source && (

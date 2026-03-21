@@ -3186,5 +3186,50 @@
     "savingMaterialBoard": "Saving...",
     "materialBoardCreated": "Material board created with {{count}} products",
     "materialBoardError": "Failed to create material board"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "noNotifications": "No notifications",
+    "viewAllMessages": "View all messages",
+    "unreadMessages": "{{count}} unread message(s)",
+    "timeAgo": {
+      "justNow": "Just now",
+      "minutes": "{{count}}m ago",
+      "hours": "{{count}}h ago",
+      "days": "{{count}}d ago"
+    },
+    "types": {
+      "quote_reply": "Quote reply",
+      "cart_reminder": "Cart reminder",
+      "order_update": "Order update",
+      "review_request": "Review request",
+      "message": "Message",
+      "info": "Information"
+    }
+  },
+  "adminAnalytics": {
+    "title": "Analytics",
+    "subtitle": "Platform-wide performance overview.",
+    "period30": "30 days",
+    "period90": "90 days",
+    "period365": "1 year",
+    "kpiUsers": "Total users",
+    "kpiPartners": "Active partners",
+    "kpiProducts": "Published products",
+    "kpiOrders": "Orders",
+    "kpiRevenue": "Revenue",
+    "kpiCommissions": "Commissions",
+    "monthlyRevenue": "Monthly revenue (last 12 months)",
+    "recentOrders": "Recent orders",
+    "recentQuotes": "Recent quotes",
+    "ordersByStatus": "Orders by status",
+    "quotesByStatus": "Quotes by status",
+    "usersByType": "Users by type",
+    "topProducts": "Top 5 products (by quotes)",
+    "topPartners": "Top 5 partners (by revenue)",
+    "ordersLabel": "orders",
+    "quotes": "quotes",
+    "noData": "No data yet."
   }
 }

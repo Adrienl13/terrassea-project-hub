@@ -21,7 +21,7 @@ import AdminMessages from "@/components/admin/AdminMessages";
 import AdminPartnerVisibility from "@/components/admin/AdminPartnerVisibility";
 import AdminQuoteWorkflow from "@/components/admin/AdminQuoteWorkflow";
 import AdminOrderTracking from "@/components/admin/AdminOrderTracking";
-import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import AdminAnalyticsDashboard from "@/components/admin/AdminAnalyticsDashboard";
 import AdminSettings from "@/components/admin/AdminSettings";
 import AdminRatingsModeration from "@/components/admin/AdminRatingsModeration";
 import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
@@ -1534,7 +1534,7 @@ const Admin = () => {
         {tab === "applications" && <ApplicationsTab />}
         {tab === "quotes"       && <AdminQuoteWorkflow />}
         {tab === "orders"       && <AdminOrderTracking />}
-        {tab === "analytics"    && <AdminAnalytics />}
+        {tab === "analytics"    && <AdminAnalyticsDashboard />}
         {tab === "settings"     && <AdminSettings />}
         {tab === "pro_service"  && <QuoteRequestsTab type="pro" />}
         {tab === "products"     && <ProductsTab />}

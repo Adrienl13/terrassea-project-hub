@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Link2, Plus, Package } from "lucide-react";
 import { findCompatibleProducts, type CompatibleProduct } from "@/engine/compatibilityEngine";
 import type { DBProduct } from "@/lib/products";
+import { ml } from "@/lib/i18nFields";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { toast } from "sonner";
 
@@ -58,7 +59,7 @@ function CompactCard({
         <div className="aspect-square overflow-hidden bg-card rounded-sm mb-2">
           <img
             src={p.image_url || "/placeholder.svg"}
-            alt={p.name}
+            alt={ml(p, "name")}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
@@ -67,7 +68,7 @@ function CompactCard({
       <div className="space-y-1">
         <Link to={`/products/${p.id}`}>
           <h4 className="font-display font-semibold text-[11px] text-foreground truncate hover:underline leading-tight">
-            {p.name}
+            {ml(p, "name")}
           </h4>
         </Link>
         {confidenceBadge(item.confidence, t)}
@@ -103,7 +104,7 @@ export default function CompatibleProducts({ product, allProducts }: Props) {
 
   const handleAdd = (p: DBProduct) => {
     addItem(p);
-    toast.success(`${p.name} ${t("success.addedToProject").toLowerCase()}`);
+    toast.success(`${ml(p, "name")} ${t("success.addedToProject").toLowerCase()}`);
   };
 
   const handleAddCompleteSet = () => {

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowRight, BarChart3 } from "lucide-react";
 import { useCompare } from "@/contexts/CompareContext";
+import { ml } from "@/lib/i18nFields";
 
 const CompareBar = () => {
   const { items, removeFromCompare, clearCompare, count } = useCompare();
@@ -26,9 +27,9 @@ const CompareBar = () => {
               {items.map((p) => (
                 <div key={p.id} className="flex items-center gap-1.5 bg-primary-foreground/10 rounded-full pl-1.5 pr-2 py-1">
                   <div className="w-6 h-6 rounded-full overflow-hidden bg-primary-foreground/20">
-                    <img src={p.image_url || "/placeholder.svg"} alt={p.name} className="w-full h-full object-cover" />
+                    <img src={p.image_url || "/placeholder.svg"} alt={ml(p, "name")} className="w-full h-full object-cover" />
                   </div>
-                  <span className="text-[10px] font-body truncate max-w-[80px]">{p.name}</span>
+                  <span className="text-[10px] font-body truncate max-w-[80px]">{ml(p, "name")}</span>
                   <button onClick={() => removeFromCompare(p.id)} className="hover:opacity-70">
                     <X className="h-3 w-3" />
                   </button>

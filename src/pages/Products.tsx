@@ -221,7 +221,7 @@ const Products = () => {
 
   const handleAdd = (product: DBProduct) => {
     addItem(product);
-    toast.success(`${product.name} added to your project`);
+    toast.success(`${ml(product, "name")} added to your project`);
   };
 
   return (
@@ -442,6 +442,7 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
   const { isFavourite, toggleFavourite } = useFavourites();
   const inCompare = isInCompare(product.id);
   const fav = isFavourite(product.id);
+  const localName = ml(product, "name");
 
   const priceDisplay = product.price_min != null
     ? `From €${product.price_min.toFixed(2)}`
@@ -469,7 +470,7 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
         <div className="aspect-square overflow-hidden bg-card rounded-sm mb-3 relative">
           <img
             src={product.image_url || "/placeholder.svg"}
-            alt={product.name}
+            alt={localName}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
@@ -509,7 +510,7 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
       <div>
         <Link to={`/products/${product.id}`}>
           <h3 className="font-display font-semibold text-xs text-foreground truncate hover:underline leading-tight">
-            {product.name}
+            {localName}
           </h3>
         </Link>
         {product.brand_source && (
@@ -538,6 +539,7 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
 function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DBProduct) => void }) {
   const { isFavourite, toggleFavourite } = useFavourites();
   const fav = isFavourite(product.id);
+  const localName = ml(product, "name");
 
   return (
     <motion.div
@@ -551,7 +553,7 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
         <div className="w-24 h-24 overflow-hidden bg-card rounded-sm">
           <img
             src={product.image_url || "/placeholder.svg"}
-            alt={product.name}
+            alt={localName}
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -562,7 +564,7 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
           <div>
             <Link to={`/products/${product.id}`}>
               <h3 className="font-display font-semibold text-sm text-foreground hover:underline">
-                {product.name}
+                {localName}
               </h3>
             </Link>
             {product.brand_source && (

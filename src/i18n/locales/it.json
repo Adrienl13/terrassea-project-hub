@@ -3092,5 +3092,50 @@
     "savingMaterialBoard": "Salvataggio...",
     "materialBoardCreated": "Tavola dei materiali creata con {{count}} prodotti",
     "materialBoardError": "Impossibile creare la tavola dei materiali"
+  },
+  "notifications": {
+    "title": "Notifiche",
+    "markAllRead": "Segna tutto letto",
+    "noNotifications": "Nessuna notifica",
+    "viewAllMessages": "Vedi tutti i messaggi",
+    "unreadMessages": "{{count}} messaggio/i non letto/i",
+    "timeAgo": {
+      "justNow": "Proprio ora",
+      "minutes": "{{count}} min fa",
+      "hours": "{{count}} h fa",
+      "days": "{{count}} g fa"
+    },
+    "types": {
+      "quote_reply": "Risposta preventivo",
+      "cart_reminder": "Promemoria carrello",
+      "order_update": "Aggiornamento ordine",
+      "review_request": "Richiesta recensione",
+      "message": "Messaggio",
+      "info": "Informazione"
+    }
+  },
+  "adminAnalytics": {
+    "title": "Analisi",
+    "subtitle": "Panoramica delle prestazioni della piattaforma.",
+    "period30": "30 giorni",
+    "period90": "90 giorni",
+    "period365": "1 anno",
+    "kpiUsers": "Utenti totali",
+    "kpiPartners": "Partner attivi",
+    "kpiProducts": "Prodotti pubblicati",
+    "kpiOrders": "Ordini",
+    "kpiRevenue": "Fatturato",
+    "kpiCommissions": "Commissioni",
+    "monthlyRevenue": "Fatturato mensile (ultimi 12 mesi)",
+    "recentOrders": "Ordini recenti",
+    "recentQuotes": "Preventivi recenti",
+    "ordersByStatus": "Ordini per stato",
+    "quotesByStatus": "Preventivi per stato",
+    "usersByType": "Utenti per tipo",
+    "topProducts": "Top 5 prodotti (per preventivi)",
+    "topPartners": "Top 5 fornitori (per fatturato)",
+    "ordersLabel": "ordini",
+    "quotes": "preventivi",
+    "noData": "Nessun dato disponibile."
   }
 }

@@ -1,24 +1,41 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
+import { toast } from "@/hooks/use-toast";
 
-export type Notification = {
+export interface AppNotification {
   id: string;
-  user_id: string;
-  type: string;
   title: string;
-  body: string | null;
-  link: string | null;
-  read_at: string | null;
-  created_at: string | null;
-};
+  message: string;
+  type: string; // "quote_reply", "cart_reminder", "order_update", "review_request", "message", etc.
+  action_url: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+/* Map DB row (which may use body/link/read_at columns) to our AppNotification shape */
+function toAppNotification(row: Record<string, unknown>): AppNotification {
+  return {
+    id: row.id as string,
+    title: (row.title as string) ?? "",
+    message: (row.body as string) ?? (row.message as string) ?? "",
+    type: (row.type as string) ?? "info",
+    action_url: (row.link as string) ?? (row.action_url as string) ?? null,
+    is_read: row.read_at != null || (row.is_read as boolean) === true,
+    created_at: (row.created_at as string) ?? new Date().toISOString(),
+  };
+}
 
 export function useNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: notifications = [], ...rest } = useQuery<Notification[]>({
+  const {
+    data: notifications = [],
+    isLoading,
+    ...rest
+  } = useQuery<AppNotification[]>({
     queryKey: ["notifications", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
@@ -27,16 +44,17 @@ export function useNotifications() {
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(20);
       if (error) throw error;
-      return (data || []) as Notification[];
+      return (data || []).map((r: Record<string, unknown>) => toAppNotification(r));
     },
-    refetchInterval: 30_000, // poll every 30s
+    refetchInterval: 30_000,
   });
 
-  // Realtime subscription for instant updates
+  // Realtime subscription — instant push + toast
   useEffect(() => {
     if (!user?.id) return;
+
     const channel = supabase
       .channel(`notifications:${user.id}`)
       .on(
@@ -47,33 +65,60 @@ export function useNotifications() {
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
+        (payload) => {
+          // Optimistically prepend the new notification
+          const incoming = toAppNotification(payload.new as Record<string, unknown>);
+
+          queryClient.setQueryData<AppNotification[]>(
+            ["notifications", user.id],
+            (prev = []) => [incoming, ...prev].slice(0, 20)
+          );
+
+          // Show a toast for the new notification
+          toast({
+            title: incoming.title,
+            description: incoming.message || undefined,
+          });
         }
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id, queryClient]);
 
-  const unreadCount = notifications.filter(n => !n.read_at).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const markAsRead = async (id: string) => {
+  const markAsRead = useCallback(
+    async (id: string) => {
+      await supabase
+        .from("notifications")
+        .update({ read_at: new Date().toISOString() } as Record<string, unknown>)
+        .eq("id", id);
+
+      queryClient.setQueryData<AppNotification[]>(
+        ["notifications", user?.id],
+        (prev = []) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      );
+    },
+    [user?.id, queryClient]
+  );
+
+  const markAllAsRead = useCallback(async () => {
+    if (!user?.id) return;
+
     await supabase
       .from("notifications")
-      .update({ read_at: new Date().toISOString() })
-      .eq("id", id);
-    queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
-  };
-
-  const markAllAsRead = async () => {
-    await supabase
-      .from("notifications")
-      .update({ read_at: new Date().toISOString() })
-      .eq("user_id", user!.id)
+      .update({ read_at: new Date().toISOString() } as Record<string, unknown>)
+      .eq("user_id", user.id)
       .is("read_at", null);
-    queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
-  };
 
-  return { notifications, unreadCount, markAsRead, markAllAsRead, ...rest };
+    queryClient.setQueryData<AppNotification[]>(
+      ["notifications", user.id],
+      (prev = []) => prev.map((n) => ({ ...n, is_read: true }))
+    );
+  }, [user?.id, queryClient]);
+
+  return { notifications, unreadCount, markAsRead, markAllAsRead, isLoading, ...rest };
 }

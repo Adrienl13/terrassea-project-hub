@@ -3092,5 +3092,50 @@
     "savingMaterialBoard": "Guardando...",
     "materialBoardCreated": "Tablero de materiales creado con {{count}} productos",
     "materialBoardError": "Error al crear el tablero de materiales"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo leido",
+    "noNotifications": "Sin notificaciones",
+    "viewAllMessages": "Ver todos los mensajes",
+    "unreadMessages": "{{count}} mensaje(s) sin leer",
+    "timeAgo": {
+      "justNow": "Ahora mismo",
+      "minutes": "Hace {{count}} min",
+      "hours": "Hace {{count}} h",
+      "days": "Hace {{count}} d"
+    },
+    "types": {
+      "quote_reply": "Respuesta de cotizacion",
+      "cart_reminder": "Recordatorio de carrito",
+      "order_update": "Actualizacion de pedido",
+      "review_request": "Solicitud de resena",
+      "message": "Mensaje",
+      "info": "Informacion"
+    }
+  },
+  "adminAnalytics": {
+    "title": "Analíticas",
+    "subtitle": "Vista general del rendimiento de la plataforma.",
+    "period30": "30 días",
+    "period90": "90 días",
+    "period365": "1 año",
+    "kpiUsers": "Usuarios totales",
+    "kpiPartners": "Socios activos",
+    "kpiProducts": "Productos publicados",
+    "kpiOrders": "Pedidos",
+    "kpiRevenue": "Facturación",
+    "kpiCommissions": "Comisiones",
+    "monthlyRevenue": "Facturación mensual (últimos 12 meses)",
+    "recentOrders": "Pedidos recientes",
+    "recentQuotes": "Presupuestos recientes",
+    "ordersByStatus": "Pedidos por estado",
+    "quotesByStatus": "Presupuestos por estado",
+    "usersByType": "Usuarios por tipo",
+    "topProducts": "Top 5 productos (por presupuestos)",
+    "topPartners": "Top 5 proveedores (por facturación)",
+    "ordersLabel": "pedidos",
+    "quotes": "presupuestos",
+    "noData": "Aún no hay datos."
   }
 }
