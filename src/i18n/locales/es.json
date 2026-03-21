@@ -165,11 +165,18 @@
     }
   },
   "plans": {
-    "starter": "Starter", "growth": "Growth", "elite": "Elite",
-    "free": "Gratis", "noRisk": "Sin riesgo", "mostPopular": "Más popular",
-    "byInvitation": "Por invitación", "custom": "A medida",
-    "perMonth": "/mes", "commission": "comisión",
-    "applyPlan": "Candidatarse con este plan →", "contactUs": "Contáctanos →",
+    "starter": "Starter",
+    "growth": "Growth",
+    "elite": "Elite",
+    "free": "Gratis",
+    "noRisk": "Sin riesgo",
+    "mostPopular": "Más popular",
+    "byInvitation": "Por invitación",
+    "custom": "A medida",
+    "perMonth": "/mes",
+    "commission": "comisión",
+    "applyPlan": "Candidatarse con este plan →",
+    "contactUs": "Contáctanos →",
     "starterSub": "Hasta tu 3er pedido confirmado luego {{percent}}% de comisión",
     "growthSub": "Activado automáticamente en tu 3er pedido · {{percent}}% de comisión",
     "eliteSub": "Negociado · para marcas CHR establecidas",
@@ -389,7 +396,134 @@
     "noMoodboards": "Ningún moodboard para esta combinación.",
     "palette": "Paleta",
     "colors": "Paleta de colores",
-    "materials": "Materiales recomendados",
+    "materials": {
+      "cafeParisien": {
+        "0": {
+          "label": "Ratán trenzado a mano",
+          "pro": "Firma bistró"
+        },
+        "1": {
+          "label": "Hierro forjado / metal lacado",
+          "pro": "Muy resistente"
+        },
+        "2": {
+          "label": "Zinc (tapas de mesa)",
+          "pro": "Auténtico"
+        },
+        "3": {
+          "label": "Aluminio lacado apilable",
+          "pro": "Fácil de almacenar"
+        }
+      },
+      "rivieraMed": {
+        "0": {
+          "label": "Teca maciza",
+          "pro": "Resistente a la sal"
+        },
+        "1": {
+          "label": "Cuerda / ratán sintético",
+          "pro": "Resistente UV"
+        },
+        "2": {
+          "label": "Aluminio termolacado",
+          "pro": "Anticorrosión"
+        },
+        "3": {
+          "label": "Cerámica / gres",
+          "pro": "Tapas premium"
+        }
+      },
+      "beachClub": {
+        "0": {
+          "label": "Teca grado A",
+          "pro": "Certificado anti-sal"
+        },
+        "1": {
+          "label": "Ratán sintético UV+",
+          "pro": "Resistencia marina"
+        },
+        "2": {
+          "label": "Textilene / Batyline®",
+          "pro": "Secado rápido"
+        },
+        "3": {
+          "label": "Aluminio inoxidable",
+          "pro": "Resistencia marina"
+        }
+      },
+      "rooftopUrban": {
+        "0": {
+          "label": "Acero termolacado mate",
+          "pro": "Resistencia al viento"
+        },
+        "1": {
+          "label": "Latón cepillado (detalles)",
+          "pro": "Premium"
+        },
+        "2": {
+          "label": "Madera ahumada / HPL",
+          "pro": "Intemperie"
+        },
+        "3": {
+          "label": "Hormigón pulido (tapas)",
+          "pro": "Diseño firma"
+        }
+      },
+      "loungeLuxe": {
+        "0": {
+          "label": "Tejido outdoor Sunbrella®",
+          "pro": "Referencia lujo"
+        },
+        "1": {
+          "label": "Latón / acero dorado",
+          "pro": "Acabado alta gama"
+        },
+        "2": {
+          "label": "Mármol / piedra natural",
+          "pro": "Tapa firma"
+        },
+        "3": {
+          "label": "Teca aceitada premium",
+          "pro": "Longevidad garantizada"
+        }
+      },
+      "nordicCalm": {
+        "0": {
+          "label": "Madera clara (roble / abedul)",
+          "pro": "4 estaciones"
+        },
+        "1": {
+          "label": "Aluminio blanco en polvo",
+          "pro": "Ligero y duradero"
+        },
+        "2": {
+          "label": "Lona lino / algodón outdoor",
+          "pro": "Natural"
+        },
+        "3": {
+          "label": "Polipropileno reciclado",
+          "pro": "Eco-responsable"
+        }
+      },
+      "naturalOrganic": {
+        "0": {
+          "label": "Teca / acacia FSC",
+          "pro": "Certificado sostenible"
+        },
+        "1": {
+          "label": "Ratán natural / bambú",
+          "pro": "Bio-fuente"
+        },
+        "2": {
+          "label": "Cuerda natural / cáñamo",
+          "pro": "Auténtico"
+        },
+        "3": {
+          "label": "PP reciclado eco-diseñado",
+          "pro": "Reciclable"
+        }
+      }
+    },
     "keywords": "Palabras clave",
     "available": "Productos disponibles",
     "matchingStyle": "productos de este estilo",
@@ -462,50 +596,6 @@
       "loungeLuxe": "El gran confort outdoor redefinido",
       "nordicCalm": "Pureza escandinava, confort 4 estaciones",
       "naturalOrganic": "La naturaleza como hilo conductor"
-    },
-    "materials": {
-      "cafeParisien": {
-        "0": { "label": "Ratán trenzado a mano", "pro": "Firma bistró" },
-        "1": { "label": "Hierro forjado / metal lacado", "pro": "Muy resistente" },
-        "2": { "label": "Zinc (tapas de mesa)", "pro": "Auténtico" },
-        "3": { "label": "Aluminio lacado apilable", "pro": "Fácil de almacenar" }
-      },
-      "rivieraMed": {
-        "0": { "label": "Teca maciza", "pro": "Resistente a la sal" },
-        "1": { "label": "Cuerda / ratán sintético", "pro": "Resistente UV" },
-        "2": { "label": "Aluminio termolacado", "pro": "Anticorrosión" },
-        "3": { "label": "Cerámica / gres", "pro": "Tapas premium" }
-      },
-      "beachClub": {
-        "0": { "label": "Teca grado A", "pro": "Certificado anti-sal" },
-        "1": { "label": "Ratán sintético UV+", "pro": "Resistencia marina" },
-        "2": { "label": "Textilene / Batyline®", "pro": "Secado rápido" },
-        "3": { "label": "Aluminio inoxidable", "pro": "Resistencia marina" }
-      },
-      "rooftopUrban": {
-        "0": { "label": "Acero termolacado mate", "pro": "Resistencia al viento" },
-        "1": { "label": "Latón cepillado (detalles)", "pro": "Premium" },
-        "2": { "label": "Madera ahumada / HPL", "pro": "Intemperie" },
-        "3": { "label": "Hormigón pulido (tapas)", "pro": "Diseño firma" }
-      },
-      "loungeLuxe": {
-        "0": { "label": "Tejido outdoor Sunbrella®", "pro": "Referencia lujo" },
-        "1": { "label": "Latón / acero dorado", "pro": "Acabado alta gama" },
-        "2": { "label": "Mármol / piedra natural", "pro": "Tapa firma" },
-        "3": { "label": "Teca aceitada premium", "pro": "Longevidad garantizada" }
-      },
-      "nordicCalm": {
-        "0": { "label": "Madera clara (roble / abedul)", "pro": "4 estaciones" },
-        "1": { "label": "Aluminio blanco en polvo", "pro": "Ligero y duradero" },
-        "2": { "label": "Lona lino / algodón outdoor", "pro": "Natural" },
-        "3": { "label": "Polipropileno reciclado", "pro": "Eco-responsable" }
-      },
-      "naturalOrganic": {
-        "0": { "label": "Teca / acacia FSC", "pro": "Certificado sostenible" },
-        "1": { "label": "Ratán natural / bambú", "pro": "Bio-fuente" },
-        "2": { "label": "Cuerda natural / cáñamo", "pro": "Auténtico" },
-        "3": { "label": "PP reciclado eco-diseñado", "pro": "Reciclable" }
-      }
     }
   },
   "footer": {
@@ -523,9 +613,11 @@
     "copyright": "© 2026 Terrassea HUB. Todos los derechos reservados."
   },
   "partnerDetail": {
-    "backToNetwork": "← Volver a la red de socios",
+    "supplierNotFound": "Proveedor no encontrado",
+    "backToPartners": "← Volver a Socios",
+    "backToPartnerNetwork": "Volver a la red de socios",
     "featuredPartner": "Socio destacado",
-    "galleryComingSoon": "Galería próximamente — contacte vía Terrassea para el catálogo completo",
+    "galleryComing": "Galería próximamente — contacte a través de Terrassea para el catálogo completo",
     "about": "Acerca de",
     "productionCapacity": "Capacidad de producción",
     "coverageZone": "Zona de cobertura",
@@ -535,20 +627,16 @@
     "materials": "Materiales",
     "projectTypes": "Tipos de proyecto",
     "identityProtected": "La identidad del proveedor está protegida",
-    "identityProtectedDesc": "El nombre completo y los datos de contacto de este proveedor se revelan exclusivamente en un presupuesto confirmado de Terrassea.",
-    "sourceFrom": "Obtener de este proveedor",
-    "sourceFromDesc": "Navega su catálogo o crea un brief — los incluiremos en tus propuestas.",
+    "identityProtectedDesc": "El nombre completo y los datos de contacto de este proveedor se revelan exclusivamente en un presupuesto confirmado de Terrassea. Esto protege a ambas partes y garantiza condiciones de aprovisionamiento justas para todos los profesionales de la hostelería.",
+    "anonymityNotice": "La identidad completa del proveedor solo se revela en un presupuesto confirmado. Todo el aprovisionamiento pasa por Terrassea.",
+    "sourceFromSupplier": "Abastecerse de este proveedor",
+    "browseOrCreate": "Explore su catálogo o cree un brief de proyecto — incluiremos a este proveedor en sus propuestas personalizadas.",
     "seeProducts": "Ver sus productos",
     "startProject": "Iniciar un proyecto",
-    "largeProject": "¿Gran proyecto? Pro Service →",
-    "anonymityNotice": "La identidad completa del proveedor se revela solo en un presupuesto confirmado. Todo el sourcing pasa por Terrassea.",
-    "trustSignals": [
-      "No se necesita contacto directo con el proveedor",
-      "Precios consolidados en un presupuesto",
-      "Gratis para profesionales de hostelería"
-    ],
-    "notFound": "Proveedor no encontrado",
-    "backToPartners": "← Volver a socios"
+    "largeProjectProService": "¿Proyecto grande? Pro Service →",
+    "noDirectContact": "No se necesita contacto directo con el proveedor",
+    "pricingConsolidated": "Precios consolidados en un solo presupuesto",
+    "freeForProfessionals": "Gratis para profesionales de la hostelería"
   },
   "account": {
     "overview": "Vista general",
@@ -567,7 +655,7 @@
     "recentProjects": "Proyectos recientes",
     "viewAll": "Ver todo",
     "noFavourites": "Sin favoritos aún.",
-    "browseCatalogue": "Ver catálogo →",
+    "browseCatalogue": "Explorar catálogo",
     "addMore": "Añadir más",
     "saved": "guardado(s)",
     "profileInfo": "Información del perfil",
@@ -580,41 +668,415 @@
     "proLeads": "Leads Pro Service",
     "rewards": "Recompensas",
     "supplierCalls": "Convocatorias a proveedores",
-    "newSupplierCall": "Nueva convocatoria",
-    "browseCatalogue": "Explorar catálogo"
+    "newSupplierCall": "Nueva convocatoria"
   },
   "cd": {
     "welcome": "¡Hola {{name}}!",
     "welcomeSubtitle": "Aquí tienes un resumen de tus proyectos y tu actividad de sourcing.",
     "seasonalTip": "La temporada de primavera se acerca — es el momento ideal para preparar tu terraza.",
     "needHelp": "¿Necesitas ayuda? Habla con un experto",
-    "quickActions": { "newProject": "Nuevo proyecto", "browseProducts": "Ver productos", "requestQuote": "Solicitar presupuesto", "talkExpert": "Hablar con un experto" },
-    "stats": { "activeProjects": "Proyectos activos", "pendingQuotes": "Presupuestos pendientes", "totalEstimated": "Presupuesto estimado", "savedFavourites": "Elementos guardados" },
-    "projectFlow": { "title": "Tu recorrido de proyecto", "draft": "Borrador", "sourcing": "Búsqueda", "quoted": "Presupuestado", "ordered": "Pedido", "delivered": "Entregado" },
-    "projects": { "title": "Mis proyectos", "all": "Todos", "recent": "Proyectos recientes", "viewAll": "Ver todos", "empty": "Aún no tienes proyectos", "emptyHint": "Crea tu primer proyecto para empezar a buscar mobiliario outdoor.", "createFirst": "Crear mi primer proyecto", "searchPlaceholder": "Buscar un proyecto…" },
-    "quotes": { "title": "Mis solicitudes de presupuesto", "all": "Todos", "pending": "Pendientes", "replied": "Respondidos", "accepted": "Aceptados", "expired": "Expirados", "recent": "Presupuestos recientes", "empty": "Aún no tienes presupuestos", "emptyHint": "Explora nuestro catálogo para encontrar productos y solicitar presupuestos.", "waitingResponse": "Los proveedores suelen responder en 48 horas. Recibirás una notificación cuando un presupuesto esté listo.", "signed": "Firmados", "toSign": "Para firmar", "backToQuotes": "Volver a presupuestos", "supplierInfo": "Información del proveedor", "supplierName": "Proveedor:", "supplierCountry": "País:", "rating": "Nota:", "signedDate": "Firmado el:", "identityHidden": "Identidad del proveedor oculta", "identityHiddenHint": "El nombre del proveedor solo se revelará después de firmar en la plataforma.", "verified": "Verificado Terrassea", "quoteDetails": "Detalles del presupuesto", "validUntil": "Válido hasta:", "quotePdf": "Presupuesto PDF", "uploadedBySupplier": "Subido por el proveedor", "download": "Descargar", "signAndAccept": "Firmar y aceptar", "signedConfirm": "Presupuesto firmado y aceptado", "signedConfirmHint": "Terrassea gestiona tu pedido.", "awaitingSupplier": "Esperando respuesta", "awaitingSupplierHint": "El proveedor está preparando tu presupuesto.", "messageVia": "Contactar por mensajería Terrassea", "securityTitle": "Transacciones seguras", "securityHint": "Todos los intercambios pasan por Terrassea.", "howItWorksTitle": "¿Cómo funcionan los presupuestos?", "howItWorksHint": "Recibes presupuestos de proveedores verificados. Firma electrónicamente y Terrassea gestiona el resto." },
-    "sign": { "title": "Firma electrónica", "stepReview": "Revisión", "stepSign": "Firma", "project": "Proyecto:", "termsText": "Acepto las condiciones del presupuesto y las condiciones generales de Terrassea.", "continueToSign": "Continuar a la firma", "signerInfo": "Información del firmante", "signatureLabel": "Su firma", "clickToSign": "Haga clic o dibuje su firma aquí", "legalNote": "Firma electrónica conforme a eIDAS.", "back": "Volver", "confirmSign": "Firmar", "doneTitle": "¡Presupuesto firmado!", "doneSubtitle": "Su compromiso ha sido registrado.", "doneHint": "Terrassea se encarga del seguimiento.", "close": "Cerrar" },
-    "favourites": { "title": "Mis favoritos", "products": "Productos", "suppliers": "Proveedores", "architects": "Arquitectos", "emptyProducts": "Aún no tienes productos favoritos", "emptySuppliers": "Aún no tienes proveedores favoritos", "emptyArchitects": "Aún no tienes arquitectos favoritos", "saved": "guardado(s)", "addMore": "Añadir", "discoverPartners": "Descubrir nuestros partners", "findArchitect": "Encontrar un arquitecto", "viewProfile": "Ver perfil" },
-    "messages": { "title": "Mensajes", "openFull": "Abrir mensajería", "empty": "Sin conversaciones", "emptyHint": "Tus intercambios con proveedores y expertos aparecerán aquí." },
-    "detail": { "backToProjects": "Volver a proyectos", "progress": "Progreso del proyecto", "addProducts": "Añadir productos", "requestQuote": "Solicitar presupuesto", "getHelp": "Obtener ayuda", "relatedQuotes": "Presupuestos relacionados", "productsInProject": "Productos seleccionados", "productRefs": "referencias", "totalPieces": "piezas en total", "estimated": "estimado", "noProducts": "No hay productos en este proyecto", "noProductsHint": "Explora el catálogo para añadir productos a tu proyecto.", "seeProduct": "Ver ficha", "viewFullProduct": "Ver ficha completa del producto", "budgetSummary": "Resumen de presupuesto", "totalEstimated": "Total estimado", "spec": { "material": "Material:", "dimensions": "Dim.:", "weight": "Peso:", "stackable": "Apilable", "uvResistant": "Anti-UV", "quantity": "Cantidad:", "unitPrice": "Precio unit.:", "subtotal": "Subtotal:" }, "quoteStatus": "Estado del presupuesto", "helpTipTitle": "¿Necesitas ayuda?", "helpTipText": "Nuestro equipo Pro Service puede ayudarte a seleccionar los productos adecuados y negociar las mejores tarifas." },
-    "howItWorks": { "title": "¿Cómo funciona?", "step1": "Crea tu proyecto con las especificaciones de tu terraza", "step2": "Explora y selecciona productos de nuestro catálogo", "step3": "Solicita presupuestos a proveedores verificados", "step4": "Compara ofertas y haz tu pedido" },
-    "reassurance": { "verified": "Proveedores verificados y certificados", "experts": "Expertos disponibles para acompañarte", "delivery": "Entrega con seguimiento en toda Europa" },
-    "settings": { "title": "Ajustes del perfil", "email": "Email", "firstName": "Nombre", "lastName": "Apellido", "company": "Empresa", "siren": "SIREN", "phone": "Teléfono", "country": "País", "accountType": "Tipo de cuenta", "securityNote": "Tus datos están protegidos y nunca se comparten sin tu consentimiento. Para cambiar tu email o contraseña, contacta con nuestro soporte." }
+    "quickActions": {
+      "newProject": "Nuevo proyecto",
+      "browseProducts": "Ver productos",
+      "requestQuote": "Solicitar presupuesto",
+      "talkExpert": "Hablar con un experto"
+    },
+    "stats": {
+      "activeProjects": "Proyectos activos",
+      "pendingQuotes": "Presupuestos pendientes",
+      "totalEstimated": "Presupuesto estimado",
+      "savedFavourites": "Elementos guardados"
+    },
+    "projectFlow": {
+      "title": "Tu recorrido de proyecto",
+      "draft": "Borrador",
+      "sourcing": "Búsqueda",
+      "quoted": "Presupuestado",
+      "ordered": "Pedido",
+      "delivered": "Entregado"
+    },
+    "projects": {
+      "title": "Mis proyectos",
+      "all": "Todos",
+      "recent": "Proyectos recientes",
+      "viewAll": "Ver todos",
+      "empty": "Aún no tienes proyectos",
+      "emptyHint": "Crea tu primer proyecto para empezar a buscar mobiliario outdoor.",
+      "createFirst": "Crear mi primer proyecto",
+      "searchPlaceholder": "Buscar un proyecto…"
+    },
+    "quotes": {
+      "title": "Mis solicitudes de presupuesto",
+      "all": "Todos",
+      "pending": "Pendientes",
+      "replied": "Respondidos",
+      "accepted": "Aceptados",
+      "expired": "Expirados",
+      "recent": "Presupuestos recientes",
+      "empty": "Aún no tienes presupuestos",
+      "emptyHint": "Explora nuestro catálogo para encontrar productos y solicitar presupuestos.",
+      "waitingResponse": "Los proveedores suelen responder en 48 horas. Recibirás una notificación cuando un presupuesto esté listo.",
+      "signed": "Firmados",
+      "toSign": "Para firmar",
+      "backToQuotes": "Volver a presupuestos",
+      "supplierInfo": "Información del proveedor",
+      "supplierName": "Proveedor:",
+      "supplierCountry": "País:",
+      "rating": "Nota:",
+      "signedDate": "Firmado el:",
+      "identityHidden": "Identidad del proveedor oculta",
+      "identityHiddenHint": "El nombre del proveedor solo se revelará después de firmar en la plataforma.",
+      "verified": "Verificado Terrassea",
+      "quoteDetails": "Detalles del presupuesto",
+      "validUntil": "Válido hasta:",
+      "quotePdf": "Presupuesto PDF",
+      "uploadedBySupplier": "Subido por el proveedor",
+      "download": "Descargar",
+      "signAndAccept": "Firmar y aceptar",
+      "signedConfirm": "Presupuesto firmado y aceptado",
+      "signedConfirmHint": "Terrassea gestiona tu pedido.",
+      "awaitingSupplier": "Esperando respuesta",
+      "awaitingSupplierHint": "El proveedor está preparando tu presupuesto.",
+      "messageVia": "Contactar por mensajería Terrassea",
+      "securityTitle": "Transacciones seguras",
+      "securityHint": "Todos los intercambios pasan por Terrassea.",
+      "howItWorksTitle": "¿Cómo funcionan los presupuestos?",
+      "howItWorksHint": "Recibes presupuestos de proveedores verificados. Firma electrónicamente y Terrassea gestiona el resto."
+    },
+    "sign": {
+      "title": "Firma electrónica",
+      "stepReview": "Revisión",
+      "stepSign": "Firma",
+      "project": "Proyecto:",
+      "termsText": "Acepto las condiciones del presupuesto y las condiciones generales de Terrassea.",
+      "continueToSign": "Continuar a la firma",
+      "signerInfo": "Información del firmante",
+      "signatureLabel": "Su firma",
+      "clickToSign": "Haga clic o dibuje su firma aquí",
+      "legalNote": "Firma electrónica conforme a eIDAS.",
+      "back": "Volver",
+      "confirmSign": "Firmar",
+      "doneTitle": "¡Presupuesto firmado!",
+      "doneSubtitle": "Su compromiso ha sido registrado.",
+      "doneHint": "Terrassea se encarga del seguimiento.",
+      "close": "Cerrar"
+    },
+    "favourites": {
+      "title": "Mis favoritos",
+      "products": "Productos",
+      "suppliers": "Proveedores",
+      "architects": "Arquitectos",
+      "emptyProducts": "Aún no tienes productos favoritos",
+      "emptySuppliers": "Aún no tienes proveedores favoritos",
+      "emptyArchitects": "Aún no tienes arquitectos favoritos",
+      "saved": "guardado(s)",
+      "addMore": "Añadir",
+      "discoverPartners": "Descubrir nuestros partners",
+      "findArchitect": "Encontrar un arquitecto",
+      "viewProfile": "Ver perfil"
+    },
+    "messages": {
+      "title": "Mensajes",
+      "openFull": "Abrir mensajería",
+      "empty": "Sin conversaciones",
+      "emptyHint": "Tus intercambios con proveedores y expertos aparecerán aquí."
+    },
+    "detail": {
+      "backToProjects": "Volver a proyectos",
+      "progress": "Progreso del proyecto",
+      "addProducts": "Añadir productos",
+      "requestQuote": "Solicitar presupuesto",
+      "getHelp": "Obtener ayuda",
+      "relatedQuotes": "Presupuestos relacionados",
+      "productsInProject": "Productos seleccionados",
+      "productRefs": "referencias",
+      "totalPieces": "piezas en total",
+      "estimated": "estimado",
+      "noProducts": "No hay productos en este proyecto",
+      "noProductsHint": "Explora el catálogo para añadir productos a tu proyecto.",
+      "seeProduct": "Ver ficha",
+      "viewFullProduct": "Ver ficha completa del producto",
+      "budgetSummary": "Resumen de presupuesto",
+      "totalEstimated": "Total estimado",
+      "spec": {
+        "material": "Material:",
+        "dimensions": "Dim.:",
+        "weight": "Peso:",
+        "stackable": "Apilable",
+        "uvResistant": "Anti-UV",
+        "quantity": "Cantidad:",
+        "unitPrice": "Precio unit.:",
+        "subtotal": "Subtotal:"
+      },
+      "quoteStatus": "Estado del presupuesto",
+      "helpTipTitle": "¿Necesitas ayuda?",
+      "helpTipText": "Nuestro equipo Pro Service puede ayudarte a seleccionar los productos adecuados y negociar las mejores tarifas."
+    },
+    "howItWorks": {
+      "title": "¿Cómo funciona?",
+      "step1": "Crea tu proyecto con las especificaciones de tu terraza",
+      "step2": "Explora y selecciona productos de nuestro catálogo",
+      "step3": "Solicita presupuestos a proveedores verificados",
+      "step4": "Compara ofertas y haz tu pedido"
+    },
+    "reassurance": {
+      "verified": "Proveedores verificados y certificados",
+      "experts": "Expertos disponibles para acompañarte",
+      "delivery": "Entrega con seguimiento en toda Europa"
+    },
+    "settings": {
+      "title": "Ajustes del perfil",
+      "email": "Email",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "company": "Empresa",
+      "siren": "SIREN",
+      "phone": "Teléfono",
+      "country": "País",
+      "accountType": "Tipo de cuenta",
+      "securityNote": "Tus datos están protegidos y nunca se comparten sin tu consentimiento. Para cambiar tu email o contraseña, contacta con nuestro soporte."
+    }
   },
   "ad": {
-    "stats": { "activeProjects": "Proyectos activos", "quotesSent": "Presupuestos enviados", "totalSourced": "Volumen total", "rewardPoints": "Puntos de recompensa" },
-    "overview": { "recentProjects": "Proyectos recientes", "activeCalls": "Convocatorias activas", "viewAll": "Ver todo", "seeRewards": "Ver mis recompensas", "tierBenefits": "Descubra sus ventajas de nivel", "favourites": "Favoritos", "saved": "guardado(s)" },
-    "projects": { "title": "Proyectos de clientes", "all": "Todos", "active": "Activos", "quoting": "Presupuestando", "delivered": "Entregados", "draft": "Borradores", "newProject": "Nuevo proyecto", "search": "Buscar proyecto o cliente…", "noResults": "No se encontraron proyectos" },
-    "quotes": { "title": "Multi-presupuestos", "all": "Todos", "pending": "Pendientes", "replied": "Respondidos", "accepted": "Aceptados", "expired": "Expirados", "noResults": "Sin presupuestos con este filtro", "total": "presupuestos" },
-    "calls": { "title": "Convocatorias a proveedores", "subtitle": "Publique un brief de proyecto y reciba propuestas de proveedores cualificados", "all": "Todos", "open": "Abiertos", "evaluating": "En evaluación", "closed": "Cerrados", "newCall": "Nueva convocatoria", "createTitle": "Crear convocatoria a proveedores", "projectLabel": "Proyecto", "selectProject": "Seleccionar proyecto…", "budgetLabel": "Presupuesto estimado", "briefLabel": "Brief del proyecto", "briefPlaceholder": "Describa sus necesidades: estilo, materiales, restricciones técnicas, cantidades…", "categoriesLabel": "Categorías buscadas", "deadlineLabel": "Fecha límite de respuesta", "publish": "Publicar convocatoria", "cancel": "Cancelar", "pointsNote": "+75 puntos por cada convocatoria publicada", "noResults": "Sin convocatorias con este filtro", "views": "Vistas", "clicks": "Clics", "responses": "Respuestas", "clickRate": "Tasa de clics", "fullBrief": "Brief completo", "supplierResponses": "Propuestas de proveedores", "noResponses": "Sin propuestas todavía", "bestPrice": "Mejor precio", "selected": "Seleccionado", "selectSupplier": "Seleccionar este proveedor", "warranty": "Garantía", "createSubtitle": "Cuanto más preciso sea su brief, mejores serán las propuestas", "styleLabel": "Estilo deseado", "urgencyLabel": "Urgencia", "urgencyNormal": "Normal (4-8 sem.)", "urgencyUrgent": "Urgente (< 4 sem.)", "urgencyFlexible": "Flexible (> 8 sem.)", "surfaceLabel": "Superficie", "capacityLabel": "Capacidad de asientos", "materialsLabel": "Materiales deseados", "ambianceLabel": "Ambiente / inspiración", "ambiancePlaceholder": "Describa el ambiente deseado, referencias visuales…", "constraintsLabel": "Restricciones técnicas", "constraintsPlaceholder": "Peso máximo, apilabilidad, resistencia UV, normas, colores impuestos…", "needsList": "Necesidades del proyecto", "needsLabel": "Necesidades por categoría", "addNeed": "Añadir una necesidad", "needCategory": "Categoría", "needsHint": "Añada tantas necesidades como requiera: mobiliario, decoración, iluminación, protección, plantas…", "priorityEssential": "Esencial", "priorityImportant": "Importante", "priorityOptional": "Opcional", "customCategory": "Especificar…", "needDesc": "Describa la necesidad…" },
-    "detail": { "backToProjects": "Volver a proyectos", "estimated": "Estimado", "products": "Productos", "zones": "Zonas", "quotes": "Presupuestos", "projectInfo": "Información del proyecto", "zonesProducts": "Zonas y Productos", "product": "Producto", "qty": "Cant.", "supplier": "Proveedor", "status": "Estado", "relatedQuotes": "Presupuestos relacionados", "notes": "Notas y Observaciones", "addNotePlaceholder": "Añadir una nota, recordatorio o información…", "add": "Añadir", "noNotes": "Sin notas para este proyecto", "edit": "Modificar", "save": "Guardar", "client": "Cliente", "clientName": "Nombre del contacto", "company": "Empresa", "email": "Email", "phone": "Teléfono", "descriptionLabel": "Descripción del proyecto", "addressLabel": "Dirección del sitio", "deadlineLabel": "Fecha límite", "constraintsLabel": "Restricciones técnicas y notas", "projectMessages": "Mensajes del proyecto" },
-    "create": { "back": "Volver", "title": "Nuevo proyecto cliente", "subtitle": "Ingrese la información del cliente y del proyecto para comenzar el sourcing", "clientInfo": "Información del cliente", "clientName": "Nombre del contacto", "clientCompany": "Empresa", "clientEmail": "Email", "clientPhone": "Teléfono", "projectInfo": "Información del proyecto", "projectName": "Nombre del proyecto", "venueType": "Tipo de establecimiento", "address": "Dirección del sitio", "surface": "Superficie", "style": "Estilo", "startDate": "Fecha de inicio", "deadline": "Fecha de entrega", "description": "Descripción del proyecto", "descPlaceholder": "Describa el proyecto: ambiente, uso, número de cubiertos/habitaciones, restricciones…", "constraints": "Restricciones técnicas", "constraintsPlaceholder": "Peso máximo, apilabilidad, resistencia UV, colores impuestos…", "submit": "Crear proyecto", "cancel": "Cancelar" },
-    "quoteDetail": { "backToQuotes": "Volver a presupuestos", "totalAmount": "Monto total", "products": "Líneas de producto", "sentDate": "Enviado el", "validUntil": "Válido hasta", "supplierMessage": "Mensaje del proveedor", "repliedOn": "Respondido el", "productBreakdown": "Desglose de productos", "unitPrice": "Precio unitario", "total": "Total", "attachments": "Adjuntos", "accept": "Aceptar presupuesto", "negotiate": "Negociar", "decline": "Rechazar" },
-    "messages": { "title": "Mensajería", "none": "Sin conversaciones", "hint": "Envíe un presupuesto o convocatoria para iniciar una conversación", "search": "Buscar…", "selectConv": "Seleccione una conversación", "startNew": "Nueva conversación", "newConv": "Nueva conversación", "recipient": "Destinatario", "searchUser": "Buscar por nombre, email, empresa…", "subject": "Asunto (opcional)", "subjectPlaceholder": "Asunto de la conversación…", "message": "Mensaje", "messagePlaceholder": "Su mensaje…", "cancel": "Cancelar", "send": "Enviar", "allProjects": "Todos", "linkProject": "Vincular a un proyecto", "noProject": "Sin proyecto (conversación libre)", "searchPlaceholder": "Nombre, asunto, proyecto, mensaje…" },
-    "rewards": { "points": "puntos", "benefits": "Ventajas por nivel", "benefit": "Ventaja", "howToEarn": "Cómo ganar puntos", "history": "Historial de puntos", "comingSoonTitle": "Tarifas preferenciales — próximamente", "comingSoonDesc": "Estamos trabajando en un programa de descuentos exclusivos según su nivel de compromiso. Cuanto más alto su nivel, mayores sus ventajas. ¡Manténgase conectado!", "b_quotesMonth": "Presupuestos / mes", "b_priority": "Respuestas prioritarias", "b_earlyAccess": "Acceso anticipado", "b_samples": "Muestras gratis", "b_accountManager": "Account manager dedicado", "b_cobranding": "Presentaciones co-branded", "b_featured": "Perfil arquitecto destacado", "earn_project_created": "Crear un proyecto", "earn_quote_sent": "Enviar un presupuesto", "earn_quote_accepted": "Presupuesto aceptado", "earn_order_confirmed": "Pedido confirmado", "earn_supplier_call": "Convocatoria a proveedor", "earn_referral": "Referir un cliente", "earn_review_left": "Dejar una reseña", "earn_profile_completed": "Completar perfil" }
+    "stats": {
+      "activeProjects": "Proyectos activos",
+      "quotesSent": "Presupuestos enviados",
+      "totalSourced": "Volumen total",
+      "rewardPoints": "Puntos de recompensa"
+    },
+    "overview": {
+      "recentProjects": "Proyectos recientes",
+      "activeCalls": "Convocatorias activas",
+      "viewAll": "Ver todo",
+      "seeRewards": "Ver mis recompensas",
+      "tierBenefits": "Descubra sus ventajas de nivel",
+      "favourites": "Favoritos",
+      "saved": "guardado(s)"
+    },
+    "projects": {
+      "title": "Proyectos de clientes",
+      "all": "Todos",
+      "active": "Activos",
+      "quoting": "Presupuestando",
+      "delivered": "Entregados",
+      "draft": "Borradores",
+      "newProject": "Nuevo proyecto",
+      "search": "Buscar proyecto o cliente…",
+      "noResults": "No se encontraron proyectos"
+    },
+    "quotes": {
+      "title": "Multi-presupuestos",
+      "all": "Todos",
+      "pending": "Pendientes",
+      "replied": "Respondidos",
+      "accepted": "Aceptados",
+      "expired": "Expirados",
+      "noResults": "Sin presupuestos con este filtro",
+      "total": "presupuestos"
+    },
+    "calls": {
+      "title": "Convocatorias a proveedores",
+      "subtitle": "Publique un brief de proyecto y reciba propuestas de proveedores cualificados",
+      "all": "Todos",
+      "open": "Abiertos",
+      "evaluating": "En evaluación",
+      "closed": "Cerrados",
+      "newCall": "Nueva convocatoria",
+      "createTitle": "Crear convocatoria a proveedores",
+      "projectLabel": "Proyecto",
+      "selectProject": "Seleccionar proyecto…",
+      "budgetLabel": "Presupuesto estimado",
+      "briefLabel": "Brief del proyecto",
+      "briefPlaceholder": "Describa sus necesidades: estilo, materiales, restricciones técnicas, cantidades…",
+      "categoriesLabel": "Categorías buscadas",
+      "deadlineLabel": "Fecha límite de respuesta",
+      "publish": "Publicar convocatoria",
+      "cancel": "Cancelar",
+      "pointsNote": "+75 puntos por cada convocatoria publicada",
+      "noResults": "Sin convocatorias con este filtro",
+      "views": "Vistas",
+      "clicks": "Clics",
+      "responses": "Respuestas",
+      "clickRate": "Tasa de clics",
+      "fullBrief": "Brief completo",
+      "supplierResponses": "Propuestas de proveedores",
+      "noResponses": "Sin propuestas todavía",
+      "bestPrice": "Mejor precio",
+      "selected": "Seleccionado",
+      "selectSupplier": "Seleccionar este proveedor",
+      "warranty": "Garantía",
+      "createSubtitle": "Cuanto más preciso sea su brief, mejores serán las propuestas",
+      "styleLabel": "Estilo deseado",
+      "urgencyLabel": "Urgencia",
+      "urgencyNormal": "Normal (4-8 sem.)",
+      "urgencyUrgent": "Urgente (< 4 sem.)",
+      "urgencyFlexible": "Flexible (> 8 sem.)",
+      "surfaceLabel": "Superficie",
+      "capacityLabel": "Capacidad de asientos",
+      "materialsLabel": "Materiales deseados",
+      "ambianceLabel": "Ambiente / inspiración",
+      "ambiancePlaceholder": "Describa el ambiente deseado, referencias visuales…",
+      "constraintsLabel": "Restricciones técnicas",
+      "constraintsPlaceholder": "Peso máximo, apilabilidad, resistencia UV, normas, colores impuestos…",
+      "needsList": "Necesidades del proyecto",
+      "needsLabel": "Necesidades por categoría",
+      "addNeed": "Añadir una necesidad",
+      "needCategory": "Categoría",
+      "needsHint": "Añada tantas necesidades como requiera: mobiliario, decoración, iluminación, protección, plantas…",
+      "priorityEssential": "Esencial",
+      "priorityImportant": "Importante",
+      "priorityOptional": "Opcional",
+      "customCategory": "Especificar…",
+      "needDesc": "Describa la necesidad…"
+    },
+    "detail": {
+      "backToProjects": "Volver a proyectos",
+      "estimated": "Estimado",
+      "products": "Productos",
+      "zones": "Zonas",
+      "quotes": "Presupuestos",
+      "projectInfo": "Información del proyecto",
+      "zonesProducts": "Zonas y Productos",
+      "product": "Producto",
+      "qty": "Cant.",
+      "supplier": "Proveedor",
+      "status": "Estado",
+      "relatedQuotes": "Presupuestos relacionados",
+      "notes": "Notas y Observaciones",
+      "addNotePlaceholder": "Añadir una nota, recordatorio o información…",
+      "add": "Añadir",
+      "noNotes": "Sin notas para este proyecto",
+      "edit": "Modificar",
+      "save": "Guardar",
+      "client": "Cliente",
+      "clientName": "Nombre del contacto",
+      "company": "Empresa",
+      "email": "Email",
+      "phone": "Teléfono",
+      "descriptionLabel": "Descripción del proyecto",
+      "addressLabel": "Dirección del sitio",
+      "deadlineLabel": "Fecha límite",
+      "constraintsLabel": "Restricciones técnicas y notas",
+      "projectMessages": "Mensajes del proyecto"
+    },
+    "create": {
+      "back": "Volver",
+      "title": "Nuevo proyecto cliente",
+      "subtitle": "Ingrese la información del cliente y del proyecto para comenzar el sourcing",
+      "clientInfo": "Información del cliente",
+      "clientName": "Nombre del contacto",
+      "clientCompany": "Empresa",
+      "clientEmail": "Email",
+      "clientPhone": "Teléfono",
+      "projectInfo": "Información del proyecto",
+      "projectName": "Nombre del proyecto",
+      "venueType": "Tipo de establecimiento",
+      "address": "Dirección del sitio",
+      "surface": "Superficie",
+      "style": "Estilo",
+      "startDate": "Fecha de inicio",
+      "deadline": "Fecha de entrega",
+      "description": "Descripción del proyecto",
+      "descPlaceholder": "Describa el proyecto: ambiente, uso, número de cubiertos/habitaciones, restricciones…",
+      "constraints": "Restricciones técnicas",
+      "constraintsPlaceholder": "Peso máximo, apilabilidad, resistencia UV, colores impuestos…",
+      "submit": "Crear proyecto",
+      "cancel": "Cancelar"
+    },
+    "quoteDetail": {
+      "backToQuotes": "Volver a presupuestos",
+      "totalAmount": "Monto total",
+      "products": "Líneas de producto",
+      "sentDate": "Enviado el",
+      "validUntil": "Válido hasta",
+      "supplierMessage": "Mensaje del proveedor",
+      "repliedOn": "Respondido el",
+      "productBreakdown": "Desglose de productos",
+      "unitPrice": "Precio unitario",
+      "total": "Total",
+      "attachments": "Adjuntos",
+      "accept": "Aceptar presupuesto",
+      "negotiate": "Negociar",
+      "decline": "Rechazar"
+    },
+    "messages": {
+      "title": "Mensajería",
+      "none": "Sin conversaciones",
+      "hint": "Envíe un presupuesto o convocatoria para iniciar una conversación",
+      "search": "Buscar…",
+      "selectConv": "Seleccione una conversación",
+      "startNew": "Nueva conversación",
+      "newConv": "Nueva conversación",
+      "recipient": "Destinatario",
+      "searchUser": "Buscar por nombre, email, empresa…",
+      "subject": "Asunto (opcional)",
+      "subjectPlaceholder": "Asunto de la conversación…",
+      "message": "Mensaje",
+      "messagePlaceholder": "Su mensaje…",
+      "cancel": "Cancelar",
+      "send": "Enviar",
+      "allProjects": "Todos",
+      "linkProject": "Vincular a un proyecto",
+      "noProject": "Sin proyecto (conversación libre)",
+      "searchPlaceholder": "Nombre, asunto, proyecto, mensaje…"
+    },
+    "rewards": {
+      "points": "puntos",
+      "benefits": "Ventajas por nivel",
+      "benefit": "Ventaja",
+      "howToEarn": "Cómo ganar puntos",
+      "history": "Historial de puntos",
+      "comingSoonTitle": "Tarifas preferenciales — próximamente",
+      "comingSoonDesc": "Estamos trabajando en un programa de descuentos exclusivos según su nivel de compromiso. Cuanto más alto su nivel, mayores sus ventajas. ¡Manténgase conectado!",
+      "b_quotesMonth": "Presupuestos / mes",
+      "b_priority": "Respuestas prioritarias",
+      "b_earlyAccess": "Acceso anticipado",
+      "b_samples": "Muestras gratis",
+      "b_accountManager": "Account manager dedicado",
+      "b_cobranding": "Presentaciones co-branded",
+      "b_featured": "Perfil arquitecto destacado",
+      "earn_project_created": "Crear un proyecto",
+      "earn_quote_sent": "Enviar un presupuesto",
+      "earn_quote_accepted": "Presupuesto aceptado",
+      "earn_order_confirmed": "Pedido confirmado",
+      "earn_supplier_call": "Convocatoria a proveedor",
+      "earn_referral": "Referir un cliente",
+      "earn_review_left": "Dejar una reseña",
+      "earn_profile_completed": "Completar perfil"
+    }
   },
-  "siren": { "title": "Verificación de identidad", "subtitle": "Antes de firmar, verificamos que su número SIREN corresponde a su empresa.", "label": "Número SIREN", "verify": "Verificar", "checking": "Verificando…", "verified": "Identidad verificada", "officialName": "Razón social", "mismatch": "El SIREN no corresponde al nombre registrado", "mismatchHint": "Verifique su SIREN o actualice el nombre de su empresa.", "invalid": "SIREN no encontrado", "errorTitle": "Verificación no disponible", "errorGeneric": "No se puede verificar el SIREN en este momento." },
-  "qpdf": { "title": "Documentos del presupuesto", "dropHere": "Arrastra un PDF aquí o haz clic", "pdfOnly": "Solo PDF · 10 MB máx", "uploading": "Subiendo…", "uploadSuccess": "Documento subido", "signed": "Firmado", "signedOn": "Firmado el", "loading": "Cargando documentos…", "noPdf": "Sin PDF disponible", "noPdfHint": "El proveedor aún no ha subido un documento.", "view": "Ver", "typeQuote": "Presupuesto", "typeSigned": "Presupuesto firmado", "typeInvoice": "Factura", "typeDelivery": "Albarán", "typeOther": "Otro" },
+  "siren": {
+    "title": "Verificación de identidad",
+    "subtitle": "Antes de firmar, verificamos que su número SIREN corresponde a su empresa.",
+    "label": "Número SIREN",
+    "verify": "Verificar",
+    "checking": "Verificando…",
+    "verified": "Identidad verificada",
+    "officialName": "Razón social",
+    "mismatch": "El SIREN no corresponde al nombre registrado",
+    "mismatchHint": "Verifique su SIREN o actualice el nombre de su empresa.",
+    "invalid": "SIREN no encontrado",
+    "errorTitle": "Verificación no disponible",
+    "errorGeneric": "No se puede verificar el SIREN en este momento."
+  },
+  "qpdf": {
+    "title": "Documentos del presupuesto",
+    "dropHere": "Arrastra un PDF aquí o haz clic",
+    "pdfOnly": "Solo PDF · 10 MB máx",
+    "uploading": "Subiendo…",
+    "uploadSuccess": "Documento subido",
+    "signed": "Firmado",
+    "signedOn": "Firmado el",
+    "loading": "Cargando documentos…",
+    "noPdf": "Sin PDF disponible",
+    "noPdfHint": "El proveedor aún no ha subido un documento.",
+    "view": "Ver",
+    "typeQuote": "Presupuesto",
+    "typeSigned": "Presupuesto firmado",
+    "typeInvoice": "Factura",
+    "typeDelivery": "Albarán",
+    "typeOther": "Otro"
+  },
   "preview": {
     "title": "Vista previa del producto",
     "fullPage": "Página completa",
@@ -646,61 +1108,440 @@
     "added": "¡Producto añadido al proyecto!"
   },
   "pd": {
-    "commission": { "label": "Comisión Terrassea: {{percent}}% en cada pedido confirmado", "upgrade": "Suba de plan para reducir sus tarifas" },
-    "upgrade": { "title": "Pase al plan {{plan}}", "growthMsg": "Ahorre {{savings}}% de comisión en cada pedido. A partir de 8 300€/mes en ventas, la suscripción se amortiza.", "eliteMsg": "Comisión reducida a {{percent}}%, página de marca dedicada, account manager y analytics avanzados.", "growthCta": "Pasar a Growth — {{price}}", "eliteCta": "Contactar para Elite", "savings": "Ahorro: -{{savings}}% en comisiones", "contactElite": "Contáctenos para hablar del plan Elite." },
-    "stats": { "pendingRequests": "Solicitudes pendientes", "productsListed": "Productos listados", "monthlyRevenue": "Facturación este mes", "commissionsPaid": "Comisiones pagadas" },
-    "overview": { "latestRequests": "Últimas solicitudes recibidas", "pending": "{{count}} pendiente(s)", "seeAllRequests": "Ver todas las solicitudes", "topProducts": "Top productos este mes", "myCatalogue": "Mi catálogo", "messages": "Mensajes", "seeAll": "Ver todo", "noMessages": "Sin mensajes", "startConversation": "Iniciar una conversación" },
-    "quotes": { "received": "Recibidos", "sent": "Enviados", "all": "Todos", "new": "Nuevos", "inProgress": "En curso", "accepted": "Aceptados", "declined": "Rechazados", "noResults": "Sin presupuestos con este filtro", "seeAll": "Ver todos", "accept": "Aceptar", "reply": "Responder", "document": "Documento", "photo": "Foto", "decline": "Rechazar", "acceptedToast": "Presupuesto aceptado. El cliente será notificado.", "declinedToast": "Presupuesto rechazado.", "clientNotified": "El cliente será informado.", "replyHint": "Abra una conversación para responder.", "docsSoon": "El envío de documentos estará disponible pronto.", "photosSoon": "El envío de fotos estará disponible pronto.", "reminder": "Recordatorio: comisión del {{percent}}% (plan {{plan}}) en cada pedido confirmado. Puede adjuntar documentos, fotos y mensajes.", "commLabel": "Com. Terrassea: {{percent}}%" },
-    "catalogue": { "title": "Mi catálogo", "count": "{{count}}/{{max}} productos listados", "countUnlimited": "{{count}} productos listados", "used": "{{percent}}% utilizado", "add": "Añadir un producto", "search": "Buscar en mi catálogo...", "commTitle": "Comisión {{plan}}: {{percent}}%", "commDesc": "Los precios son netos. La comisión Terrassea del {{percent}}% se añade al precio mostrado al cliente.", "noSearch": "Ningún producto coincide", "empty": "Sin productos en su catálogo", "clearSearch": "Borrar búsqueda", "excelImport": "Importar Excel / CSV", "apiSync": "Sync API en tiempo real", "added": "¡Producto añadido!", "imported": "{{count}} producto(s) importado(s)" },
-    "perf": { "title": "Rendimiento", "export": "Exportar CSV", "exportElite": "Exportar — plan Elite", "views": "Visitas este mes", "quoteRequests": "Solicitudes de presupuesto", "confirmed": "Facturación confirmada", "conversion": "Tasa de conversión", "chart": "Visitas y presupuestos — últimos 30 días", "chartPlaceholder": "Gráfico de rendimiento", "commTracking": "Seguimiento de comisiones", "thisMonth": "Comisiones este mes", "lastMonth": "Comisiones mes anterior", "total": "Total acumulado", "advanced": "Analytics avanzados", "advancedDesc": "Acceda a analytics detallados, exportaciones CSV, rendimiento por producto y comparación sectorial.", "avgRating": "Valoración media", "avgResponse": "Tiempo de respuesta medio", "catRanking": "Clasificación categoría", "regularClients": "Clientes habituales", "byProduct": "Rendimiento por producto", "byProductPlaceholder": "Tabla detallada", "benchmark": "Comparación sectorial", "benchmarkPlaceholder": "Benchmark vs. media del sector", "exportStarted": "Exportación CSV en curso..." },
-    "msg": { "title": "Mensajería", "open": "Abrir mensajería", "exchange": "Comuníquese con sus clientes", "docs": "PDF, presupuestos, facturas", "photos": "Fotos de producto, showroom", "recent": "Conversaciones recientes", "none": "Sin conversaciones", "start": "Iniciar una conversación" },
-    "featured": { "title": "Productos destacados", "slots": "{{count}}/{{max}} espacios — prioridad máxima en recomendaciones", "noStarter": "No disponible con el plan Starter", "upgradeMsg": "Pase a Growth para destacar 2 productos, o Elite para 10.", "current": "Productos destacados actualmente", "none": "Sin productos destacados", "addTitle": "Añadir un producto a destacar", "boost": "Destacar", "remove": "Quitar", "removedToast": "Producto eliminado de destacados.", "limitToast": "Límite de {{max}} productos destacados (plan {{plan}}).", "addedToast": "\"{{name}}\" añadido a destacados.", "info": "Los productos destacados aparecen con prioridad máxima. Plan {{plan}}: hasta {{max}} productos.", "upgradeElite": "Pase a Elite para 10 espacios.", "views": "visitas", "quotes": "presupuestos", "boosted": "Destacado" },
-    "leads": { "title": "Leads Pro Service", "desc": "Solicitudes de proyectos adaptadas a su catálogo — datos del cliente anonimizados", "match": "Match", "matchDesc": "El algoritmo le sugiere leads", "anon": "Anónimo", "anonDesc": "Datos del cliente ocultos", "interest": "Interés", "interestDesc": "Exprese su interés", "connection": "Conexión", "connectionDesc": "El admin valida la relación", "newTab": "Nuevos", "interestedTab": "Interesado", "connectedTab": "Conectado", "noResults": "Sin leads con este filtro", "newBadge": "NUEVO", "anonNotice": "Datos anonimizados — Los datos de contacto del cliente están ocultos. La conexión es validada por el administrador Terrassea.", "categories": "Categorías", "style": "Estilo", "budget": "Presupuesto", "pieces": "Piezas", "timeline": "Plazo", "needDesc": "Descripción de la necesidad", "commNote": "Comisión {{plan}}: {{percent}}% sobre el pedido final si se valida la conexión.", "interested": "Estoy interesado", "notForMe": "No es para mí", "pending": "Pendiente de validación por el administrador", "validated": "Conexión validada", "validatedDesc": "El administrador ha conectado ambas partes. Consulte sus mensajes.", "interestToast": "¡Interés expresado!", "interestToastDesc": "El administrador validará la conexión.", "declinedToast": "Lead rechazado.", "matchExplain": "La puntuación se calcula según su catálogo, zona de entrega, capacidad y plan. La conexión siempre es validada por un administrador." },
-    "projectTypes": { "hotel": "Hotel", "restaurant": "Restaurante", "bar": "Bar", "beach-club": "Beach Club", "rooftop": "Rooftop", "cafe": "Cafetería", "lounge": "Lounge", "other": "Otro" },
-    "timelines": { "urgent": "Urgente", "1-month": "1 mes", "2-3-months": "2-3 meses", "6-months": "6 meses", "flexible": "Flexible" }
+    "commission": {
+      "label": "Comisión Terrassea: {{percent}}% en cada pedido confirmado",
+      "upgrade": "Suba de plan para reducir sus tarifas"
+    },
+    "upgrade": {
+      "title": "Pase al plan {{plan}}",
+      "growthMsg": "Ahorre {{savings}}% de comisión en cada pedido. A partir de 8 300€/mes en ventas, la suscripción se amortiza.",
+      "eliteMsg": "Comisión reducida a {{percent}}%, página de marca dedicada, account manager y analytics avanzados.",
+      "growthCta": "Pasar a Growth — {{price}}",
+      "eliteCta": "Contactar para Elite",
+      "savings": "Ahorro: -{{savings}}% en comisiones",
+      "contactElite": "Contáctenos para hablar del plan Elite."
+    },
+    "stats": {
+      "pendingRequests": "Solicitudes pendientes",
+      "productsListed": "Productos listados",
+      "monthlyRevenue": "Facturación este mes",
+      "commissionsPaid": "Comisiones pagadas"
+    },
+    "overview": {
+      "latestRequests": "Últimas solicitudes recibidas",
+      "pending": "{{count}} pendiente(s)",
+      "seeAllRequests": "Ver todas las solicitudes",
+      "topProducts": "Top productos este mes",
+      "myCatalogue": "Mi catálogo",
+      "messages": "Mensajes",
+      "seeAll": "Ver todo",
+      "noMessages": "Sin mensajes",
+      "startConversation": "Iniciar una conversación"
+    },
+    "quotes": {
+      "received": "Recibidos",
+      "sent": "Enviados",
+      "all": "Todos",
+      "new": "Nuevos",
+      "inProgress": "En curso",
+      "accepted": "Aceptados",
+      "declined": "Rechazados",
+      "noResults": "Sin presupuestos con este filtro",
+      "seeAll": "Ver todos",
+      "accept": "Aceptar",
+      "reply": "Responder",
+      "document": "Documento",
+      "photo": "Foto",
+      "decline": "Rechazar",
+      "acceptedToast": "Presupuesto aceptado. El cliente será notificado.",
+      "declinedToast": "Presupuesto rechazado.",
+      "clientNotified": "El cliente será informado.",
+      "replyHint": "Abra una conversación para responder.",
+      "docsSoon": "El envío de documentos estará disponible pronto.",
+      "photosSoon": "El envío de fotos estará disponible pronto.",
+      "reminder": "Recordatorio: comisión del {{percent}}% (plan {{plan}}) en cada pedido confirmado. Puede adjuntar documentos, fotos y mensajes.",
+      "commLabel": "Com. Terrassea: {{percent}}%"
+    },
+    "catalogue": {
+      "title": "Mi catálogo",
+      "count": "{{count}}/{{max}} productos listados",
+      "countUnlimited": "{{count}} productos listados",
+      "used": "{{percent}}% utilizado",
+      "add": "Añadir un producto",
+      "search": "Buscar en mi catálogo...",
+      "commTitle": "Comisión {{plan}}: {{percent}}%",
+      "commDesc": "Los precios son netos. La comisión Terrassea del {{percent}}% se añade al precio mostrado al cliente.",
+      "noSearch": "Ningún producto coincide",
+      "empty": "Sin productos en su catálogo",
+      "clearSearch": "Borrar búsqueda",
+      "excelImport": "Importar Excel / CSV",
+      "apiSync": "Sync API en tiempo real",
+      "added": "¡Producto añadido!",
+      "imported": "{{count}} producto(s) importado(s)"
+    },
+    "perf": {
+      "title": "Rendimiento",
+      "export": "Exportar CSV",
+      "exportElite": "Exportar — plan Elite",
+      "views": "Visitas este mes",
+      "quoteRequests": "Solicitudes de presupuesto",
+      "confirmed": "Facturación confirmada",
+      "conversion": "Tasa de conversión",
+      "chart": "Visitas y presupuestos — últimos 30 días",
+      "chartPlaceholder": "Gráfico de rendimiento",
+      "commTracking": "Seguimiento de comisiones",
+      "thisMonth": "Comisiones este mes",
+      "lastMonth": "Comisiones mes anterior",
+      "total": "Total acumulado",
+      "advanced": "Analytics avanzados",
+      "advancedDesc": "Acceda a analytics detallados, exportaciones CSV, rendimiento por producto y comparación sectorial.",
+      "avgRating": "Valoración media",
+      "avgResponse": "Tiempo de respuesta medio",
+      "catRanking": "Clasificación categoría",
+      "regularClients": "Clientes habituales",
+      "byProduct": "Rendimiento por producto",
+      "byProductPlaceholder": "Tabla detallada",
+      "benchmark": "Comparación sectorial",
+      "benchmarkPlaceholder": "Benchmark vs. media del sector",
+      "exportStarted": "Exportación CSV en curso..."
+    },
+    "msg": {
+      "title": "Mensajería",
+      "open": "Abrir mensajería",
+      "exchange": "Comuníquese con sus clientes",
+      "docs": "PDF, presupuestos, facturas",
+      "photos": "Fotos de producto, showroom",
+      "recent": "Conversaciones recientes",
+      "none": "Sin conversaciones",
+      "start": "Iniciar una conversación"
+    },
+    "featured": {
+      "title": "Productos destacados",
+      "slots": "{{count}}/{{max}} espacios — prioridad máxima en recomendaciones",
+      "noStarter": "No disponible con el plan Starter",
+      "upgradeMsg": "Pase a Growth para destacar 2 productos, o Elite para 10.",
+      "current": "Productos destacados actualmente",
+      "none": "Sin productos destacados",
+      "addTitle": "Añadir un producto a destacar",
+      "boost": "Destacar",
+      "remove": "Quitar",
+      "removedToast": "Producto eliminado de destacados.",
+      "limitToast": "Límite de {{max}} productos destacados (plan {{plan}}).",
+      "addedToast": "\"{{name}}\" añadido a destacados.",
+      "info": "Los productos destacados aparecen con prioridad máxima. Plan {{plan}}: hasta {{max}} productos.",
+      "upgradeElite": "Pase a Elite para 10 espacios.",
+      "views": "visitas",
+      "quotes": "presupuestos",
+      "boosted": "Destacado"
+    },
+    "leads": {
+      "title": "Leads Pro Service",
+      "desc": "Solicitudes de proyectos adaptadas a su catálogo — datos del cliente anonimizados",
+      "match": "Match",
+      "matchDesc": "El algoritmo le sugiere leads",
+      "anon": "Anónimo",
+      "anonDesc": "Datos del cliente ocultos",
+      "interest": "Interés",
+      "interestDesc": "Exprese su interés",
+      "connection": "Conexión",
+      "connectionDesc": "El admin valida la relación",
+      "newTab": "Nuevos",
+      "interestedTab": "Interesado",
+      "connectedTab": "Conectado",
+      "noResults": "Sin leads con este filtro",
+      "newBadge": "NUEVO",
+      "anonNotice": "Datos anonimizados — Los datos de contacto del cliente están ocultos. La conexión es validada por el administrador Terrassea.",
+      "categories": "Categorías",
+      "style": "Estilo",
+      "budget": "Presupuesto",
+      "pieces": "Piezas",
+      "timeline": "Plazo",
+      "needDesc": "Descripción de la necesidad",
+      "commNote": "Comisión {{plan}}: {{percent}}% sobre el pedido final si se valida la conexión.",
+      "interested": "Estoy interesado",
+      "notForMe": "No es para mí",
+      "pending": "Pendiente de validación por el administrador",
+      "validated": "Conexión validada",
+      "validatedDesc": "El administrador ha conectado ambas partes. Consulte sus mensajes.",
+      "interestToast": "¡Interés expresado!",
+      "interestToastDesc": "El administrador validará la conexión.",
+      "declinedToast": "Lead rechazado.",
+      "matchExplain": "La puntuación se calcula según su catálogo, zona de entrega, capacidad y plan. La conexión siempre es validada por un administrador."
+    },
+    "projectTypes": {
+      "hotel": "Hotel",
+      "restaurant": "Restaurante",
+      "bar": "Bar",
+      "beach-club": "Beach Club",
+      "rooftop": "Rooftop",
+      "cafe": "Cafetería",
+      "lounge": "Lounge",
+      "other": "Otro"
+    },
+    "timelines": {
+      "urgent": "Urgente",
+      "1-month": "1 mes",
+      "2-3-months": "2-3 meses",
+      "6-months": "6 meses",
+      "flexible": "Flexible"
+    }
   },
   "pf": {
-    "title": "Añadir un producto", "tabs": { "photo": "Foto & IA", "basics": "Información", "specs": "Características", "pricing": "Precio y Stock" },
-    "image": { "sizeError": "La imagen no debe superar 10 MB.", "dragDrop": "Arrastre una foto o haga clic", "formats": "JPG, PNG o WebP · Máx 10 MB", "missing": "Añada primero una foto." },
-    "ai": { "unsupported": "Formato no soportado.", "failed": "Análisis fallido", "analyzing": "Analizando...", "button": "Analizar con IA — autocompletar", "results": "Características prerrellenadas por IA", "confidence": "IA {{percent}}% confianza", "confidenceMsg": "Confianza: {{percent}}%. Revise y ajuste.", "error": "Error en el análisis IA", "errorMsg": "Reintente o complete manualmente.", "navigate": "Navegue por las pestañas para revisar.", "hint": "Añada una foto para que la IA detecte tipo, materiales, colores, dimensiones y tags.", "name": "Nombre:", "category": "Categoría:", "structure": "Estructura:", "color": "Color:", "styleTags": "Tags estilo:" },
-    "fields": { "name": "Nombre del producto", "category": "Categoría", "subcategory": "Subcategoría", "mainColor": "Color principal", "shortDesc": "Descripción corta", "longDesc": "Descripción larga", "matStructure": "Material estructura", "matSeat": "Material asiento", "tags": "Tags y clasificaciones" },
-    "placeholders": { "name": "Ej: Silla apilable Riviera", "subcategory": "Ej: dining-chair", "shortDesc": "Describa su producto...", "longDesc": "Descripción detallada...", "matStructure": "Ej: aluminio, teca", "matSeat": "Ej: textileno, cojín" },
-    "specs": { "dimensions": "Dimensiones", "length": "Longitud", "width": "Anchura", "height": "Altura", "seatHeight": "Alt. asiento", "weight": "Peso", "country": "País de fabricación", "countryPlaceholder": "Ej: Italia, España", "properties": "Propiedades", "outdoor": "Uso exterior", "stackable": "Apilable", "chr": "Uso CHR intensivo", "weather": "Resistente a intemperies", "uv": "Resistente UV", "light": "Ligero", "maintenance": "Fácil mantenimiento", "warranty": "Garantía", "warrantyPlaceholder": "Ej: 3 años" },
-    "pricing": { "planComm": "Plan {{plan}} — Comisión {{percent}}%", "commDesc": "Indique su precio neto. La comisión del {{percent}}% se añade al precio del cliente.", "minPrice": "Precio mínimo neto", "maxPrice": "Precio máximo neto", "stockStatus": "Estado del stock", "stockQty": "Cantidad en stock", "delivery": "Plazo de entrega estimado" },
-    "validation": { "nameCategory": "Nombre y categoría obligatorios.", "minPrice": "Indique un precio mínimo." },
-    "buttons": { "cancel": "Cancelar", "next": "Siguiente", "saving": "Guardando...", "save": "Guardar producto" },
-    "success": { "title": "¡Producto añadido!", "desc": "Será visible tras validación por Terrassea." },
-    "error": { "title": "Error al guardar" },
-    "tagEditor": { "add": "Añadir tag {{label}}..." },
-    "categories": { "seating": "Asientos", "tables": "Mesas", "parasols": "Parasoles", "loungers": "Tumbonas", "sofas": "Sofás / Bancos", "accessories": "Accesorios" },
-    "stock": { "in_stock": "En stock", "low_stock": "Stock bajo", "made_to_order": "Bajo pedido", "pre_order": "Pre-pedido" },
-    "style": "Estilo", "ambiance": "Ambiente", "materials": "Materiales", "useCase": "Uso"
+    "title": "Añadir un producto",
+    "tabs": {
+      "photo": "Foto & IA",
+      "basics": "Información",
+      "specs": "Características",
+      "pricing": "Precio y Stock"
+    },
+    "image": {
+      "sizeError": "La imagen no debe superar 10 MB.",
+      "dragDrop": "Arrastre una foto o haga clic",
+      "formats": "JPG, PNG o WebP · Máx 10 MB",
+      "missing": "Añada primero una foto."
+    },
+    "ai": {
+      "unsupported": "Formato no soportado.",
+      "failed": "Análisis fallido",
+      "analyzing": "Analizando...",
+      "button": "Analizar con IA — autocompletar",
+      "results": "Características prerrellenadas por IA",
+      "confidence": "IA {{percent}}% confianza",
+      "confidenceMsg": "Confianza: {{percent}}%. Revise y ajuste.",
+      "error": "Error en el análisis IA",
+      "errorMsg": "Reintente o complete manualmente.",
+      "navigate": "Navegue por las pestañas para revisar.",
+      "hint": "Añada una foto para que la IA detecte tipo, materiales, colores, dimensiones y tags.",
+      "name": "Nombre:",
+      "category": "Categoría:",
+      "structure": "Estructura:",
+      "color": "Color:",
+      "styleTags": "Tags estilo:"
+    },
+    "fields": {
+      "name": "Nombre del producto",
+      "category": "Categoría",
+      "subcategory": "Subcategoría",
+      "mainColor": "Color principal",
+      "shortDesc": "Descripción corta",
+      "longDesc": "Descripción larga",
+      "matStructure": "Material estructura",
+      "matSeat": "Material asiento",
+      "tags": "Tags y clasificaciones"
+    },
+    "placeholders": {
+      "name": "Ej: Silla apilable Riviera",
+      "subcategory": "Ej: dining-chair",
+      "shortDesc": "Describa su producto...",
+      "longDesc": "Descripción detallada...",
+      "matStructure": "Ej: aluminio, teca",
+      "matSeat": "Ej: textileno, cojín"
+    },
+    "specs": {
+      "dimensions": "Dimensiones",
+      "length": "Longitud",
+      "width": "Anchura",
+      "height": "Altura",
+      "seatHeight": "Alt. asiento",
+      "weight": "Peso",
+      "country": "País de fabricación",
+      "countryPlaceholder": "Ej: Italia, España",
+      "properties": "Propiedades",
+      "outdoor": "Uso exterior",
+      "stackable": "Apilable",
+      "chr": "Uso CHR intensivo",
+      "weather": "Resistente a intemperies",
+      "uv": "Resistente UV",
+      "light": "Ligero",
+      "maintenance": "Fácil mantenimiento",
+      "warranty": "Garantía",
+      "warrantyPlaceholder": "Ej: 3 años"
+    },
+    "pricing": {
+      "planComm": "Plan {{plan}} — Comisión {{percent}}%",
+      "commDesc": "Indique su precio neto. La comisión del {{percent}}% se añade al precio del cliente.",
+      "minPrice": "Precio mínimo neto",
+      "maxPrice": "Precio máximo neto",
+      "stockStatus": "Estado del stock",
+      "stockQty": "Cantidad en stock",
+      "delivery": "Plazo de entrega estimado"
+    },
+    "validation": {
+      "nameCategory": "Nombre y categoría obligatorios.",
+      "minPrice": "Indique un precio mínimo."
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "next": "Siguiente",
+      "saving": "Guardando...",
+      "save": "Guardar producto"
+    },
+    "success": {
+      "title": "¡Producto añadido!",
+      "desc": "Será visible tras validación por Terrassea."
+    },
+    "error": {
+      "title": "Error al guardar"
+    },
+    "tagEditor": {
+      "add": "Añadir tag {{label}}..."
+    },
+    "categories": {
+      "seating": "Asientos",
+      "tables": "Mesas",
+      "parasols": "Parasoles",
+      "loungers": "Tumbonas",
+      "sofas": "Sofás / Bancos",
+      "accessories": "Accesorios"
+    },
+    "stock": {
+      "in_stock": "En stock",
+      "low_stock": "Stock bajo",
+      "made_to_order": "Bajo pedido",
+      "pre_order": "Pre-pedido"
+    },
+    "style": "Estilo",
+    "ambiance": "Ambiente",
+    "materials": "Materiales",
+    "useCase": "Uso"
   },
   "ei": {
-    "title": "Importar Excel / CSV", "subtitle": "Importe sus productos desde un archivo Excel o CSV",
-    "template": { "hint": "Use nuestra plantilla. Columnas reconocidas: Nombre, Categoría, Descripción, Material, Color, Precio, Dimensiones, Peso, Stock, País, Garantía...", "download": "Descargar plantilla CSV" },
-    "upload": { "dragDrop": "Arrastre su archivo o haga clic", "formats": "CSV, TSV o Excel (.xlsx)", "unsupported": "Formato no soportado." },
-    "columns": { "title": "Columnas reconocidas automáticamente:", "note": "* Campos obligatorios." },
+    "title": "Importar Excel / CSV",
+    "subtitle": "Importe sus productos desde un archivo Excel o CSV",
+    "template": {
+      "hint": "Use nuestra plantilla. Columnas reconocidas: Nombre, Categoría, Descripción, Material, Color, Precio, Dimensiones, Peso, Stock, País, Garantía...",
+      "download": "Descargar plantilla CSV"
+    },
+    "upload": {
+      "dragDrop": "Arrastre su archivo o haga clic",
+      "formats": "CSV, TSV o Excel (.xlsx)",
+      "unsupported": "Formato no soportado."
+    },
+    "columns": {
+      "title": "Columnas reconocidas automáticamente:",
+      "note": "* Campos obligatorios."
+    },
     "commission": "Comisión {{plan}}: {{percent}}% — Indique precios netos.",
-    "preview": { "detected": "{{count}} producto(s) detectado(s)", "file": "Archivo: {{name}}", "valid": "{{count}} válido(s)", "errors": "{{count}} error(es)", "commNote": "La columna « → Cliente » incluye la comisión del {{percent}}% (plan {{plan}}).", "changeFile": "← Cambiar archivo", "import": "Importar {{count}} producto(s)" },
-    "table": { "status": "Estado", "name": "Nombre", "category": "Categoría", "material": "Material", "price": "Precio neto", "client": "→ Cliente", "actions": "Acciones" },
-    "importing": { "title": "Importando...", "msg": "{{percent}}% — no cierre esta ventana" },
-    "errors": { "empty": "El archivo parece vacío.", "none": "Sin productos encontrados.", "excel": "Exporte primero a CSV desde Excel.", "read": "No se puede leer. Exporte a CSV.", "noValid": "Sin productos válidos.", "missingName": "Nombre faltante", "invalidCat": "Categoría inválida" },
-    "success": { "template": "¡Plantilla descargada!", "mixed": "{{valid}} válido(s), {{invalid}} con errores." },
+    "preview": {
+      "detected": "{{count}} producto(s) detectado(s)",
+      "file": "Archivo: {{name}}",
+      "valid": "{{count}} válido(s)",
+      "errors": "{{count}} error(es)",
+      "commNote": "La columna « → Cliente » incluye la comisión del {{percent}}% (plan {{plan}}).",
+      "changeFile": "← Cambiar archivo",
+      "import": "Importar {{count}} producto(s)"
+    },
+    "table": {
+      "status": "Estado",
+      "name": "Nombre",
+      "category": "Categoría",
+      "material": "Material",
+      "price": "Precio neto",
+      "client": "→ Cliente",
+      "actions": "Acciones"
+    },
+    "importing": {
+      "title": "Importando...",
+      "msg": "{{percent}}% — no cierre esta ventana"
+    },
+    "errors": {
+      "empty": "El archivo parece vacío.",
+      "none": "Sin productos encontrados.",
+      "excel": "Exporte primero a CSV desde Excel.",
+      "read": "No se puede leer. Exporte a CSV.",
+      "noValid": "Sin productos válidos.",
+      "missingName": "Nombre faltante",
+      "invalidCat": "Categoría inválida"
+    },
+    "success": {
+      "template": "¡Plantilla descargada!",
+      "mixed": "{{valid}} válido(s), {{invalid}} con errores."
+    },
     "close": "Cerrar"
   },
   "api": {
-    "title": "Sincronización de stock en tiempo real", "subtitle": "Conecte su sistema de gestión para sincronizar automáticamente su inventario",
-    "elite": { "gate": "Función plan Elite", "gateMsg": "La sincronización API está disponible con el plan Elite. Puede configurarla ahora." },
-    "status": { "active": "Sincronización activa", "inactive": "Sincronización inactiva", "lastSync": "Última sync:", "disable": "Desactivar", "enable": "Activar" },
-    "mode": { "title": "Modo de sincronización", "push": "Push (recomendado)", "pushDesc": "Su sistema nos envía las actualizaciones", "pull": "Pull", "pullDesc": "Consultamos su API", "both": "Ambos", "bothDesc": "Push + Pull de respaldo" },
-    "push": { "title": "Configuración Push", "desc": "Use estas credenciales para enviar actualizaciones a Terrassea.", "webhook": "URL del Webhook", "apiKey": "Su clave API Terrassea", "docs": "Documentación de la API", "request": "Solicitud HTTP", "response": "Respuesta" },
-    "pull": { "title": "Configuración Pull", "desc": "Indique la URL de su API de stock.", "url": "URL de su API", "urlPlaceholder": "https://su-erp.com/api/v1/stock", "key": "Clave API de su sistema", "keyPlaceholder": "Su clave API", "freq": "Frecuencia", "freq5": "Cada 5 minutos", "freq15": "Cada 15 minutos", "freq30": "Cada 30 minutos", "freq60": "Cada hora", "freq360": "Cada 6 horas", "freq1440": "Una vez al día", "mapping": "Mapeo de campos", "skuField": "Campo SKU", "stockField": "Campo cantidad", "priceField": "Campo precio", "statusField": "Campo estado" },
-    "docs": { "sku": "campo « Referencia » de sus ofertas", "qty": "cantidad en stock", "price": "precio neto unitario (opcional)", "status": "in_stock, low_stock, out_of_stock, discontinued", "delivery": "plazo de entrega en días" },
-    "logs": { "title": "Historial ({{count}} total)", "date": "Fecha", "mode": "Modo", "status": "Estado", "updates": "Actual.", "duration": "Duración" },
-    "confirm": { "regenerate": "¿Regenerar clave API? La anterior dejará de funcionar." },
-    "toast": { "saved": "Configuración guardada.", "regenerated": "Nueva clave generada.", "missingUrl": "Configure la URL antes de activar.", "activated": "¡Sincronización activada!", "deactivated": "Sincronización desactivada.", "copied": "¡{{label}} copiado!" },
-    "buttons": { "close": "Cerrar", "update": "Actualizar", "configure": "Configurar conexión" }
+    "title": "Sincronización de stock en tiempo real",
+    "subtitle": "Conecte su sistema de gestión para sincronizar automáticamente su inventario",
+    "elite": {
+      "gate": "Función plan Elite",
+      "gateMsg": "La sincronización API está disponible con el plan Elite. Puede configurarla ahora."
+    },
+    "status": {
+      "active": "Sincronización activa",
+      "inactive": "Sincronización inactiva",
+      "lastSync": "Última sync:",
+      "disable": "Desactivar",
+      "enable": "Activar"
+    },
+    "mode": {
+      "title": "Modo de sincronización",
+      "push": "Push (recomendado)",
+      "pushDesc": "Su sistema nos envía las actualizaciones",
+      "pull": "Pull",
+      "pullDesc": "Consultamos su API",
+      "both": "Ambos",
+      "bothDesc": "Push + Pull de respaldo"
+    },
+    "push": {
+      "title": "Configuración Push",
+      "desc": "Use estas credenciales para enviar actualizaciones a Terrassea.",
+      "webhook": "URL del Webhook",
+      "apiKey": "Su clave API Terrassea",
+      "docs": "Documentación de la API",
+      "request": "Solicitud HTTP",
+      "response": "Respuesta"
+    },
+    "pull": {
+      "title": "Configuración Pull",
+      "desc": "Indique la URL de su API de stock.",
+      "url": "URL de su API",
+      "urlPlaceholder": "https://su-erp.com/api/v1/stock",
+      "key": "Clave API de su sistema",
+      "keyPlaceholder": "Su clave API",
+      "freq": "Frecuencia",
+      "freq5": "Cada 5 minutos",
+      "freq15": "Cada 15 minutos",
+      "freq30": "Cada 30 minutos",
+      "freq60": "Cada hora",
+      "freq360": "Cada 6 horas",
+      "freq1440": "Una vez al día",
+      "mapping": "Mapeo de campos",
+      "skuField": "Campo SKU",
+      "stockField": "Campo cantidad",
+      "priceField": "Campo precio",
+      "statusField": "Campo estado"
+    },
+    "docs": {
+      "sku": "campo « Referencia » de sus ofertas",
+      "qty": "cantidad en stock",
+      "price": "precio neto unitario (opcional)",
+      "status": "in_stock, low_stock, out_of_stock, discontinued",
+      "delivery": "plazo de entrega en días"
+    },
+    "logs": {
+      "title": "Historial ({{count}} total)",
+      "date": "Fecha",
+      "mode": "Modo",
+      "status": "Estado",
+      "updates": "Actual.",
+      "duration": "Duración"
+    },
+    "confirm": {
+      "regenerate": "¿Regenerar clave API? La anterior dejará de funcionar."
+    },
+    "toast": {
+      "saved": "Configuración guardada.",
+      "regenerated": "Nueva clave generada.",
+      "missingUrl": "Configure la URL antes de activar.",
+      "activated": "¡Sincronización activada!",
+      "deactivated": "Sincronización desactivada.",
+      "copied": "¡{{label}} copiado!"
+    },
+    "buttons": {
+      "close": "Cerrar",
+      "update": "Actualizar",
+      "configure": "Configurar conexión"
+    }
   },
   "auth": {
     "signIn": "Iniciar sesión",
@@ -1051,7 +1892,6 @@
     "guideShadeTitle": "Planificación de sombra para espacios exteriores de hostelería",
     "guideLayoutTitle": "Optimización de la terraza: la ciencia de la densidad rentable",
     "guideRegulationsTitle": "Fundamentos de aprovisionamiento de mobiliario outdoor profesional",
-
     "seatingGuide": "Los asientos de exterior en un entorno profesional CHR están sujetos a exigencias que el mobiliario residencial sencillamente no puede satisfacer. Una silla de terraza soporta habitualmente de 6 a 8 horas de uso continuo al día, exposición a la radiación UV, ciclos de humedad y limpieza semanal con productos de grado profesional. Elegir el producto equivocado implica su sustitución en 2-3 temporadas — un coste que supera con creces el ahorro inicial.\n\nLa primera decisión es funcional: apilable o no apilable. Las sillas apilables son la opción por defecto para establecimientos de temporada (beach clubs, espacios para eventos, terrazas de piscina de hotel) porque reducen el volumen de almacenamiento en un 80 % y simplifican la logística de fin de temporada. Para terrazas permanentes durante todo el año — brasserías, restaurantes de hotel — las sillas no apilables con reposabrazos transmiten una percepción premium y mejoran la comodidad del cliente durante comidas prolongadas.\n\nLa segunda decisión es estructural: armazón bistrot, base de patín o 4 patas. Los armazones bistrot (patas traseras curvadas) ofrecen una excelente estabilidad en pavimentos irregulares pero son más difíciles de mantener limpios. Las bases de patín se deslizan fácilmente para reposicionar. Los armazones de 4 patas cuadrados son los más universales y disponen de la gama de productos más amplia.",
     "seatingExpert": "Para un restaurante con un tiempo medio por cubierto superior a 90 minutos, invierta en una silla con una profundidad de asiento de al menos 42 cm y soporte lumbar. La comodidad impacta directamente en la rotación de mesas — los clientes incómodos se van antes, lo cual es contraproducente. Los clientes cómodos se quedan, piden postre y vuelven.",
     "seatingQ1": "¿Cuál es la diferencia entre una silla bistrot y una silla de exterior estándar?",
@@ -1067,7 +1907,6 @@
     "seatingTip4": "Verifique siempre la altura máxima de apilamiento indicada por el fabricante. Apilar más de 8 unidades sobre superficies exteriores puede causar microabrasiones y dañar el acabado.",
     "seatingQ5": "¿Cuándo tiene sentido invertir en sillones en lugar de sillas?",
     "seatingA5": "Los sillones añaden un 15–25 % al coste unitario y reducen la densidad de la terraza en aproximadamente un 20 % en comparación con las sillas estándar. Están justificados cuando el ingreso medio por cubierto supera los 40–50 € (comedor a la carta, coctelería, restaurante de hotel) y cuando el tiempo de cubierto supera los 90 minutos. En esos contextos, los sillones señalan un posicionamiento superior que los clientes perciben de inmediato y que se traduce en un mayor gasto. Para una brasserie de servicio rápido o un café con un tiempo medio de cubierto de 45 minutos, los sillones son una mala inversión — la pérdida de densidad supera la ganancia en percepción.",
-
     "materialsGuide": "La selección de materiales para mobiliario outdoor CHR es una decisión que determina simultáneamente el coste de mantenimiento, el ciclo de vida, la experiencia del cliente y el impacto medioambiental. No existe un material universalmente superior — cada material es un compromiso entre rendimiento, estética, requisitos de mantenimiento y presupuesto.\n\nLos tres materiales dominantes en el mobiliario outdoor CHR europeo son el aluminio termolacado, la teca y el polipropileno estabilizado contra UV. Cada uno responde a un caso de uso diferente. El aluminio es el caballo de batalla industrial: resistente a la corrosión, ligero, personalizable en color de forma ilimitada y reciclable. La teca es la referencia natural premium: su contenido natural de sílice la hace intrínsecamente resistente a la humedad y a los insectos sin tratamiento, pero requiere aceitado anual para mantener el color. El polipropileno es la línea base económica: bajo coste, bajo mantenimiento, pero con una vida estética más corta (5–8 años antes de que la decoloración UV sea visible).\n\nDos materiales emergentes merecen atención para aplicaciones CHR premium: los armazones de aluminio con trenzado de cuerda y los compuestos de contenido reciclado. El trenzado de cuerda (poliéster o acrílico sobre armazones de aluminio termolacado) ofrece la estética del mimbre con total resistencia a la intemperie y fácil limpieza. Los compuestos reciclados (HDPE a partir de plásticos recuperados) se especifican cada vez más en la contratación hotelera sostenible.",
     "materialsExpert": "El error más costoso en la adquisición de mobiliario outdoor CHR es elegir un material basándose en fotos de catálogo en lugar de en el rendimiento probado en su clima específico. Una silla de teca fotografiada en un showroom de Marsella se comporta de forma muy diferente en la terraza de un hotel del Mar del Norte. Solicite siempre al proveedor referencias específicas por clima.",
     "materialsQ1": "¿Cuál es el material más duradero para un beach club o establecimiento costero?",
@@ -1083,7 +1922,6 @@
     "materialsTip4": "La mayor causa de degradación prematura del mobiliario es el almacenamiento de fin de temporada sin limpieza previa. La sal, los excrementos de aves y los residuos orgánicos son corrosivos. Limpie siempre antes de cubrir o almacenar.",
     "materialsQ5": "¿Qué certificaciones de sostenibilidad debo buscar en el mobiliario outdoor CHR?",
     "materialsA5": "Las tres certificaciones más relevantes para la adquisición CHR europea son FSC (Forest Stewardship Council) para productos de madera, Greenguard Gold para emisiones de COV en interiores y OEKO-TEX Standard 100 para textiles y materiales de cuerda. Para productos de aluminio, solicite el porcentaje de contenido reciclado — los fabricantes líderes utilizan entre un 75 y un 95 % de aluminio reciclado en su aleación, reduciendo el carbono incorporado en aproximadamente un 90 % respecto a la producción primaria. Para un hotel o restaurante que busque la certificación BREEAM, LEED o HQE, la adquisición de mobiliario con credenciales de sostenibilidad documentadas contribuye a los créditos de materiales y recursos. La certificación EU Ecolabel para mobiliario, aunque aún no es obligatoria, indica un compromiso con el análisis del ciclo de vida que se exige cada vez más en la contratación pública y en el aprovisionamiento de cadenas hoteleras de lujo.",
-
     "shadeGuide": "La planificación de la sombra es uno de los aspectos más subestimados del diseño de hostelería exterior. Una terraza sin sombra adecuada pierde el 60–70 % de sus cubiertos durante las horas punta del verano — no porque los clientes no quieran estar fuera, sino porque la exposición directa al sol sin protección resulta físicamente incómoda pasados 30 minutos. La gestión eficaz de la sombra es, por tanto, un impulsor directo de ingresos.\n\nLas principales soluciones de sombra para establecimientos CHR exteriores son las sombrillas en voladizo, las sombrillas de mástil central, las velas de sombra y las estructuras de pérgola fijas. Cada una tiene un perfil de aplicación diferente. Las sombrillas en voladizo (brazo lateral) son la opción premium por defecto para terrazas de piscina de hotel y beach clubs — proporcionan sombra sin obstrucción sin que un mástil central interfiera con la colocación de mesas o tumbonas. Las sombrillas de mástil central son el estándar para terrazas de restaurante — menor coste, mayor estabilidad al viento y disponibles en diámetros mayores (hasta 5 m redondas o 4×4 m cuadradas).\n\nLa selección del diámetro de la sombrilla viene determinada por la configuración de mesas que cubre. Una sombrilla redonda de 2 m de diámetro cubre una mesa de 70×70 cm con cuatro sillas con un nivel de confort estándar. Una sombrilla de 3 m de diámetro cubre dos mesas adyacentes de 70×70 cm. Para mesas de 80×80 cm o mayores, pase a un mínimo de 3,5 m. Las sombrillas subdimensionadas son el error de planificación más habitual — crean una impresión visual de sombra sin el beneficio térmico.",
     "shadeExpert": "La resistencia al viento de una sombrilla no es una cifra comercial — es una especificación de seguridad. Una sombrilla con clasificación Beaufort 5 (29–38 km/h) fallará estructuralmente con una ráfaga de Beaufort 6 (39–49 km/h) con consecuencias predecibles. Para terrazas costeras y azoteas, especifique siempre un mínimo de Beaufort 6, con una base lastrada de al menos 80 kg para una sombrilla de 3 m.",
     "shadeQ1": "¿Qué diámetro de sombrilla es adecuado para mis mesas?",
@@ -1095,7 +1933,6 @@
     "shadeA3": "El estándar hotelero para tumbonas en terrazas de piscina en establecimientos europeos de 4 estrellas y superiores es: armazón de aluminio o acero inoxidable (a prueba de óxido), respaldo ajustable con un mínimo de 5 posiciones, cojín de secado rápido o transpirable (malla Textilene o acrílico tinto en masa) y una capacidad de carga mínima de 150 kg. La especificación del cojín es crítica — los cojines de espuma de celda cerrada retienen agua y desarrollan moho en una temporada; la espuma de celda abierta o de secado rápido con funda impermeable es el mínimo estándar. Una separación entre tumbonas (de centro a centro) de 90 cm es el mínimo aceptable para la comodidad del cliente en una terraza de piscina; 120 cm es preferible para un posicionamiento de 4 estrellas. La anchura del pasillo entre filas debe ser de un mínimo de 1,2 m para el acceso de seguridad. Para beach clubs con exposición a la arena, evite los ribetes de los cojines en colores claros — se manchan permanentemente.",
     "shadeQ4": "¿Cómo calculo cuántas sombrillas necesito para una terraza?",
     "shadeA4": "Parta del número de cubiertos, no de la superficie. Cada sombrilla debe proporcionar sombra para 4 cubiertos (configuración estándar de 2 mesas) como referencia. Una terraza de 32 cubiertos requiere un mínimo de 8 sombrillas. Sin embargo, la distribución de los cubiertos en la terraza determina si esto es factible — si las mesas están en filas de 4, dos sombrillas por fila funcionan de forma limpia; si la distribución es irregular, puede necesitar 10–12 para evitar vacíos de sombra. Una regla práctica útil: la superficie total de cobertura de las sombrillas (en m²) debe equivaler a 1,2× la superficie total de las mesas. Para una terraza con 8 mesas de 70×70 cm cada una, eso es 8 × 0,49 × 1,2 = 4,7 m² de cobertura de sombrilla, alcanzable con cuatro sombrillas de 3 m (7,1 m² en total, teniendo en cuenta las pérdidas por ángulo).",
-
     "layoutGuide": "La planificación de la distribución es donde el diseño de hostelería se encuentra con la gestión de ingresos. La diferencia entre una terraza mal planificada y una optimizada no es estética — es financiera. 8 cubiertos adicionales en una terraza de 60 plazas, conseguidos mediante una distribución inteligente, representan aproximadamente 150–250 € de ingresos adicionales por servicio al gasto medio europeo CHR típico. Multiplicado a lo largo de una temporada, el ROI de la planificación profesional de la distribución es inmediato.\n\nLa combinación de mesas — la proporción de mesas para 2, para 4 y mesas mayores — es la variable más importante en la optimización de ingresos de la terraza. Los datos del sector muestran sistemáticamente que una combinación equilibrada de 40 % de mesas para 2, 50 % de mesas para 4 y 10 % de mesas mayores (6–8 cubiertos) se ajusta más fielmente a los patrones reales de reserva para restaurantes de servicio completo. Desviarse hacia mesas exclusivamente de 4 deja ingresos sobre la mesa cuando se sientan parejas — un cubierto de 2 personas en una mesa de 4 genera los mismos ingresos que la mesa es físicamente capaz de producir, bloqueando 2 cubiertos potenciales adicionales.\n\nLa variable secundaria es la geometría del mobiliario. Las mesas cuadradas (70×70 cm u 80×80 cm) son más eficientes en espacio que las mesas redondas de capacidad equivalente. Una mesa cuadrada de 70×70 cm proporciona 4 cubiertos con una anchura de acceso por cubierto de 90 cm. Una mesa redonda de 70 cm de diámetro proporciona solo 2 cubiertos cómodos con el mismo estándar de acceso. Sin embargo, las mesas redondas crean un ambiente más social y animado — una consideración relevante para terrazas de bar y espacios lounge.",
     "layoutExpert": "Al planificar la separación entre mesas, modele siempre el escenario de 'servicio completo': el personal con bandeja necesita 75 cm de paso libre, un comensal que echa su silla hacia atrás necesita 60 cm. El error más común en la distribución de terrazas es planificar con las distancias de sala vacía y descubrir que, una vez que las sillas están ocupadas y los clientes tienen bolsos y chaquetas a su alrededor, la circulación real se colapsa.",
     "layoutQ1": "¿Cuál es el espacio mínimo por cubierto en una terraza exterior profesional?",
@@ -1107,7 +1944,6 @@
     "layoutA3": "Las mesas cuadradas (70×70 cm u 80×80 cm) maximizan la densidad de cubiertos y son operativamente más simples — se alinean en cuadrícula, se combinan fácilmente y no desperdician espacio. Las mesas redondas (diámetro 60–80 cm) crean una atmósfera más social y fluida y son preferidas para cafés, bares de vinos y espacios lounge donde la geometría de interacción es tan importante como el recuento de cubiertos. La recomendación práctica: utilice mesas cuadradas para el comedor principal donde la eficiencia importa, e introduzca mesas redondas u ovaladas en posiciones de esquina o zonas premium donde la atmósfera tiene prioridad. Combinar ambas en la misma terraza funciona bien si la distinción es intencionada y visualmente clara.",
     "layoutQ4": "¿Cómo planifico la logística de entrega e instalación del mobiliario para una gran terraza?",
     "layoutA4": "Para una instalación de más de 40 cubiertos, planifique la secuencia de entrega en orden inverso desde la finalización del montaje. Confirme primero las dimensiones de acceso al sitio: anchura de puertas, capacidad del ascensor si procede, tamaño máximo de camión que puede acercarse al establecimiento. La mayoría del mobiliario CHR llega en estado de paquete plano o semiensamentado; calcule 15–20 minutos por silla y 25–30 minutos por mesa para el ensamblaje final. Para una terraza de 40 cubiertos (sillas + mesas), presupueste 1,5–2 días para un equipo de dos personas. Coordine con su proveedor el escalonamiento de las entregas si el espacio de almacenamiento es limitado — mesas y sillas llegando el mismo día en un establecimiento sin zona de recepción genera un cuello de botella. Solicite confirmación de los plazos de entrega por escrito y establezca un margen de 10 días antes de su fecha de apertura.",
-
     "regulationsGuide": "El aprovisionamiento de mobiliario outdoor para un establecimiento CHR profesional implica consideraciones normativas, logísticas y comerciales que difieren sustancialmente de la compra residencial. Comprender estos aspectos antes de contactar con proveedores ahorra tiempo, evita errores costosos y permite una mejor negociación comercial.\n\nEl marco normativo del mobiliario outdoor CHR en Francia y en toda la UE se fundamenta en dos normas: EN 581 (asientos y mesas de exterior para camping, uso doméstico y uso profesional) y EN 12727 (mobiliario de asientos profesionales — requisitos de resistencia, durabilidad y seguridad). EN 12727 Nivel 4 es la norma aplicable al mobiliario profesional en el sector de la hostelería — especifica pruebas de carga, pruebas de durabilidad cíclica y requisitos de estabilidad que el mobiliario residencial no está obligado a cumplir. Al contratar con cualquier proveedor, solicite siempre el certificado de ensayo EN 12727 Nivel 4. Un proveedor que no pueda facilitar este documento no está suministrando según la norma correcta.\n\nLa resistencia al fuego es una consideración secundaria para estructuras exteriores cubiertas y todos los usos adyacentes al interior. La normativa francesa de seguridad contra incendios (DDRM y clasificación ERP) exige que el mobiliario en Établissements Recevant du Public (ERP) cumpla la clasificación M2 o M1. Los elementos tapizados (cojines, banquetas) requieren una certificación adicional — British Standard BS 5852 o norma francesa NF P 92-507.",
     "regulationsExpert": "La conversación sobre el MOQ (Cantidad Mínima de Pedido) es donde se producen la mayoría de los errores de aprovisionamiento. Un proveedor que cotiza un precio para 10 unidades puede tener un MOQ de 50 para ese producto en ese color. Confirme siempre simultáneamente el MOQ, el plazo de entrega y los escalones de precio. El precio para 48 unidades es a menudo un 15–25 % inferior al de 12 unidades — lo que puede compensar el coste de mantener stock.",
     "regulationsQ1": "¿Qué certificaciones debe tener el mobiliario outdoor CHR en Francia y la UE?",
@@ -1123,7 +1959,6 @@
     "regulationsQ5": "¿Qué presupuesto debo planificar por cubierto para una terraza exterior profesional?",
     "regulationsA5": "El presupuesto de mobiliario por cubierto (silla + parte proporcional del coste de la mesa + parte proporcional de la sombrilla) varía significativamente según el nivel del producto. Gama económica (sillas de polipropileno, mesas de resina, sombrillas básicas): 80–120 € por cubierto. Gama media (sillas de aluminio, mesas de aluminio o teca, sombrillas de calidad): 150–250 € por cubierto. Premium (teca o aluminio de diseño, tejidos premium, sombrillas en voladizo): 300–500 € por cubierto. Lujo (piezas de diseñador, acabados a medida, tapicería personalizada): 600 € o más por cubierto. Estos son costes indicativos del producto sin incluir entrega, instalación ni cojines. Una terraza de gama media de 40 cubiertos debería presupuestar entre 6.000 y 10.000 € para el mobiliario, con un 10–15 % adicional para logística e instalación. Los cojines, si se especifican, añaden entre 20 y 60 € por asiento en un tejido impermeable de grado CHR.",
     "regulationsTip5": "Consejo de cálculo de presupuesto: precio por cubierto × 1,15 (logística e instalación) × 1,20 (IVA) = coste total del proyecto con impuestos incluidos.",
-
     "tag_seatingType": "Tipo de asiento",
     "tag_chrStandard": "Estándar CHR",
     "tag_layout": "Distribución",
@@ -1405,8 +2240,13 @@
     "back": "Atrás",
     "continue": "Continuar",
     "steps": {
-      "start": "Inicio", "type": "Tipo", "needs": "Necesidades", "budget": "Presupuesto",
-      "capacity": "Capacidad", "style": "Estilo", "review": "Revisión",
+      "start": "Inicio",
+      "type": "Tipo",
+      "needs": "Necesidades",
+      "budget": "Presupuesto",
+      "capacity": "Capacidad",
+      "style": "Estilo",
+      "review": "Revisión",
       "requirements": "Requisitos"
     },
     "stepDescriptions": {
@@ -1421,33 +2261,53 @@
     },
     "type": {
       "question": "¿Qué tipo de establecimiento?",
-      "restaurant": "Restaurante", "restaurantDesc": "Terrazas, patios y comedor exterior",
-      "hotel": "Hotel", "hotelDesc": "Lobbies, piscinas y jardines lounge",
-      "rooftop": "Azotea", "rooftopDesc": "Bares en altura y terrazas urbanas",
-      "beachClub": "Beach Club", "beachClubDesc": "Lounges frente al mar y tumbonas",
-      "bar": "Bar / Lounge", "barDesc": "Bares de cócteles y vinotecas",
-      "camping": "Camping", "campingDesc": "Glamping y zonas comunes al aire libre",
-      "event": "Espacio para eventos", "eventDesc": "Banquetes, bodas y recepciones",
-      "pool": "Zona de piscina", "poolDesc": "Mobiliario de piscina y terraza"
+      "restaurant": "Restaurante",
+      "restaurantDesc": "Terrazas, patios y comedor exterior",
+      "hotel": "Hotel",
+      "hotelDesc": "Lobbies, piscinas y jardines lounge",
+      "rooftop": "Azotea",
+      "rooftopDesc": "Bares en altura y terrazas urbanas",
+      "beachClub": "Beach Club",
+      "beachClubDesc": "Lounges frente al mar y tumbonas",
+      "bar": "Bar / Lounge",
+      "barDesc": "Bares de cócteles y vinotecas",
+      "camping": "Camping",
+      "campingDesc": "Glamping y zonas comunes al aire libre",
+      "event": "Espacio para eventos",
+      "eventDesc": "Banquetes, bodas y recepciones",
+      "pool": "Zona de piscina",
+      "poolDesc": "Mobiliario de piscina y terraza"
     },
     "budget": {
       "question": "¿Cuál es tu presupuesto por asiento?",
-      "economy": "€50–80", "economyDesc": "Funcional y económico",
-      "mid": "€80–120", "midDesc": "Gama media, buena calidad",
-      "premium": "€120–180", "premiumDesc": "Materiales premium y diseño",
-      "luxury": "€180+", "luxuryDesc": "Lujo y personalizado"
+      "economy": "€50–80",
+      "economyDesc": "Funcional y económico",
+      "mid": "€80–120",
+      "midDesc": "Gama media, buena calidad",
+      "premium": "€120–180",
+      "premiumDesc": "Materiales premium y diseño",
+      "luxury": "€180+",
+      "luxuryDesc": "Lujo y personalizado"
     },
     "review": {
       "badge": "Brief del Proyecto — Revisión",
       "title": "Revisa tu configuración de proyecto",
-      "establishment": "Establecimiento", "zone": "Zona",
-      "capacity": "Capacidad", "terrace": "Terraza",
-      "spaceSeat": "Espacio/asiento", "circulation": "Circulación",
-      "feasibility": "Viabilidad", "layoutStrategy": "Estrategia de distribución",
-      "layoutPriority": "Prioridad de layout", "style": "Estilo",
-      "budget": "Presupuesto", "notSpecified": "No especificado",
-      "seats": "asientos", "generate": "Generar mi recomendación",
-      "editAnswers": "Editar respuestas", "startOver": "Empezar de nuevo"
+      "establishment": "Establecimiento",
+      "zone": "Zona",
+      "capacity": "Capacidad",
+      "terrace": "Terraza",
+      "spaceSeat": "Espacio/asiento",
+      "circulation": "Circulación",
+      "feasibility": "Viabilidad",
+      "layoutStrategy": "Estrategia de distribución",
+      "layoutPriority": "Prioridad de layout",
+      "style": "Estilo",
+      "budget": "Presupuesto",
+      "notSpecified": "No especificado",
+      "seats": "asientos",
+      "generate": "Generar mi recomendación",
+      "editAnswers": "Editar respuestas",
+      "startOver": "Empezar de nuevo"
     },
     "layouts": {
       "mostly-2": "Principalmente mesas de 2",
@@ -1466,8 +2326,10 @@
       "groups": "Principalmente grupos"
     },
     "budgetLabels": {
-      "economy": "€50–80 por asiento", "mid": "€80–120 por asiento",
-      "premium": "€120–180 por asiento", "luxury": "€180+ por asiento"
+      "economy": "€50–80 por asiento",
+      "mid": "€80–120 por asiento",
+      "premium": "€120–180 por asiento",
+      "luxury": "€180+ por asiento"
     },
     "modeSelect": {
       "header": "¿En qué punto estás de tu proyecto?",
@@ -1492,55 +2354,84 @@
       "establishment": "Establecimiento",
       "spaceCapacity": "Espacio y Capacidad",
       "seatsTarget": "Asientos (objetivo)",
-      "length": "Largo (m)", "width": "Ancho (m)", "area": "Superficie (m²)",
+      "length": "Largo (m)",
+      "width": "Ancho (m)",
+      "area": "Superficie (m²)",
       "recommended": "Recomendado: {{min}}–{{max}} asientos para {{surface}} m²",
       "tableMix": "Configuración de mix de mesas",
-      "format": "Formato", "qty": "Cant.", "seatsPerTable": "Asientos/mesa", "subtotal": "Subtotal",
+      "format": "Formato",
+      "qty": "Cant.",
+      "seatsPerTable": "Asientos/mesa",
+      "subtotal": "Subtotal",
       "addTableFormat": "Añadir formato",
       "tables": "mesas",
       "seatsFromMix": "{{count}} asientos del mix de mesas",
       "styleBudget": "Estilo y Presupuesto",
-      "style": "Estilo", "budgetPerSeat": "Presupuesto por asiento",
-      "back": "Volver", "reviewGenerate": "Revisar y Generar"
+      "style": "Estilo",
+      "budgetPerSeat": "Presupuesto por asiento",
+      "back": "Volver",
+      "reviewGenerate": "Revisar y Generar"
     },
     "capacity": {
       "question": "¿Cuál es tu capacidad objetivo?",
-      "under30": "Menos de 30 asientos", "intimate": "Espacio íntimo",
-      "30to60": "30–60 asientos", "mediumTerrace": "Terraza mediana",
-      "60to120": "60–120 asientos", "largeTerrace": "Terraza grande",
-      "120plus": "120+ asientos", "highVolume": "Establecimiento de alto volumen",
+      "under30": "Menos de 30 asientos",
+      "intimate": "Espacio íntimo",
+      "30to60": "30–60 asientos",
+      "mediumTerrace": "Terraza mediana",
+      "60to120": "60–120 asientos",
+      "largeTerrace": "Terraza grande",
+      "120plus": "120+ asientos",
+      "highVolume": "Establecimiento de alto volumen",
       "exactLabel": "O introduce el número exacto de asientos",
       "exactPlaceholder": "ej. 72",
       "dimensionsLabel": "Dimensiones de la terraza (opcional)",
       "or": "o",
       "recommendedCapacity": "Capacidad recomendada para esta superficie: {{min}}–{{max}} asientos",
-      "back": "Volver", "next": "Siguiente"
+      "back": "Volver",
+      "next": "Siguiente"
     },
     "styleStep": {
       "question": "¿Qué estilo define tu proyecto?",
       "subtitle": "Selecciona uno o más estilos — crearemos conceptos que los combinen.",
-      "mediterranean": "Mediterráneo", "mediterraneanDesc": "Riviera, tonos terrosos, texturas naturales",
-      "bistro": "Bistro / Parisino", "bistroDesc": "Encanto clásico de terraza francesa",
-      "natural": "Natural / Orgánico", "naturalDesc": "Materiales orgánicos, paleta terreña",
-      "modern": "Moderno / Minimal", "modernDesc": "Líneas limpias, diseño contemporáneo",
-      "luxury": "Lujo / Premium", "luxuryDesc": "Materiales de alta gama, exclusividad",
-      "industrial": "Industrial / Urbano", "industrialDesc": "Metal, acabados brutos, carácter urbano",
-      "coastal": "Costero / Náutico", "coastalDesc": "Elegancia marítima",
-      "tropical": "Tropical / Resort", "tropicalDesc": "Exótico, exuberante, estilo resort",
+      "mediterranean": "Mediterráneo",
+      "mediterraneanDesc": "Riviera, tonos terrosos, texturas naturales",
+      "bistro": "Bistro / Parisino",
+      "bistroDesc": "Encanto clásico de terraza francesa",
+      "natural": "Natural / Orgánico",
+      "naturalDesc": "Materiales orgánicos, paleta terreña",
+      "modern": "Moderno / Minimal",
+      "modernDesc": "Líneas limpias, diseño contemporáneo",
+      "luxury": "Lujo / Premium",
+      "luxuryDesc": "Materiales de alta gama, exclusividad",
+      "industrial": "Industrial / Urbano",
+      "industrialDesc": "Metal, acabados brutos, carácter urbano",
+      "coastal": "Costero / Náutico",
+      "coastalDesc": "Elegancia marítima",
+      "tropical": "Tropical / Resort",
+      "tropicalDesc": "Exótico, exuberante, estilo resort",
       "multipleHint": "Puedes seleccionar varios estilos para conceptos híbridos",
       "selected": "{{count}} estilo seleccionado",
       "selectedPlural": "{{count}} estilos seleccionados — los combinaremos",
-      "back": "Volver", "reviewBrief": "Revisar brief"
+      "back": "Volver",
+      "reviewBrief": "Revisar brief"
     },
     "summary": {
       "title": "Resumen del proyecto",
       "emptyHint": "Empieza a seleccionar opciones para construir tu brief...",
-      "mode": "Modo", "guided": "Guiado", "expert": "Experto",
-      "projectType": "Tipo de proyecto", "zone": "Zona",
-      "capacity": "Capacidad", "terrace": "Terraza",
-      "m2Seat": "m²/asiento", "density": "Densidad", "feasibility": "Viabilidad",
-      "layout": "Layout", "priority": "Prioridad",
-      "style": "Estilo", "budget": "Presupuesto"
+      "mode": "Modo",
+      "guided": "Guiado",
+      "expert": "Experto",
+      "projectType": "Tipo de proyecto",
+      "zone": "Zona",
+      "capacity": "Capacidad",
+      "terrace": "Terraza",
+      "m2Seat": "m²/asiento",
+      "density": "Densidad",
+      "feasibility": "Viabilidad",
+      "layout": "Layout",
+      "priority": "Prioridad",
+      "style": "Estilo",
+      "budget": "Presupuesto"
     },
     "editableLayout": {
       "seats": "asientos",
@@ -1548,7 +2439,8 @@
       "tables": "mesas",
       "seatsEach": "asientos cada una",
       "addTableFormat": "Añadir formato",
-      "cancel": "Cancelar", "apply": "Aplicar",
+      "cancel": "Cancelar",
+      "apply": "Aplicar",
       "chairsNeeded": "Sillas necesarias:",
       "estimatedBudget": "Presupuesto estimado de mobiliario",
       "avgPerSeat": "Media por asiento"
@@ -1914,32 +2806,6 @@
     "conversationWith": "Conversación con {{name}}",
     "creationError": "Error durante la creación"
   },
-  "partnerDetail": {
-    "supplierNotFound": "Proveedor no encontrado",
-    "backToPartners": "← Volver a Socios",
-    "backToPartnerNetwork": "Volver a la red de socios",
-    "featuredPartner": "Socio destacado",
-    "galleryComing": "Galería próximamente — contacte a través de Terrassea para el catálogo completo",
-    "about": "Acerca de",
-    "productionCapacity": "Capacidad de producción",
-    "coverageZone": "Zona de cobertura",
-    "subtype": "Subtipo",
-    "specialties": "Especialidades",
-    "certifications": "Certificaciones",
-    "materials": "Materiales",
-    "projectTypes": "Tipos de proyecto",
-    "identityProtected": "La identidad del proveedor está protegida",
-    "identityProtectedDesc": "El nombre completo y los datos de contacto de este proveedor se revelan exclusivamente en un presupuesto confirmado de Terrassea. Esto protege a ambas partes y garantiza condiciones de aprovisionamiento justas para todos los profesionales de la hostelería.",
-    "anonymityNotice": "La identidad completa del proveedor solo se revela en un presupuesto confirmado. Todo el aprovisionamiento pasa por Terrassea.",
-    "sourceFromSupplier": "Abastecerse de este proveedor",
-    "browseOrCreate": "Explore su catálogo o cree un brief de proyecto — incluiremos a este proveedor en sus propuestas personalizadas.",
-    "seeProducts": "Ver sus productos",
-    "startProject": "Iniciar un proyecto",
-    "largeProjectProService": "¿Proyecto grande? Pro Service →",
-    "noDirectContact": "No se necesita contacto directo con el proveedor",
-    "pricingConsolidated": "Precios consolidados en un solo presupuesto",
-    "freeForProfessionals": "Gratis para profesionales de la hostelería"
-  },
   "supplierRecs": {
     "supplierOptions": "Opciones de proveedor",
     "supplierCount": "{{count}} proveedor · Puntuado por coherencia del proyecto",
@@ -2013,5 +2879,46 @@
       "matching_cushion": "Cojines a juego",
       "same_collection": "Misma colección"
     }
+  },
+  "compare": {
+    "category": "Categoría",
+    "subcategory": "Subcategoría",
+    "brand": "Marca",
+    "collection": "Colección",
+    "dimensions": "Dimensiones",
+    "seat_height": "Altura del asiento",
+    "weight": "Peso",
+    "structure": "Estructura",
+    "seat_top": "Asiento / Superficie",
+    "main_color": "Color principal",
+    "stackable": "Apilable",
+    "outdoor": "Exterior",
+    "uv_resistant": "Resistente UV",
+    "weather_resistant": "Resistente a la intemperie",
+    "fire_retardant": "Ignifugo",
+    "heavy_duty_chr": "Uso intensivo CHR",
+    "easy_maintenance": "Fácil mantenimiento",
+    "customizable": "Personalizable",
+    "warranty": "Garantía",
+    "country": "País",
+    "stock": "Stock",
+    "delivery": "Entrega",
+    "price": "Precio",
+    "back_to_products": "Volver a productos",
+    "product_comparison": "Comparación de productos",
+    "add_to_project": "Añadir al proyecto",
+    "best_match": "Mejor opción para tu proyecto",
+    "best_price": "Mejor precio",
+    "fastest_delivery": "Entrega más rápida",
+    "most_features": "Más características",
+    "yes": "Sí",
+    "no": "No",
+    "on_request": "Bajo pedido",
+    "days": "días",
+    "no_products_to_compare": "Añade al menos 2 productos para comparar",
+    "relevance_score": "Puntuación de relevancia",
+    "quick_verdict": "Veredicto rápido",
+    "project_relevance": "Relevancia del proyecto",
+    "remove": "Eliminar"
   }
 }

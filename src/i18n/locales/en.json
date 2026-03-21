@@ -165,11 +165,18 @@
     }
   },
   "plans": {
-    "starter": "Starter", "growth": "Growth", "elite": "Elite",
-    "free": "Free", "noRisk": "No risk", "mostPopular": "Most popular",
-    "byInvitation": "By invitation", "custom": "Custom",
-    "perMonth": "/month", "commission": "commission",
-    "applyPlan": "Apply with this plan →", "contactUs": "Contact us →",
+    "starter": "Starter",
+    "growth": "Growth",
+    "elite": "Elite",
+    "free": "Free",
+    "noRisk": "No risk",
+    "mostPopular": "Most popular",
+    "byInvitation": "By invitation",
+    "custom": "Custom",
+    "perMonth": "/month",
+    "commission": "commission",
+    "applyPlan": "Apply with this plan →",
+    "contactUs": "Contact us →",
     "starterSub": "Until your 3rd confirmed order then {{percent}}% commission",
     "growthSub": "Auto-activated at your 3rd order · {{percent}}% commission",
     "eliteSub": "Negotiated · for established CHR brands",
@@ -389,7 +396,134 @@
     "noMoodboards": "No moodboard for this combination.",
     "palette": "Palette",
     "colors": "Colour palette",
-    "materials": "Recommended materials",
+    "materials": {
+      "cafeParisien": {
+        "0": {
+          "label": "Hand-woven cane rattan",
+          "pro": "Bistro signature"
+        },
+        "1": {
+          "label": "Wrought iron / lacquered metal",
+          "pro": "Very resistant"
+        },
+        "2": {
+          "label": "Zinc (round table tops)",
+          "pro": "Authentic"
+        },
+        "3": {
+          "label": "Stackable lacquered aluminium",
+          "pro": "Easy to store"
+        }
+      },
+      "rivieraMed": {
+        "0": {
+          "label": "Solid teak",
+          "pro": "Salt resistant"
+        },
+        "1": {
+          "label": "Rope / synthetic rattan",
+          "pro": "UV resistant"
+        },
+        "2": {
+          "label": "Powder-coated aluminium",
+          "pro": "Anti-corrosion"
+        },
+        "3": {
+          "label": "Ceramic / stoneware",
+          "pro": "Premium tops"
+        }
+      },
+      "beachClub": {
+        "0": {
+          "label": "Grade A teak",
+          "pro": "Certified salt-proof"
+        },
+        "1": {
+          "label": "Synthetic rattan UV+",
+          "pro": "Marine resistance"
+        },
+        "2": {
+          "label": "Textilene / Batyline®",
+          "pro": "Quick drying"
+        },
+        "3": {
+          "label": "Stainless aluminium",
+          "pro": "Marine resistance"
+        }
+      },
+      "rooftopUrban": {
+        "0": {
+          "label": "Matt powder-coated steel",
+          "pro": "Wind resistance"
+        },
+        "1": {
+          "label": "Brushed brass (details)",
+          "pro": "Premium"
+        },
+        "2": {
+          "label": "Smoked treated wood / HPL",
+          "pro": "Weatherproof"
+        },
+        "3": {
+          "label": "Polished concrete (tops)",
+          "pro": "Signature design"
+        }
+      },
+      "loungeLuxe": {
+        "0": {
+          "label": "Sunbrella® outdoor fabric",
+          "pro": "Luxury reference"
+        },
+        "1": {
+          "label": "Brass / gilded steel",
+          "pro": "High-end finish"
+        },
+        "2": {
+          "label": "Marble / natural stone",
+          "pro": "Signature top"
+        },
+        "3": {
+          "label": "Premium oiled teak",
+          "pro": "Guaranteed longevity"
+        }
+      },
+      "nordicCalm": {
+        "0": {
+          "label": "Light wood (oak / birch)",
+          "pro": "4 seasons"
+        },
+        "1": {
+          "label": "White powder-coated aluminium",
+          "pro": "Light & durable"
+        },
+        "2": {
+          "label": "Linen / cotton outdoor canvas",
+          "pro": "Natural"
+        },
+        "3": {
+          "label": "Recycled polypropylene",
+          "pro": "Eco-friendly"
+        }
+      },
+      "naturalOrganic": {
+        "0": {
+          "label": "FSC teak / acacia",
+          "pro": "Certified sustainable"
+        },
+        "1": {
+          "label": "Natural rattan / bamboo",
+          "pro": "Bio-sourced"
+        },
+        "2": {
+          "label": "Natural rope / hemp",
+          "pro": "Authentic"
+        },
+        "3": {
+          "label": "Eco-designed recycled PP",
+          "pro": "Recyclable"
+        }
+      }
+    },
     "keywords": "Keywords",
     "available": "Available products",
     "matchingStyle": "products matching this style",
@@ -465,50 +599,6 @@
       "loungeLuxe": "Outdoor comfort redefined",
       "nordicCalm": "Scandinavian purity, 4-season comfort",
       "naturalOrganic": "Nature as a guiding thread"
-    },
-    "materials": {
-      "cafeParisien": {
-        "0": { "label": "Hand-woven cane rattan", "pro": "Bistro signature" },
-        "1": { "label": "Wrought iron / lacquered metal", "pro": "Very resistant" },
-        "2": { "label": "Zinc (round table tops)", "pro": "Authentic" },
-        "3": { "label": "Stackable lacquered aluminium", "pro": "Easy to store" }
-      },
-      "rivieraMed": {
-        "0": { "label": "Solid teak", "pro": "Salt resistant" },
-        "1": { "label": "Rope / synthetic rattan", "pro": "UV resistant" },
-        "2": { "label": "Powder-coated aluminium", "pro": "Anti-corrosion" },
-        "3": { "label": "Ceramic / stoneware", "pro": "Premium tops" }
-      },
-      "beachClub": {
-        "0": { "label": "Grade A teak", "pro": "Certified salt-proof" },
-        "1": { "label": "Synthetic rattan UV+", "pro": "Marine resistance" },
-        "2": { "label": "Textilene / Batyline®", "pro": "Quick drying" },
-        "3": { "label": "Stainless aluminium", "pro": "Marine resistance" }
-      },
-      "rooftopUrban": {
-        "0": { "label": "Matt powder-coated steel", "pro": "Wind resistance" },
-        "1": { "label": "Brushed brass (details)", "pro": "Premium" },
-        "2": { "label": "Smoked treated wood / HPL", "pro": "Weatherproof" },
-        "3": { "label": "Polished concrete (tops)", "pro": "Signature design" }
-      },
-      "loungeLuxe": {
-        "0": { "label": "Sunbrella® outdoor fabric", "pro": "Luxury reference" },
-        "1": { "label": "Brass / gilded steel", "pro": "High-end finish" },
-        "2": { "label": "Marble / natural stone", "pro": "Signature top" },
-        "3": { "label": "Premium oiled teak", "pro": "Guaranteed longevity" }
-      },
-      "nordicCalm": {
-        "0": { "label": "Light wood (oak / birch)", "pro": "4 seasons" },
-        "1": { "label": "White powder-coated aluminium", "pro": "Light & durable" },
-        "2": { "label": "Linen / cotton outdoor canvas", "pro": "Natural" },
-        "3": { "label": "Recycled polypropylene", "pro": "Eco-friendly" }
-      },
-      "naturalOrganic": {
-        "0": { "label": "FSC teak / acacia", "pro": "Certified sustainable" },
-        "1": { "label": "Natural rattan / bamboo", "pro": "Bio-sourced" },
-        "2": { "label": "Natural rope / hemp", "pro": "Authentic" },
-        "3": { "label": "Eco-designed recycled PP", "pro": "Recyclable" }
-      }
     }
   },
   "footer": {
@@ -526,9 +616,11 @@
     "copyright": "© 2026 Terrassea HUB. All rights reserved."
   },
   "partnerDetail": {
-    "backToNetwork": "← Back to Partner Network",
+    "supplierNotFound": "Supplier not found",
+    "backToPartners": "← Back to Partners",
+    "backToPartnerNetwork": "Back to Partner Network",
     "featuredPartner": "Featured Partner",
-    "galleryComingSoon": "Gallery coming soon — contact via Terrassea for full catalogue",
+    "galleryComing": "Gallery coming soon — contact via Terrassea for full catalogue",
     "about": "About",
     "productionCapacity": "Production Capacity",
     "coverageZone": "Coverage Zone",
@@ -539,19 +631,15 @@
     "projectTypes": "Project Types",
     "identityProtected": "Supplier identity is protected",
     "identityProtectedDesc": "The full name and contact details of this supplier are revealed exclusively in a confirmed Terrassea quote. This protects both parties and ensures fair sourcing conditions for all hospitality professionals.",
-    "sourceFrom": "Source from this supplier",
-    "sourceFromDesc": "Browse their catalogue or create a project brief — we'll include this supplier in your curated proposals.",
+    "anonymityNotice": "Full supplier identity is revealed only in a confirmed quote. All sourcing goes through Terrassea.",
+    "sourceFromSupplier": "Source from this supplier",
+    "browseOrCreate": "Browse their catalogue or create a project brief — we'll include this supplier in your curated proposals.",
     "seeProducts": "See their products",
     "startProject": "Start a project",
-    "largeProject": "Large project? Pro Service →",
-    "anonymityNotice": "Full supplier identity is revealed only in a confirmed quote. All sourcing goes through Terrassea.",
-    "trustSignals": [
-      "No direct supplier contact needed",
-      "Pricing consolidated in one quote",
-      "Free for hospitality professionals"
-    ],
-    "notFound": "Supplier not found",
-    "backToPartners": "← Back to Partners"
+    "largeProjectProService": "Large project? Pro Service →",
+    "noDirectContact": "No direct supplier contact needed",
+    "pricingConsolidated": "Pricing consolidated in one quote",
+    "freeForProfessionals": "Free for hospitality professionals"
   },
   "account": {
     "overview": "Overview",
@@ -570,7 +658,7 @@
     "recentProjects": "Recent projects",
     "viewAll": "View all",
     "noFavourites": "No favourites yet.",
-    "browseCatalogue": "Browse catalogue →",
+    "browseCatalogue": "Browse catalogue",
     "addMore": "Add more",
     "saved": "saved",
     "profileInfo": "Profile information",
@@ -583,8 +671,7 @@
     "proLeads": "Pro Service leads",
     "rewards": "Rewards",
     "supplierCalls": "Supplier calls",
-    "newSupplierCall": "New supplier call",
-    "browseCatalogue": "Browse catalogue"
+    "newSupplierCall": "New supplier call"
   },
   "cd": {
     "welcome": "Welcome back, {{name}}!",
@@ -758,16 +845,212 @@
     }
   },
   "ad": {
-    "stats": { "activeProjects": "Active projects", "quotesSent": "Quotes sent", "totalSourced": "Total sourced", "rewardPoints": "Reward points" },
-    "overview": { "recentProjects": "Recent client projects", "activeCalls": "Active supplier calls", "viewAll": "View all", "seeRewards": "See my rewards", "tierBenefits": "Discover your tier benefits", "favourites": "Favourites", "saved": "saved" },
-    "projects": { "title": "Client projects", "all": "All", "active": "Active", "quoting": "Quoting", "delivered": "Delivered", "draft": "Drafts", "newProject": "New project", "search": "Search project or client…", "noResults": "No projects found" },
-    "quotes": { "title": "Multi-quotes", "all": "All", "pending": "Pending", "replied": "Replied", "accepted": "Accepted", "expired": "Expired", "noResults": "No quotes with this filter", "total": "quotes" },
-    "detail": { "backToProjects": "Back to projects", "estimated": "Estimated", "products": "Products", "zones": "Zones", "quotes": "Quotes", "projectInfo": "Project information", "zonesProducts": "Zones & Products", "product": "Product", "qty": "Qty", "supplier": "Supplier", "status": "Status", "relatedQuotes": "Related quotes", "notes": "Notes & Remarks", "addNotePlaceholder": "Add a note, reminder, or information…", "add": "Add", "noNotes": "No notes for this project", "edit": "Edit", "save": "Save", "client": "Client", "clientName": "Contact name", "company": "Company", "email": "Email", "phone": "Phone", "descriptionLabel": "Project description", "addressLabel": "Site address", "deadlineLabel": "Deadline", "constraintsLabel": "Technical constraints & notes", "projectMessages": "Project messages" },
-    "create": { "back": "Back", "title": "New client project", "subtitle": "Enter the client and project details to start sourcing", "clientInfo": "Client information", "clientName": "Contact name", "clientCompany": "Company", "clientEmail": "Email", "clientPhone": "Phone", "projectInfo": "Project information", "projectName": "Project name", "venueType": "Venue type", "address": "Site address", "surface": "Surface area", "style": "Style", "startDate": "Start date", "deadline": "Delivery deadline", "description": "Project description", "descPlaceholder": "Describe the project: ambiance, usage, number of covers/rooms, constraints…", "constraints": "Technical constraints", "constraintsPlaceholder": "Max weight, stackability, UV resistance, imposed colours…", "submit": "Create project", "cancel": "Cancel" },
-    "quoteDetail": { "backToQuotes": "Back to quotes", "totalAmount": "Total amount", "products": "Product lines", "sentDate": "Sent on", "validUntil": "Valid until", "supplierMessage": "Supplier message", "repliedOn": "Replied on", "productBreakdown": "Product breakdown", "unitPrice": "Unit price", "total": "Total", "attachments": "Attachments", "accept": "Accept quote", "negotiate": "Negotiate", "decline": "Decline" },
-    "calls": { "title": "Supplier calls", "subtitle": "Publish a project brief and receive proposals from qualified suppliers", "all": "All", "open": "Open", "evaluating": "Evaluating", "closed": "Closed", "newCall": "New call", "createTitle": "Create a supplier call", "projectLabel": "Project", "selectProject": "Select a project…", "budgetLabel": "Estimated budget", "briefLabel": "Project brief", "briefPlaceholder": "Describe your needs: style, materials, technical constraints, quantities…", "categoriesLabel": "Categories needed", "deadlineLabel": "Response deadline", "publish": "Publish call", "cancel": "Cancel", "pointsNote": "+75 reward points for each supplier call published", "noResults": "No calls with this filter", "views": "Views", "clicks": "Clicks", "responses": "Responses", "clickRate": "Click rate", "fullBrief": "Full brief", "supplierResponses": "Supplier proposals", "noResponses": "No proposals yet", "bestPrice": "Best price", "selected": "Retained", "selectSupplier": "Retain this supplier", "warranty": "Warranty", "createSubtitle": "The more precise your brief, the better the proposals", "styleLabel": "Desired style", "urgencyLabel": "Urgency", "urgencyNormal": "Normal (4-8 wks)", "urgencyUrgent": "Urgent (< 4 wks)", "urgencyFlexible": "Flexible (> 8 wks)", "surfaceLabel": "Surface area", "capacityLabel": "Seating capacity", "materialsLabel": "Desired materials", "ambianceLabel": "Ambiance / inspiration", "ambiancePlaceholder": "Describe the desired ambiance, visual references…", "constraintsLabel": "Technical constraints", "constraintsPlaceholder": "Max weight, stackability, UV resistance, standards, imposed colours…", "needsList": "Project needs", "needsLabel": "Needs by category", "addNeed": "Add a need", "needCategory": "Category", "needsHint": "Add as many needs as required: furniture, decor, lighting, protection, greenery…", "priorityEssential": "Essential", "priorityImportant": "Important", "priorityOptional": "Optional", "customCategory": "Specify…", "needDesc": "Describe the need…" },
-    "messages": { "title": "Messages", "none": "No conversations", "hint": "Send a quote or supplier call to start a conversation", "search": "Search…", "selectConv": "Select a conversation", "startNew": "New conversation", "newConv": "New conversation", "recipient": "Recipient", "searchUser": "Search by name, email, company…", "subject": "Subject (optional)", "subjectPlaceholder": "Conversation subject…", "message": "Message", "messagePlaceholder": "Your message…", "cancel": "Cancel", "send": "Send", "allProjects": "All", "linkProject": "Link to a project", "noProject": "No project (free conversation)", "searchPlaceholder": "Name, subject, project, message…" },
-    "rewards": { "points": "points", "benefits": "Benefits by tier", "benefit": "Benefit", "howToEarn": "How to earn points", "history": "Points history", "comingSoonTitle": "Preferential pricing — coming soon", "comingSoonDesc": "We're working on an exclusive discount program based on your engagement level. The higher your tier, the greater your benefits. Stay tuned!", "b_quotesMonth": "Quotes / month", "b_priority": "Priority responses", "b_earlyAccess": "Early access", "b_samples": "Free samples", "b_accountManager": "Dedicated account manager", "b_cobranding": "Co-branded presentations", "b_featured": "Featured architect profile", "earn_project_created": "Create a project", "earn_quote_sent": "Send a quote", "earn_quote_accepted": "Quote accepted", "earn_order_confirmed": "Order confirmed", "earn_supplier_call": "Supplier call", "earn_referral": "Refer a client", "earn_review_left": "Leave a review", "earn_profile_completed": "Complete your profile" }
+    "stats": {
+      "activeProjects": "Active projects",
+      "quotesSent": "Quotes sent",
+      "totalSourced": "Total sourced",
+      "rewardPoints": "Reward points"
+    },
+    "overview": {
+      "recentProjects": "Recent client projects",
+      "activeCalls": "Active supplier calls",
+      "viewAll": "View all",
+      "seeRewards": "See my rewards",
+      "tierBenefits": "Discover your tier benefits",
+      "favourites": "Favourites",
+      "saved": "saved"
+    },
+    "projects": {
+      "title": "Client projects",
+      "all": "All",
+      "active": "Active",
+      "quoting": "Quoting",
+      "delivered": "Delivered",
+      "draft": "Drafts",
+      "newProject": "New project",
+      "search": "Search project or client…",
+      "noResults": "No projects found"
+    },
+    "quotes": {
+      "title": "Multi-quotes",
+      "all": "All",
+      "pending": "Pending",
+      "replied": "Replied",
+      "accepted": "Accepted",
+      "expired": "Expired",
+      "noResults": "No quotes with this filter",
+      "total": "quotes"
+    },
+    "detail": {
+      "backToProjects": "Back to projects",
+      "estimated": "Estimated",
+      "products": "Products",
+      "zones": "Zones",
+      "quotes": "Quotes",
+      "projectInfo": "Project information",
+      "zonesProducts": "Zones & Products",
+      "product": "Product",
+      "qty": "Qty",
+      "supplier": "Supplier",
+      "status": "Status",
+      "relatedQuotes": "Related quotes",
+      "notes": "Notes & Remarks",
+      "addNotePlaceholder": "Add a note, reminder, or information…",
+      "add": "Add",
+      "noNotes": "No notes for this project",
+      "edit": "Edit",
+      "save": "Save",
+      "client": "Client",
+      "clientName": "Contact name",
+      "company": "Company",
+      "email": "Email",
+      "phone": "Phone",
+      "descriptionLabel": "Project description",
+      "addressLabel": "Site address",
+      "deadlineLabel": "Deadline",
+      "constraintsLabel": "Technical constraints & notes",
+      "projectMessages": "Project messages"
+    },
+    "create": {
+      "back": "Back",
+      "title": "New client project",
+      "subtitle": "Enter the client and project details to start sourcing",
+      "clientInfo": "Client information",
+      "clientName": "Contact name",
+      "clientCompany": "Company",
+      "clientEmail": "Email",
+      "clientPhone": "Phone",
+      "projectInfo": "Project information",
+      "projectName": "Project name",
+      "venueType": "Venue type",
+      "address": "Site address",
+      "surface": "Surface area",
+      "style": "Style",
+      "startDate": "Start date",
+      "deadline": "Delivery deadline",
+      "description": "Project description",
+      "descPlaceholder": "Describe the project: ambiance, usage, number of covers/rooms, constraints…",
+      "constraints": "Technical constraints",
+      "constraintsPlaceholder": "Max weight, stackability, UV resistance, imposed colours…",
+      "submit": "Create project",
+      "cancel": "Cancel"
+    },
+    "quoteDetail": {
+      "backToQuotes": "Back to quotes",
+      "totalAmount": "Total amount",
+      "products": "Product lines",
+      "sentDate": "Sent on",
+      "validUntil": "Valid until",
+      "supplierMessage": "Supplier message",
+      "repliedOn": "Replied on",
+      "productBreakdown": "Product breakdown",
+      "unitPrice": "Unit price",
+      "total": "Total",
+      "attachments": "Attachments",
+      "accept": "Accept quote",
+      "negotiate": "Negotiate",
+      "decline": "Decline"
+    },
+    "calls": {
+      "title": "Supplier calls",
+      "subtitle": "Publish a project brief and receive proposals from qualified suppliers",
+      "all": "All",
+      "open": "Open",
+      "evaluating": "Evaluating",
+      "closed": "Closed",
+      "newCall": "New call",
+      "createTitle": "Create a supplier call",
+      "projectLabel": "Project",
+      "selectProject": "Select a project…",
+      "budgetLabel": "Estimated budget",
+      "briefLabel": "Project brief",
+      "briefPlaceholder": "Describe your needs: style, materials, technical constraints, quantities…",
+      "categoriesLabel": "Categories needed",
+      "deadlineLabel": "Response deadline",
+      "publish": "Publish call",
+      "cancel": "Cancel",
+      "pointsNote": "+75 reward points for each supplier call published",
+      "noResults": "No calls with this filter",
+      "views": "Views",
+      "clicks": "Clicks",
+      "responses": "Responses",
+      "clickRate": "Click rate",
+      "fullBrief": "Full brief",
+      "supplierResponses": "Supplier proposals",
+      "noResponses": "No proposals yet",
+      "bestPrice": "Best price",
+      "selected": "Retained",
+      "selectSupplier": "Retain this supplier",
+      "warranty": "Warranty",
+      "createSubtitle": "The more precise your brief, the better the proposals",
+      "styleLabel": "Desired style",
+      "urgencyLabel": "Urgency",
+      "urgencyNormal": "Normal (4-8 wks)",
+      "urgencyUrgent": "Urgent (< 4 wks)",
+      "urgencyFlexible": "Flexible (> 8 wks)",
+      "surfaceLabel": "Surface area",
+      "capacityLabel": "Seating capacity",
+      "materialsLabel": "Desired materials",
+      "ambianceLabel": "Ambiance / inspiration",
+      "ambiancePlaceholder": "Describe the desired ambiance, visual references…",
+      "constraintsLabel": "Technical constraints",
+      "constraintsPlaceholder": "Max weight, stackability, UV resistance, standards, imposed colours…",
+      "needsList": "Project needs",
+      "needsLabel": "Needs by category",
+      "addNeed": "Add a need",
+      "needCategory": "Category",
+      "needsHint": "Add as many needs as required: furniture, decor, lighting, protection, greenery…",
+      "priorityEssential": "Essential",
+      "priorityImportant": "Important",
+      "priorityOptional": "Optional",
+      "customCategory": "Specify…",
+      "needDesc": "Describe the need…"
+    },
+    "messages": {
+      "title": "Messages",
+      "none": "No conversations",
+      "hint": "Send a quote or supplier call to start a conversation",
+      "search": "Search…",
+      "selectConv": "Select a conversation",
+      "startNew": "New conversation",
+      "newConv": "New conversation",
+      "recipient": "Recipient",
+      "searchUser": "Search by name, email, company…",
+      "subject": "Subject (optional)",
+      "subjectPlaceholder": "Conversation subject…",
+      "message": "Message",
+      "messagePlaceholder": "Your message…",
+      "cancel": "Cancel",
+      "send": "Send",
+      "allProjects": "All",
+      "linkProject": "Link to a project",
+      "noProject": "No project (free conversation)",
+      "searchPlaceholder": "Name, subject, project, message…"
+    },
+    "rewards": {
+      "points": "points",
+      "benefits": "Benefits by tier",
+      "benefit": "Benefit",
+      "howToEarn": "How to earn points",
+      "history": "Points history",
+      "comingSoonTitle": "Preferential pricing — coming soon",
+      "comingSoonDesc": "We're working on an exclusive discount program based on your engagement level. The higher your tier, the greater your benefits. Stay tuned!",
+      "b_quotesMonth": "Quotes / month",
+      "b_priority": "Priority responses",
+      "b_earlyAccess": "Early access",
+      "b_samples": "Free samples",
+      "b_accountManager": "Dedicated account manager",
+      "b_cobranding": "Co-branded presentations",
+      "b_featured": "Featured architect profile",
+      "earn_project_created": "Create a project",
+      "earn_quote_sent": "Send a quote",
+      "earn_quote_accepted": "Quote accepted",
+      "earn_order_confirmed": "Order confirmed",
+      "earn_supplier_call": "Supplier call",
+      "earn_referral": "Refer a client",
+      "earn_review_left": "Leave a review",
+      "earn_profile_completed": "Complete your profile"
+    }
   },
   "siren": {
     "title": "Identity verification",
@@ -832,61 +1115,440 @@
     "added": "Product added to project!"
   },
   "pd": {
-    "commission": { "label": "Terrassea commission: {{percent}}% on each confirmed order", "upgrade": "Upgrade your plan to reduce your fees" },
-    "upgrade": { "title": "Upgrade to {{plan}}", "growthMsg": "Save {{savings}}% commission on every order. From €8,300/month in sales, the subscription pays for itself.", "eliteMsg": "Commission reduced to {{percent}}%, dedicated brand page, account manager and advanced analytics.", "growthCta": "Upgrade to Growth — {{price}}", "eliteCta": "Contact for Elite", "savings": "Savings: -{{savings}}% on commissions", "contactElite": "Contact us to discuss the Elite plan." },
-    "stats": { "pendingRequests": "Pending requests", "productsListed": "Products listed", "monthlyRevenue": "Revenue this month", "commissionsPaid": "Commissions paid" },
-    "overview": { "latestRequests": "Latest requests received", "pending": "{{count}} pending", "seeAllRequests": "View all requests", "topProducts": "Top products this month", "myCatalogue": "My catalogue", "messages": "Messages", "seeAll": "View all", "noMessages": "No messages", "startConversation": "Start a conversation" },
-    "quotes": { "received": "Received", "sent": "Sent", "all": "All", "new": "New", "inProgress": "In progress", "accepted": "Accepted", "declined": "Declined", "noResults": "No quotes with this filter", "seeAll": "View all quotes", "accept": "Accept", "reply": "Reply", "document": "Document", "photo": "Photo", "decline": "Decline", "acceptedToast": "Quote accepted. The client will be notified.", "declinedToast": "Quote declined.", "clientNotified": "The client will be informed.", "replyHint": "Open a conversation to reply to this quote.", "docsSoon": "Document sending will be available soon.", "photosSoon": "Photo sending will be available soon.", "reminder": "Reminder: a {{percent}}% commission ({{plan}} plan) is charged on each confirmed order. You can attach documents (PDF, quotes), product photos and messages in your replies.", "commLabel": "Terrassea comm.: {{percent}}%" },
-    "catalogue": { "title": "My catalogue", "count": "{{count}}/{{max}} products listed", "countUnlimited": "{{count}} products listed", "used": "{{percent}}% used", "add": "Add a product", "search": "Search my catalogue...", "commTitle": "{{plan}} commission: {{percent}}%", "commDesc": "Prices below are your net prices. The Terrassea commission of {{percent}}% is added to the price shown to clients.", "noSearch": "No products match your search", "empty": "No products in your catalogue", "clearSearch": "Clear search", "excelImport": "Import Excel / CSV", "apiSync": "Real-time API sync", "added": "Product added!", "imported": "{{count}} product(s) imported successfully!" },
-    "perf": { "title": "Performance", "export": "Export CSV", "exportElite": "Export — Elite plan", "views": "Views this month", "quoteRequests": "Quote requests", "confirmed": "Confirmed revenue", "conversion": "Conversion rate", "chart": "Views & Quotes — Last 30 days", "chartPlaceholder": "Performance chart", "commTracking": "Commission tracking", "thisMonth": "Commissions this month", "lastMonth": "Last month commissions", "total": "Total accumulated", "advanced": "Advanced analytics", "advancedDesc": "Access detailed analytics, CSV exports, per-product performance tracking and sector benchmarks.", "avgRating": "Average client rating", "avgResponse": "Average response time", "catRanking": "Category ranking", "regularClients": "Regular clients", "byProduct": "Performance by product", "byProductPlaceholder": "Detailed product table", "benchmark": "Sector benchmark", "benchmarkPlaceholder": "Benchmark vs. sector average", "exportStarted": "CSV export generating..." },
-    "msg": { "title": "Messaging", "open": "Open messaging", "exchange": "Exchange with your clients", "docs": "PDFs, quotes, invoices", "photos": "Product photos, showroom", "recent": "Recent conversations", "none": "No conversations yet", "start": "Start a conversation" },
-    "featured": { "title": "Boosted products", "slots": "{{count}}/{{max}} slots — maximum priority in recommendation engine", "noStarter": "Not available on the Starter plan", "upgradeMsg": "Upgrade to Growth to boost 2 products, or Elite for 10.", "current": "Currently boosted products", "none": "No boosted products", "addTitle": "Add a product to boost", "boost": "Boost", "remove": "Remove", "removedToast": "Product removed from boosted products.", "limitToast": "Limit of {{max}} boosted products reached ({{plan}} plan).", "addedToast": "\"{{name}}\" added to boosted products.", "info": "Boosted products appear with maximum priority in search results and recommendations. {{plan}} plan: up to {{max}} products.", "upgradeElite": "Upgrade to Elite for 10 slots.", "views": "views", "quotes": "quotes", "boosted": "Boosted" },
-    "leads": { "title": "Pro Service Leads", "desc": "Project requests matched to your catalogue — client data anonymized", "match": "Match", "matchDesc": "Our algorithm suggests leads", "anon": "Anonymous", "anonDesc": "Client data hidden", "interest": "Interest", "interestDesc": "Express your interest", "connection": "Connection", "connectionDesc": "Admin validates the match", "newTab": "New", "interestedTab": "Interested", "connectedTab": "Connected", "noResults": "No leads with this filter", "newBadge": "NEW", "anonNotice": "Anonymized data — Client contact details are hidden. Connection is validated by the Terrassea administrator.", "categories": "Categories", "style": "Style", "budget": "Budget", "pieces": "Pieces", "timeline": "Timeline", "needDesc": "Need description", "commNote": "{{plan}} commission: {{percent}}% on the final order if connection is validated.", "interested": "I'm interested", "notForMe": "Not for me", "pending": "Pending validation by Terrassea administrator", "validated": "Connection validated", "validatedDesc": "The administrator connected both parties. Check your messages.", "interestToast": "Interest expressed!", "interestToastDesc": "The Terrassea administrator will validate the connection.", "declinedToast": "Lead declined.", "matchExplain": "The match score is calculated based on your catalogue (categories, styles, materials), delivery zone, capacity and plan. Connection is always validated by a Terrassea administrator." },
-    "projectTypes": { "hotel": "Hotel", "restaurant": "Restaurant", "bar": "Bar", "beach-club": "Beach Club", "rooftop": "Rooftop", "cafe": "Café", "lounge": "Lounge", "other": "Other" },
-    "timelines": { "urgent": "Urgent", "1-month": "1 month", "2-3-months": "2-3 months", "6-months": "6 months", "flexible": "Flexible" }
+    "commission": {
+      "label": "Terrassea commission: {{percent}}% on each confirmed order",
+      "upgrade": "Upgrade your plan to reduce your fees"
+    },
+    "upgrade": {
+      "title": "Upgrade to {{plan}}",
+      "growthMsg": "Save {{savings}}% commission on every order. From €8,300/month in sales, the subscription pays for itself.",
+      "eliteMsg": "Commission reduced to {{percent}}%, dedicated brand page, account manager and advanced analytics.",
+      "growthCta": "Upgrade to Growth — {{price}}",
+      "eliteCta": "Contact for Elite",
+      "savings": "Savings: -{{savings}}% on commissions",
+      "contactElite": "Contact us to discuss the Elite plan."
+    },
+    "stats": {
+      "pendingRequests": "Pending requests",
+      "productsListed": "Products listed",
+      "monthlyRevenue": "Revenue this month",
+      "commissionsPaid": "Commissions paid"
+    },
+    "overview": {
+      "latestRequests": "Latest requests received",
+      "pending": "{{count}} pending",
+      "seeAllRequests": "View all requests",
+      "topProducts": "Top products this month",
+      "myCatalogue": "My catalogue",
+      "messages": "Messages",
+      "seeAll": "View all",
+      "noMessages": "No messages",
+      "startConversation": "Start a conversation"
+    },
+    "quotes": {
+      "received": "Received",
+      "sent": "Sent",
+      "all": "All",
+      "new": "New",
+      "inProgress": "In progress",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "noResults": "No quotes with this filter",
+      "seeAll": "View all quotes",
+      "accept": "Accept",
+      "reply": "Reply",
+      "document": "Document",
+      "photo": "Photo",
+      "decline": "Decline",
+      "acceptedToast": "Quote accepted. The client will be notified.",
+      "declinedToast": "Quote declined.",
+      "clientNotified": "The client will be informed.",
+      "replyHint": "Open a conversation to reply to this quote.",
+      "docsSoon": "Document sending will be available soon.",
+      "photosSoon": "Photo sending will be available soon.",
+      "reminder": "Reminder: a {{percent}}% commission ({{plan}} plan) is charged on each confirmed order. You can attach documents (PDF, quotes), product photos and messages in your replies.",
+      "commLabel": "Terrassea comm.: {{percent}}%"
+    },
+    "catalogue": {
+      "title": "My catalogue",
+      "count": "{{count}}/{{max}} products listed",
+      "countUnlimited": "{{count}} products listed",
+      "used": "{{percent}}% used",
+      "add": "Add a product",
+      "search": "Search my catalogue...",
+      "commTitle": "{{plan}} commission: {{percent}}%",
+      "commDesc": "Prices below are your net prices. The Terrassea commission of {{percent}}% is added to the price shown to clients.",
+      "noSearch": "No products match your search",
+      "empty": "No products in your catalogue",
+      "clearSearch": "Clear search",
+      "excelImport": "Import Excel / CSV",
+      "apiSync": "Real-time API sync",
+      "added": "Product added!",
+      "imported": "{{count}} product(s) imported successfully!"
+    },
+    "perf": {
+      "title": "Performance",
+      "export": "Export CSV",
+      "exportElite": "Export — Elite plan",
+      "views": "Views this month",
+      "quoteRequests": "Quote requests",
+      "confirmed": "Confirmed revenue",
+      "conversion": "Conversion rate",
+      "chart": "Views & Quotes — Last 30 days",
+      "chartPlaceholder": "Performance chart",
+      "commTracking": "Commission tracking",
+      "thisMonth": "Commissions this month",
+      "lastMonth": "Last month commissions",
+      "total": "Total accumulated",
+      "advanced": "Advanced analytics",
+      "advancedDesc": "Access detailed analytics, CSV exports, per-product performance tracking and sector benchmarks.",
+      "avgRating": "Average client rating",
+      "avgResponse": "Average response time",
+      "catRanking": "Category ranking",
+      "regularClients": "Regular clients",
+      "byProduct": "Performance by product",
+      "byProductPlaceholder": "Detailed product table",
+      "benchmark": "Sector benchmark",
+      "benchmarkPlaceholder": "Benchmark vs. sector average",
+      "exportStarted": "CSV export generating..."
+    },
+    "msg": {
+      "title": "Messaging",
+      "open": "Open messaging",
+      "exchange": "Exchange with your clients",
+      "docs": "PDFs, quotes, invoices",
+      "photos": "Product photos, showroom",
+      "recent": "Recent conversations",
+      "none": "No conversations yet",
+      "start": "Start a conversation"
+    },
+    "featured": {
+      "title": "Boosted products",
+      "slots": "{{count}}/{{max}} slots — maximum priority in recommendation engine",
+      "noStarter": "Not available on the Starter plan",
+      "upgradeMsg": "Upgrade to Growth to boost 2 products, or Elite for 10.",
+      "current": "Currently boosted products",
+      "none": "No boosted products",
+      "addTitle": "Add a product to boost",
+      "boost": "Boost",
+      "remove": "Remove",
+      "removedToast": "Product removed from boosted products.",
+      "limitToast": "Limit of {{max}} boosted products reached ({{plan}} plan).",
+      "addedToast": "\"{{name}}\" added to boosted products.",
+      "info": "Boosted products appear with maximum priority in search results and recommendations. {{plan}} plan: up to {{max}} products.",
+      "upgradeElite": "Upgrade to Elite for 10 slots.",
+      "views": "views",
+      "quotes": "quotes",
+      "boosted": "Boosted"
+    },
+    "leads": {
+      "title": "Pro Service Leads",
+      "desc": "Project requests matched to your catalogue — client data anonymized",
+      "match": "Match",
+      "matchDesc": "Our algorithm suggests leads",
+      "anon": "Anonymous",
+      "anonDesc": "Client data hidden",
+      "interest": "Interest",
+      "interestDesc": "Express your interest",
+      "connection": "Connection",
+      "connectionDesc": "Admin validates the match",
+      "newTab": "New",
+      "interestedTab": "Interested",
+      "connectedTab": "Connected",
+      "noResults": "No leads with this filter",
+      "newBadge": "NEW",
+      "anonNotice": "Anonymized data — Client contact details are hidden. Connection is validated by the Terrassea administrator.",
+      "categories": "Categories",
+      "style": "Style",
+      "budget": "Budget",
+      "pieces": "Pieces",
+      "timeline": "Timeline",
+      "needDesc": "Need description",
+      "commNote": "{{plan}} commission: {{percent}}% on the final order if connection is validated.",
+      "interested": "I'm interested",
+      "notForMe": "Not for me",
+      "pending": "Pending validation by Terrassea administrator",
+      "validated": "Connection validated",
+      "validatedDesc": "The administrator connected both parties. Check your messages.",
+      "interestToast": "Interest expressed!",
+      "interestToastDesc": "The Terrassea administrator will validate the connection.",
+      "declinedToast": "Lead declined.",
+      "matchExplain": "The match score is calculated based on your catalogue (categories, styles, materials), delivery zone, capacity and plan. Connection is always validated by a Terrassea administrator."
+    },
+    "projectTypes": {
+      "hotel": "Hotel",
+      "restaurant": "Restaurant",
+      "bar": "Bar",
+      "beach-club": "Beach Club",
+      "rooftop": "Rooftop",
+      "cafe": "Café",
+      "lounge": "Lounge",
+      "other": "Other"
+    },
+    "timelines": {
+      "urgent": "Urgent",
+      "1-month": "1 month",
+      "2-3-months": "2-3 months",
+      "6-months": "6 months",
+      "flexible": "Flexible"
+    }
   },
   "pf": {
-    "title": "Add a product", "tabs": { "photo": "Photo & AI", "basics": "Information", "specs": "Specifications", "pricing": "Price & Stock" },
-    "image": { "sizeError": "Image must not exceed 10 MB.", "dragDrop": "Drag a photo or click to select", "formats": "JPG, PNG or WebP · Max 10 MB", "missing": "Add a photo first." },
-    "ai": { "unsupported": "Unsupported image format.", "failed": "Analysis failed", "analyzing": "Analyzing...", "button": "Analyze with AI — auto-fill characteristics", "results": "Characteristics pre-filled by AI", "confidence": "AI {{percent}}% confidence", "confidenceMsg": "Confidence: {{percent}}%. Review and adjust if needed.", "error": "AI analysis error", "errorMsg": "Please retry or fill in manually.", "navigate": "Navigate tabs to review and adjust values.", "hint": "Add a photo of your product so our AI can automatically detect the furniture type, materials, colors, estimated dimensions and relevant tags. You can then manually adjust each field.", "name": "Name:", "category": "Category:", "structure": "Structure:", "color": "Color:", "styleTags": "Style tags:" },
-    "fields": { "name": "Product name", "category": "Category", "subcategory": "Subcategory", "mainColor": "Main color", "shortDesc": "Short description", "longDesc": "Long description", "matStructure": "Structure material", "matSeat": "Seat material", "tags": "Tags & classifications" },
-    "placeholders": { "name": "E.g.: Riviera stackable chair", "subcategory": "E.g.: dining-chair, bar-stool", "shortDesc": "Describe your product in 1-2 sentences...", "longDesc": "Detailed description, selling points, features...", "matStructure": "E.g.: aluminium, teak", "matSeat": "E.g.: textilene, cushion" },
-    "specs": { "dimensions": "Dimensions", "length": "Length", "width": "Width", "height": "Height", "seatHeight": "Seat height", "weight": "Weight", "country": "Country of manufacture", "countryPlaceholder": "E.g.: Italy, Spain", "properties": "Properties", "outdoor": "Outdoor use", "stackable": "Stackable", "chr": "Heavy-duty CHR use", "weather": "Weather resistant", "uv": "UV resistant", "light": "Lightweight", "maintenance": "Easy maintenance", "warranty": "Warranty", "warrantyPlaceholder": "E.g.: 3 years" },
-    "pricing": { "planComm": "{{plan}} plan — {{percent}}% commission", "commDesc": "Enter your net price. The Terrassea commission of {{percent}}% will be added to the price shown to clients.", "minPrice": "Minimum net price", "maxPrice": "Maximum net price", "stockStatus": "Stock status", "stockQty": "Stock quantity", "delivery": "Estimated delivery time" },
-    "validation": { "nameCategory": "Name and category are required.", "minPrice": "Please enter a minimum price." },
-    "buttons": { "cancel": "Cancel", "next": "Next", "saving": "Saving...", "save": "Save product" },
-    "success": { "title": "Product added successfully!", "desc": "It will be visible after validation by the Terrassea team." },
-    "error": { "title": "Error saving product" },
-    "tagEditor": { "add": "Add a {{label}} tag..." },
-    "categories": { "seating": "Seating", "tables": "Tables", "parasols": "Parasols", "loungers": "Sun loungers", "sofas": "Sofas / Benches", "accessories": "Accessories" },
-    "stock": { "in_stock": "In stock", "low_stock": "Low stock", "made_to_order": "Made to order", "pre_order": "Pre-order" },
-    "style": "Style", "ambiance": "Ambiance", "materials": "Materials", "useCase": "Use case"
+    "title": "Add a product",
+    "tabs": {
+      "photo": "Photo & AI",
+      "basics": "Information",
+      "specs": "Specifications",
+      "pricing": "Price & Stock"
+    },
+    "image": {
+      "sizeError": "Image must not exceed 10 MB.",
+      "dragDrop": "Drag a photo or click to select",
+      "formats": "JPG, PNG or WebP · Max 10 MB",
+      "missing": "Add a photo first."
+    },
+    "ai": {
+      "unsupported": "Unsupported image format.",
+      "failed": "Analysis failed",
+      "analyzing": "Analyzing...",
+      "button": "Analyze with AI — auto-fill characteristics",
+      "results": "Characteristics pre-filled by AI",
+      "confidence": "AI {{percent}}% confidence",
+      "confidenceMsg": "Confidence: {{percent}}%. Review and adjust if needed.",
+      "error": "AI analysis error",
+      "errorMsg": "Please retry or fill in manually.",
+      "navigate": "Navigate tabs to review and adjust values.",
+      "hint": "Add a photo of your product so our AI can automatically detect the furniture type, materials, colors, estimated dimensions and relevant tags. You can then manually adjust each field.",
+      "name": "Name:",
+      "category": "Category:",
+      "structure": "Structure:",
+      "color": "Color:",
+      "styleTags": "Style tags:"
+    },
+    "fields": {
+      "name": "Product name",
+      "category": "Category",
+      "subcategory": "Subcategory",
+      "mainColor": "Main color",
+      "shortDesc": "Short description",
+      "longDesc": "Long description",
+      "matStructure": "Structure material",
+      "matSeat": "Seat material",
+      "tags": "Tags & classifications"
+    },
+    "placeholders": {
+      "name": "E.g.: Riviera stackable chair",
+      "subcategory": "E.g.: dining-chair, bar-stool",
+      "shortDesc": "Describe your product in 1-2 sentences...",
+      "longDesc": "Detailed description, selling points, features...",
+      "matStructure": "E.g.: aluminium, teak",
+      "matSeat": "E.g.: textilene, cushion"
+    },
+    "specs": {
+      "dimensions": "Dimensions",
+      "length": "Length",
+      "width": "Width",
+      "height": "Height",
+      "seatHeight": "Seat height",
+      "weight": "Weight",
+      "country": "Country of manufacture",
+      "countryPlaceholder": "E.g.: Italy, Spain",
+      "properties": "Properties",
+      "outdoor": "Outdoor use",
+      "stackable": "Stackable",
+      "chr": "Heavy-duty CHR use",
+      "weather": "Weather resistant",
+      "uv": "UV resistant",
+      "light": "Lightweight",
+      "maintenance": "Easy maintenance",
+      "warranty": "Warranty",
+      "warrantyPlaceholder": "E.g.: 3 years"
+    },
+    "pricing": {
+      "planComm": "{{plan}} plan — {{percent}}% commission",
+      "commDesc": "Enter your net price. The Terrassea commission of {{percent}}% will be added to the price shown to clients.",
+      "minPrice": "Minimum net price",
+      "maxPrice": "Maximum net price",
+      "stockStatus": "Stock status",
+      "stockQty": "Stock quantity",
+      "delivery": "Estimated delivery time"
+    },
+    "validation": {
+      "nameCategory": "Name and category are required.",
+      "minPrice": "Please enter a minimum price."
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "next": "Next",
+      "saving": "Saving...",
+      "save": "Save product"
+    },
+    "success": {
+      "title": "Product added successfully!",
+      "desc": "It will be visible after validation by the Terrassea team."
+    },
+    "error": {
+      "title": "Error saving product"
+    },
+    "tagEditor": {
+      "add": "Add a {{label}} tag..."
+    },
+    "categories": {
+      "seating": "Seating",
+      "tables": "Tables",
+      "parasols": "Parasols",
+      "loungers": "Sun loungers",
+      "sofas": "Sofas / Benches",
+      "accessories": "Accessories"
+    },
+    "stock": {
+      "in_stock": "In stock",
+      "low_stock": "Low stock",
+      "made_to_order": "Made to order",
+      "pre_order": "Pre-order"
+    },
+    "style": "Style",
+    "ambiance": "Ambiance",
+    "materials": "Materials",
+    "useCase": "Use case"
   },
   "ei": {
-    "title": "Import Excel / CSV", "subtitle": "Import your products in bulk from an Excel or CSV file",
-    "template": { "hint": "Use our template to structure your data correctly. Recognized columns: Name, Category, Description, Material, Color, Net Price, Dimensions, Weight, Stock, Country, Warranty...", "download": "Download CSV template" },
-    "upload": { "dragDrop": "Drag your file or click to select", "formats": "CSV, TSV or Excel (.xlsx) · Separator: comma, semicolon or tab", "unsupported": "Unsupported format. Use CSV, TSV or Excel (.xlsx)." },
-    "columns": { "title": "Automatically recognized columns:", "note": "* Required fields. Column names are recognized in French and English." },
+    "title": "Import Excel / CSV",
+    "subtitle": "Import your products in bulk from an Excel or CSV file",
+    "template": {
+      "hint": "Use our template to structure your data correctly. Recognized columns: Name, Category, Description, Material, Color, Net Price, Dimensions, Weight, Stock, Country, Warranty...",
+      "download": "Download CSV template"
+    },
+    "upload": {
+      "dragDrop": "Drag your file or click to select",
+      "formats": "CSV, TSV or Excel (.xlsx) · Separator: comma, semicolon or tab",
+      "unsupported": "Unsupported format. Use CSV, TSV or Excel (.xlsx)."
+    },
+    "columns": {
+      "title": "Automatically recognized columns:",
+      "note": "* Required fields. Column names are recognized in French and English."
+    },
     "commission": "{{plan}} commission: {{percent}}% — Enter your net prices, the commission will be added automatically.",
-    "preview": { "detected": "{{count}} product(s) detected", "file": "File: {{name}}", "valid": "{{count}} valid", "errors": "{{count}} error(s)", "commNote": "The '→ Client' column includes the Terrassea commission of {{percent}}% ({{plan}} plan).", "changeFile": "← Change file", "import": "Import {{count}} product(s)" },
-    "table": { "status": "Status", "name": "Name", "category": "Category", "material": "Material", "price": "Net price", "client": "→ Client", "actions": "Actions" },
-    "importing": { "title": "Importing...", "msg": "{{percent}}% — please don't close this window" },
-    "errors": { "empty": "The file seems empty or contains only a header.", "none": "No products found in the file.", "excel": "For Excel files, first export as CSV from Excel.", "read": "Cannot read this file. Export it as CSV from Excel.", "noValid": "No valid products to import.", "missingName": "Missing name", "invalidCat": "Invalid or missing category" },
-    "success": { "template": "Template downloaded!", "mixed": "{{valid}} valid, {{invalid}} with errors." },
+    "preview": {
+      "detected": "{{count}} product(s) detected",
+      "file": "File: {{name}}",
+      "valid": "{{count}} valid",
+      "errors": "{{count}} error(s)",
+      "commNote": "The '→ Client' column includes the Terrassea commission of {{percent}}% ({{plan}} plan).",
+      "changeFile": "← Change file",
+      "import": "Import {{count}} product(s)"
+    },
+    "table": {
+      "status": "Status",
+      "name": "Name",
+      "category": "Category",
+      "material": "Material",
+      "price": "Net price",
+      "client": "→ Client",
+      "actions": "Actions"
+    },
+    "importing": {
+      "title": "Importing...",
+      "msg": "{{percent}}% — please don't close this window"
+    },
+    "errors": {
+      "empty": "The file seems empty or contains only a header.",
+      "none": "No products found in the file.",
+      "excel": "For Excel files, first export as CSV from Excel.",
+      "read": "Cannot read this file. Export it as CSV from Excel.",
+      "noValid": "No valid products to import.",
+      "missingName": "Missing name",
+      "invalidCat": "Invalid or missing category"
+    },
+    "success": {
+      "template": "Template downloaded!",
+      "mixed": "{{valid}} valid, {{invalid}} with errors."
+    },
     "close": "Close"
   },
   "api": {
-    "title": "Real-time stock sync", "subtitle": "Connect your management system to automatically sync your inventory",
-    "elite": { "gate": "Elite plan feature", "gateMsg": "Real-time API sync is available with the Elite plan. You can configure your connection now, it will be activated when you upgrade to Elite." },
-    "status": { "active": "Sync active", "inactive": "Sync inactive", "lastSync": "Last sync:", "disable": "Disable", "enable": "Enable" },
-    "mode": { "title": "Sync mode", "push": "Push (recommended)", "pushDesc": "Your system sends updates to us", "pull": "Pull", "pullDesc": "We query your API", "both": "Both", "bothDesc": "Push + Pull as backup" },
-    "push": { "title": "Push configuration", "desc": "Use these credentials to send your stock updates to Terrassea.", "webhook": "Webhook URL", "apiKey": "Your Terrassea API key", "docs": "API Documentation", "request": "HTTP Request", "response": "Response" },
-    "pull": { "title": "Pull configuration", "desc": "Enter your stock API URL. Terrassea will query your system at regular intervals.", "url": "Your stock API URL", "urlPlaceholder": "https://your-erp.com/api/v1/stock", "key": "Your system API key", "keyPlaceholder": "Your API key / access token", "freq": "Sync frequency", "freq5": "Every 5 minutes", "freq15": "Every 15 minutes", "freq30": "Every 30 minutes", "freq60": "Every hour", "freq360": "Every 6 hours", "freq1440": "Once a day", "mapping": "Field mapping (field names in your API)", "skuField": "SKU / Reference field", "stockField": "Stock quantity field", "priceField": "Price field", "statusField": "Status field" },
-    "docs": { "sku": "matches the 'Partner reference' field in your product offers", "qty": "stock quantity (status is auto-determined if omitted)", "price": "net unit price (optional, updates the offer price)", "status": "in_stock, low_stock, out_of_stock, discontinued (optional)", "delivery": "delivery delay in days (optional)" },
-    "logs": { "title": "Sync history ({{count}} total)", "date": "Date", "mode": "Mode", "status": "Status", "updates": "Updated", "duration": "Duration" },
-    "confirm": { "regenerate": "Regenerate API key? The old key will stop working immediately." },
-    "toast": { "saved": "API configuration saved.", "regenerated": "New API key generated.", "missingUrl": "Configure your API URL before activating sync.", "activated": "Sync activated!", "deactivated": "Sync deactivated.", "copied": "{{label}} copied!" },
-    "buttons": { "close": "Close", "update": "Update", "configure": "Configure connection" }
+    "title": "Real-time stock sync",
+    "subtitle": "Connect your management system to automatically sync your inventory",
+    "elite": {
+      "gate": "Elite plan feature",
+      "gateMsg": "Real-time API sync is available with the Elite plan. You can configure your connection now, it will be activated when you upgrade to Elite."
+    },
+    "status": {
+      "active": "Sync active",
+      "inactive": "Sync inactive",
+      "lastSync": "Last sync:",
+      "disable": "Disable",
+      "enable": "Enable"
+    },
+    "mode": {
+      "title": "Sync mode",
+      "push": "Push (recommended)",
+      "pushDesc": "Your system sends updates to us",
+      "pull": "Pull",
+      "pullDesc": "We query your API",
+      "both": "Both",
+      "bothDesc": "Push + Pull as backup"
+    },
+    "push": {
+      "title": "Push configuration",
+      "desc": "Use these credentials to send your stock updates to Terrassea.",
+      "webhook": "Webhook URL",
+      "apiKey": "Your Terrassea API key",
+      "docs": "API Documentation",
+      "request": "HTTP Request",
+      "response": "Response"
+    },
+    "pull": {
+      "title": "Pull configuration",
+      "desc": "Enter your stock API URL. Terrassea will query your system at regular intervals.",
+      "url": "Your stock API URL",
+      "urlPlaceholder": "https://your-erp.com/api/v1/stock",
+      "key": "Your system API key",
+      "keyPlaceholder": "Your API key / access token",
+      "freq": "Sync frequency",
+      "freq5": "Every 5 minutes",
+      "freq15": "Every 15 minutes",
+      "freq30": "Every 30 minutes",
+      "freq60": "Every hour",
+      "freq360": "Every 6 hours",
+      "freq1440": "Once a day",
+      "mapping": "Field mapping (field names in your API)",
+      "skuField": "SKU / Reference field",
+      "stockField": "Stock quantity field",
+      "priceField": "Price field",
+      "statusField": "Status field"
+    },
+    "docs": {
+      "sku": "matches the 'Partner reference' field in your product offers",
+      "qty": "stock quantity (status is auto-determined if omitted)",
+      "price": "net unit price (optional, updates the offer price)",
+      "status": "in_stock, low_stock, out_of_stock, discontinued (optional)",
+      "delivery": "delivery delay in days (optional)"
+    },
+    "logs": {
+      "title": "Sync history ({{count}} total)",
+      "date": "Date",
+      "mode": "Mode",
+      "status": "Status",
+      "updates": "Updated",
+      "duration": "Duration"
+    },
+    "confirm": {
+      "regenerate": "Regenerate API key? The old key will stop working immediately."
+    },
+    "toast": {
+      "saved": "API configuration saved.",
+      "regenerated": "New API key generated.",
+      "missingUrl": "Configure your API URL before activating sync.",
+      "activated": "Sync activated!",
+      "deactivated": "Sync deactivated.",
+      "copied": "{{label}} copied!"
+    },
+    "buttons": {
+      "close": "Close",
+      "update": "Update",
+      "configure": "Configure connection"
+    }
   },
   "auth": {
     "signIn": "Sign in",
@@ -1267,7 +1929,6 @@
     "guideShadeTitle": "Shade planning for hospitality outdoor spaces",
     "guideLayoutTitle": "Terrace layout optimisation: the science of profitable density",
     "guideRegulationsTitle": "Procurement fundamentals for professional outdoor furniture",
-
     "seatingGuide": "Outdoor seating in a professional CHR setting is subject to constraints that residential furniture simply cannot meet. A terrace chair typically endures 6 to 8 hours of continuous use per day, exposure to UV radiation, humidity cycles, and weekly cleaning with commercial-grade products. Choosing the wrong product means replacement within 2-3 seasons — a cost that far exceeds the initial saving.\n\nThe first decision is functional: stackable or non-stackable. Stackable chairs are the default choice for seasonal venues (beach clubs, event spaces, hotel pool decks) because they reduce storage volume by 80% and simplify end-of-season logistics. For permanent year-round terraces — brasseries, hotel restaurants — non-stackable chairs with armrests create a premium perception and improve guest comfort during long meals.\n\nThe second decision is structural: bistrot frame, sled base, or 4-leg. Bistrot frames (curved back legs) offer excellent stability on uneven paving but are harder to maintain clean. Sled bases slide easily for repositioning. 4-leg square frames are the most universal and have the widest product range.",
     "seatingExpert": "For a restaurant with an average cover time above 90 minutes, invest in a chair with a seat depth of at least 42cm and lumbar support. Comfort directly impacts table turnover — guests who are uncomfortable leave earlier, which is counterproductive. Guests who are comfortable stay, order dessert, and return.",
     "seatingQ1": "What is the difference between a bistrot chair and a standard outdoor chair?",
@@ -1283,7 +1944,6 @@
     "seatingTip4": "Always verify the manufacturer's maximum stacking height. Stacking beyond 8 on outdoor surfaces can cause micro-abrasions and damage the finish.",
     "seatingQ5": "When does it make sense to invest in armchairs rather than chairs?",
     "seatingA5": "Armchairs add 15–25% to the per-unit cost and reduce terrace density by approximately 20% compared to standard chairs. They are justified when the average revenue per cover exceeds €40–50 (à la carte dining, cocktail bar, hotel restaurant) and when cover time is above 90 minutes. In those contexts, armchairs signal a positioning upgrade that guests perceive immediately and translate into higher spend. For a quick-service brasserie or café with a 45-minute average cover time, armchairs are a poor investment — the density loss outweighs the perception gain.",
-
     "materialsGuide": "Material selection for CHR outdoor furniture is a decision that determines maintenance cost, lifecycle, guest experience, and environmental impact simultaneously. There is no universally superior material — every material is a trade-off between performance, aesthetics, maintenance requirements, and budget.\n\nThe three dominant materials in European CHR outdoor furniture are powder-coated aluminium, teak, and UV-stabilised polypropylene. Each serves a distinct use case. Aluminium is the industrial workhorse: corrosion-proof, lightweight, infinitely colour-customisable, and recyclable. Teak is the premium natural benchmark: its natural silica content makes it inherently resistant to moisture and insects without treatment, but it requires annual oiling to maintain colour. Polypropylene is the economic baseline: low cost, low maintenance, but with a shorter aesthetic lifespan (5–8 years before UV fade becomes visible).\n\nTwo emerging materials deserve attention for premium CHR applications: rope-woven aluminium frames and recycled-content composites. Rope weaving (polyester or acrylic on powder-coated aluminium frames) offers the aesthetic of wicker with full weather resistance and easy cleaning. Recycled composites (HDPE from reclaimed plastics) are increasingly specified in sustainable hotel procurement.",
     "materialsExpert": "The most expensive mistake in outdoor CHR furniture procurement is choosing a material based on catalogue photos rather than tested performance in your specific climate. A teak chair photographed in a Marseille showroom behaves very differently on a North Sea hotel terrace. Always ask the supplier for climate-specific references.",
     "materialsQ1": "What is the most durable material for a beach club or coastal venue?",
@@ -1299,7 +1959,6 @@
     "materialsTip4": "The biggest cause of premature furniture degradation is end-of-season storage without cleaning. Salt, bird droppings, and organic residue are corrosive. Always clean before covering or storing.",
     "materialsQ5": "What sustainability certifications should I look for in outdoor CHR furniture?",
     "materialsA5": "The three most relevant certifications for European CHR procurement are FSC (Forest Stewardship Council) for wood products, Greenguard Gold for indoor VOC emissions, and OEKO-TEX Standard 100 for textiles and rope materials. For aluminium products, ask for the recycled content percentage — leading manufacturers use 75–95% recycled aluminium in their alloy, reducing embodied carbon by approximately 90% versus primary production. For a hotel or restaurant pursuing BREEAM, LEED, or HQE certification, furniture procurement with documented sustainability credentials contributes to material and resource credits. EU Ecolabel certification for furniture, while not yet mandatory, signals a commitment to lifecycle assessment that is increasingly required in public procurement and luxury hotel group sourcing.",
-
     "shadeGuide": "Shade planning is one of the most underestimated aspects of outdoor hospitality design. A terrace without adequate shade loses 60–70% of its covers during peak summer hours — not because guests don't want to be outside, but because direct sun exposure without protection is physically uncomfortable after 30 minutes. Effective shade management is therefore a direct revenue driver.\n\nThe primary shade solutions for CHR outdoor settings are cantilever parasols, centre-pole parasols, shade sails, and fixed pergola structures. Each has a distinct application profile. Cantilever parasols (lateral arm) are the premium default for hotel pool decks and beach clubs — they provide unobstructed shade without a central pole interfering with table or sunbed placement. Centre-pole parasols are the standard for restaurant terraces — lower cost, greater stability in wind, and available in larger diameters (up to 5m round or 4×4m square).\n\nThe parasol diameter selection is driven by the table configuration it serves. A 2m diameter round parasol covers one 70×70cm table with four chairs to a comfort standard. A 3m diameter parasol covers two adjacent 70×70cm tables. For 80×80cm or larger tables, move to 3.5m minimum. Undersized parasols are the most common planning error — they create a visual impression of shade without the thermal benefit.",
     "shadeExpert": "The wind resistance rating of a parasol is not a marketing figure — it is a safety specification. A parasol rated Beaufort 5 (29–38km/h) will fail structurally in a Beaufort 6 gust (39–49km/h) with predictable consequences. For coastal terraces and rooftop venues, always specify Beaufort 6 minimum, with a weighted base of at least 80kg for a 3m parasol.",
     "shadeQ1": "What parasol diameter is right for my tables?",
@@ -1311,7 +1970,6 @@
     "shadeA3": "The hotel pool deck standard for sun loungers in European 4-star and above properties is: aluminium or stainless steel frame (rust-proof), adjustable backrest with minimum 5 positions, quick-dry or breathable cushion (Textilene mesh or solution-dyed acrylic), and a weight capacity of minimum 150kg. The cushion specification is critical — closed-cell foam cushions retain water and develop mould within one season; open-cell or quick-dry foam with waterproof cover is the minimum standard. A lounger pitch (centre-to-centre spacing) of 90cm is the accepted minimum for guest comfort on a pool deck; 120cm is preferred for 4-star positioning. Gangway width between rows must be minimum 1.2m for safety access. For beach clubs with sand exposure, avoid cushion piping in light colours — they stain permanently.",
     "shadeQ4": "How do I calculate how many parasols I need for a terrace?",
     "shadeA4": "Start from the number of covers, not the surface. Each parasol should provide shade for 4 covers (standard 2-table configuration) as a baseline. A 32-cover terrace requires 8 parasols at minimum. However, the layout of covers on the terrace determines whether this is achievable — if tables are in rows of 4, two parasols per row works cleanly; if the layout is irregular, you may need 10–12 to avoid shade gaps. A useful rule of thumb: total parasol coverage area (in m²) should equal 1.2× the total table surface area. For a terrace with 8 tables of 70×70cm each, that's 8 × 0.49 × 1.2 = 4.7m² of parasol coverage, achievable with four 3m parasols (7.1m² total, accounting for angle losses).",
-
     "layoutGuide": "Layout planning is where hospitality design meets revenue management. The difference between a poorly planned terrace and an optimised one is not aesthetic — it is financial. An extra 8 covers on a 60-seat terrace, achieved through intelligent layout, represents approximately €150–250 of additional revenue per service at typical European CHR average spend. Multiplied across a season, the ROI on professional layout planning is immediate.\n\nThe table mix — the ratio of 2-seater to 4-seater to larger tables — is the single most important variable in terrace revenue optimisation. Industry data consistently shows that a balanced mix of 40% 2-seaters, 50% 4-seaters, and 10% larger tables (6–8 covers) matches actual booking patterns most closely for full-service restaurants. Deviating toward exclusively 4-seaters leaves revenue on the table when couples are seated — a 2-person cover at a 4-seat table generates the same revenue as the table is physically capable of while blocking 2 additional potential covers.\n\nThe secondary variable is furniture geometry. Square tables (70×70cm or 80×80cm) are more space-efficient than round tables of equivalent capacity. A 70×70cm square table provides 4 covers with a 90cm per-cover access width. A 70cm diameter round table provides only 2 comfortable covers at the same access standard. However, round tables create a more social, animated atmosphere — a relevant consideration for bar terraces and lounge settings.",
     "layoutExpert": "When planning table spacing, always model the 'full service' scenario: staff carrying a tray needs 75cm clear passage, a guest pushing back their chair needs 60cm. The most common terrace layout error is planning at empty-room spacing and discovering that once chairs are occupied and guests have bags and jackets around them, the actual circulation collapses.",
     "layoutQ1": "What is the minimum space per cover on a professional outdoor terrace?",
@@ -1323,7 +1981,6 @@
     "layoutA3": "Square tables (70×70cm or 80×80cm) maximise cover density and are operationally simpler — they align to a grid, can be combined easily, and waste no floor space. Round tables (diameter 60–80cm) create a more social, fluid atmosphere and are preferred for café, wine bar, and lounge settings where the interaction geometry is as important as the cover count. The practical recommendation: use square tables for the main dining area where efficiency matters, and introduce round or oval tables in corner positions or premium zones where atmosphere takes priority. Mixing both in the same terrace works well if the distinction is intentional and visually clear.",
     "layoutQ4": "How do I plan furniture delivery and setup logistics for a large terrace installation?",
     "layoutA4": "For an installation of 40+ covers, plan the delivery sequence in reverse from setup completion. Confirm site access dimensions first: door widths, elevator capacity if applicable, maximum lorry size that can approach the venue. Most CHR furniture arrives in flat-pack or semi-assembled state; factor 15–20 minutes per chair and 25–30 minutes per table for final assembly. For a 40-cover terrace (chairs + tables), budget 1.5–2 days for a two-person team. Coordinate with your supplier to stagger delivery if storage space is limited — tables and chairs arriving on the same day in a venue with no receiving area creates a bottleneck. Request confirmation of delivery lead times in writing and build a 10-day buffer before your opening date.",
-
     "regulationsGuide": "Procuring outdoor furniture for a professional CHR establishment involves regulatory, logistical, and commercial considerations that differ substantially from residential purchasing. Understanding these before engaging suppliers saves time, avoids costly mistakes, and enables better commercial negotiation.\n\nThe regulatory framework for CHR outdoor furniture in France and across the EU is anchored in two standards: EN 581 (outdoor seating and tables for camping, domestic and contract use) and EN 12727 (furniture contract seating — strength, durability and safety requirements). EN 12727 Level 4 is the applicable standard for contract furniture in hospitality settings — it specifies load testing, cyclic durability testing, and stability requirements that residential furniture is not required to meet. When sourcing from any supplier, always request the EN 12727 Level 4 test certificate. A supplier unable to provide this document is not supplying to the correct standard.\n\nFire resistance is a secondary consideration for covered outdoor structures and all indoor-adjacent uses. French fire safety regulation (DDRM and ERP classification) requires furniture in Établissements Recevant du Public (ERP) to meet M2 or M1 fire classification. Upholstered items (cushions, banquettes) require additional certification — British Standard BS 5852 or French NF P 92-507.",
     "regulationsExpert": "The MOQ (Minimum Order Quantity) conversation is where most procurement errors happen. A supplier quoting a price for 10 units may have a MOQ of 50 for that product in that colour. Always confirm MOQ, lead time, and price break points simultaneously. The price for 48 units is often 15–25% lower than for 12 units — which can offset the cost of carrying stock.",
     "regulationsQ1": "What certifications should outdoor CHR furniture have in France and the EU?",
@@ -1339,7 +1996,6 @@
     "regulationsQ5": "What budget should I plan per cover for a professional outdoor terrace?",
     "regulationsA5": "The furniture budget per cover (chair + share of table cost + share of parasol) varies significantly by product tier. Economy tier (polypropylene chairs, resin tables, basic parasols): €80–120 per cover. Mid-range (aluminium chairs, aluminium or teak tables, quality parasols): €150–250 per cover. Premium (teak or designer aluminium, premium fabrics, cantilever parasols): €300–500 per cover. Luxury (designer pieces, bespoke finishes, custom upholstery): €600+ per cover. These are indicative product costs excluding delivery, installation, and cushions. A 40-cover mid-range terrace should budget €6,000–10,000 for furniture, with an additional 10–15% for logistics and installation. Cushions, if specified, add €20–60 per seat in a CHR-grade waterproof fabric.",
     "regulationsTip5": "Budget calculation tip: price per cover × 1.15 (logistics and installation) × 1.20 (VAT) = total project cost including tax.",
-
     "tag_seatingType": "Seating type",
     "tag_chrStandard": "CHR standard",
     "tag_layout": "Layout",
@@ -1660,8 +2316,13 @@
     "back": "Back",
     "continue": "Continue",
     "steps": {
-      "start": "Start", "type": "Type", "needs": "Needs", "budget": "Budget",
-      "capacity": "Capacity", "style": "Style", "review": "Review",
+      "start": "Start",
+      "type": "Type",
+      "needs": "Needs",
+      "budget": "Budget",
+      "capacity": "Capacity",
+      "style": "Style",
+      "review": "Review",
       "requirements": "Requirements"
     },
     "stepDescriptions": {
@@ -1676,33 +2337,53 @@
     },
     "type": {
       "question": "What type of establishment?",
-      "restaurant": "Restaurant", "restaurantDesc": "Terraces, patios & outdoor dining",
-      "hotel": "Hotel", "hotelDesc": "Lobbies, pool decks & garden lounges",
-      "rooftop": "Rooftop", "rooftopDesc": "Sky bars & urban terraces",
-      "beachClub": "Beach Club", "beachClubDesc": "Beachfront lounges & daybeds",
-      "bar": "Bar / Lounge", "barDesc": "Cocktail bars & wine bars",
-      "camping": "Camping", "campingDesc": "Glamping & outdoor communal areas",
-      "event": "Event Space", "eventDesc": "Banquets, weddings & receptions",
-      "pool": "Pool Area", "poolDesc": "Poolside & deck furniture"
+      "restaurant": "Restaurant",
+      "restaurantDesc": "Terraces, patios & outdoor dining",
+      "hotel": "Hotel",
+      "hotelDesc": "Lobbies, pool decks & garden lounges",
+      "rooftop": "Rooftop",
+      "rooftopDesc": "Sky bars & urban terraces",
+      "beachClub": "Beach Club",
+      "beachClubDesc": "Beachfront lounges & daybeds",
+      "bar": "Bar / Lounge",
+      "barDesc": "Cocktail bars & wine bars",
+      "camping": "Camping",
+      "campingDesc": "Glamping & outdoor communal areas",
+      "event": "Event Space",
+      "eventDesc": "Banquets, weddings & receptions",
+      "pool": "Pool Area",
+      "poolDesc": "Poolside & deck furniture"
     },
     "budget": {
       "question": "What is your budget per seat?",
-      "economy": "€50–80", "economyDesc": "Functional & cost-effective",
-      "mid": "€80–120", "midDesc": "Mid-range, solid quality",
-      "premium": "€120–180", "premiumDesc": "Premium materials & design",
-      "luxury": "€180+", "luxuryDesc": "Luxury & bespoke"
+      "economy": "€50–80",
+      "economyDesc": "Functional & cost-effective",
+      "mid": "€80–120",
+      "midDesc": "Mid-range, solid quality",
+      "premium": "€120–180",
+      "premiumDesc": "Premium materials & design",
+      "luxury": "€180+",
+      "luxuryDesc": "Luxury & bespoke"
     },
     "review": {
       "badge": "Project Brief — Review",
       "title": "Review your project configuration",
-      "establishment": "Establishment", "zone": "Zone",
-      "capacity": "Capacity", "terrace": "Terrace",
-      "spaceSeat": "Space/seat", "circulation": "Circulation",
-      "feasibility": "Feasibility", "layoutStrategy": "Layout strategy",
-      "layoutPriority": "Layout priority", "style": "Style",
-      "budget": "Budget", "notSpecified": "Not specified",
-      "seats": "seats", "generate": "Build my recommendation",
-      "editAnswers": "Edit answers", "startOver": "Start over"
+      "establishment": "Establishment",
+      "zone": "Zone",
+      "capacity": "Capacity",
+      "terrace": "Terrace",
+      "spaceSeat": "Space/seat",
+      "circulation": "Circulation",
+      "feasibility": "Feasibility",
+      "layoutStrategy": "Layout strategy",
+      "layoutPriority": "Layout priority",
+      "style": "Style",
+      "budget": "Budget",
+      "notSpecified": "Not specified",
+      "seats": "seats",
+      "generate": "Build my recommendation",
+      "editAnswers": "Edit answers",
+      "startOver": "Start over"
     },
     "layouts": {
       "mostly-2": "Mostly 2-seater tables",
@@ -1721,8 +2402,10 @@
       "groups": "Mostly group seating"
     },
     "budgetLabels": {
-      "economy": "€50–80 per seat", "mid": "€80–120 per seat",
-      "premium": "€120–180 per seat", "luxury": "€180+ per seat"
+      "economy": "€50–80 per seat",
+      "mid": "€80–120 per seat",
+      "premium": "€120–180 per seat",
+      "luxury": "€180+ per seat"
     },
     "modeSelect": {
       "header": "Where are you in your project?",
@@ -1730,17 +2413,32 @@
       "guided": "I have a project in mind",
       "guidedRecommended": "Recommended",
       "guidedDesc": "I want to redesign a terrace, rooftop or outdoor space. I'll describe my project — you build the brief and find matching products.",
-      "guidedTags": ["Restaurant · Hotel · Beach Club", "5 questions", "~3 min", "Visual style picker"],
+      "guidedTags": [
+        "Restaurant · Hotel · Beach Club",
+        "5 questions",
+        "~3 min",
+        "Visual style picker"
+      ],
       "guidedCta": "Start →",
       "expert": "I have precise specifications",
       "expertPro": "Pro",
       "expertDesc": "Architect, designer or experienced buyer — I have exact dimensions, table mix and technical constraints ready to configure.",
-      "expertTags": ["Architect · Designer", "Exact dimensions", "Full control", "Table mix & density"],
+      "expertTags": [
+        "Architect · Designer",
+        "Exact dimensions",
+        "Full control",
+        "Table mix & density"
+      ],
       "expertCta": "Configure",
       "browse": "I already know what I need",
       "browseQuick": "Quick",
       "browseDesc": "Looking for a specific product — chair, table, parasol or lounger. Browse directly, compare suppliers and request a quote.",
-      "browseTags": ["No questions", "Instant catalogue", "Filter by style & material", "Direct quote"],
+      "browseTags": [
+        "No questions",
+        "Instant catalogue",
+        "Filter by style & material",
+        "Direct quote"
+      ],
       "browseCta": "Browse →",
       "footer": "All paths lead to supplier quotes and sourcing support"
     },
@@ -1755,7 +2453,10 @@
       "area": "Area (m²)",
       "recommended": "Recommended: {{min}}–{{max}} seats for {{surface}} m²",
       "tableMix": "Table Mix Configuration",
-      "format": "Format", "qty": "Qty", "seatsPerTable": "Seats/tbl", "subtotal": "Subtotal",
+      "format": "Format",
+      "qty": "Qty",
+      "seatsPerTable": "Seats/tbl",
+      "subtotal": "Subtotal",
       "addTableFormat": "Add table format",
       "tables": "tables",
       "seatsFromMix": "{{count}} seats from table mix",
@@ -1767,10 +2468,14 @@
     },
     "capacity": {
       "question": "What is your target seating capacity?",
-      "under30": "Under 30 seats", "intimate": "Intimate space",
-      "30to60": "30–60 seats", "mediumTerrace": "Medium terrace",
-      "60to120": "60–120 seats", "largeTerrace": "Large terrace",
-      "120plus": "120+ seats", "highVolume": "High-volume venue",
+      "under30": "Under 30 seats",
+      "intimate": "Intimate space",
+      "30to60": "30–60 seats",
+      "mediumTerrace": "Medium terrace",
+      "60to120": "60–120 seats",
+      "largeTerrace": "Large terrace",
+      "120plus": "120+ seats",
+      "highVolume": "High-volume venue",
       "exactLabel": "Or enter exact number of seats",
       "exactPlaceholder": "e.g. 72",
       "dimensionsLabel": "Terrace dimensions (optional)",
@@ -1782,14 +2487,22 @@
     "styleStep": {
       "question": "What style defines your project?",
       "subtitle": "Select one or more styles — we'll create concepts that blend them.",
-      "mediterranean": "Mediterranean", "mediterraneanDesc": "Riviera, earthy tones, natural textures",
-      "bistro": "Bistro / Parisian", "bistroDesc": "Classic French terrace charm",
-      "natural": "Natural / Organic", "naturalDesc": "Organic materials, earthy palette",
-      "modern": "Modern / Minimal", "modernDesc": "Clean lines, contemporary design",
-      "luxury": "Luxury / Premium", "luxuryDesc": "High-end materials, exclusive feel",
-      "industrial": "Industrial / Urban", "industrialDesc": "Metal, raw finishes, urban character",
-      "coastal": "Coastal / Nautical", "coastalDesc": "Maritime elegance, harbour vibes",
-      "tropical": "Tropical / Resort", "tropicalDesc": "Exotic, lush, resort-style living",
+      "mediterranean": "Mediterranean",
+      "mediterraneanDesc": "Riviera, earthy tones, natural textures",
+      "bistro": "Bistro / Parisian",
+      "bistroDesc": "Classic French terrace charm",
+      "natural": "Natural / Organic",
+      "naturalDesc": "Organic materials, earthy palette",
+      "modern": "Modern / Minimal",
+      "modernDesc": "Clean lines, contemporary design",
+      "luxury": "Luxury / Premium",
+      "luxuryDesc": "High-end materials, exclusive feel",
+      "industrial": "Industrial / Urban",
+      "industrialDesc": "Metal, raw finishes, urban character",
+      "coastal": "Coastal / Nautical",
+      "coastalDesc": "Maritime elegance, harbour vibes",
+      "tropical": "Tropical / Resort",
+      "tropicalDesc": "Exotic, lush, resort-style living",
       "multipleHint": "You can select multiple styles for hybrid concepts",
       "selected": "{{count}} style selected",
       "selectedPlural": "{{count}} styles selected — we'll blend them together",
@@ -1799,12 +2512,20 @@
     "summary": {
       "title": "Project Summary",
       "emptyHint": "Start selecting options to build your project brief...",
-      "mode": "Mode", "guided": "Guided", "expert": "Expert",
-      "projectType": "Project type", "zone": "Zone",
-      "capacity": "Capacity", "terrace": "Terrace",
-      "m2Seat": "m²/seat", "density": "Density", "feasibility": "Feasibility",
-      "layout": "Layout", "priority": "Priority",
-      "style": "Style", "budget": "Budget"
+      "mode": "Mode",
+      "guided": "Guided",
+      "expert": "Expert",
+      "projectType": "Project type",
+      "zone": "Zone",
+      "capacity": "Capacity",
+      "terrace": "Terrace",
+      "m2Seat": "m²/seat",
+      "density": "Density",
+      "feasibility": "Feasibility",
+      "layout": "Layout",
+      "priority": "Priority",
+      "style": "Style",
+      "budget": "Budget"
     },
     "editableLayout": {
       "seats": "seats",
@@ -2179,32 +2900,6 @@
     "conversationWith": "Conversation with {{name}}",
     "creationError": "Error during creation"
   },
-  "partnerDetail": {
-    "supplierNotFound": "Supplier not found",
-    "backToPartners": "← Back to Partners",
-    "backToPartnerNetwork": "Back to Partner Network",
-    "featuredPartner": "Featured Partner",
-    "galleryComing": "Gallery coming soon — contact via Terrassea for full catalogue",
-    "about": "About",
-    "productionCapacity": "Production Capacity",
-    "coverageZone": "Coverage Zone",
-    "subtype": "Subtype",
-    "specialties": "Specialties",
-    "certifications": "Certifications",
-    "materials": "Materials",
-    "projectTypes": "Project Types",
-    "identityProtected": "Supplier identity is protected",
-    "identityProtectedDesc": "The full name and contact details of this supplier are revealed exclusively in a confirmed Terrassea quote. This protects both parties and ensures fair sourcing conditions for all hospitality professionals.",
-    "anonymityNotice": "Full supplier identity is revealed only in a confirmed quote. All sourcing goes through Terrassea.",
-    "sourceFromSupplier": "Source from this supplier",
-    "browseOrCreate": "Browse their catalogue or create a project brief — we'll include this supplier in your curated proposals.",
-    "seeProducts": "See their products",
-    "startProject": "Start a project",
-    "largeProjectProService": "Large project? Pro Service →",
-    "noDirectContact": "No direct supplier contact needed",
-    "pricingConsolidated": "Pricing consolidated in one quote",
-    "freeForProfessionals": "Free for hospitality professionals"
-  },
   "supplierRecs": {
     "supplierOptions": "Supplier Options",
     "supplierCount": "{{count}} supplier · Scored for project consistency",
@@ -2278,5 +2973,46 @@
       "matching_cushion": "Matching cushions",
       "same_collection": "Same collection"
     }
+  },
+  "compare": {
+    "category": "Category",
+    "subcategory": "Subcategory",
+    "brand": "Brand",
+    "collection": "Collection",
+    "dimensions": "Dimensions",
+    "seat_height": "Seat height",
+    "weight": "Weight",
+    "structure": "Structure",
+    "seat_top": "Seat / Top",
+    "main_color": "Main color",
+    "stackable": "Stackable",
+    "outdoor": "Outdoor",
+    "uv_resistant": "UV resistant",
+    "weather_resistant": "Weather resistant",
+    "fire_retardant": "Fire retardant",
+    "heavy_duty_chr": "Heavy-duty CHR",
+    "easy_maintenance": "Easy maintenance",
+    "customizable": "Customizable",
+    "warranty": "Warranty",
+    "country": "Country",
+    "stock": "Stock",
+    "delivery": "Delivery",
+    "price": "Price",
+    "back_to_products": "Back to products",
+    "product_comparison": "Product comparison",
+    "add_to_project": "Add to project",
+    "best_match": "Best match for your project",
+    "best_price": "Best price",
+    "fastest_delivery": "Fastest delivery",
+    "most_features": "Most features",
+    "yes": "Yes",
+    "no": "No",
+    "on_request": "On request",
+    "days": "days",
+    "no_products_to_compare": "Add at least 2 products to compare",
+    "relevance_score": "Relevance score",
+    "quick_verdict": "Quick verdict",
+    "project_relevance": "Project relevance",
+    "remove": "Remove"
   }
 }
