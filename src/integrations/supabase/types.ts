@@ -14,6 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      architect_projects: {
+        Row: {
+          address: string | null
+          architect_id: string
+          client_company: string | null
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
+          constraints: string | null
+          created_at: string | null
+          deadline: string | null
+          description: string | null
+          estimated_value: number | null
+          id: string
+          project_name: string
+          start_date: string | null
+          status: string | null
+          style: string | null
+          surface_area: string | null
+          updated_at: string | null
+          venue_type: string | null
+        }
+        Insert: {
+          address?: string | null
+          architect_id: string
+          client_company?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          constraints?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          project_name: string
+          start_date?: string | null
+          status?: string | null
+          style?: string | null
+          surface_area?: string | null
+          updated_at?: string | null
+          venue_type?: string | null
+        }
+        Update: {
+          address?: string | null
+          architect_id?: string
+          client_company?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          constraints?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          project_name?: string
+          start_date?: string | null
+          status?: string | null
+          style?: string | null
+          surface_area?: string | null
+          updated_at?: string | null
+          venue_type?: string | null
+        }
+        Relationships: []
+      }
+      board_items: {
+        Row: {
+          board_id: string
+          created_at: string | null
+          id: string
+          note: string | null
+          position_x: number | null
+          position_y: number | null
+          product_id: string
+          sort_order: number | null
+        }
+        Insert: {
+          board_id: string
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          position_x?: number | null
+          position_y?: number | null
+          product_id: string
+          sort_order?: number | null
+        }
+        Update: {
+          board_id?: string
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          position_x?: number | null
+          position_y?: number | null
+          product_id?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_items_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "material_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -120,6 +227,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      material_boards: {
+        Row: {
+          architect_id: string
+          board_name: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_template: boolean | null
+          palette_tags: string[] | null
+          project_id: string | null
+          share_token: string | null
+          style_tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          architect_id: string
+          board_name: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_template?: boolean | null
+          palette_tags?: string[] | null
+          project_id?: string | null
+          share_token?: string | null
+          style_tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          architect_id?: string
+          board_name?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_template?: boolean | null
+          palette_tags?: string[] | null
+          project_id?: string | null
+          share_token?: string | null
+          style_tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_boards_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "architect_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -1544,6 +1701,60 @@ export type Database = {
           },
         ]
       }
+      project_annotations: {
+        Row: {
+          author_id: string
+          author_name: string | null
+          author_type: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_pinned: boolean | null
+          project_id: string
+          updated_at: string | null
+          zone_id: string | null
+        }
+        Insert: {
+          author_id: string
+          author_name?: string | null
+          author_type?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          project_id: string
+          updated_at?: string | null
+          zone_id?: string | null
+        }
+        Update: {
+          author_id?: string
+          author_name?: string | null
+          author_type?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          project_id?: string
+          updated_at?: string | null
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_annotations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "architect_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_annotations_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "project_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_cart_items: {
         Row: {
           concept_name: string | null
@@ -1676,6 +1887,150 @@ export type Database = {
           venue_type?: string | null
         }
         Relationships: []
+      }
+      project_templates: {
+        Row: {
+          architect_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          product_config: Json | null
+          style: string | null
+          template_name: string
+          use_count: number | null
+          venue_type: string | null
+          zone_config: Json | null
+        }
+        Insert: {
+          architect_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          product_config?: Json | null
+          style?: string | null
+          template_name: string
+          use_count?: number | null
+          venue_type?: string | null
+          zone_config?: Json | null
+        }
+        Update: {
+          architect_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          product_config?: Json | null
+          style?: string | null
+          template_name?: string
+          use_count?: number | null
+          venue_type?: string | null
+          zone_config?: Json | null
+        }
+        Relationships: []
+      }
+      project_zone_products: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          product_id: string
+          project_id: string
+          quantity: number | null
+          status: string | null
+          supplier_id: string | null
+          supplier_name: string | null
+          unit_price: number | null
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          product_id: string
+          project_id: string
+          quantity?: number | null
+          status?: string | null
+          supplier_id?: string | null
+          supplier_name?: string | null
+          unit_price?: number | null
+          zone_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string
+          project_id?: string
+          quantity?: number | null
+          status?: string | null
+          supplier_id?: string | null
+          supplier_name?: string | null
+          unit_price?: number | null
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_zone_products_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "architect_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_zone_products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_zone_products_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "project_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_zones: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          project_id: string
+          sort_order: number | null
+          zone_area: string | null
+          zone_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          project_id: string
+          sort_order?: number | null
+          zone_area?: string | null
+          zone_name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          project_id?: string
+          sort_order?: number | null
+          zone_area?: string | null
+          zone_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_zones_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "architect_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quote_documents: {
         Row: {

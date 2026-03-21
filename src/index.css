@@ -82,3 +82,46 @@
     font-family: var(--font-body);
   }
 }
+
+/* ── Material Board print layout ─────────────────────────────────────────────── */
+@media print {
+  /* Hide navigation, headers, footers, action bars */
+  nav, header, footer, .print\\:hidden {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print\\:block {
+    display: block !important;
+  }
+
+  /* Clean page setup */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+  }
+
+  .material-board-root {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  /* Force 3-column grid in print */
+  .material-board-root .print\\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16pt !important;
+  }
+
+  /* Card styling for print */
+  .material-board-root .bg-card {
+    break-inside: avoid;
+    border: 0.5pt solid #ddd !important;
+  }
+
+  /* Remove shadows and backdrop-blur */
+  * {
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+}
