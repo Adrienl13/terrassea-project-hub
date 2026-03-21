@@ -20,11 +20,16 @@ export interface ClientOrder {
   trackingLastChecked: string | null;
   trackingUrl: string | null;
   estimatedDelivery: string | null;
+  paymentReference: string | null;
   depositAmount: number | null;
-  depositPaidAt: string | null;
+  depositPercentage: number | null;
   balanceAmount: number | null;
+  depositDueDate: string | null;
+  depositPaidAt: string | null;
   balanceDueDate: string | null;
   balancePaidAt: string | null;
+  invoiceNumber: string | null;
+  paymentMethod: string | null;
   deliveredAt: string | null;
   shippedAt: string | null;
   productionConfirmedAt: string | null;
@@ -73,11 +78,16 @@ export function useClientOrders() {
         trackingLastChecked: row.tracking_last_checked,
         trackingUrl: row.tracking_url,
         estimatedDelivery: row.estimated_delivery_date,
+        paymentReference: row.payment_reference ?? null,
         depositAmount: row.deposit_amount,
-        depositPaidAt: row.deposit_paid_at,
+        depositPercentage: row.deposit_percent ?? null,
         balanceAmount: row.balance_amount,
+        depositDueDate: row.deposit_due_date ?? null,
+        depositPaidAt: row.deposit_paid_at,
         balanceDueDate: row.balance_due_date,
         balancePaidAt: row.balance_paid_at,
+        invoiceNumber: row.invoice_number ?? null,
+        paymentMethod: row.payment_method ?? null,
         deliveredAt: row.delivered_at,
         shippedAt: row.shipped_at,
         productionConfirmedAt: row.production_confirmed_at,
@@ -122,11 +132,16 @@ export function useOrderDetail(orderId: string | null) {
         trackingLastChecked: data.tracking_last_checked,
         trackingUrl: data.tracking_url,
         estimatedDelivery: data.estimated_delivery_date,
+        paymentReference: (data as any).payment_reference ?? null,
         depositAmount: data.deposit_amount,
-        depositPaidAt: data.deposit_paid_at,
+        depositPercentage: (data as any).deposit_percent ?? null,
         balanceAmount: data.balance_amount,
+        depositDueDate: (data as any).deposit_due_date ?? null,
+        depositPaidAt: data.deposit_paid_at,
         balanceDueDate: data.balance_due_date,
         balancePaidAt: data.balance_paid_at,
+        invoiceNumber: (data as any).invoice_number ?? null,
+        paymentMethod: (data as any).payment_method ?? null,
         deliveredAt: data.delivered_at,
         shippedAt: data.shipped_at,
         productionConfirmedAt: data.production_confirmed_at,

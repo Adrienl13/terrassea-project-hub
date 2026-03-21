@@ -79,6 +79,7 @@ export function usePaymentFlow() {
       if (quoteErr || !quote) throw new Error("Quote request not found");
 
       const totalPrice = Number(quote.total_price ?? 0);
+      if (totalPrice <= 0) throw new Error("Cannot create order with zero amount");
       const quantity = Number(quote.quantity ?? 1);
       const unitPrice = Number(quote.unit_price ?? 0);
 
@@ -96,7 +97,20 @@ export function usePaymentFlow() {
       const balanceDueDate = new Date(now.getTime() + paymentSettings.balanceDueDays * 86_400_000);
 
       // 4. Insert into orders
-      const clientEmail = quote.client_email ?? user?.email ?? "";
+      // Bug 3: quote_requests uses "email", not "client_email"
+      const clientEmail = quote.email ?? user?.email ?? "";
+
+      // Bug 4: quote_requests has no "client_user_id" column.
+      // Look up the user_id from user_profiles by email, fallback to current user.
+      let clientUserId: string | null = user?.id ?? null;
+      if (clientEmail) {
+        const { data: profileRow } = await supabase
+          .from("user_profiles")
+          .select("id")
+          .eq("email", clientEmail)
+          .maybeSingle();
+        if (profileRow?.id) clientUserId = profileRow.id;
+      }
 
       const { data: order, error: orderErr } = await supabase
         .from("orders")
@@ -107,7 +121,7 @@ export function usePaymentFlow() {
           partner_id: quote.partner_id,
           project_request_id: quote.project_request_id,
           client_email: clientEmail,
-          client_user_id: quote.client_user_id ?? user?.id ?? null,
+          client_user_id: clientUserId,
           quantity,
           unit_price: unitPrice,
           total_amount: totalPrice,
@@ -152,8 +166,8 @@ export function usePaymentFlow() {
           body: {
             to: clientEmail,
             subject: instructions.subject,
-            html: instructions.bodyHtml,
-            text: instructions.bodyText,
+            body_html: instructions.bodyHtml,
+            body_text: instructions.bodyText,
           },
         });
       } catch {
@@ -162,9 +176,9 @@ export function usePaymentFlow() {
       }
 
       // 7. Create in-app notification for the client
-      if (quote.client_user_id ?? user?.id) {
+      if (clientUserId) {
         await supabase.from("notifications").insert({
-          user_id: quote.client_user_id ?? user?.id,
+          user_id: clientUserId,
           title: "Order created",
           body: `Your order for ${quote.product_name} has been created. Please proceed with the deposit payment.`,
           type: "order_update",
@@ -178,6 +192,8 @@ export function usePaymentFlow() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-orders"] });
       queryClient.invalidateQueries({ queryKey: ["partner-quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-order-events"] });
     },
   });
 
@@ -225,6 +241,8 @@ export function usePaymentFlow() {
       queryClient.invalidateQueries({ queryKey: ["client-orders"] });
       queryClient.invalidateQueries({ queryKey: ["order-detail"] });
       queryClient.invalidateQueries({ queryKey: ["order-events"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-order-events"] });
     },
   });
 
@@ -272,6 +290,8 @@ export function usePaymentFlow() {
       queryClient.invalidateQueries({ queryKey: ["client-orders"] });
       queryClient.invalidateQueries({ queryKey: ["order-detail"] });
       queryClient.invalidateQueries({ queryKey: ["order-events"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-order-events"] });
     },
   });
 

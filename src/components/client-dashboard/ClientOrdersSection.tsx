@@ -6,6 +6,7 @@ import {
   CalendarDays, FileText, CircleDot,
 } from "lucide-react";
 import { useClientOrders, useOrderDetail, type ClientOrder } from "@/hooks/useOrders";
+import { usePaymentFlow } from "@/hooks/usePaymentFlow";
 import PaymentInstructions from "@/components/payments/PaymentInstructions";
 
 // ── Status config ──────────────────────────────────────────────────────────────
@@ -219,6 +220,7 @@ function EventTimeline({ events }: { events: { id: string; eventType: string; de
 function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => void }) {
   const { t } = useTranslation();
   const { order, events, isLoading } = useOrderDetail(orderId);
+  const { paymentSettings } = usePaymentFlow();
 
   if (isLoading) {
     return (
@@ -432,18 +434,37 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
       </div>
 
       {/* Bank transfer instructions */}
-      {order.paymentReference && (
-        <PaymentInstructions
-          reference={order.paymentReference}
-          amount={order.totalPrice}
-          beneficiary="TERRASSEA SAS"
-          iban="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
-          bic="QNTOFRP1XXX"
-          bankName="Qonto"
-          dueDate={order.balanceDueDate || new Date(Date.now() + 7 * 86400000).toISOString()}
-          status={order.balancePaidAt ? "paid" : "pending"}
-        />
-      )}
+      {order.paymentReference && (() => {
+        // Determine which payment step we're on
+        const isDepositPending = !order.depositPaidAt;
+        const isBalancePending = !!order.depositPaidAt && !order.balancePaidAt;
+        const isFullyPaid = !!order.depositPaidAt && !!order.balancePaidAt;
+
+        const amount = isDepositPending
+          ? (order.depositAmount ?? order.totalPrice)
+          : isBalancePending
+            ? (order.balanceAmount ?? order.totalPrice)
+            : order.totalPrice;
+
+        const dueDate = isDepositPending
+          ? (order.depositDueDate || new Date(Date.now() + 7 * 86400000).toISOString())
+          : (order.balanceDueDate || new Date(Date.now() + 30 * 86400000).toISOString());
+
+        const status = isFullyPaid ? "paid" as const : "pending" as const;
+
+        return (
+          <PaymentInstructions
+            reference={order.paymentReference}
+            amount={amount}
+            beneficiary={paymentSettings.beneficiary}
+            iban={paymentSettings.iban}
+            bic={paymentSettings.bic}
+            bankName={paymentSettings.bankName}
+            dueDate={dueDate}
+            status={status}
+          />
+        );
+      })()}
 
       {/* Event timeline */}
       <div className="border border-border rounded-lg p-4">

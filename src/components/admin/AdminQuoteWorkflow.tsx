@@ -2,11 +2,12 @@ import { useState, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePaymentFlow } from "@/hooks/usePaymentFlow";
 import {
   Search, Eye, ArrowLeft, FileText, Clock, CheckCircle2,
   XCircle, Package, MapPin, Building2, PenTool, Download,
   Send, ChevronRight, ChevronDown, AlertTriangle, User,
-  Truck, CreditCard,
+  Truck, CreditCard, ShoppingCart,
 } from "lucide-react";
 
 const QuotePdfViewer = lazy(() => import("@/components/quotes/QuotePdfViewer"));
@@ -30,6 +31,7 @@ const STATUSES = ["pending", "replied", "accepted", "signed", "expired", "cancel
 
 export default function AdminQuoteWorkflow() {
   const queryClient = useQueryClient();
+  const { createOrderFromQuote, isCreatingOrder } = usePaymentFlow();
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -62,6 +64,21 @@ export default function AdminQuoteWorkflow() {
       }
       return data || [];
     },
+  });
+
+  // Check if an order already exists for the selected quote
+  const { data: existingOrder } = useQuery({
+    queryKey: ["admin-quote-order", selectedId],
+    queryFn: async () => {
+      if (!selectedId) return null;
+      const { data } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("quote_request_id", selectedId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!selectedId,
   });
 
   const filtered = quotes.filter((q: any) => {
@@ -227,6 +244,44 @@ export default function AdminQuoteWorkflow() {
             </div>
           </div>
         </div>
+
+        {/* Create order button — only for accepted/signed quotes without an existing order */}
+        {(selected.status === "accepted" || selected.status === "signed") && !existingOrder && (
+          <div className="border border-border rounded-xl p-4">
+            <button
+              onClick={() => {
+                createOrderFromQuote(selected.id, {
+                  onSuccess: () => {
+                    toast.success("Commande créée avec succès");
+                    queryClient.invalidateQueries({ queryKey: ["admin-quote-order", selected.id] });
+                    queryClient.invalidateQueries({ queryKey: ["admin-quotes"] });
+                  },
+                  onError: (err: Error) => {
+                    toast.error("Erreur : " + err.message);
+                  },
+                });
+              }}
+              disabled={isCreatingOrder}
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-xs font-display font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {isCreatingOrder ? "Création en cours…" : "Créer la commande"}
+            </button>
+            <p className="text-[10px] font-body text-muted-foreground mt-2">
+              Génère une commande avec appel de fonds (acompte + solde) et envoie les instructions de paiement au client.
+            </p>
+          </div>
+        )}
+        {(selected.status === "accepted" || selected.status === "signed") && existingOrder && (
+          <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-4">
+            <p className="text-xs font-display font-semibold text-emerald-700 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> Commande déjà créée
+            </p>
+            <p className="text-[10px] font-body text-emerald-600 mt-1">
+              ID : {existingOrder.id.slice(0, 8)}…
+            </p>
+          </div>
+        )}
 
         {/* Documents PDF */}
         <div className="border border-border rounded-xl p-4">
