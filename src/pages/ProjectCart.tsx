@@ -356,7 +356,7 @@ const ProjectCart = () => {
                       </div>
 
                       <div className="space-y-2">
-                        {conceptItems.map(({ product, quantity, layoutRequirementLabel, selectedSupplier }) => {
+                        {conceptItems.map(({ product, quantity, layoutRequirementLabel, selectedSupplier, selectedColor }) => {
                       return (
                         <motion.div
                           key={product.id}
@@ -377,7 +377,13 @@ const ProjectCart = () => {
                               {/* Info */}
                               <div className="min-w-0">
                                 <button onClick={() => {setSelectedProduct(product);setDrawerOpen(true);}} className="text-left focus:outline-none w-full">
-                                  <p className="font-display font-semibold text-xs text-foreground hover:underline truncate">{product.name}</p>
+                                  <p className="font-display font-semibold text-xs text-foreground hover:underline truncate">
+                                    {product.name}
+                                    {selectedColor && (() => {
+                                      const variant = product.color_variants?.find((v) => v.color_slug === selectedColor);
+                                      return variant ? ` — ${variant.label_en}` : "";
+                                    })()}
+                                  </p>
                                   <p className="text-[10px] text-muted-foreground font-body truncate">
                                     {product.category}{product.main_color ? ` · ${product.main_color}` : ""}
                                   </p>

@@ -118,6 +118,23 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {product.offers_count} supplier{(product.offers_count ?? 0) > 1 ? "s" : ""}
           </p>
         )}
+        {product.color_variants.length > 1 && (
+          <div className="flex items-center gap-1 pt-0.5">
+            {product.color_variants.slice(0, 5).map((v) => (
+              <span
+                key={v.color_slug}
+                className="w-3 h-3 rounded-full border border-border flex-shrink-0"
+                style={{ backgroundColor: v.color_hex }}
+                title={v.label_en}
+              />
+            ))}
+            {product.color_variants.length > 5 && (
+              <span className="text-[10px] text-muted-foreground font-body ml-0.5">
+                +{product.color_variants.length - 5}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </motion.div>
   );

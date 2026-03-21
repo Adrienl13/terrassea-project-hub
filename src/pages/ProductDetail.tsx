@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ml } from "@/lib/i18nFields";
 import SEO from "@/components/SEO";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
+import ColorVariantSelector from "@/components/products/ColorVariantSelector";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -32,6 +33,7 @@ const ProductDetail = () => {
   const { profile } = useAuth();
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const isArchitect = profile?.user_type === "architect";
 
   const { data: product, isLoading } = useQuery({
@@ -107,12 +109,16 @@ const ProductDetail = () => {
 
   const localName = ml(product, "name");
 
+  // Determine displayed image based on selected color variant
+  const activeVariant = product.color_variants.find((v) => v.color_slug === selectedVariant);
+  const displayImage = activeVariant?.image_url || product.image_url || "/placeholder.svg";
+
   const handleAdd = () => {
     if (isArchitect) {
       setProjectModalOpen(true);
       return;
     }
-    addItem(product);
+    addItem(product, undefined, undefined, undefined, selectedVariant ?? undefined);
     toast.success(`${localName} ${t('success.addedToProject').toLowerCase()}`);
   };
 
@@ -191,9 +197,9 @@ const ProductDetail = () => {
               >
                 <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4">
                   <img
-                    src={product.image_url || "/placeholder.svg"}
+                    src={displayImage}
                     alt={localName}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-all duration-300"
                   />
                 </div>
                 {product.gallery_urls.length > 0 && (
@@ -228,6 +234,16 @@ const ProductDetail = () => {
                    <p className="text-xs text-muted-foreground font-body mt-1">
                       {t('productDetail.collection')}: {product.collection}
                     </p>
+                  )}
+                  {product.color_variants.length > 1 && (
+                    <div className="mt-3">
+                      <ColorVariantSelector
+                        variants={product.color_variants}
+                        selectedColor={selectedVariant}
+                        onSelectColor={setSelectedVariant}
+                        size="md"
+                      />
+                    </div>
                   )}
                    <div className="flex items-center gap-3 mt-3">
                     <span className="text-lg font-display font-bold text-foreground">

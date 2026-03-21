@@ -427,6 +427,7 @@ export type Database = {
           project_request_id: string | null
           quantity: number
           quote_request_id: string | null
+          review_requested_at: string | null
           shipped_at: string | null
           shipping_carrier: string | null
           status: string
@@ -475,6 +476,7 @@ export type Database = {
           project_request_id?: string | null
           quantity?: number
           quote_request_id?: string | null
+          review_requested_at?: string | null
           shipped_at?: string | null
           shipping_carrier?: string | null
           status?: string
@@ -523,6 +525,7 @@ export type Database = {
           project_request_id?: string | null
           quantity?: number
           quote_request_id?: string | null
+          review_requested_at?: string | null
           shipped_at?: string | null
           shipping_carrier?: string | null
           status?: string
@@ -1008,6 +1011,7 @@ export type Database = {
           created_at: string
           id: string
           is_verified: boolean | null
+          order_id: string | null
           partner_id: string
           project_request_id: string | null
           rating: number
@@ -1018,6 +1022,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_verified?: boolean | null
+          order_id?: string | null
           partner_id: string
           project_request_id?: string | null
           rating: number
@@ -1028,6 +1033,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_verified?: boolean | null
+          order_id?: string | null
           partner_id?: string
           project_request_id?: string | null
           rating?: number
@@ -1035,6 +1041,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "partner_ratings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "partner_ratings_partner_id_fkey"
             columns: ["partner_id"]
@@ -1656,6 +1669,72 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_submissions: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          detected_duplicate_id: string | null
+          existing_description: string | null
+          id: string
+          merge_status: string | null
+          merged_description: string | null
+          original_description: string | null
+          partner_id: string
+          product_data: Json
+          reviewed_at: string | null
+          reviewed_by: string | null
+          similarity_score: number | null
+          status: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          detected_duplicate_id?: string | null
+          existing_description?: string | null
+          id?: string
+          merge_status?: string | null
+          merged_description?: string | null
+          original_description?: string | null
+          partner_id: string
+          product_data: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          similarity_score?: number | null
+          status?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          detected_duplicate_id?: string | null
+          existing_description?: string | null
+          id?: string
+          merge_status?: string | null
+          merged_description?: string | null
+          original_description?: string | null
+          partner_id?: string
+          product_data?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          similarity_score?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_submissions_detected_duplicate_id_fkey"
+            columns: ["detected_duplicate_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_submissions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]
@@ -2545,6 +2624,215 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_call_needs: {
+        Row: {
+          call_id: string
+          category: string
+          description: string
+          id: string
+          priority: string
+          qty: number | null
+          sort_order: number
+        }
+        Insert: {
+          call_id: string
+          category: string
+          description?: string
+          id?: string
+          priority?: string
+          qty?: number | null
+          sort_order?: number
+        }
+        Update: {
+          call_id?: string
+          category?: string
+          description?: string
+          id?: string
+          priority?: string
+          qty?: number | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_call_needs_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_call_response_products: {
+        Row: {
+          id: string
+          image: string | null
+          name: string
+          qty: number
+          response_id: string
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          image?: string | null
+          name: string
+          qty?: number
+          response_id: string
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          id?: string
+          image?: string | null
+          name?: string
+          qty?: number
+          response_id?: string
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_call_response_products_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_call_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_call_responses: {
+        Row: {
+          attachments: string[] | null
+          call_id: string
+          created_at: string
+          delivery_weeks: number
+          estimated_amount: number
+          id: string
+          message: string
+          selected: boolean
+          supplier_company: string
+          supplier_id: string | null
+          supplier_name: string
+          warranty: string | null
+        }
+        Insert: {
+          attachments?: string[] | null
+          call_id: string
+          created_at?: string
+          delivery_weeks?: number
+          estimated_amount?: number
+          id?: string
+          message?: string
+          selected?: boolean
+          supplier_company?: string
+          supplier_id?: string | null
+          supplier_name?: string
+          warranty?: string | null
+        }
+        Update: {
+          attachments?: string[] | null
+          call_id?: string
+          created_at?: string
+          delivery_weeks?: number
+          estimated_amount?: number
+          id?: string
+          message?: string
+          selected?: boolean
+          supplier_company?: string
+          supplier_id?: string | null
+          supplier_name?: string
+          warranty?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_call_responses_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_calls: {
+        Row: {
+          ambiance: string | null
+          architect_id: string
+          brief: string
+          budget: string
+          clicks: number
+          client_name: string
+          constraints: string | null
+          created_at: string
+          deadline: string
+          id: string
+          materials: string[] | null
+          project_id: string | null
+          project_name: string
+          seating_capacity: number | null
+          status: string
+          style: string | null
+          surface_area: string | null
+          updated_at: string
+          urgency: string
+          venue_type: string
+          views: number
+        }
+        Insert: {
+          ambiance?: string | null
+          architect_id: string
+          brief?: string
+          budget?: string
+          clicks?: number
+          client_name?: string
+          constraints?: string | null
+          created_at?: string
+          deadline?: string
+          id?: string
+          materials?: string[] | null
+          project_id?: string | null
+          project_name: string
+          seating_capacity?: number | null
+          status?: string
+          style?: string | null
+          surface_area?: string | null
+          updated_at?: string
+          urgency?: string
+          venue_type?: string
+          views?: number
+        }
+        Update: {
+          ambiance?: string | null
+          architect_id?: string
+          brief?: string
+          budget?: string
+          clicks?: number
+          client_name?: string
+          constraints?: string | null
+          created_at?: string
+          deadline?: string
+          id?: string
+          materials?: string[] | null
+          project_id?: string | null
+          project_name?: string
+          seating_capacity?: number | null
+          status?: string
+          style?: string | null
+          surface_area?: string | null
+          updated_at?: string
+          urgency?: string
+          venue_type?: string
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_calls_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "architect_projects"
             referencedColumns: ["id"]
           },
         ]
