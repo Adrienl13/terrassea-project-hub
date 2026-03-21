@@ -669,7 +669,8 @@
     "rewards": "Ricompense",
     "supplierCalls": "Bandi fornitori",
     "newSupplierCall": "Nuovo bando fornitore",
-    "designAssistant": "Design IA"
+    "designAssistant": "Design IA",
+    "loyalty": "Fedeltà"
   },
   "cd": {
     "welcome": "Ciao {{name}}!",
@@ -2920,7 +2921,8 @@
     "relevance_score": "Punteggio di rilevanza",
     "quick_verdict": "Verdetto rapido",
     "project_relevance": "Rilevanza progetto",
-    "remove": "Rimuovi"
+    "remove": "Rimuovi",
+    "download_csv": "Scarica CSV"
   },
   "annotations": {
     "placeholder": "Aggiungi una nota...",
@@ -3086,6 +3088,9 @@
     "tabMyAnalyses": "Le mie analisi",
     "addAllToProject": "Aggiungi tutto al progetto",
     "createFromAnalysis": "Crea un progetto da questa analisi",
-    "saveMaterialBoard": "Salva nella tavola dei materiali"
+    "saveMaterialBoard": "Salva nella tavola dei materiali",
+    "savingMaterialBoard": "Salvataggio...",
+    "materialBoardCreated": "Tavola dei materiali creata con {{count}} prodotti",
+    "materialBoardError": "Impossibile creare la tavola dei materiali"
   }
 }

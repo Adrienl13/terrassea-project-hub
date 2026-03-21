@@ -8,6 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSupplierCalls } from "@/hooks/useSupplierCalls";
 import type { SupplierCall as HookSupplierCall, SupplierResponse as HookSupplierResponse } from "@/hooks/useSupplierCalls";
+import { useArchitectProjects, useProjectZones, useProjectAnnotations, useMaterialBoards } from "@/hooks/useArchitectProjects";
+import type { ZoneWithProducts } from "@/hooks/useArchitectProjects";
+
+const ProjectAnnotations = lazy(() => import("./ProjectAnnotations"));
+const MaterialBoardView = lazy(() => import("./MaterialBoardView"));
 import {
   TrendingUp, Star, ChevronRight, ChevronLeft, Award, Compass, Crown,
   FolderOpen, MessageSquare, Plus, Search, Calendar,
@@ -123,76 +128,6 @@ interface ArchitectProject {
   notes: ProjectNote[];
   zones: ProjectZone[];
 }
-
-export const MOCK_PROJECTS: ArchitectProject[] = [
-  {
-    id: "1", clientName: "Groupe Accor", clientEmail: "m.dupont@accor.com", clientPhone: "+33 1 45 38 86 00", clientCompany: "Accor S.A.",
-    projectName: "Terrasse Rooftop — Sofitel Paris", venueType: "hotel",
-    zoneCount: 3, productCount: 48, estimatedValue: 67500, status: "in-progress", updatedAt: "Il y a 2j", quotesCount: 6,
-    address: "12 Boulevard Haussmann, 75009 Paris", surfaceArea: "240m²", style: "Contemporain épuré",
-    startDate: "15 fév. 2026", deadline: "30 avril 2026",
-    description: "Aménagement complet de la terrasse rooftop du Sofitel Paris. 3 zones distinctes : lounge bar, espace dining et solarium. Style contemporain épuré, matériaux premium résistants UV.",
-    constraints: "Résistance UV obligatoire. Poids max 15kg/m² sur la dalle. Coloris à valider avec la direction artistique de l'hôtel.",
-    notes: [
-      { id: "n1", text: "Le client souhaite intégrer un système d'éclairage LED dans le mobilier. Vérifier compatibilité avec les fournisseurs.", author: "Adrien", date: "18 mars", pinned: true },
-      { id: "n2", text: "Rdv sur site le 25 mars à 10h avec le directeur de l'hôtel pour valider l'implantation zone lounge.", author: "Adrien", date: "16 mars" },
-      { id: "n3", text: "Fermob a confirmé délai de 6 semaines pour les chaises Luxembourg en coloris custom (vert olive).", author: "Adrien", date: "14 mars" },
-    ],
-    zones: [
-      { id: "z1", name: "Lounge Bar", area: "80m²", productCount: 18, products: [
-        { name: "Riviera Dining Chair", qty: 12, supplier: "Fermob Pro", status: "commandé", image: "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=80&h=80&fit=crop", productId: "cb50f77a-e888-45d2-aec8-2ff0c3408c0a" },
-        { name: "Soleil Round Table", qty: 4, supplier: "Fermob Pro", status: "devis accepté", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=80&h=80&fit=crop", productId: "3415d1a0-e75a-40ba-8726-c0f1f492b416" },
-        { name: "Terrazza Lounge Sofa", qty: 2, supplier: "Nardi", status: "en attente", image: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=80&h=80&fit=crop", productId: "fbd8e68c-8ebd-4c41-8f79-81677bb4ca65" },
-      ]},
-      { id: "z2", name: "Espace Dining", area: "100m²", productCount: 20, products: [
-        { name: "Bistro Stackable Chair", qty: 24, supplier: "Fermob Pro", status: "devis envoyé", image: "https://images.unsplash.com/photo-1503602642458-232111445657?w=80&h=80&fit=crop", productId: "1077eccb-9a41-4f7e-aba3-f6aa0eaec83c" },
-        { name: "Marble Dining Table", qty: 6, supplier: "Ethimo", status: "devis envoyé", image: "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=80&h=80&fit=crop", productId: "1d1e8d8d-613a-4fe4-8855-70574fc91d4a" },
-      ]},
-      { id: "z3", name: "Solarium", area: "60m²", productCount: 10, products: [
-        { name: "Côte Lounge Armchair", qty: 8, supplier: "Vlaemynck", status: "en attente", image: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=80&h=80&fit=crop", productId: "81a68561-ab3a-49ff-83c0-0bc60058f265" },
-        { name: "Horizon Parasol 3m", qty: 4, supplier: "Umbrosa", status: "devis envoyé", image: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=80&h=80&fit=crop", productId: "dae18b98-08c7-4165-9838-f95173f47dea" },
-      ]},
-    ],
-  },
-  {
-    id: "2", clientName: "Le Comptoir du Marais", clientEmail: "pierre@lecomptoir.fr", clientPhone: "+33 6 12 34 56 78", clientCompany: "SAS Le Comptoir du Marais",
-    projectName: "Patio & Jardin intérieur", venueType: "restaurant",
-    zoneCount: 2, productCount: 24, estimatedValue: 18200, status: "quoting", updatedAt: "Il y a 5j", quotesCount: 4,
-    address: "45 Rue des Rosiers, 75004 Paris", surfaceArea: "55m²", style: "Bistrot chic parisien",
-    startDate: "1er mars 2026", deadline: "15 mai 2026",
-    description: "Aménagement du patio intérieur et du petit jardin arrière. Ambiance bistrot chic parisien. Mobilier empilable obligatoire pour stockage hivernal.",
-    constraints: "Mobilier empilable obligatoire (stockage cave en hiver). Hauteur max des plantes 1m80 (vis-à-vis voisins).",
-    notes: [
-      { id: "n4", text: "Le propriétaire veut absolument du mobilier empilable. Contrainte de stockage hivernal dans la cave.", author: "Adrien", date: "12 mars", pinned: true },
-      { id: "n5", text: "Budget serré, privilégier les gammes mid-range. Ethimo Costes est au-dessus du budget.", author: "Adrien", date: "10 mars" },
-    ],
-    zones: [
-      { id: "z4", name: "Patio intérieur", area: "35m²", productCount: 16, products: [
-        { name: "Bistro Stackable Chair", qty: 16, supplier: "Tolix", status: "devis envoyé", image: "https://images.unsplash.com/photo-1551298370-9d3d08a7e0d6?w=80&h=80&fit=crop", productId: "1077eccb-9a41-4f7e-aba3-f6aa0eaec83c" },
-        { name: "Soleil Round Table", qty: 8, supplier: "Fermob Pro", status: "devis envoyé", image: "https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=80&h=80&fit=crop", productId: "3415d1a0-e75a-40ba-8726-c0f1f492b416" },
-      ]},
-      { id: "z5", name: "Jardin arrière", area: "20m²", productCount: 8, products: [
-        { name: "Terrazza Lounge Sofa", qty: 2, supplier: "Fermob Pro", status: "en attente", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=80&h=80&fit=crop", productId: "fbd8e68c-8ebd-4c41-8f79-81677bb4ca65" },
-        { name: "Porto Bar Stool", qty: 4, supplier: "Fermob Pro", status: "en attente", image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=80&h=80&fit=crop", productId: "be5e2b6e-2828-48f4-a129-e68811c04abe" },
-      ]},
-    ],
-  },
-  {
-    id: "3", clientName: "Hôtel & Spa Biarritz", projectName: "Bord de piscine & Solarium", venueType: "hotel",
-    zoneCount: 2, productCount: 36, estimatedValue: 42000, status: "quoting", updatedAt: "Il y a 1sem", quotesCount: 3,
-    notes: [], zones: [],
-  },
-  {
-    id: "4", clientName: "Beach House Marseille", projectName: "Beach Club Lounge", venueType: "beach-club",
-    zoneCount: 4, productCount: 64, estimatedValue: 89000, status: "draft", updatedAt: "Il y a 2sem", quotesCount: 0,
-    notes: [], zones: [],
-  },
-  {
-    id: "5", clientName: "La Villa Cannes", projectName: "Jardin Méditerranéen", venueType: "restaurant",
-    zoneCount: 1, productCount: 16, estimatedValue: 12400, status: "delivered", updatedAt: "Il y a 1mois", quotesCount: 5,
-    notes: [], zones: [],
-  },
-];
 
 interface QuoteProduct {
   name: string;
@@ -323,153 +258,7 @@ interface SupplierCall {
   responses: SupplierResponse[];
 }
 
-const MOCK_SUPPLIER_CALLS: SupplierCall[] = [
-  {
-    id: "1", projectName: "Sofitel Paris — Rooftop", clientName: "Groupe Accor", venueType: "hotel",
-    brief: "Mobilier haut de gamme pour terrasse rooftop 200m², style contemporain épuré. Résistance UV et intempéries indispensable. 3 zones : lounge bar (80m²), dining (100m²), solarium (60m²). Besoin de chaises, tables, bains de soleil et parasols. Coloris à valider avec la direction artistique.",
-    budget: "60 000 – 80 000 €", deadline: "15 avril 2026",
-    needs: [
-      { category: "Assises", description: "Chaises dining + fauteuils lounge", qty: 40, priority: "essential" },
-      { category: "Tables", description: "Tables dining 6-8 pers. + tables basses lounge + tables hautes bar", qty: 18, priority: "essential" },
-      { category: "Bains de soleil", description: "Transats solarium avec matelas intégrés", qty: 10, priority: "essential" },
-      { category: "Parasols & protection", description: "Parasols grand format (3m+) pour zones dining et lounge", qty: 8, priority: "essential" },
-      { category: "Éclairage", description: "Lampes d'ambiance outdoor, bornes lumineuses, guirlandes", qty: 20, priority: "important" },
-      { category: "Décoration & végétal", description: "Jardinières design, bacs à plantes, séparations végétales", qty: 12, priority: "important" },
-      { category: "Accessoires", description: "Coussins outdoor, plaids, porte-menus, cendriers design", priority: "optional" },
-    ],
-    style: "Contemporain épuré", materials: ["Aluminium", "Teck", "Toile Sunbrella"], ambiance: "Élégant et minimaliste, esprit palace contemporain",
-    surfaceArea: "240m²", seatingCapacity: 80, urgency: "normal",
-    constraints: "Résistance UV obligatoire. Poids max 15kg/m². Coloris custom possible. Éclairage autonome (solaire ou batterie).",
-    status: "open", responsesCount: 4, views: 47, clicks: 12, createdAt: "Il y a 3j",
-    responses: [
-      { id: "r1", supplierName: "Marie Dubois", supplierCompany: "Fermob Pro", message: "Nous proposons la gamme Luxembourg + Bellevie en coloris vert olive (série spéciale). Livraison 6 semaines. Échantillons disponibles.", estimatedAmount: 42000, deliveryWeeks: 6, warranty: "5 ans", date: "Il y a 2j",
-        products: [
-          { name: "Chaise Luxembourg", qty: 24, unitPrice: 385, total: 9240, image: "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=60&h=60&fit=crop" },
-          { name: "Table Bellevie 140×80", qty: 6, unitPrice: 890, total: 5340, image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=60&h=60&fit=crop" },
-          { name: "Table Bellevie 196×90", qty: 4, unitPrice: 1425, total: 5700, image: "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=60&h=60&fit=crop" },
-          { name: "Bain de soleil Alizé", qty: 10, unitPrice: 890, total: 8900 },
-          { name: "Parasol Shadoo 300cm", qty: 6, unitPrice: 2135, total: 12810 },
-        ], attachments: ["Fiche_Luxembourg_Vert_Olive.pdf", "Plan_implantation_rooftop.pdf"] },
-      { id: "r2", supplierName: "Luca Rossi", supplierCompany: "Ethimo", message: "Collection Costes pour le lounge, Craft pour le dining. Finition teck + aluminium. Échantillons sous 48h.", estimatedAmount: 55000, deliveryWeeks: 8, warranty: "3 ans", date: "Il y a 2j",
-        products: [
-          { name: "Canapé Costes 2P", qty: 6, unitPrice: 1650, total: 9900 },
-          { name: "Fauteuil Costes", qty: 8, unitPrice: 980, total: 7840 },
-          { name: "Table basse Costes", qty: 4, unitPrice: 720, total: 2880 },
-          { name: "Table Craft 200×100", qty: 6, unitPrice: 1850, total: 11100 },
-          { name: "Chaise Allaperto Mountain", qty: 24, unitPrice: 480, total: 11520 },
-          { name: "Bain de soleil Allaperto", qty: 8, unitPrice: 1470, total: 11760 },
-        ] },
-      { id: "r3", supplierName: "Carlos Perez", supplierCompany: "Vondom", message: "Gamme Faz en finition premium laquée. Design contemporain parfait pour un rooftop 5 étoiles. Résistance UV garantie 5 ans. Possibilité coloris RAL sur mesure.", estimatedAmount: 48000, deliveryWeeks: 5, warranty: "5 ans UV", date: "Il y a 1j",
-        products: [
-          { name: "Fauteuil Faz", qty: 20, unitPrice: 680, total: 13600, image: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=60&h=60&fit=crop" },
-          { name: "Table Faz Ø70", qty: 10, unitPrice: 420, total: 4200 },
-          { name: "Daybed Faz", qty: 8, unitPrice: 1950, total: 15600 },
-          { name: "Parasol Vela 400cm", qty: 4, unitPrice: 3650, total: 14600 },
-        ] },
-      { id: "r4", supplierName: "Anna Schmidt", supplierCompany: "Dedon", message: "Daybeds Swingrest pour le solarium + collection Mu pour le dining. Haut de gamme, résistance intempéries maximale. Tissu Dedon Fiber certifié.", estimatedAmount: 72000, deliveryWeeks: 10, warranty: "10 ans fibre", date: "Il y a 6h",
-        products: [
-          { name: "Daybed Swingrest", qty: 6, unitPrice: 4200, total: 25200 },
-          { name: "Chaise Mu", qty: 24, unitPrice: 780, total: 18720 },
-          { name: "Table Mu 200×100", qty: 6, unitPrice: 2450, total: 14700 },
-          { name: "Table basse Mu Ø80", qty: 4, unitPrice: 850, total: 3400 },
-        ], attachments: ["Catalogue_Dedon_2026.pdf"] },
-    ],
-  },
-  {
-    id: "2", projectName: "Beach Club Lounge", clientName: "Beach House Marseille", venueType: "beach-club",
-    brief: "Collection complète beach club : daybeds, fauteuils bas, tables basses. Matériaux résistants sel/sable. Style méditerranéen contemporain.",
-    budget: "80 000 – 100 000 €", deadline: "1er mai 2026",
-    needs: [
-      { category: "Daybeds & transats", description: "Daybeds doubles et transats pour zone plage", qty: 20, priority: "essential" },
-      { category: "Assises lounge", description: "Fauteuils bas, canapés modulaires, poufs outdoor", qty: 30, priority: "essential" },
-      { category: "Tables", description: "Tables basses, tables d'appoint entre transats", qty: 15, priority: "essential" },
-      { category: "Parasols & voiles", description: "Parasols déportés + voiles d'ombrage pour zone lounge", qty: 10, priority: "essential" },
-      { category: "Douches & accessoires", description: "Douches extérieures design, porte-serviettes, coffres", qty: 4, priority: "important" },
-      { category: "Éclairage", description: "Lampes solaires, torches, éclairage de chemin", qty: 30, priority: "important" },
-      { category: "Décoration", description: "Pots XXL, palmiers artificiels, séparations en canisse premium", qty: 15, priority: "optional" },
-    ],
-    style: "Méditerranéen contemporain", materials: ["Résine tressée", "Aluminium marine", "Tissu Quick-dry"],
-    ambiance: "Lounge bord de mer décontracté chic, pieds dans le sable", surfaceArea: "350m²", seatingCapacity: 60, urgency: "normal",
-    constraints: "Résistance sel et sable. Séchage rapide. Coussins déhoussables. Mobilier léger pour réagencement quotidien.",
-    status: "open", responsesCount: 2, views: 31, clicks: 8, createdAt: "Il y a 1sem",
-    responses: [
-      { id: "r5", supplierName: "Carlos Perez", supplierCompany: "Vondom", message: "Gamme Faz + Pillow idéale pour les beach clubs. Résistance sel/UV garantie. Livraison Marseille incluse.", estimatedAmount: 65000, deliveryWeeks: 6, warranty: "5 ans", date: "Il y a 4j",
-        products: [
-          { name: "Daybed Faz", qty: 12, unitPrice: 1950, total: 23400 },
-          { name: "Fauteuil Pillow", qty: 20, unitPrice: 580, total: 11600 },
-          { name: "Table basse Pillow", qty: 10, unitPrice: 320, total: 3200 },
-          { name: "Canapé Suave 3P", qty: 6, unitPrice: 2800, total: 16800 },
-          { name: "Jardinière Nano", qty: 8, unitPrice: 250, total: 2000 },
-        ] },
-      { id: "r6", supplierName: "Marie Dubois", supplierCompany: "Fermob Pro", message: "Collection Surprising + Bellevie adaptées bord de mer. Traitement anticorrosion renforcé. Coussins Sunbrella déhoussables.", estimatedAmount: 58000, deliveryWeeks: 7, warranty: "5 ans structure", date: "Il y a 2j",
-        products: [
-          { name: "Bain de soleil Surprising", qty: 14, unitPrice: 750, total: 10500 },
-          { name: "Fauteuil bas Bellevie", qty: 16, unitPrice: 580, total: 9280 },
-          { name: "Table basse Bellevie", qty: 8, unitPrice: 390, total: 3120 },
-          { name: "Canapé Bellevie 2P", qty: 8, unitPrice: 1450, total: 11600 },
-          { name: "Coussin Sunbrella (lot)", qty: 8, unitPrice: 420, total: 3360 },
-        ] },
-    ],
-  },
-  {
-    id: "3", projectName: "Patio Le Comptoir", clientName: "Le Comptoir du Marais", venueType: "restaurant",
-    brief: "Mobilier terrasse restaurant parisien, ambiance bistrot chic. Empilable pour stockage hivernal. 16 couverts en terrasse + 8 en jardin.",
-    budget: "15 000 – 20 000 €", deadline: "1er avril 2026",
-    needs: [
-      { category: "Chaises", description: "Chaises empilables pour terrasse, légères (<5kg)", qty: 16, priority: "essential" },
-      { category: "Tables", description: "Tables bistrot rondes et carrées", qty: 8, priority: "essential" },
-      { category: "Banquettes", description: "Banquettes murales pour zone jardin", qty: 2, priority: "important" },
-      { category: "Protection", description: "Store banne ou parasols pour ombrage terrasse", qty: 2, priority: "important" },
-      { category: "Éclairage", description: "Lanternes de table, guirlandes guinguette", qty: 10, priority: "optional" },
-      { category: "Décoration", description: "Pots de fleurs, tableau noir menu, porte-revues", priority: "optional" },
-    ],
-    style: "Bistrot chic", materials: ["Acier", "Bois", "Aluminium"], ambiance: "Parisien chaleureux, esprit terrasse de quartier",
-    surfaceArea: "55m²", seatingCapacity: 24, urgency: "urgent",
-    constraints: "Empilable obligatoire. Stockage cave. Max 5kg/chaise. Normes terrasse Mairie de Paris.",
-    status: "evaluating", responsesCount: 6, views: 83, clicks: 24, createdAt: "Il y a 2sem",
-    responses: [
-      { id: "r7", supplierName: "Marie Dubois", supplierCompany: "Fermob Pro", message: "Gamme Bistro empilable (par 10), classique et résistante. Coloris au choix parmi 24 teintes. Structure acier traité cataphorèse.", estimatedAmount: 12800, deliveryWeeks: 3, warranty: "5 ans", date: "Il y a 10j", selected: true,
-        products: [
-          { name: "Chaise Bistro", qty: 16, unitPrice: 285, total: 4560 },
-          { name: "Table Bistro Ø77", qty: 8, unitPrice: 390, total: 3120 },
-          { name: "Fauteuil bas Cocotte", qty: 4, unitPrice: 420, total: 1680 },
-          { name: "Banquette Bellevie 2P", qty: 2, unitPrice: 890, total: 1780 },
-          { name: "Coussin Bistro (lot 16)", qty: 1, unitPrice: 640, total: 640 },
-        ], attachments: ["Nuancier_Fermob_2026.pdf"] },
-      { id: "r8", supplierName: "Jean Martin", supplierCompany: "Tolix", message: "Chaise A en acier inoxydable, empilable par 10. Look industriel chic. Finition vernis brillant ou mat.", estimatedAmount: 14200, deliveryWeeks: 4, warranty: "10 ans acier inox", date: "Il y a 9j",
-        products: [
-          { name: "Chaise A", qty: 16, unitPrice: 395, total: 6320 },
-          { name: "Tabouret H", qty: 4, unitPrice: 345, total: 1380 },
-          { name: "Table Kub 70×70", qty: 8, unitPrice: 520, total: 4160 },
-          { name: "Banc T14 120cm", qty: 2, unitPrice: 580, total: 1160 },
-        ] },
-      { id: "r9", supplierName: "Luca Rossi", supplierCompany: "Ethimo", message: "Gamme bistrot mid-range en aluminium léger. Empilable et ultra-légère (3.2kg/chaise).", estimatedAmount: 16500, deliveryWeeks: 5, date: "Il y a 8j",
-        products: [
-          { name: "Chaise Allaperto Bistro", qty: 16, unitPrice: 420, total: 6720 },
-          { name: "Table Allaperto Ø70", qty: 8, unitPrice: 650, total: 5200 },
-          { name: "Banquette Grand Life", qty: 2, unitPrice: 1150, total: 2300 },
-        ] },
-      { id: "r10", supplierName: "Sophie Laurent", supplierCompany: "Lafuma Mobilier", message: "Chaises pliantes Anytime + tables Caractère. Ultra-compact pour le stockage. Certification NF Outdoor.", estimatedAmount: 11200, deliveryWeeks: 3, date: "Il y a 7j",
-        products: [
-          { name: "Chaise pliante Anytime", qty: 16, unitPrice: 195, total: 3120 },
-          { name: "Table Caractère 128×90", qty: 4, unitPrice: 650, total: 2600 },
-          { name: "Table Caractère Ø70", qty: 4, unitPrice: 420, total: 1680 },
-          { name: "Fauteuil Transabed", qty: 4, unitPrice: 380, total: 1520 },
-        ] },
-      { id: "r11", supplierName: "Carlos Perez", supplierCompany: "Vondom", message: "Chaises Africa empilables, design moderne. Tables Vases assorties. Finition mate.", estimatedAmount: 18900, deliveryWeeks: 6, date: "Il y a 6j",
-        products: [
-          { name: "Chaise Africa", qty: 16, unitPrice: 520, total: 8320 },
-          { name: "Table Vases Ø70", qty: 8, unitPrice: 680, total: 5440 },
-          { name: "Banc Solid", qty: 2, unitPrice: 1280, total: 2560 },
-        ] },
-      { id: "r12", supplierName: "Anna Schmidt", supplierCompany: "Dedon", message: "Collection SeaX pliable et empilable. Premium : structure alu + fibre Dedon résistante 15 ans.", estimatedAmount: 19500, deliveryWeeks: 8, warranty: "15 ans fibre", date: "Il y a 5j",
-        products: [
-          { name: "Chaise SeaX", qty: 16, unitPrice: 680, total: 10880 },
-          { name: "Table SeaX 75×75", qty: 8, unitPrice: 780, total: 6240 },
-        ] },
-    ],
-  },
-];
+// MOCK_SUPPLIER_CALLS removed — now using useSupplierCalls() hook for real DB data.
 
 interface PointsEntry {
   id: string;
@@ -533,6 +322,7 @@ const STATUS_STYLES: Record<string, { label: string; style: string }> = {
   draft:         { label: "Brouillon",  style: "bg-muted text-muted-foreground" },
   quoting:       { label: "Devis",      style: "bg-amber-50 text-amber-700" },
   "in-progress": { label: "En cours",   style: "bg-blue-50 text-blue-700" },
+  in_progress:   { label: "En cours",   style: "bg-blue-50 text-blue-700" },
   delivered:     { label: "Livré",      style: "bg-green-50 text-green-700" },
   archived:      { label: "Archivé",    style: "bg-muted text-muted-foreground" },
 };
@@ -562,6 +352,54 @@ const VENUE_ICONS: Record<string, string> = {
   hotel: "🏨", restaurant: "🍽", bar: "🍸", "beach-club": "🏖", rooftop: "🌇", cafe: "☕",
 };
 
+/** Map a DB architect_projects row (+ optional zones) into the ArchitectProject UI shape */
+function dbToArchitectProject(row: any, zones?: ZoneWithProducts[]): ArchitectProject {
+  const zonesMapped: ProjectZone[] = (zones || []).map((z) => ({
+    id: z.id,
+    name: z.zone_name || "Zone",
+    area: z.zone_area || "",
+    productCount: z.products?.length || 0,
+    products: (z.products || []).map((p: any) => ({
+      name: p.product?.name || "Unknown product",
+      qty: p.quantity || 1,
+      supplier: p.supplier_name || "",
+      status: p.status || "en attente",
+      image: p.product?.image || undefined,
+      productId: p.product_id || undefined,
+    })),
+  }));
+  const totalProducts = zonesMapped.reduce((sum, z) => sum + z.productCount, 0);
+
+  const updatedAt = row.updated_at
+    ? new Date(row.updated_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+    : "";
+
+  return {
+    id: row.id,
+    clientName: row.client_name || "",
+    clientEmail: row.client_email || undefined,
+    clientPhone: row.client_phone || undefined,
+    clientCompany: row.client_company || undefined,
+    projectName: row.project_name || "",
+    venueType: row.venue_type || "",
+    zoneCount: zonesMapped.length,
+    productCount: totalProducts,
+    estimatedValue: Number(row.estimated_value || 0),
+    status: (row.status || "draft") as ArchitectProject["status"],
+    updatedAt,
+    quotesCount: 0,
+    address: row.address || undefined,
+    surfaceArea: row.surface_area || undefined,
+    style: row.style || undefined,
+    startDate: row.start_date || undefined,
+    deadline: row.deadline || undefined,
+    description: row.description || undefined,
+    constraints: row.constraints || undefined,
+    notes: [],
+    zones: zonesMapped,
+  };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ── ARCHITECT OVERVIEW ──────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -573,11 +411,15 @@ export function ArchitectOverview({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { projects: dbProjects, stats, isLoading: projectsLoading } = useArchitectProjects();
+  const { calls, isLoading: callsLoading } = useSupplierCalls();
   const config = TIER_CONFIG[tier];
   const nextTier = tier === "studio" ? "atelier" : tier === "atelier" ? "maison" : null;
   const progress = nextTier
     ? ((MOCK_POINTS - config.threshold) / (config.nextThreshold! - config.threshold)) * 100
     : 100;
+  const recentProjects = dbProjects.slice(0, 3).map((row) => dbToArchitectProject(row));
+  const activeCalls = calls.filter((c) => c.status !== "closed").slice(0, 2);
 
   return (
     <div className="space-y-5">
@@ -625,15 +467,15 @@ export function ArchitectOverview({
           </button>
         </div>
         <div className="space-y-2">
-          {MOCK_PROJECTS.slice(0, 3).map((p) => {
-            const st = STATUS_STYLES[p.status];
+          {recentProjects.map((p) => {
+            const st = STATUS_STYLES[p.status] || STATUS_STYLES.draft;
             return (
               <div key={p.id} onClick={() => onNavigate(`project-detail:${p.id}`)} className="flex items-center justify-between px-4 py-3 border border-border rounded-sm hover:border-foreground/20 transition-colors cursor-pointer">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-base">{VENUE_ICONS[p.venueType] || "📍"}</span>
                   <div className="min-w-0">
                     <p className="text-xs font-display font-semibold text-foreground truncate">{p.projectName}</p>
-                    <p className="text-[10px] font-body text-muted-foreground">{p.clientName} · {p.zoneCount} zones · {p.productCount} produits · {p.updatedAt}</p>
+                    <p className="text-[10px] font-body text-muted-foreground">{p.clientName} · {p.updatedAt}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
@@ -655,12 +497,12 @@ export function ArchitectOverview({
           </button>
         </div>
         <div className="space-y-2">
-          {MOCK_SUPPLIER_CALLS.filter(c => c.status === "open").slice(0, 2).map((c) => (
+          {activeCalls.map((c) => (
             <div key={c.id} className="flex items-center justify-between px-4 py-3 border border-border rounded-sm hover:border-foreground/20 transition-colors cursor-pointer">
               <div className="flex items-center gap-3 min-w-0">
                 <Megaphone className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-xs font-display font-semibold text-foreground truncate">{c.projectName}</p>
+                  <p className="text-xs font-display font-semibold text-foreground truncate">{c.projectTitle}</p>
                   <p className="text-[10px] font-body text-muted-foreground">{c.budget} · {c.responsesCount} réponses · {c.createdAt}</p>
                 </div>
               </div>
@@ -711,6 +553,8 @@ const labelCls = "text-[10px] font-display font-semibold uppercase tracking-wide
 
 export function ArchitectCreateProject({ onBack, onCreated }: { onBack: () => void; onCreated?: (project: ArchitectProject) => void }) {
   const { t } = useTranslation();
+  const { createProject } = useArchitectProjects();
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     projectName: "", venueType: "restaurant",
     clientName: "", clientEmail: "", clientPhone: "", clientCompany: "",
@@ -722,33 +566,33 @@ export function ArchitectCreateProject({ onBack, onCreated }: { onBack: () => vo
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(p => ({ ...p, [field]: e.target.value }));
 
-  const handleSubmit = () => {
-    if (!form.projectName || !form.clientName) return;
-    const newProject: ArchitectProject = {
-      id: `new-${Date.now()}`,
-      projectName: form.projectName,
-      clientName: form.clientName,
-      clientEmail: form.clientEmail || undefined,
-      clientPhone: form.clientPhone || undefined,
-      clientCompany: form.clientCompany || undefined,
-      venueType: form.venueType,
-      address: form.address || undefined,
-      surfaceArea: form.surfaceArea || undefined,
-      style: form.style || undefined,
-      startDate: form.startDate || undefined,
-      deadline: form.deadline || undefined,
-      description: form.description || undefined,
-      constraints: form.constraints || undefined,
-      zoneCount: 0,
-      productCount: 0,
-      estimatedValue: 0,
-      status: "draft",
-      updatedAt: "À l'instant",
-      quotesCount: 0,
-      notes: [],
-      zones: [],
-    };
-    onCreated?.(newProject);
+  const handleSubmit = async () => {
+    if (!form.projectName || !form.clientName || submitting) return;
+    setSubmitting(true);
+    try {
+      const created = await createProject({
+        project_name: form.projectName,
+        client_name: form.clientName,
+        client_email: form.clientEmail || null,
+        client_phone: form.clientPhone || null,
+        client_company: form.clientCompany || null,
+        venue_type: form.venueType,
+        address: form.address || null,
+        surface_area: form.surfaceArea || null,
+        style: form.style || null,
+        start_date: form.startDate || null,
+        deadline: form.deadline || null,
+        description: form.description || null,
+        constraints: form.constraints || null,
+        status: "draft",
+      });
+      toast.success(t("ad.create.success") || "Project created");
+      onCreated?.(dbToArchitectProject(created));
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to create project");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -831,9 +675,19 @@ export function ArchitectProjectDetail({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const project = [...extraProjects, ...MOCK_PROJECTS].find(p => p.id === projectId);
+  const { projects: dbProjects } = useArchitectProjects();
+  const { zones: dbZones, isLoading: zonesLoading } = useProjectZones(projectId);
+  const { boards, isLoading: boardsLoading } = useMaterialBoards(projectId);
+  const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"zones" | "notes" | "boards">("zones");
+
+  // Find the DB row and convert
+  const dbRow = dbProjects.find((p) => p.id === projectId);
+  const fromExtra = extraProjects.find((p) => p.id === projectId);
+  const project = dbRow ? dbToArchitectProject(dbRow, dbZones) : fromExtra || null;
+
   const [newNote, setNewNote] = useState("");
-  const [notes, setNotes] = useState<ProjectNote[]>(project?.notes || []);
+  const [notes, setNotes] = useState<ProjectNote[]>([]);
   const [activeZone, setActiveZone] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [expandedQuote, setExpandedQuote] = useState<string | null>(null);
@@ -846,7 +700,20 @@ export function ArchitectProjectDetail({
 
   if (!project) return null;
 
-  const st = STATUS_STYLES[editStatus];
+  if (activeBoardId) {
+    return (
+      <div className="space-y-4">
+        <button onClick={() => setActiveBoardId(null)} className="flex items-center gap-1.5 text-[10px] font-body text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-3 w-3" /> Back to project
+        </button>
+        <Suspense fallback={<div className="py-8 text-center text-sm text-muted-foreground">Loading board...</div>}>
+          <MaterialBoardView boardId={activeBoardId} />
+        </Suspense>
+      </div>
+    );
+  }
+
+  const st = STATUS_STYLES[editStatus] || STATUS_STYLES.draft;
   const relatedQuotes = MOCK_QUOTES.filter(q => q.projectName.includes(project.projectName.split("—")[0].trim()) || q.clientName === project.clientName);
 
   const addNote = () => {
@@ -943,10 +810,27 @@ export function ArchitectProjectDetail({
         )}
       </div>
 
-      {/* Zones & Products */}
-      {project.zones.length > 0 && (
+      {/* Tabs: Zones | Notes | Material Boards */}
+      <div className="flex gap-1 border-b border-border">
+        {(["zones", "notes", "boards"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-[10px] font-display font-semibold uppercase tracking-wider border-b-2 transition-colors ${
+              activeTab === tab
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tab === "zones" ? t('ad.detail.zonesProducts') : tab === "notes" ? t('ad.detail.notes') : "Material Boards"}
+            {tab === "boards" && boards.length > 0 && ` (${boards.length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Zones & Products tab */}
+      {activeTab === "zones" && project.zones.length > 0 && (
         <div>
-          <p className="font-display font-bold text-sm text-foreground mb-3">{t('ad.detail.zonesProducts')}</p>
           <div className="space-y-3">
             {project.zones.map((zone) => (
               <div key={zone.id} className="border border-border rounded-sm overflow-hidden">
@@ -1006,6 +890,49 @@ export function ArchitectProjectDetail({
               </div>
             ))}
           </div>
+        </div>
+      )}
+      {activeTab === "zones" && project.zones.length === 0 && (
+        <div className="text-center py-8">
+          <MapPin className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
+          <p className="text-[10px] font-body text-muted-foreground">No zones yet</p>
+        </div>
+      )}
+
+      {/* Notes tab — real DB annotations */}
+      {activeTab === "notes" && (
+        <Suspense fallback={<div className="py-8 text-center text-sm text-muted-foreground">Loading notes...</div>}>
+          <ProjectAnnotations projectId={projectId} />
+        </Suspense>
+      )}
+
+      {/* Material Boards tab */}
+      {activeTab === "boards" && (
+        <div className="space-y-3">
+          {boardsLoading ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">Loading boards...</div>
+          ) : boards.length === 0 ? (
+            <div className="text-center py-8">
+              <Image className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-[10px] font-body text-muted-foreground">No material boards for this project</p>
+            </div>
+          ) : (
+            boards.map((board: any) => (
+              <div
+                key={board.id}
+                onClick={() => setActiveBoardId(board.id)}
+                className="flex items-center justify-between px-4 py-3 border border-border rounded-sm hover:border-foreground/20 transition-colors cursor-pointer"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-display font-semibold text-foreground truncate">{board.board_name}</p>
+                  <p className="text-[10px] font-body text-muted-foreground">
+                    {board.items?.length || 0} items · {board.updated_at ? new Date(board.updated_at).toLocaleDateString("fr-FR") : ""}
+                  </p>
+                </div>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+            ))
+          )}
         </div>
       )}
 
@@ -1083,48 +1010,6 @@ export function ArchitectProjectDetail({
         <ArchitectMessagesSection filterProjectRef={`project-${project.id}`} />
       </div>
 
-      {/* Notes */}
-      <div>
-        <p className="font-display font-bold text-sm text-foreground mb-3">{t('ad.detail.notes')}</p>
-        <div className="flex gap-2 mb-4">
-          <div className="relative flex-1">
-            <StickyNote className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input value={newNote} onChange={(e) => setNewNote(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNote()}
-              placeholder={t('ad.detail.addNotePlaceholder')}
-              className="w-full pl-9 pr-4 py-2.5 text-xs font-body bg-transparent border border-border rounded-sm focus:outline-none focus:border-foreground transition-colors" />
-          </div>
-          <button onClick={addNote} disabled={!newNote.trim()}
-            className="px-4 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-sm hover:opacity-90 transition-opacity disabled:opacity-30">
-            {t('ad.detail.add')}
-          </button>
-        </div>
-        {sortedNotes.length === 0 ? (
-          <div className="text-center py-8">
-            <StickyNote className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-[10px] font-body text-muted-foreground">{t('ad.detail.noNotes')}</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {sortedNotes.map(note => (
-              <div key={note.id} className={`px-4 py-3 border rounded-sm ${note.pinned ? "border-amber-300 bg-amber-50/50" : "border-border"}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-[11px] font-body text-foreground leading-relaxed flex-1">{note.text}</p>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => togglePin(note.id)} className={`p-1 rounded transition-colors ${note.pinned ? "text-amber-600 hover:text-amber-700" : "text-muted-foreground/40 hover:text-muted-foreground"}`}>
-                      <StickyNote className="h-3 w-3" />
-                    </button>
-                    <button onClick={() => deleteNote(note.id)} className="p-1 text-muted-foreground/40 hover:text-red-500 transition-colors">
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-                <p className="text-[9px] font-body text-muted-foreground mt-1.5">{note.author} · {note.date}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Product preview drawer */}
       {previewProductId && (
         <Suspense fallback={<div className="fixed inset-y-0 right-0 w-96 bg-background border-l border-border animate-pulse" />}>
@@ -1146,10 +1031,11 @@ export function ArchitectProjectsSection({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { projects: dbProjects, isLoading } = useArchitectProjects();
   const [filter, setFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const allProjects = [...extraProjects, ...MOCK_PROJECTS];
+  const allProjects = [...extraProjects, ...dbProjects.map((row) => dbToArchitectProject(row))];
 
   const filters = [
     { id: "all", label: t('ad.projects.all') },
@@ -2221,6 +2107,29 @@ function InlineThread({ conversationId, onBack }: { conversationId: string; onBa
   );
 }
 
+// ── Helper: project linker select that reads from DB ─────────────────────────
+
+function ProjectLinkerSelect({ value, onChange, className, noProjectLabel }: {
+  value: string; onChange: (val: string, name: string) => void; className?: string; noProjectLabel: string;
+}) {
+  const { projects } = useArchitectProjects();
+  return (
+    <select
+      value={value}
+      onChange={(e) => {
+        const p = projects.find((p) => p.id === e.target.value);
+        onChange(e.target.value, p?.project_name || "");
+      }}
+      className={className}
+    >
+      <option value="">{noProjectLabel}</option>
+      {projects.map((p) => (
+        <option key={p.id} value={p.id}>{p.project_name} — {p.client_name}</option>
+      ))}
+    </select>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ── ARCHITECT MESSAGES SECTION (fully inline) ───────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -2434,13 +2343,12 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
               {/* Project link */}
               <div>
                 <span className={labelCls}>{t('ad.messages.linkProject')}</span>
-                <select value={newProjectRef} onChange={e => {
-                  setNewProjectRef(e.target.value);
-                  const p = MOCK_PROJECTS.find(p => p.id === e.target.value);
-                  setNewProjectName(p ? p.projectName : "");
-                }} className={inputCls}>
-                  <option value="">{t('ad.messages.noProject')}</option>
-                  {MOCK_PROJECTS.map(p => <option key={p.id} value={p.id}>{p.projectName} — {p.clientName}</option>)}
+                <ProjectLinkerSelect
+                  value={newProjectRef}
+                  onChange={(val, name) => { setNewProjectRef(val); setNewProjectName(name); }}
+                  className={inputCls}
+                  noProjectLabel={t('ad.messages.noProject')}
+                />
                 </select>
               </div>
               {/* Subject */}

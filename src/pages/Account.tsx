@@ -8,9 +8,11 @@ import {
   TrendingUp, Star, ChevronRight, Percent, Inbox,
   AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
 import { useConversations } from "@/hooks/useConversations";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
@@ -49,6 +51,8 @@ import {
   type ClientSectionSetter,
 } from "@/components/client-dashboard/ClientSections";
 import DesignAssistantSection from "@/components/client-dashboard/DesignAssistantSection";
+import PartnerAnalyticsDashboard from "@/components/partner-dashboard/PartnerAnalyticsDashboard";
+import PartnerLoyaltyProgram from "@/components/partner-dashboard/PartnerLoyaltyProgram";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -87,6 +91,7 @@ const NAV_PARTNER_BASE = [
   { id: "featured",     icon: Rocket,          labelKey: "account.featuredProducts", eliteOnly: false },
   { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: true },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
+  { id: "loyalty",      icon: Award,           labelKey: "account.loyalty" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
@@ -338,6 +343,22 @@ const Account = () => {
   // Architect created projects (local state — would come from Supabase in prod)
   const [createdProjects, setCreatedProjects] = useState<any[]>([]);
 
+  // Partner ID — resolved from partner's contact_email matching the user's email
+  const { data: partnerId } = useQuery({
+    queryKey: ["partner-id-for-user", profile?.email],
+    queryFn: async () => {
+      if (!profile?.email) return null;
+      const { data, error } = await supabase
+        .from("partners")
+        .select("id")
+        .eq("contact_email", profile.email)
+        .single();
+      if (error) return null;
+      return data?.id || null;
+    },
+    enabled: !!profile?.email && profile?.user_type === "partner",
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -372,7 +393,8 @@ const Account = () => {
         case "catalogue":   return <PartnerCatalogueSection plan={partnerPlan} />;
         case "featured":    return <PartnerFeaturedSection plan={partnerPlan} />;
         case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;
-        case "performance": return <PartnerPerformanceSection plan={partnerPlan} />;
+        case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan === "starter" ? "growth" : partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
+        case "loyalty":     return partnerId ? <PartnerLoyaltyProgram partnerId={partnerId} /> : null;
         default:            return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
       }
     }

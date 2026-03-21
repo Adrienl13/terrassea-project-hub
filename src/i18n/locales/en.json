@@ -672,7 +672,8 @@
     "rewards": "Rewards",
     "supplierCalls": "Supplier calls",
     "newSupplierCall": "New supplier call",
-    "designAssistant": "AI Design"
+    "designAssistant": "AI Design",
+    "loyalty": "Loyalty"
   },
   "cd": {
     "welcome": "Welcome back, {{name}}!",
@@ -3014,7 +3015,8 @@
     "relevance_score": "Relevance score",
     "quick_verdict": "Quick verdict",
     "project_relevance": "Project relevance",
-    "remove": "Remove"
+    "remove": "Remove",
+    "download_csv": "Download CSV"
   },
   "annotations": {
     "placeholder": "Add a note...",
@@ -3180,6 +3182,9 @@
     "tabMyAnalyses": "My Analyses",
     "addAllToProject": "Add all to project",
     "createFromAnalysis": "Create a project from this analysis",
-    "saveMaterialBoard": "Save to material board"
+    "saveMaterialBoard": "Save to material board",
+    "savingMaterialBoard": "Saving...",
+    "materialBoardCreated": "Material board created with {{count}} products",
+    "materialBoardError": "Failed to create material board"
   }
 }

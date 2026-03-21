@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Camera, Upload, RotateCcw, Plus, ArrowRight, Scan, ShoppingCart, Palette } from "lucide-react";
 import { useMoodBoard, type MoodBoardResult, type TerraceAnalysis } from "@/hooks/useMoodBoard";
+import { useMaterialBoards } from "@/hooks/useArchitectProjects";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
+import { toast } from "sonner";
 import type { DBProduct } from "@/lib/products";
 
 // ── Upload zone (State 1) ────────────────────────────────────
@@ -296,6 +298,8 @@ interface ResultsPanelProps {
   onAddAllToProject: (products: DBProduct[]) => void;
   onReset: () => void;
   isArchitect?: boolean;
+  onSaveMaterialBoard?: () => void;
+  isSavingBoard?: boolean;
   t: (key: string, fallback?: string) => string;
 }
 
@@ -307,6 +311,8 @@ function ResultsPanel({
   onAddAllToProject,
   onReset,
   isArchitect,
+  onSaveMaterialBoard,
+  isSavingBoard,
   t,
 }: ResultsPanelProps) {
   const navigate = useNavigate();
@@ -520,16 +526,16 @@ function ResultsPanel({
               {t("designAssistant.createFromAnalysis", "Create a project from this analysis")}
               <ArrowRight className="w-4 h-4" />
             </button>
-            {isArchitect && (
+            {isArchitect && onSaveMaterialBoard && (
               <button
-                onClick={() => {
-                  // Placeholder for material board functionality
-                  navigate("/account");
-                }}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-full border border-border text-muted-foreground font-display font-semibold text-sm hover:border-foreground hover:text-foreground transition-all"
+                onClick={onSaveMaterialBoard}
+                disabled={isSavingBoard}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-full border border-border text-muted-foreground font-display font-semibold text-sm hover:border-foreground hover:text-foreground transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Palette className="w-4 h-4" />
-                {t("designAssistant.saveMaterialBoard", "Save to material board")}
+                {isSavingBoard
+                  ? t("designAssistant.savingMaterialBoard", "Saving...")
+                  : t("designAssistant.saveMaterialBoard", "Save to material board")}
               </button>
             )}
           </div>
@@ -558,8 +564,10 @@ export default function MoodBoardAnalyzer({ onAnalysisComplete }: MoodBoardAnaly
     isAnalyzing,
     error,
   } = useMoodBoard();
+  const { createBoard, addItem: addBoardItem } = useMaterialBoards();
 
   const isArchitect = profile?.user_type === "architect";
+  const [isSavingBoard, setIsSavingBoard] = useState(false);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -606,6 +614,31 @@ export default function MoodBoardAnalyzer({ onAnalysisComplete }: MoodBoardAnaly
     [addItem],
   );
 
+  const handleSaveMaterialBoard = useCallback(async () => {
+    if (!result) return;
+    setIsSavingBoard(true);
+    try {
+      const boardName = "AI Design \u2014 " + (result.analysis.venue_type || "Terrace");
+      const board = await createBoard({
+        name: boardName,
+        description: result.analysis.design_summary || undefined,
+      });
+      for (const product of result.matchedProducts) {
+        await addBoardItem({ boardId: board.id, productId: product.id });
+      }
+      toast.success(
+        t("designAssistant.materialBoardCreated", "Material board created with {{count}} products")
+          .replace("{{count}}", String(result.matchedProducts.length)),
+      );
+      navigate("/account");
+    } catch (err) {
+      console.error("Failed to create material board:", err);
+      toast.error(t("designAssistant.materialBoardError", "Failed to create material board"));
+    } finally {
+      setIsSavingBoard(false);
+    }
+  }, [result, createBoard, addBoardItem, navigate, t]);
+
   // ── Determine current state ────────────────────────────────
   const state: "idle" | "preview" | "analyzing" | "results" =
     result ? "results" : isAnalyzing ? "analyzing" : imagePreviewUrl ? "preview" : "idle";
@@ -647,6 +680,8 @@ export default function MoodBoardAnalyzer({ onAnalysisComplete }: MoodBoardAnaly
           onAddAllToProject={handleAddAllToProject}
           onReset={handleReset}
           isArchitect={isArchitect}
+          onSaveMaterialBoard={handleSaveMaterialBoard}
+          isSavingBoard={isSavingBoard}
           t={t}
         />
       )}

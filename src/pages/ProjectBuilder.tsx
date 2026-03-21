@@ -70,8 +70,10 @@ const ProjectBuilder = () => {
   const [searchParams] = useSearchParams();
   const { data: products = [], isLoading: productsLoading } = useProducts();
 
-  const urlStyle = searchParams.get("style");
-  const urlFrom  = searchParams.get("from");
+  const urlStyle    = searchParams.get("style");
+  const urlFrom     = searchParams.get("from");
+  const urlVenue    = searchParams.get("venue");
+  const urlCapacity = searchParams.get("capacity");
 
   const guidedSteps = useMemo(() => [
     { id: "mode",     label: t('projectBuilder.steps.start'),    description: t('projectBuilder.stepDescriptions.howToBegin') },
@@ -117,6 +119,14 @@ const ProjectBuilder = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [params, setParams] = useState<ProjectParameters>(() => {
     const initial = { ...DEFAULT_PARAMS };
+    if (urlVenue) {
+      initial.establishmentType = urlVenue;
+      initial.builderMode = "guided";
+    }
+    if (urlCapacity) {
+      const cap = parseInt(urlCapacity, 10);
+      if (!isNaN(cap) && cap > 0) initial.seatingCapacity = cap;
+    }
     if (urlStyle) {
       initial.style = [urlStyle];
       initial.builderMode = "guided";
@@ -137,8 +147,14 @@ const ProjectBuilder = () => {
   useEffect(() => {
     if (urlStyle && urlFrom === "inspirations") {
       setCurrentStep(4); // skip to capacity (after needs step)
+    } else if (urlVenue && urlCapacity && urlStyle) {
+      // Coming from AI Design Assistant with all params pre-filled — skip to review
+      setCurrentStep(guidedSteps.length - 1);
+    } else if (urlVenue) {
+      // Venue pre-filled — skip the type step, go to needs
+      setCurrentStep(2);
     }
-  }, [urlStyle, urlFrom]);
+  }, [urlStyle, urlFrom, urlVenue, urlCapacity, guidedSteps.length]);
 
   const isExpert     = params.builderMode === "expert";
   const steps        = isExpert ? expertSteps : guidedSteps;

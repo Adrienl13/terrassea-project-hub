@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, X, Plus, Check, Award, Zap, DollarSign, Star } from "lucide-react";
+import { ArrowLeft, X, Plus, Check, Award, Zap, DollarSign, Star, Download } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCompare } from "@/contexts/CompareContext";
@@ -294,6 +294,24 @@ const ProductCompare = () => {
 
   const verdictPills = useMemo(() => computeVerdictPills(items), [items]);
 
+  const handleDownloadCsv = useCallback(() => {
+    const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const header = ["", ...items.map((p) => p.name)];
+    const rows = COMPARE_ROWS.map((row) => {
+      const label = t(`compare.${row.key}`);
+      const values = items.map((p) => row.getValue(p, t));
+      return [label, ...values];
+    });
+    const csvContent = [header, ...rows].map((r) => r.map(escape).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "product-comparison.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [items, t]);
+
   /* ── Empty state ────────────────────────────────── */
   if (items.length < 2) {
     return (
@@ -334,13 +352,22 @@ const ProductCompare = () => {
             </Link>
           </nav>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="font-display text-2xl md:text-3xl font-bold text-foreground mb-8"
-          >
-            {t("compare.product_comparison")}
-          </motion.h1>
+          <div className="flex items-center justify-between mb-8">
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="font-display text-2xl md:text-3xl font-bold text-foreground"
+            >
+              {t("compare.product_comparison")}
+            </motion.h1>
+            <button
+              onClick={handleDownloadCsv}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold border border-border rounded-full text-muted-foreground hover:text-foreground hover:border-foreground transition-all"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {t("compare.download_csv", "Download CSV")}
+            </button>
+          </div>
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px]">
