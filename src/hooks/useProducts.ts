@@ -46,6 +46,6 @@ export function useProducts(searchTerm?: string, categoryFilter?: string) {
 
       return fetchProducts();
     },
-    staleTime: 0,
+    staleTime: 1000 * 60 * 5, // 5 minutes — product catalog changes infrequently
   });
 }

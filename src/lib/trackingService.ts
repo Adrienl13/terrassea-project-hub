@@ -215,16 +215,18 @@ export async function refreshOrderTracking(orderId: string): Promise<TrackingSta
     updates.balance_due_date = new Date(Date.now() + 7 * 86400000).toISOString();
 
     // Log event
-    await (supabase.from("order_events" as any).insert({
+    const { error: eventError } = await (supabase.from("order_events" as any).insert({
       order_id: orderId,
       event_type: "delivered",
       description: `Livraison confirmée automatiquement par ${TRACKING_PROVIDER}: "${result.lastEvent}"`,
       actor: "system",
       metadata: { provider: TRACKING_PROVIDER, raw_status: result.status },
     }) as any);
+    if (eventError) console.error("Failed to insert order_event:", eventError.message);
   }
 
-  await (supabase.from("orders" as any).update(updates).eq("id", orderId) as any);
+  const { error: updateError } = await (supabase.from("orders" as any).update(updates).eq("id", orderId) as any);
+  if (updateError) console.error("Failed to update order tracking:", updateError.message);
   return result;
 }
 
@@ -235,12 +237,17 @@ export async function refreshOrderTracking(orderId: string): Promise<TrackingSta
 export async function refreshAllShippedOrders(): Promise<number> {
   if (!isAutoTrackingEnabled) return 0;
 
-  const { data: orders } = await (supabase
+  const { data: orders, error: fetchError } = await (supabase
     .from("orders" as any)
     .select("id")
     .eq("status", "shipped")
-    .eq("tracking_auto_enabled", true) as any);
+    .eq("tracking_auto_enabled", true)
+    .limit(200) as any);
 
+  if (fetchError) {
+    console.error("Failed to fetch shipped orders:", fetchError.message);
+    return 0;
+  }
   if (!orders || orders.length === 0) return 0;
 
   let updated = 0;

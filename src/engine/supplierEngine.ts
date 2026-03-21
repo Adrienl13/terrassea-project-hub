@@ -151,6 +151,7 @@ async function fetchPartnerReputations(partnerIds: string[]): Promise<Record<str
 
   const result: Record<string, number> = {};
   for (const [partnerId, { sum, count }] of Object.entries(reputations)) {
+    if (count === 0) continue;
     const avg = sum / count; // 1-5 scale
     // Convert to 0-100: 1→0, 3→50, 5→100
     result[partnerId] = Math.round(((avg - 1) / 4) * 100);

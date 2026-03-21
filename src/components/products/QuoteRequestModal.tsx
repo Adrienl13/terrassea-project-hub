@@ -73,8 +73,10 @@ const QuoteRequestModal = ({
       setSirenError(false);
       return;
     }
+    let cancelled = false;
     setSirenChecking(true);
     lookupSiren(form.siren).then((result) => {
+      if (cancelled) return;
       setSirenChecking(false);
       if (result) {
         setSirenResult(result);
@@ -85,7 +87,12 @@ const QuoteRequestModal = ({
         setSirenResult(null);
         setSirenError(true);
       }
+    }).catch(() => {
+      if (cancelled) return;
+      setSirenChecking(false);
+      setSirenError(true);
     });
+    return () => { cancelled = true; };
   }, [form.siren]);
 
   // Close on Escape
@@ -113,7 +120,7 @@ const QuoteRequestModal = ({
     try {
       const bestOffer = offers.find((o) => o.price !== null) || offers[0] || null;
 
-      await supabase.from("quote_requests").insert({
+      const { error: insertError } = await supabase.from("quote_requests").insert({
         product_id: product.id,
         product_name: product.name,
         offer_id: bestOffer?.id || null,
@@ -130,6 +137,7 @@ const QuoteRequestModal = ({
         total_price: bestOffer?.price ? bestOffer.price * form.quantity : null,
         status: "pending",
       });
+      if (insertError) throw insertError;
 
       setStep("success");
     } catch (err) {

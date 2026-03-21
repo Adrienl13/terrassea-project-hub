@@ -128,9 +128,11 @@ const ProjectCart = () => {
       setSirenError(false);
       return;
     }
+    let cancelled = false;
     setSirenChecking(true);
     setSirenError(false);
     lookupSiren(formData.siren).then((result) => {
+      if (cancelled) return;
       setSirenChecking(false);
       if (result) {
         setSirenResult(result);
@@ -141,7 +143,12 @@ const ProjectCart = () => {
         setSirenError(true);
         setSirenResult(null);
       }
+    }).catch(() => {
+      if (cancelled) return;
+      setSirenChecking(false);
+      setSirenError(true);
     });
+    return () => { cancelled = true; };
   }, [formData.siren]);
 
   // ── Grouping ─────────────────────────────────────────────────────────────────

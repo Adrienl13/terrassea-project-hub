@@ -37,11 +37,15 @@ export function usePartnerQuotes() {
     queryKey: ["partner-id-for-user", profile?.email],
     queryFn: async () => {
       if (!profile?.email) return null;
-      const { data } = await (supabase
+      const { data, error } = await (supabase
         .from("partners" as any)
         .select("id")
         .eq("contact_email", profile.email)
         .single() as any);
+      if (error) {
+        console.error("Failed to find partner for user:", error.message);
+        return null;
+      }
       return data?.id || null;
     },
     enabled: !!profile?.email,

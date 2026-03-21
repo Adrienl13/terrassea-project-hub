@@ -14,8 +14,15 @@ const Auth = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isPasswordRecovery } = useAuth();
+  const { user, isLoading: authLoading, isPasswordRecovery } = useAuth();
   const from = (location.state as any)?.from?.pathname || "/account";
+
+  // Redirect already-authenticated users (unless in password recovery flow)
+  useEffect(() => {
+    if (!authLoading && user && !isPasswordRecovery) {
+      navigate(from, { replace: true });
+    }
+  }, [authLoading, user, isPasswordRecovery, navigate, from]);
 
   const searchParams = new URLSearchParams(location.search);
   const defaultType = (searchParams.get('type') as UserType) || 'client';

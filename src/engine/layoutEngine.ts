@@ -289,7 +289,7 @@ export function generateLayouts(params: ProjectParameters): LayoutRecommendation
       i < lockedFormats.length - 1 ? Math.max(r - 0.1, 0.05) : r
     );
     const altSum = altRatios.reduce((s, r) => s + r, 0);
-    const normalizedAlt = altRatios.map(r => r / altSum);
+    const normalizedAlt = altSum > 0 ? altRatios.map(r => r / altSum) : altRatios.map(() => 1 / altRatios.length);
     const alt = generateLockedLayout(totalSeats, lockedFormats, normalizedAlt, "Alternative layout");
 
     // Concept 3: Flexible — more even distribution across formats

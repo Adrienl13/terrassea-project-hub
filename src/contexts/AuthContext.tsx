@@ -43,13 +43,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data } = await (supabase
+      const { data, error } = await (supabase
         .from("user_profiles" as any)
         .select("*")
         .eq("id", userId)
         .single() as any);
+      if (error) {
+        console.error("Failed to fetch user profile:", error.message);
+        setProfile(null);
+        return;
+      }
       setProfile(data ?? null);
-    } catch {
+    } catch (err) {
+      console.error("Unexpected error fetching profile:", err);
       setProfile(null);
     }
   };
@@ -59,11 +65,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
         if (event === "PASSWORD_RECOVERY") {
           setIsPasswordRecovery(true);
+        }
+        if (event === "SIGNED_OUT") {
+          setIsPasswordRecovery(false);
         }
         setSession(session);
         setUser(session?.user ?? null);
@@ -72,26 +84,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } else {
           setProfile(null);
         }
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     );
 
     // THEN check current session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         await fetchProfile(session.user.id);
       }
       setIsLoading(false);
+    }).catch((err) => {
+      console.error("Failed to get session:", err);
+      if (mounted) setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
     setProfile(null);
+    setIsPasswordRecovery(false);
   };
 
   return (

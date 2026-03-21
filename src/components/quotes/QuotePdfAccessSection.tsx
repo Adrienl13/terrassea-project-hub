@@ -15,10 +15,17 @@ export default function QuotePdfAccessSection({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     canClientAccessPdf(quoteRequestId).then(result => {
-      setAccess(result);
-      setLoading(false);
+      if (!cancelled) {
+        setAccess(result);
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.error("Failed to check PDF access:", err);
+      if (!cancelled) setLoading(false);
     });
+    return () => { cancelled = true; };
   }, [quoteRequestId, status]);
 
   if (loading) {

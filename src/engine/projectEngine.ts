@@ -1470,7 +1470,9 @@ function computeCohesionScore(selected: DBProduct[]): number {
   for (const f of families) familyCounts[f] = (familyCounts[f] || 0) + 1;
 
   // Score: how many products share the dominant family
-  const maxFamilyCount = Math.max(...Object.values(familyCounts));
+  const familyValues = Object.values(familyCounts);
+  if (familyValues.length === 0) return 0;
+  const maxFamilyCount = Math.max(...familyValues);
   const uniqueFamilies = Object.keys(familyCounts).length;
 
   // 3/3 same family = +4.0, 2/3 = +2.0, all different = 0
@@ -1726,7 +1728,7 @@ export function generateProjectConcepts(
   const globalUsedProducts   = new Set<string>();
 
   const concepts: ProjectConcept[] = templates.map((template, i) => {
-    const layout = layouts[i] || layouts[0];
+    const layout = layouts[i] || layouts[0] || null;
 
     const { selected } = selectProductsForConcept(
       template, parameters, filteredProducts,

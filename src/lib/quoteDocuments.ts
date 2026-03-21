@@ -120,10 +120,13 @@ export async function uploadQuotePdf({
 
   // Update quote_requests with latest PDF path
   if (docType === "quote_pdf") {
-    await (supabase
+    const { error: updateError } = await (supabase
       .from("quote_requests" as any)
       .update({ latest_pdf_path: filePath } as any)
       .eq("id", quoteRequestId) as any);
+    if (updateError) {
+      console.error("Failed to update quote_requests latest_pdf_path:", updateError.message);
+    }
   }
 
   return { document: data as QuoteDocument, error: null };
@@ -193,7 +196,7 @@ export async function signDocument({
     .single() as any);
 
   if (doc) {
-    await (supabase
+    const { error: updateError } = await (supabase
       .from("quote_requests" as any)
       .update({
         signed_pdf_path: (doc as any).file_path,
@@ -202,6 +205,9 @@ export async function signDocument({
         status: "accepted",
       } as any)
       .eq("id", (doc as any).quote_request_id) as any);
+    if (updateError) {
+      console.error("Failed to update quote_request after signing:", updateError.message);
+    }
   }
 
   return { success: true, error: null };

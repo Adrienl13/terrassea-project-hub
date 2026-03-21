@@ -68,8 +68,11 @@ export function getMaxSeats(terraceArea: number, density: DensityLevel): number 
 }
 
 export function getFeasibility(totalSeats: number, terraceArea: number): { level: FeasibilityLevel; label: string; description: string } {
+  if (totalSeats <= 0) {
+    return { level: "good", label: "No seats configured", description: "Add seating to evaluate spatial feasibility." };
+  }
   const spacePerSeat = terraceArea / totalSeats;
-  
+
   if (spacePerSeat >= 1.5) {
     return { level: "good", label: "Good spatial balance", description: "Layout fits comfortably within the available space." };
   }

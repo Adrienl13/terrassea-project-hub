@@ -130,11 +130,13 @@ export async function fetchProducts(): Promise<DBProduct[]> {
       .from("products")
       .select("*")
       .neq("availability_type", "discontinued")
-      .order("priority_score", { ascending: false }),
+      .order("priority_score", { ascending: false })
+      .limit(2000),
     supabase
       .from("product_offers")
       .select("product_id, price, is_active")
-      .eq("is_active", true),
+      .eq("is_active", true)
+      .limit(10000),
   ]);
 
   if (productsRes.error) throw productsRes.error;

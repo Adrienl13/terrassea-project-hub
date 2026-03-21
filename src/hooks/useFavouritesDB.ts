@@ -38,11 +38,15 @@ function useFavouritesDB(entityType: EntityType) {
     queryKey: ["favourites", entityType, user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await (supabase
+      const { data, error } = await (supabase
         .from("user_favourites" as any)
         .select("entity_id")
         .eq("user_id", user.id)
         .eq("entity_type", entityType) as any);
+      if (error) {
+        console.error("Failed to fetch favourites:", error.message);
+        return [];
+      }
       return (data || []).map((r: any) => r.entity_id as string);
     },
     enabled: !!user,
@@ -53,16 +57,18 @@ function useFavouritesDB(entityType: EntityType) {
       if (!user) throw new Error("Not authenticated");
       const isFav = favouriteIds.includes(entityId);
       if (isFav) {
-        await (supabase
+        const { error } = await (supabase
           .from("user_favourites" as any)
           .delete()
           .eq("user_id", user.id)
           .eq("entity_type", entityType)
           .eq("entity_id", entityId) as any);
+        if (error) throw error;
       } else {
-        await (supabase
+        const { error } = await (supabase
           .from("user_favourites" as any)
           .insert({ user_id: user.id, entity_type: entityType, entity_id: entityId }) as any);
+        if (error) throw error;
       }
     },
     onSuccess: () => {
@@ -88,16 +94,21 @@ export function useFavouritePartners() {
     queryKey: ["favourite-partners-data", favouriteIds],
     queryFn: async () => {
       if (favouriteIds.length === 0) return [];
-      const { data } = await (supabase
+      const { data, error: partnersError } = await (supabase
         .from("partners" as any)
         .select("id, name, slug, country, country_code, city, plan, logo_url, specialty_tags")
         .in("id", favouriteIds) as any);
+      if (partnersError) {
+        console.error("Failed to fetch favourite partners:", partnersError.message);
+        return [];
+      }
 
       // Fetch ratings
-      const { data: ratings } = await (supabase
+      const { data: ratings, error: ratingsError } = await (supabase
         .from("partner_ratings_summary" as any)
         .select("*")
         .in("partner_id", favouriteIds) as any);
+      if (ratingsError) console.error("Failed to fetch partner ratings:", ratingsError.message);
       const ratingMap: Record<string, any> = {};
       (ratings || []).forEach((r: any) => { ratingMap[r.partner_id] = r; });
 
@@ -131,11 +142,15 @@ export function useFavouriteArchitects() {
     queryKey: ["favourite-architects-data", favouriteIds],
     queryFn: async () => {
       if (favouriteIds.length === 0) return [];
-      const { data } = await (supabase
+      const { data, error } = await (supabase
         .from("user_profiles" as any)
         .select("id, first_name, last_name, company, email")
         .in("id", favouriteIds)
         .eq("user_type", "architect") as any);
+      if (error) {
+        console.error("Failed to fetch favourite architects:", error.message);
+        return [];
+      }
       return (data || []).map((a: any) => ({
         id: a.id,
         firstName: a.first_name,
@@ -173,14 +188,16 @@ export function useAllPartnersAdmin() {
   return useQuery({
     queryKey: ["admin-partners"],
     queryFn: async () => {
-      const { data: partners } = await (supabase
+      const { data: partners, error: partnersError } = await (supabase
         .from("partners" as any)
         .select("*")
         .order("priority_order", { ascending: true }) as any);
+      if (partnersError) throw partnersError;
 
-      const { data: ratings } = await (supabase
+      const { data: ratings, error: ratingsError } = await (supabase
         .from("partner_ratings_summary" as any)
         .select("*") as any);
+      if (ratingsError) console.error("Failed to fetch partner ratings:", ratingsError.message);
       const ratingMap: Record<string, any> = {};
       (ratings || []).forEach((r: any) => { ratingMap[r.partner_id] = r; });
 

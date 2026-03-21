@@ -28,7 +28,9 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     try {
       localStorage.setItem("terrassea_favourites", JSON.stringify(favourites));
-    } catch {}
+    } catch (err) {
+      console.warn("Failed to persist favourites to localStorage:", err);
+    }
   }, [favourites]);
 
   const isFavourite = (productId: string) =>
