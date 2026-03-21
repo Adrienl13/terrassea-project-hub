@@ -1250,6 +1250,41 @@ export type Database = {
         }
         Relationships: []
       }
+      pro_service_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          request_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          request_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_service_events_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "pro_service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pro_service_matches: {
         Row: {
           admin_notes: string | null
@@ -1337,6 +1372,7 @@ export type Database = {
       pro_service_requests: {
         Row: {
           admin_notes: string | null
+          architect_id: string | null
           budget_range: string | null
           categories_needed: string[] | null
           client_company: string | null
@@ -1362,6 +1398,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          architect_id?: string | null
           budget_range?: string | null
           categories_needed?: string[] | null
           client_company?: string | null
@@ -1387,6 +1424,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          architect_id?: string | null
           budget_range?: string | null
           categories_needed?: string[] | null
           client_company?: string | null
@@ -1411,6 +1449,66 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      pro_service_responses: {
+        Row: {
+          attachments: string[] | null
+          created_at: string | null
+          delivery_weeks: number | null
+          estimated_amount: number | null
+          id: string
+          is_selected: boolean | null
+          message: string | null
+          partner_id: string
+          products: Json | null
+          request_id: string
+          updated_at: string | null
+          warranty: string | null
+        }
+        Insert: {
+          attachments?: string[] | null
+          created_at?: string | null
+          delivery_weeks?: number | null
+          estimated_amount?: number | null
+          id?: string
+          is_selected?: boolean | null
+          message?: string | null
+          partner_id: string
+          products?: Json | null
+          request_id: string
+          updated_at?: string | null
+          warranty?: string | null
+        }
+        Update: {
+          attachments?: string[] | null
+          created_at?: string | null
+          delivery_weeks?: number | null
+          estimated_amount?: number | null
+          id?: string
+          is_selected?: boolean | null
+          message?: string | null
+          partner_id?: string
+          products?: Json | null
+          request_id?: string
+          updated_at?: string | null
+          warranty?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_service_responses_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_service_responses_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "pro_service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_archetypes: {
         Row: {

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConversations } from "@/hooks/useConversations";
 import { usePartnerQuotes } from "@/hooks/usePartnerQuotes";
+import { usePartnerLeads } from "@/hooks/usePartnerLeads";
 import { toast } from "sonner";
 
 const AddProductForm = lazy(() => import("./AddProductForm"));
@@ -1442,40 +1443,25 @@ export function PartnerProLeadsSection({ plan }: { plan: PartnerPlan }) {
   const [expandedLead, setExpandedLead] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "new" | "interested" | "connected">("all");
 
-  const leads: ProLead[] = [
-    {
-      id: "l1", project_title: "Réaménagement terrasse 120m²", project_type: "restaurant",
-      project_city: "Paris", project_country: "France",
-      categories_needed: ["seating", "tables", "parasols"], style_preferences: ["mediterranean", "modern"],
-      budget_range: "15 000–25 000", quantity_estimate: 60, timeline: "2-3-months",
-      description: "Recherche mobilier complet pour terrasse de restaurant gastronomique. Ambiance méditerranéenne chic. Besoin de chaises, tables rondes et parasols coordonnés. Résistance intempéries indispensable.",
-      match_score: 92, match_status: "sent_to_partner", created_at: "2026-03-17T10:00:00Z",
-    },
-    {
-      id: "l2", project_title: "Équipement pool deck hôtel 4*", project_type: "hotel",
-      project_city: "Nice", project_country: "France",
-      categories_needed: ["loungers", "parasols", "accessories"], style_preferences: ["coastal", "elegant"],
-      budget_range: "25 000–50 000", quantity_estimate: 40, timeline: "1-month",
-      description: "Hôtel 4 étoiles cherche bains de soleil haut de gamme, parasols résistants au vent et tables d'appoint pour zone piscine. Qualité CHR exigée.",
-      match_score: 85, match_status: "sent_to_partner", created_at: "2026-03-16T14:00:00Z",
-    },
-    {
-      id: "l3", project_title: "Nouveau rooftop bar 80 places", project_type: "rooftop",
-      project_city: "Lyon", project_country: "France",
-      categories_needed: ["seating", "tables", "sofas"], style_preferences: ["industrial", "modern"],
-      budget_range: "10 000–15 000", quantity_estimate: 80, timeline: "2-3-months",
-      description: "Ouverture d'un rooftop bar. Recherche mobilier résistant, empilable pour stockage hiver. Style industriel-moderne.",
-      match_score: 78, match_status: "partner_interested", created_at: "2026-03-14T09:00:00Z",
-    },
-    {
-      id: "l4", project_title: "Terrasse beach club saisonnier", project_type: "beach-club",
-      project_city: "Marseille", project_country: "France",
-      categories_needed: ["loungers", "parasols", "tables"], style_preferences: ["tropical", "bohemian"],
-      budget_range: "25 000–50 000", quantity_estimate: 100, timeline: "urgent",
-      description: "Beach club saisonnier, ouverture mai. Besoin urgent de transats, parasols grand format et tables basses. Style tropical décontracté.",
-      match_score: 95, match_status: "client_connected", created_at: "2026-03-10T11:00:00Z",
-    },
-  ];
+  const { leads: rawLeads, isLoading, expressInterest, declineLead } = usePartnerLeads();
+
+  // Map DB leads to ProLead shape expected by the UI
+  const leads: ProLead[] = rawLeads.map(l => ({
+    id: l.id,
+    project_title: l.project_title,
+    project_type: l.project_type,
+    project_city: l.project_city,
+    project_country: l.project_country,
+    categories_needed: l.categories_needed,
+    style_preferences: l.style_preferences,
+    budget_range: l.budget_range || "",
+    quantity_estimate: l.quantity_estimate || 0,
+    timeline: l.timeline || "",
+    description: l.description || "",
+    match_score: l.match_score,
+    match_status: l.match_status,
+    created_at: l.created_at,
+  }));
 
   const filtered = filter === "all" ? leads
     : filter === "new" ? leads.filter(l => l.match_status === "sent_to_partner")
@@ -1483,11 +1469,17 @@ export function PartnerProLeadsSection({ plan }: { plan: PartnerPlan }) {
     : leads.filter(l => l.match_status === "client_connected");
 
   const handleInterest = (id: string) => {
-    toast.success(t('pd.leads.interestToast'), { description: t('pd.leads.interestToastDesc') });
+    expressInterest(id, {
+      onSuccess: () => toast.success(t('pd.leads.interestToast'), { description: t('pd.leads.interestToastDesc') }),
+      onError: () => toast.error("Failed to express interest"),
+    });
   };
 
   const handleDecline = (id: string) => {
-    toast(t('pd.leads.declinedToast'));
+    declineLead(id, {
+      onSuccess: () => toast(t('pd.leads.declinedToast')),
+      onError: () => toast.error("Failed to decline lead"),
+    });
   };
 
   return (
@@ -1547,7 +1539,17 @@ export function PartnerProLeadsSection({ plan }: { plan: PartnerPlan }) {
       </div>
 
       {/* Leads list */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="border border-border rounded-sm px-4 py-8 text-center">
+          <Clock className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2 animate-pulse" />
+          <p className="text-xs font-body text-muted-foreground">Chargement des leads...</p>
+        </div>
+      ) : leads.length === 0 ? (
+        <div className="border border-border rounded-sm px-4 py-8 text-center">
+          <Briefcase className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
+          <p className="text-xs font-body text-muted-foreground">No leads available yet. Your matching profile will be used to find relevant projects.</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="border border-border rounded-sm px-4 py-8 text-center">
           <Briefcase className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
           <p className="text-xs font-body text-muted-foreground">Aucun lead avec ce filtre</p>

@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSupplierCalls } from "@/hooks/useSupplierCalls";
+import type { SupplierCall as HookSupplierCall, SupplierResponse as HookSupplierResponse } from "@/hooks/useSupplierCalls";
 import {
   TrendingUp, Star, ChevronRight, ChevronLeft, Award, Compass, Crown,
   FolderOpen, MessageSquare, Plus, Search, Calendar,
@@ -1477,8 +1479,245 @@ function makeNeedRow(cat = "", desc = "", priority: "essential" | "important" | 
   return { id: `nr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, category: cat, description: desc, qty: "", priority, customCategory: "" };
 }
 
+// ── Sub-component: Expanded call detail with responses fetched from DB ───────
+
+function CallDetailExpanded({
+  call,
+  onSelectResponse,
+  onCloseCall,
+}: {
+  call: HookSupplierCall;
+  onSelectResponse: (responseId: string) => void;
+  onCloseCall: (callId: string) => void;
+}) {
+  const { t } = useTranslation();
+
+  // Fetch responses for the expanded call via getCallDetail query
+  const { data: detail, isLoading: detailLoading } = useQuery<{ call: HookSupplierCall | null; responses: HookSupplierResponse[] }>({
+    queryKey: ["supplier-call-detail", call.id],
+    queryFn: async () => {
+      const { data: responsesRaw } = await supabase
+        .from("pro_service_responses")
+        .select(
+          "id, partner_id, message, estimated_amount, delivery_weeks, warranty, products, is_selected, created_at, partner:partner_id(name, country, logo_url, partner_type)",
+        )
+        .eq("request_id", call.id)
+        .order("created_at", { ascending: false });
+
+      const responses: HookSupplierResponse[] = (responsesRaw ?? []).map(
+        (r: any) => ({
+          id: r.id,
+          partnerId: r.partner_id,
+          partnerName: r.partner?.name ?? "",
+          partnerCountry: r.partner?.country ?? null,
+          partnerLogo: r.partner?.logo_url ?? null,
+          partnerType: r.partner?.partner_type ?? null,
+          message: r.message,
+          estimatedAmount: r.estimated_amount,
+          deliveryWeeks: r.delivery_weeks,
+          warranty: r.warranty,
+          products: Array.isArray(r.products) ? r.products : [],
+          isSelected: r.is_selected ?? false,
+          createdAt: r.created_at ?? "",
+        }),
+      );
+
+      return { call, responses };
+    },
+    enabled: true,
+  });
+
+  const responses = detail?.responses ?? [];
+
+  // Map categories to needs-like structure for display
+  const needs: ProjectNeed[] = (call.categoriesNeeded || []).map((cat) => ({
+    category: cat,
+    description: "",
+    priority: "essential" as const,
+  }));
+
+  // Style preferences joined as style string
+  const styleStr = (call.stylePreferences || []).join(", ") || undefined;
+
+  return (
+    <div className="border-t border-border">
+      {/* Metrics cards */}
+      <div className="grid grid-cols-4 gap-0 border-b border-border">
+        {[
+          { value: `${call.views}`, label: t('ad.calls.views'), color: "#6B7B5E" },
+          { value: `${call.clicks}`, label: t('ad.calls.clicks'), color: "#2563EB" },
+          { value: `${call.responsesCount}`, label: t('ad.calls.responses'), color: "#059669" },
+          { value: call.views > 0 ? `${Math.round((call.clicks / call.views) * 100)}%` : "\u2014", label: t('ad.calls.clickRate'), color: "#D97706" },
+        ].map((m, i) => (
+          <div key={i} className={`p-3 text-center ${i < 3 ? "border-r border-border" : ""}`}>
+            <p className="font-display font-bold text-lg" style={{ color: m.color }}>{m.value}</p>
+            <p className="text-[9px] font-body text-muted-foreground">{m.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Full brief + specs */}
+      <div className="p-4 border-b border-border space-y-3">
+        <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.calls.fullBrief')}</p>
+        <p className="text-[11px] font-body text-foreground/80 leading-relaxed">{call.brief}</p>
+
+        {/* Project specs */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          {styleStr && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Style</p><p className="text-[10px] font-body text-foreground">{styleStr}</p></div>}
+          {call.urgency && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Urgence</p><p className={`text-[10px] font-body ${call.urgency === "urgent" ? "text-red-600 font-semibold" : "text-foreground"}`}>{call.urgency === "urgent" ? "Urgent" : call.urgency === "flexible" ? "Flexible" : "Normal"}</p></div>}
+        </div>
+
+        {/* Needs by priority (mapped from categoriesNeeded) */}
+        {needs.length > 0 && (
+          <div>
+            <p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('ad.calls.needsList')}</p>
+            <div className="space-y-1.5">
+              {needs.map(n => {
+                const priorityStyle = n.priority === "essential" ? "border-l-green-500 bg-green-50/30" : n.priority === "important" ? "border-l-blue-500 bg-blue-50/30" : "border-l-muted-foreground/30 bg-muted/20";
+                const priorityLabel = n.priority === "essential" ? "Essentiel" : n.priority === "important" ? "Important" : "Optionnel";
+                const priorityColor = n.priority === "essential" ? "text-green-700 bg-green-50" : n.priority === "important" ? "text-blue-700 bg-blue-50" : "text-muted-foreground bg-muted";
+                return (
+                  <div key={n.category} className={`flex items-center justify-between px-3 py-2 border-l-2 rounded-r-sm ${priorityStyle}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-display font-semibold text-foreground">{n.category}</span>
+                        <span className={`text-[8px] font-display font-semibold uppercase px-1.5 py-0.5 rounded-full ${priorityColor}`}>{priorityLabel}</span>
+                      </div>
+                      {n.description && <p className="text-[9px] font-body text-muted-foreground mt-0.5">{n.description}</p>}
+                    </div>
+                    {n.qty && <span className="text-[10px] font-display font-semibold text-foreground shrink-0 ml-3">&times;{n.qty}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Supplier responses with products */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
+            {t('ad.calls.supplierResponses')} ({responses.length})
+          </p>
+          {call.status !== "closed" && (
+            <button
+              onClick={() => onCloseCall(call.id)}
+              className="text-[9px] font-display font-semibold px-3 py-1 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+            >
+              {t('ad.calls.closed')}
+            </button>
+          )}
+        </div>
+        {detailLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-foreground" />
+          </div>
+        ) : responses.length === 0 ? (
+          <p className="text-[10px] font-body text-muted-foreground text-center py-4">{t('ad.calls.noResponses')}</p>
+        ) : (
+          <div className="space-y-3">
+            {[...responses]
+              .sort((a, b) => (a.estimatedAmount ?? 0) - (b.estimatedAmount ?? 0))
+              .map((r, i) => {
+                const products: ResponseProduct[] = (r.products || []).map((p: any) => ({
+                  name: p.name || p.product_name || "",
+                  qty: p.qty || p.quantity || 0,
+                  unitPrice: p.unitPrice || p.unit_price || 0,
+                  total: p.total || (p.qty || p.quantity || 0) * (p.unitPrice || p.unit_price || 0),
+                  image: p.image || p.image_url,
+                }));
+                const displayName = r.partnerName || "Fournisseur";
+                const displayInitial = displayName[0] || "?";
+                return (
+                <div key={r.id} className={`border rounded-sm overflow-hidden ${r.isSelected ? "border-green-400 bg-green-50/30" : "border-border"}`}>
+                  {/* Response header */}
+                  <div className="p-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        {r.partnerLogo ? (
+                          <img src={r.partnerLogo} alt={displayName} className="w-7 h-7 rounded-full object-cover border border-border" />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-[10px] font-display font-bold">{displayInitial}</div>
+                        )}
+                        <div>
+                          <p className="text-[11px] font-display font-semibold text-foreground">{displayName}</p>
+                          <p className="text-[9px] font-body text-muted-foreground">{r.partnerType ? `${r.partnerType} · ` : ""}{r.partnerCountry || ""}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {i === 0 && <span className="text-[8px] font-display font-semibold uppercase px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">{t('ad.calls.bestPrice')}</span>}
+                        {r.isSelected && <span className="text-[8px] font-display font-semibold uppercase px-1.5 py-0.5 rounded-full bg-green-100 text-green-800">{t('ad.calls.selected')}</span>}
+                        {r.warranty && <span className="text-[8px] font-display font-semibold uppercase px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">{t('ad.calls.warranty')} {r.warranty}</span>}
+                      </div>
+                    </div>
+                    {r.message && <p className="text-[10px] font-body text-foreground/80 leading-relaxed">{r.message}</p>}
+
+                    {/* Key numbers */}
+                    <div className="flex items-center gap-4 mt-2 text-[10px] font-body">
+                      {r.estimatedAmount != null && <span className="font-display font-bold text-foreground">&euro;{r.estimatedAmount.toLocaleString()}</span>}
+                      {r.deliveryWeeks != null && <span className="flex items-center gap-1 text-muted-foreground"><Clock className="h-3 w-3" /> {r.deliveryWeeks} sem.</span>}
+                      {products.length > 0 && <span className="text-muted-foreground">{products.length} produits</span>}
+                    </div>
+                  </div>
+
+                  {/* Products table */}
+                  {products.length > 0 && (
+                    <div className="border-t border-border">
+                      <table className="w-full">
+                        <thead><tr className="bg-muted/40">
+                          <th className="text-left px-3 py-1.5 text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.detail.product')}</th>
+                          <th className="text-center px-2 py-1.5 text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.detail.qty')}</th>
+                          <th className="text-right px-2 py-1.5 text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.quoteDetail.unitPrice')}</th>
+                          <th className="text-right px-3 py-1.5 text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.quoteDetail.total')}</th>
+                        </tr></thead>
+                        <tbody>
+                          {products.map((p, pi) => (
+                            <tr key={pi} className={pi % 2 === 0 ? "" : "bg-muted/20"}>
+                              <td className="px-3 py-1.5">
+                                <div className="flex items-center gap-2">
+                                  {p.image && <img src={p.image} alt={p.name} className="w-6 h-6 rounded-sm object-cover border border-border shrink-0" />}
+                                  <span className="text-[10px] font-body text-foreground">{p.name}</span>
+                                </div>
+                              </td>
+                              <td className="px-2 py-1.5 text-[10px] font-body text-foreground text-center">{p.qty}</td>
+                              <td className="px-2 py-1.5 text-[10px] font-body text-muted-foreground text-right">&euro;{p.unitPrice.toLocaleString()}</td>
+                              <td className="px-3 py-1.5 text-[10px] font-display font-semibold text-foreground text-right">&euro;{p.total.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot><tr className="border-t border-border bg-muted/30">
+                          <td colSpan={3} className="px-3 py-1.5 text-[10px] font-display font-bold text-foreground text-right">{t('ad.quoteDetail.total')}</td>
+                          <td className="px-3 py-1.5 text-[10px] font-display font-bold text-foreground text-right">&euro;{(r.estimatedAmount ?? 0).toLocaleString()}</td>
+                        </tr></tfoot>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end px-3 py-2 border-t border-border bg-muted/20">
+                    {!r.isSelected && call.status !== "closed" && (
+                      <button
+                        onClick={() => onSelectResponse(r.id)}
+                        className="text-[9px] font-display font-semibold px-3 py-1 rounded-full bg-foreground text-primary-foreground hover:opacity-90 transition-opacity"
+                      >
+                        {t('ad.calls.selectSupplier')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
   const { t } = useTranslation();
+  const { calls, isLoading, createCall, isCreating, selectResponse, closeCall } = useSupplierCalls();
   const [filter, setFilter] = useState<string>("all");
   const [showNew, setShowNew] = useState(false);
   const [expandedCall, setExpandedCall] = useState<string | null>(null);
@@ -1488,6 +1727,82 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
     makeNeedRow("Protection solaire", "", "important"),
   ]);
 
+  // ── Create form state ──────────────────────────────────────────────────────
+  const [formProject, setFormProject] = useState("");
+  const [formBudget, setFormBudget] = useState("");
+  const [formDeadline, setFormDeadline] = useState("");
+  const [formBrief, setFormBrief] = useState("");
+  const [formStyle, setFormStyle] = useState("");
+  const [formUrgency, setFormUrgency] = useState<"normal" | "urgent" | "flexible">("normal");
+  const [formMaterials, setFormMaterials] = useState("");
+  const [formSurface, setFormSurface] = useState("");
+  const [formCapacity, setFormCapacity] = useState("");
+  const [formAmbiance, setFormAmbiance] = useState("");
+  const [formConstraints, setFormConstraints] = useState("");
+
+  const resetForm = () => {
+    setFormProject(""); setFormBudget(""); setFormDeadline(""); setFormBrief("");
+    setFormStyle(""); setFormUrgency("normal"); setFormMaterials("");
+    setFormSurface(""); setFormCapacity(""); setFormAmbiance(""); setFormConstraints("");
+    setNeedRows([makeNeedRow("Assises", "", "essential"), makeNeedRow("Tables", "", "essential"), makeNeedRow("Protection solaire", "", "important")]);
+  };
+
+  const handleCreateCall = async () => {
+    if (!formBrief.trim() || !formBudget.trim()) {
+      toast.error(t('ad.calls.fillRequired'));
+      return;
+    }
+
+    // Build project_title from selected project or brief
+    const projectLabel = formProject || formBrief.slice(0, 60);
+    const categories = needRows
+      .filter(r => r.category && r.category !== "")
+      .map(r => r.category === "Autre" ? r.customCategory : r.category)
+      .filter(Boolean);
+    const styles = formStyle ? formStyle.split(",").map(s => s.trim()).filter(Boolean) : [];
+
+    try {
+      await createCall({
+        project_title: projectLabel,
+        project_type: "",
+        client_name: "",
+        client_email: "",
+        budget_range: formBudget || null,
+        timeline: formDeadline || null,
+        description: formBrief || null,
+        categories_needed: categories.length > 0 ? categories : null,
+        style_preferences: styles.length > 0 ? styles : null,
+        special_requirements: formConstraints || null,
+      });
+      toast.success(t('ad.calls.publishSuccess'));
+      resetForm();
+      setShowNew(false);
+    } catch (err: any) {
+      console.error("Failed to create call:", err);
+      toast.error(err?.message || t('ad.calls.publishError'));
+    }
+  };
+
+  const handleSelectResponse = async (responseId: string) => {
+    try {
+      await selectResponse(responseId);
+      toast.success(t('ad.calls.responseSelected'));
+    } catch (err: any) {
+      console.error("Failed to select response:", err);
+      toast.error(err?.message || "Error");
+    }
+  };
+
+  const handleCloseCall = async (callId: string) => {
+    try {
+      await closeCall(callId);
+      toast.success(t('ad.calls.callClosed'));
+    } catch (err: any) {
+      console.error("Failed to close call:", err);
+      toast.error(err?.message || "Error");
+    }
+  };
+
   const filters = [
     { id: "all", label: t('ad.calls.all') },
     { id: "open", label: t('ad.calls.open') },
@@ -1495,7 +1810,13 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
     { id: "closed", label: t('ad.calls.closed') },
   ];
 
-  const filtered = MOCK_SUPPLIER_CALLS.filter(c => filter === "all" || c.status === filter);
+  // Map hook status values to filter — the hook may return "pending" etc., normalize
+  const statusMap: Record<string, string> = { pending: "open", open: "open", in_progress: "evaluating", evaluating: "evaluating", closed: "closed", completed: "closed" };
+  const normalizeStatus = (s: string) => statusMap[s] || s;
+  const filtered = calls.filter(c => filter === "all" || normalizeStatus(c.status) === filter);
+
+  // ── Empty state when no calls at all ───────────────────────────────────────
+  const hasNoCalls = !isLoading && calls.length === 0 && !showNew;
 
   return (
     <div className="space-y-5">
@@ -1510,6 +1831,18 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
         </button>
       </div>
 
+      {hasNoCalls && (
+        <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border rounded-sm">
+          <Megaphone className="h-10 w-10 text-muted-foreground/30 mb-4" />
+          <p className="text-sm font-display font-semibold text-foreground mb-1">{t('ad.calls.emptyTitle', 'No supplier calls yet')}</p>
+          <p className="text-[11px] font-body text-muted-foreground mb-4 max-w-xs">{t('ad.calls.emptyDesc', 'Create your first supplier call to start receiving quotes from verified partners.')}</p>
+          <button onClick={() => setShowNew(true)}
+            className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
+            <Megaphone className="h-3.5 w-3.5" /> {t('ad.calls.createFirst', 'Create your first supplier call')}
+          </button>
+        </div>
+      )}
+
       {showNew && (
         <div className="border-2 border-foreground/20 rounded-sm p-5 space-y-4 bg-card">
           <p className="font-display font-bold text-sm text-foreground">{t('ad.calls.createTitle')}</p>
@@ -1519,17 +1852,14 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
           <div className="grid grid-cols-3 gap-3">
             <div>
               <span className={labelCls}>{t('ad.calls.projectLabel')} *</span>
-              <select className={inputCls}>
-                <option>{t('ad.calls.selectProject')}</option>
-                {MOCK_PROJECTS.map(p => <option key={p.id}>{p.projectName} — {p.clientName}</option>)}
-              </select>
+              <input value={formProject} onChange={e => setFormProject(e.target.value)} placeholder={t('ad.calls.selectProject')} className={inputCls} />
             </div>
-            <div><span className={labelCls}>{t('ad.calls.budgetLabel')} *</span><input placeholder="ex: 20 000 – 30 000 €" className={inputCls} /></div>
-            <div><span className={labelCls}>{t('ad.calls.deadlineLabel')} *</span><input type="date" className={inputCls} /></div>
+            <div><span className={labelCls}>{t('ad.calls.budgetLabel')} *</span><input value={formBudget} onChange={e => setFormBudget(e.target.value)} placeholder="ex: 20 000 – 30 000 €" className={inputCls} /></div>
+            <div><span className={labelCls}>{t('ad.calls.deadlineLabel')} *</span><input value={formDeadline} onChange={e => setFormDeadline(e.target.value)} type="date" className={inputCls} /></div>
           </div>
 
           {/* Brief */}
-          <div><span className={labelCls}>{t('ad.calls.briefLabel')} *</span><textarea rows={3} placeholder={t('ad.calls.briefPlaceholder')} className={inputCls + " resize-none"} /></div>
+          <div><span className={labelCls}>{t('ad.calls.briefLabel')} *</span><textarea value={formBrief} onChange={e => setFormBrief(e.target.value)} rows={3} placeholder={t('ad.calls.briefPlaceholder')} className={inputCls + " resize-none"} /></div>
 
           {/* Needs list */}
           <div>
@@ -1596,263 +1926,124 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
 
           {/* Style + urgency */}
           <div className="grid grid-cols-3 gap-3">
-            <div><span className={labelCls}>{t('ad.calls.styleLabel')}</span><input placeholder="ex: Contemporain, Bistrot chic…" className={inputCls} /></div>
+            <div><span className={labelCls}>{t('ad.calls.styleLabel')}</span><input value={formStyle} onChange={e => setFormStyle(e.target.value)} placeholder="ex: Contemporain, Bistrot chic…" className={inputCls} /></div>
             <div>
               <span className={labelCls}>{t('ad.calls.urgencyLabel')}</span>
-              <select className={inputCls}>
+              <select value={formUrgency} onChange={e => setFormUrgency(e.target.value as "normal" | "urgent" | "flexible")} className={inputCls}>
                 <option value="normal">{t('ad.calls.urgencyNormal')}</option>
                 <option value="urgent">{t('ad.calls.urgencyUrgent')}</option>
                 <option value="flexible">{t('ad.calls.urgencyFlexible')}</option>
               </select>
             </div>
-            <div><span className={labelCls}>{t('ad.calls.materialsLabel')}</span><input placeholder="Aluminium, Teck, Résine…" className={inputCls} /></div>
+            <div><span className={labelCls}>{t('ad.calls.materialsLabel')}</span><input value={formMaterials} onChange={e => setFormMaterials(e.target.value)} placeholder="Aluminium, Teck, Résine…" className={inputCls} /></div>
           </div>
 
           {/* Surface + capacity */}
           <div className="grid grid-cols-2 gap-3">
-            <div><span className={labelCls}>{t('ad.calls.surfaceLabel')}</span><input placeholder="ex: 200m²" className={inputCls} /></div>
-            <div><span className={labelCls}>{t('ad.calls.capacityLabel')}</span><input placeholder="ex: 80 couverts" type="number" className={inputCls} /></div>
+            <div><span className={labelCls}>{t('ad.calls.surfaceLabel')}</span><input value={formSurface} onChange={e => setFormSurface(e.target.value)} placeholder="ex: 200m²" className={inputCls} /></div>
+            <div><span className={labelCls}>{t('ad.calls.capacityLabel')}</span><input value={formCapacity} onChange={e => setFormCapacity(e.target.value)} placeholder="ex: 80 couverts" type="number" className={inputCls} /></div>
           </div>
 
           {/* Ambiance + constraints */}
-          <div><span className={labelCls}>{t('ad.calls.ambianceLabel')}</span><input placeholder={t('ad.calls.ambiancePlaceholder')} className={inputCls} /></div>
-          <div><span className={labelCls}>{t('ad.calls.constraintsLabel')}</span><textarea rows={2} placeholder={t('ad.calls.constraintsPlaceholder')} className={inputCls + " resize-none"} /></div>
+          <div><span className={labelCls}>{t('ad.calls.ambianceLabel')}</span><input value={formAmbiance} onChange={e => setFormAmbiance(e.target.value)} placeholder={t('ad.calls.ambiancePlaceholder')} className={inputCls} /></div>
+          <div><span className={labelCls}>{t('ad.calls.constraintsLabel')}</span><textarea value={formConstraints} onChange={e => setFormConstraints(e.target.value)} rows={2} placeholder={t('ad.calls.constraintsPlaceholder')} className={inputCls + " resize-none"} /></div>
 
           {/* Actions */}
           <div className="flex items-center gap-3 pt-1">
-            <button className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
-              <Send className="h-3 w-3" /> {t('ad.calls.publish')}
+            <button
+              onClick={handleCreateCall}
+              disabled={isCreating}
+              className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              <Send className="h-3 w-3" /> {isCreating ? "..." : t('ad.calls.publish')}
             </button>
-            <button onClick={() => setShowNew(false)} className="text-xs font-body text-muted-foreground hover:text-foreground transition-colors">{t('ad.calls.cancel')}</button>
+            <button onClick={() => { setShowNew(false); resetForm(); }} className="text-xs font-body text-muted-foreground hover:text-foreground transition-colors">{t('ad.calls.cancel')}</button>
             <p className="text-[9px] font-body text-muted-foreground flex items-center gap-1.5 ml-auto"><Award className="h-3 w-3" /> {t('ad.calls.pointsNote')}</p>
           </div>
         </div>
       )}
 
-      <div className="flex gap-1">
-        {filters.map(f => (
-          <button key={f.id} onClick={() => setFilter(f.id)}
-            className={`px-3 py-1.5 text-[10px] font-display font-semibold rounded-full transition-colors ${filter === f.id ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-card"}`}>
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="space-y-3">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Megaphone className="h-8 w-8 text-muted-foreground/30 mb-3" />
-            <p className="text-sm font-body text-muted-foreground">{t('ad.calls.noResults')}</p>
+      {(calls.length > 0 || isLoading) && (
+        <>
+          <div className="flex gap-1">
+            {filters.map(f => (
+              <button key={f.id} onClick={() => setFilter(f.id)}
+                className={`px-3 py-1.5 text-[10px] font-display font-semibold rounded-full transition-colors ${filter === f.id ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-card"}`}>
+                {f.label}
+              </button>
+            ))}
           </div>
-        ) : (
-          filtered.map((c) => {
-            const st = CALL_STATUS_STYLES[c.status];
-            const isExpanded = expandedCall === c.id;
-            return (
-              <div key={c.id} className="border border-border rounded-sm overflow-hidden">
-                {/* Card header — always visible */}
-                <button onClick={() => setExpandedCall(isExpanded ? null : c.id)}
-                  className="w-full p-4 text-left hover:bg-card/50 transition-colors">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">{VENUE_ICONS[c.venueType] || "📍"}</span>
-                      <div>
-                        <p className="text-xs font-display font-semibold text-foreground">{c.projectName}</p>
-                        <p className="text-[10px] font-body text-muted-foreground">{c.clientName}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${st.style}`}>{st.label}</span>
-                      <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-                    </div>
-                  </div>
-                  <p className="text-[11px] font-body text-foreground/80 mb-2.5 line-clamp-2">{c.brief}</p>
-                  {/* Metrics row */}
-                  <div className="flex items-center gap-3 text-[10px] font-body text-muted-foreground">
-                    <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {c.budget}</span>
-                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {c.deadline}</span>
-                    <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {c.responsesCount} rép.</span>
-                    <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {c.views} vues</span>
-                    <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {c.clicks} clics</span>
-                  </div>
-                  <div className="flex gap-1.5 mt-2 flex-wrap">
-                    {c.needs.filter(n => n.priority === "essential").map(n => (
-                      <span key={n.category} className="text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{n.category}</span>
-                    ))}
-                    {c.needs.filter(n => n.priority !== "essential").length > 0 && (
-                      <span className="text-[9px] font-body text-muted-foreground">+{c.needs.filter(n => n.priority !== "essential").length}</span>
-                    )}
-                  </div>
-                </button>
 
-                {/* Expanded detail */}
-                {isExpanded && (
-                  <div className="border-t border-border">
-                    {/* Metrics cards */}
-                    <div className="grid grid-cols-4 gap-0 border-b border-border">
-                      {[
-                        { value: `${c.views}`, label: t('ad.calls.views'), color: "#6B7B5E" },
-                        { value: `${c.clicks}`, label: t('ad.calls.clicks'), color: "#2563EB" },
-                        { value: `${c.responsesCount}`, label: t('ad.calls.responses'), color: "#059669" },
-                        { value: c.views > 0 ? `${Math.round((c.clicks / c.views) * 100)}%` : "—", label: t('ad.calls.clickRate'), color: "#D97706" },
-                      ].map((m, i) => (
-                        <div key={i} className={`p-3 text-center ${i < 3 ? "border-r border-border" : ""}`}>
-                          <p className="font-display font-bold text-lg" style={{ color: m.color }}>{m.value}</p>
-                          <p className="text-[9px] font-body text-muted-foreground">{m.label}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Full brief + specs */}
-                    <div className="p-4 border-b border-border space-y-3">
-                      <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.calls.fullBrief')}</p>
-                      <p className="text-[11px] font-body text-foreground/80 leading-relaxed">{c.brief}</p>
-
-                      {/* Project specs */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                        {c.style && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Style</p><p className="text-[10px] font-body text-foreground">{c.style}</p></div>}
-                        {c.surfaceArea && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Surface</p><p className="text-[10px] font-body text-foreground">{c.surfaceArea}</p></div>}
-                        {c.seatingCapacity && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Capacité</p><p className="text-[10px] font-body text-foreground">{c.seatingCapacity} places</p></div>}
-                        {c.urgency && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Urgence</p><p className={`text-[10px] font-body ${c.urgency === "urgent" ? "text-red-600 font-semibold" : "text-foreground"}`}>{c.urgency === "urgent" ? "Urgent" : c.urgency === "flexible" ? "Flexible" : "Normal"}</p></div>}
-                      </div>
-
-                      {/* Needs by priority */}
-                      <div>
-                        <p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('ad.calls.needsList')}</p>
-                        <div className="space-y-1.5">
-                          {c.needs.map(n => {
-                            const priorityStyle = n.priority === "essential" ? "border-l-green-500 bg-green-50/30" : n.priority === "important" ? "border-l-blue-500 bg-blue-50/30" : "border-l-muted-foreground/30 bg-muted/20";
-                            const priorityLabel = n.priority === "essential" ? "Essentiel" : n.priority === "important" ? "Important" : "Optionnel";
-                            const priorityColor = n.priority === "essential" ? "text-green-700 bg-green-50" : n.priority === "important" ? "text-blue-700 bg-blue-50" : "text-muted-foreground bg-muted";
-                            return (
-                              <div key={n.category} className={`flex items-center justify-between px-3 py-2 border-l-2 rounded-r-sm ${priorityStyle}`}>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-display font-semibold text-foreground">{n.category}</span>
-                                    <span className={`text-[8px] font-display font-semibold uppercase px-1.5 py-0.5 rounded-full ${priorityColor}`}>{priorityLabel}</span>
-                                  </div>
-                                  <p className="text-[9px] font-body text-muted-foreground mt-0.5">{n.description}</p>
-                                </div>
-                                {n.qty && <span className="text-[10px] font-display font-semibold text-foreground shrink-0 ml-3">×{n.qty}</span>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {c.materials && c.materials.length > 0 && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Matériaux :</span>
-                          {c.materials.map(m => <span key={m} className="text-[9px] font-body px-2 py-0.5 rounded-full border border-border text-muted-foreground">{m}</span>)}
-                        </div>
-                      )}
-                      {c.ambiance && <p className="text-[10px] font-body text-muted-foreground italic">"{c.ambiance}"</p>}
-                      {c.constraints && (
-                        <div className="flex items-start gap-2 text-[10px] font-body text-amber-700 bg-amber-50/50 rounded-sm px-3 py-2">
-                          <FileText className="h-3 w-3 mt-0.5 shrink-0" />
-                          <span>{c.constraints}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Supplier responses with products */}
-                    <div className="p-4">
-                      <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                        {t('ad.calls.supplierResponses')} ({c.responses.length})
-                      </p>
-                      {c.responses.length === 0 ? (
-                        <p className="text-[10px] font-body text-muted-foreground text-center py-4">{t('ad.calls.noResponses')}</p>
-                      ) : (
-                        <div className="space-y-3">
-                          {[...c.responses]
-                            .sort((a, b) => a.estimatedAmount - b.estimatedAmount)
-                            .map((r, i) => (
-                            <div key={r.id} className={`border rounded-sm overflow-hidden ${r.selected ? "border-green-400 bg-green-50/30" : "border-border"}`}>
-                              {/* Response header */}
-                              <div className="p-3">
-                                <div className="flex items-center justify-between mb-1.5">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-[10px] font-display font-bold">{r.supplierName[0]}</div>
-                                    <div>
-                                      <p className="text-[11px] font-display font-semibold text-foreground">{r.supplierCompany}</p>
-                                      <p className="text-[9px] font-body text-muted-foreground">{r.supplierName} · {r.date}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    {i === 0 && <span className="text-[8px] font-display font-semibold uppercase px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">{t('ad.calls.bestPrice')}</span>}
-                                    {r.selected && <span className="text-[8px] font-display font-semibold uppercase px-1.5 py-0.5 rounded-full bg-green-100 text-green-800">{t('ad.calls.selected')}</span>}
-                                    {r.warranty && <span className="text-[8px] font-display font-semibold uppercase px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">{t('ad.calls.warranty')} {r.warranty}</span>}
-                                  </div>
-                                </div>
-                                <p className="text-[10px] font-body text-foreground/80 leading-relaxed">{r.message}</p>
-
-                                {/* Key numbers */}
-                                <div className="flex items-center gap-4 mt-2 text-[10px] font-body">
-                                  <span className="font-display font-bold text-foreground">€{r.estimatedAmount.toLocaleString()}</span>
-                                  <span className="flex items-center gap-1 text-muted-foreground"><Clock className="h-3 w-3" /> {r.deliveryWeeks} sem.</span>
-                                  <span className="text-muted-foreground">{r.products.length} produits</span>
-                                  {r.attachments && <span className="flex items-center gap-1 text-muted-foreground"><Paperclip className="h-3 w-3" /> {r.attachments.length} doc(s)</span>}
-                                </div>
-                              </div>
-
-                              {/* Products table */}
-                              {r.products.length > 0 && (
-                                <div className="border-t border-border">
-                                  <table className="w-full">
-                                    <thead><tr className="bg-muted/40">
-                                      <th className="text-left px-3 py-1.5 text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.detail.product')}</th>
-                                      <th className="text-center px-2 py-1.5 text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.detail.qty')}</th>
-                                      <th className="text-right px-2 py-1.5 text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.quoteDetail.unitPrice')}</th>
-                                      <th className="text-right px-3 py-1.5 text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.quoteDetail.total')}</th>
-                                    </tr></thead>
-                                    <tbody>
-                                      {r.products.map((p, pi) => (
-                                        <tr key={pi} className={pi % 2 === 0 ? "" : "bg-muted/20"}>
-                                          <td className="px-3 py-1.5">
-                                            <div className="flex items-center gap-2">
-                                              {p.image && <img src={p.image} alt={p.name} className="w-6 h-6 rounded-sm object-cover border border-border shrink-0" />}
-                                              <span className="text-[10px] font-body text-foreground">{p.name}</span>
-                                            </div>
-                                          </td>
-                                          <td className="px-2 py-1.5 text-[10px] font-body text-foreground text-center">{p.qty}</td>
-                                          <td className="px-2 py-1.5 text-[10px] font-body text-muted-foreground text-right">€{p.unitPrice.toLocaleString()}</td>
-                                          <td className="px-3 py-1.5 text-[10px] font-display font-semibold text-foreground text-right">€{p.total.toLocaleString()}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                    <tfoot><tr className="border-t border-border bg-muted/30">
-                                      <td colSpan={3} className="px-3 py-1.5 text-[10px] font-display font-bold text-foreground text-right">{t('ad.quoteDetail.total')}</td>
-                                      <td className="px-3 py-1.5 text-[10px] font-display font-bold text-foreground text-right">€{r.estimatedAmount.toLocaleString()}</td>
-                                    </tr></tfoot>
-                                  </table>
-                                </div>
-                              )}
-
-                              {/* Attachments + actions */}
-                              <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-muted/20">
-                                <div className="flex items-center gap-2">
-                                  {r.attachments?.map((a, ai) => (
-                                    <span key={ai} className="flex items-center gap-1 text-[9px] font-body text-muted-foreground hover:text-foreground cursor-pointer"><Paperclip className="h-3 w-3" /> {a}</span>
-                                  ))}
-                                </div>
-                                {!r.selected && c.status !== "closed" && (
-                                  <button className="text-[9px] font-display font-semibold px-3 py-1 rounded-full bg-foreground text-primary-foreground hover:opacity-90 transition-opacity">
-                                    {t('ad.calls.selectSupplier')}
-                                  </button>
-                                )}
-                              </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Megaphone className="h-8 w-8 text-muted-foreground/30 mb-3" />
+                  <p className="text-sm font-body text-muted-foreground">{t('ad.calls.noResults')}</p>
+                </div>
+              ) : (
+                filtered.map((c) => {
+                  const displayStatus = normalizeStatus(c.status);
+                  const st = CALL_STATUS_STYLES[displayStatus] || CALL_STATUS_STYLES["open"];
+                  const isExpanded = expandedCall === c.id;
+                  // Map categoriesNeeded to simple need tags
+                  const needTags = c.categoriesNeeded || [];
+                  return (
+                    <div key={c.id} className="border border-border rounded-sm overflow-hidden">
+                      {/* Card header — always visible */}
+                      <button onClick={() => setExpandedCall(isExpanded ? null : c.id)}
+                        className="w-full p-4 text-left hover:bg-card/50 transition-colors">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">{VENUE_ICONS[c.projectType] || "\uD83D\uDCCD"}</span>
+                            <div>
+                              <p className="text-xs font-display font-semibold text-foreground">{c.projectTitle}</p>
+                              <p className="text-[10px] font-body text-muted-foreground">{c.clientName}</p>
                             </div>
-                          ))}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${st.style}`}>{st.label}</span>
+                            <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                          </div>
                         </div>
+                        <p className="text-[11px] font-body text-foreground/80 mb-2.5 line-clamp-2">{c.brief}</p>
+                        {/* Metrics row */}
+                        <div className="flex items-center gap-3 text-[10px] font-body text-muted-foreground">
+                          {c.budget && <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {c.budget}</span>}
+                          {c.deadline && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {c.deadline}</span>}
+                          <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {c.responsesCount} rép.</span>
+                          <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {c.views} vues</span>
+                          <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {c.clicks} clics</span>
+                        </div>
+                        {needTags.length > 0 && (
+                          <div className="flex gap-1.5 mt-2 flex-wrap">
+                            {needTags.map(tag => (
+                              <span key={tag} className="text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{tag}</span>
+                            ))}
+                          </div>
+                        )}
+                      </button>
+
+                      {/* Expanded detail */}
+                      {isExpanded && (
+                        <CallDetailExpanded
+                          call={c}
+                          onSelectResponse={handleSelectResponse}
+                          onCloseCall={handleCloseCall}
+                        />
                       )}
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
