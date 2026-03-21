@@ -37,6 +37,14 @@
     "compatibleDesc": "Productos que combinan con tu selección",
     "createProject": "Crear un proyecto con este producto"
   },
+  "searchSuggestions": {
+    "products": "Productos",
+    "partners": "Socios",
+    "categorys": "Categorías",
+    "styles": "Estilos",
+    "noResults": "Sin resultados para '{{query}}'",
+    "searching": "Buscando..."
+  },
   "home": {
     "badge": "Sourcing mobiliario outdoor — B2B",
     "headline1": "El espacio outdoor",
@@ -670,7 +678,53 @@
     "supplierCalls": "Convocatorias a proveedores",
     "newSupplierCall": "Nueva convocatoria",
     "designAssistant": "Diseno IA",
-    "loyalty": "Fidelidad"
+    "loyalty": "Fidelidad",
+    "orders": "Mis pedidos"
+  },
+  "orders": {
+    "title": "Mis pedidos",
+    "empty": "No hay pedidos aun.",
+    "emptyHint": "Los pedidos apareceran aqui una vez confirmes un presupuesto.",
+    "orderCount": "{{count}} pedido(s)",
+    "notFound": "Pedido no encontrado.",
+    "backToOrders": "Volver a pedidos",
+    "orderedOn": "Pedido el",
+    "orderProgress": "Progreso del pedido",
+    "quantity": "Cantidad",
+    "totalAmount": "Total",
+    "unitPrice": "Precio unitario",
+    "estimatedDelivery": "Entrega estimada",
+    "trackingInfo": "Informacion de seguimiento",
+    "carrier": "Transportista",
+    "trackingNumber": "Numero de seguimiento",
+    "lastEvent": "Ultimo evento",
+    "lastChecked": "Ultima comprobacion",
+    "paymentInfo": "Informacion de pago",
+    "deposit": "Anticipo",
+    "balance": "Saldo",
+    "paid": "Pagado",
+    "pending": "Pendiente",
+    "dueBy": "Vence el",
+    "timeline": "Historial del pedido",
+    "noEvents": "Sin eventos registrados.",
+    "status": {
+      "pending": "Pendiente",
+      "confirmed": "Confirmado",
+      "production": "En produccion",
+      "shipped": "Enviado",
+      "delivered": "Entregado",
+      "cancelled": "Cancelado"
+    },
+    "eventType": {
+      "created": "Pedido creado",
+      "confirmed": "Pedido confirmado por el proveedor",
+      "production": "Produccion iniciada",
+      "shipped": "Pedido enviado",
+      "delivered": "Pedido entregado",
+      "cancelled": "Pedido cancelado",
+      "payment": "Pago recibido",
+      "tracking": "Seguimiento actualizado"
+    }
   },
   "cd": {
     "welcome": "¡Hola {{name}}!",
@@ -2219,6 +2273,9 @@
     "backToHomepage": "Volver a la página principal",
     "submitSuccess": "¡Proyecto enviado! Nuestro equipo te contactará en 48h.",
     "submitError": "Algo salió mal. Inténtalo de nuevo.",
+    "exportPdf": "Exportar PDF",
+    "pdfTitle": "Solicitud de Presupuesto",
+    "pdfGenerated": "PDF generado con éxito",
     "confirmed": "confirmado",
     "selection": "Selección",
     "suppliers": "Proveedores",

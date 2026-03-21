@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import SEO from "@/components/SEO";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
@@ -51,6 +52,7 @@ import {
   type ClientSectionSetter,
 } from "@/components/client-dashboard/ClientSections";
 import DesignAssistantSection from "@/components/client-dashboard/DesignAssistantSection";
+import ClientOrdersSection from "@/components/client-dashboard/ClientOrdersSection";
 import PartnerAnalyticsDashboard from "@/components/partner-dashboard/PartnerAnalyticsDashboard";
 import PartnerLoyaltyProgram from "@/components/partner-dashboard/PartnerLoyaltyProgram";
 
@@ -78,6 +80,7 @@ const NAV_CLIENT = [
   { id: "design-ai",  icon: Sparkles,        labelKey: "account.designAssistant" },
   { id: "projects",   icon: FolderOpen,      labelKey: "account.myProjects" },
   { id: "quotes",     icon: Inbox,           labelKey: "account.quoteRequests" },
+  { id: "orders",     icon: Package,         labelKey: "account.orders" },
   { id: "messages",   icon: MessageSquare,   labelKey: "account.messages" },
   { id: "favourites", icon: Heart,           labelKey: "account.favourites" },
   { id: "settings",   icon: Settings,        labelKey: "account.profileSettings" },
@@ -445,6 +448,7 @@ const Account = () => {
       case "design-ai":   return <DesignAssistantSection />;
       case "projects":    return <ClientProjectsSection onNavigate={handleClientNav} />;
       case "quotes":      return <ClientQuotesSection onNavigate={handleClientNav} />;
+      case "orders":      return <ClientOrdersSection />;
       case "messages":    return <ClientMessagesSection />;
       case "favourites":  return <ClientFavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
       case "settings":    return <ClientSettingsSection profile={profile} />;
@@ -454,6 +458,7 @@ const Account = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="My Account" noindex />
       <Header />
 
       <div className="pt-24 pb-16 px-6">

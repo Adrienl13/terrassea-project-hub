@@ -37,6 +37,14 @@
     "compatibleDesc": "Products that pair well with your selection",
     "createProject": "Create a project with this product"
   },
+  "searchSuggestions": {
+    "products": "Products",
+    "partners": "Partners",
+    "categorys": "Categories",
+    "styles": "Styles",
+    "noResults": "No results for '{{query}}'",
+    "searching": "Searching..."
+  },
   "home": {
     "badge": "Outdoor furniture sourcing — B2B",
     "headline1": "Your clients' outdoor",
@@ -673,7 +681,53 @@
     "supplierCalls": "Supplier calls",
     "newSupplierCall": "New supplier call",
     "designAssistant": "AI Design",
-    "loyalty": "Loyalty"
+    "loyalty": "Loyalty",
+    "orders": "My orders"
+  },
+  "orders": {
+    "title": "My Orders",
+    "empty": "No orders yet.",
+    "emptyHint": "Orders will appear here once you confirm a quote.",
+    "orderCount": "{{count}} order(s)",
+    "notFound": "Order not found.",
+    "backToOrders": "Back to orders",
+    "orderedOn": "Ordered on",
+    "orderProgress": "Order progress",
+    "quantity": "Quantity",
+    "totalAmount": "Total",
+    "unitPrice": "Unit price",
+    "estimatedDelivery": "Est. delivery",
+    "trackingInfo": "Tracking information",
+    "carrier": "Carrier",
+    "trackingNumber": "Tracking number",
+    "lastEvent": "Last event",
+    "lastChecked": "Last checked",
+    "paymentInfo": "Payment information",
+    "deposit": "Deposit",
+    "balance": "Balance",
+    "paid": "Paid",
+    "pending": "Pending",
+    "dueBy": "Due by",
+    "timeline": "Order timeline",
+    "noEvents": "No events recorded yet.",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "production": "Production",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "eventType": {
+      "created": "Order created",
+      "confirmed": "Order confirmed by supplier",
+      "production": "Production started",
+      "shipped": "Order shipped",
+      "delivered": "Order delivered",
+      "cancelled": "Order cancelled",
+      "payment": "Payment received",
+      "tracking": "Tracking updated"
+    }
   },
   "cd": {
     "welcome": "Welcome back, {{name}}!",
@@ -2295,6 +2349,9 @@
     "backToHomepage": "Back to homepage",
     "submitSuccess": "Project submitted! Our team will contact you within 48h.",
     "submitError": "Something went wrong. Please try again.",
+    "exportPdf": "Export PDF",
+    "pdfTitle": "Project Quotation Request",
+    "pdfGenerated": "PDF generated successfully",
     "confirmed": "confirmed",
     "selection": "Selection",
     "suppliers": "Suppliers",

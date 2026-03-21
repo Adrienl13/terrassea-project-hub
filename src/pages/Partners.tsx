@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import SEO from "@/components/SEO";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -339,6 +340,10 @@ export default function Partners() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Our Partners — Verified Outdoor Furniture Suppliers"
+        description="Discover verified outdoor furniture suppliers, manufacturers, and brands on Terrassea. Find the right partner for your hospitality project."
+      />
       <Header />
 
       {/* ── HERO ── */}

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import SEO from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -128,6 +129,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Sign In" noindex />
       <Header />
 
       <div className="pt-28 pb-16 px-6">

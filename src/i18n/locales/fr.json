@@ -37,6 +37,14 @@
     "compatibleDesc": "Des produits qui se marient avec votre sélection",
     "createProject": "Créer un projet avec ce produit"
   },
+  "searchSuggestions": {
+    "products": "Produits",
+    "partners": "Partenaires",
+    "categorys": "Catégories",
+    "styles": "Styles",
+    "noResults": "Aucun résultat pour '{{query}}'",
+    "searching": "Recherche en cours..."
+  },
   "home": {
     "badge": "Sourcing mobilier outdoor — B2B",
     "headline1": "L'espace outdoor",
@@ -673,7 +681,53 @@
     "supplierCalls": "Appels fournisseurs",
     "newSupplierCall": "Nouvel appel fournisseur",
     "designAssistant": "Design IA",
-    "loyalty": "Fidélité"
+    "loyalty": "Fidélité",
+    "orders": "Mes commandes"
+  },
+  "orders": {
+    "title": "Mes commandes",
+    "empty": "Aucune commande pour le moment.",
+    "emptyHint": "Vos commandes apparaitront ici une fois un devis confirme.",
+    "orderCount": "{{count}} commande(s)",
+    "notFound": "Commande introuvable.",
+    "backToOrders": "Retour aux commandes",
+    "orderedOn": "Commande le",
+    "orderProgress": "Progression de la commande",
+    "quantity": "Quantite",
+    "totalAmount": "Total",
+    "unitPrice": "Prix unitaire",
+    "estimatedDelivery": "Livraison estimee",
+    "trackingInfo": "Informations de suivi",
+    "carrier": "Transporteur",
+    "trackingNumber": "Numero de suivi",
+    "lastEvent": "Dernier evenement",
+    "lastChecked": "Derniere verification",
+    "paymentInfo": "Informations de paiement",
+    "deposit": "Acompte",
+    "balance": "Solde",
+    "paid": "Paye",
+    "pending": "En attente",
+    "dueBy": "Echeance le",
+    "timeline": "Historique de la commande",
+    "noEvents": "Aucun evenement enregistre.",
+    "status": {
+      "pending": "En attente",
+      "confirmed": "Confirmee",
+      "production": "En production",
+      "shipped": "Expediee",
+      "delivered": "Livree",
+      "cancelled": "Annulee"
+    },
+    "eventType": {
+      "created": "Commande creee",
+      "confirmed": "Commande confirmee par le fournisseur",
+      "production": "Production lancee",
+      "shipped": "Commande expediee",
+      "delivered": "Commande livree",
+      "cancelled": "Commande annulee",
+      "payment": "Paiement recu",
+      "tracking": "Suivi mis a jour"
+    }
   },
   "cd": {
     "welcome": "Bonjour {{name}} !",
@@ -2295,6 +2349,9 @@
     "backToHomepage": "Retour à l'accueil",
     "submitSuccess": "Projet soumis ! Notre équipe vous contactera sous 48h.",
     "submitError": "Une erreur est survenue. Veuillez réessayer.",
+    "exportPdf": "Exporter PDF",
+    "pdfTitle": "Demande de Devis Projet",
+    "pdfGenerated": "PDF généré avec succès",
     "confirmed": "confirmé",
     "selection": "Sélection",
     "suppliers": "Fournisseurs",

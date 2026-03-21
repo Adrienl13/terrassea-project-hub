@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import SEO from "@/components/SEO";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -208,6 +209,12 @@ export default function PartnerDetail() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={`${partner.name} — Outdoor Furniture Supplier`}
+        description={ml(partner, "description") || `${partner.name} — verified outdoor furniture supplier on Terrassea. Discover their catalog and request quotes.`}
+        image={partner.logo_url || undefined}
+        url={`https://terrassea.com/partners/${partner.slug}`}
+      />
       <Header />
 
       {/* ── HERO STRIP ── */}

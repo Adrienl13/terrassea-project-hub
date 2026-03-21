@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ml } from "@/lib/i18nFields";
+import SEO from "@/components/SEO";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -156,6 +157,13 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={localName}
+        description={ml(product, "short_description") || `${localName} — professional outdoor furniture available on Terrassea. Compare supplier offers and request quotes.`}
+        image={product.image_url || undefined}
+        type="product"
+        url={`https://terrassea.com/products/${product.id}`}
+      />
       <Header />
       <main className="pt-24 pb-16">
         {/* Breadcrumb */}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler, Truck, X, Save } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler, Truck, X, Save, FileDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import SourcingSummary from "@/components/project/SourcingSummary";
 import SourcingAlerts from "@/components/project/SourcingAlerts";
 import type { DBProduct } from "@/lib/products";
 import type { CartItem } from "@/contexts/ProjectCartContext";
+import { exportCartAsPdf } from "@/lib/cartPdfExport";
 
 // ── Progress steps ────────────────────────────────────────────────────────────
 
@@ -88,7 +89,7 @@ async function lookupSiren(siren: string): Promise<SirenResult | null> {
 // ── Main component ────────────────────────────────────────────────────────────
 
 const ProjectCart = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus, markCartSubmitted } =
   useProjectCart();
 
@@ -290,11 +291,35 @@ const ProjectCart = () => {
           </Link>
 
           {/* Title */}
-          <div className="mb-6">
-            <h1 className="font-display text-3xl font-bold text-foreground">{t('projectCart.title')}</h1>
-            <p className="text-sm text-muted-foreground font-body mt-1">
-              {t('projectCart.subtitle')}
-            </p>
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <h1 className="font-display text-3xl font-bold text-foreground">{t('projectCart.title')}</h1>
+              <p className="text-sm text-muted-foreground font-body mt-1">
+                {t('projectCart.subtitle')}
+              </p>
+            </div>
+            {items.length > 0 && (
+              <button
+                onClick={() =>
+                  exportCartAsPdf({
+                    items,
+                    formData: {
+                      name: formData.name,
+                      company: formData.company,
+                      email: formData.email,
+                      phone: formData.phone,
+                    },
+                    totalBudget,
+                    notes,
+                    lang: i18n.language?.slice(0, 2) || "en",
+                  })
+                }
+                className="flex items-center gap-2 px-4 py-2 text-sm font-display font-semibold border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all shrink-0"
+              >
+                <FileDown className="h-4 w-4" />
+                {t('projectCart.exportPdf')}
+              </button>
+            )}
           </div>
 
           {/* Progress */}

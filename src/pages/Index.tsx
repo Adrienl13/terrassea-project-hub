@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Compass, Layers, Send, Sparkles, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import SEO from "@/components/SEO";
 import SmartSearch from "@/components/SmartSearch";
 import SpaceCard from "@/components/SpaceCard";
 import ProductCard from "@/components/ProductCard";
@@ -117,6 +118,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="B2B Outdoor Furniture for Hotels, Restaurants & Beach Clubs"
+        description="Source premium outdoor furniture for hotels, restaurants, and beach clubs. Compare verified suppliers, request quotes, and manage your hospitality projects on Terrassea."
+      />
       <Header />
 
       {/* ── HERO ──────────────────────────────────────────────────────── */}

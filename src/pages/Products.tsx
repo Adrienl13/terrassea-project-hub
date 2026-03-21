@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import SEO from "@/components/SEO";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ml } from "@/lib/i18nFields";
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 import CompareBar from "@/components/products/CompareBar";
 import ProductFilterSidebar, {
   type FilterState,
@@ -226,6 +228,10 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Product Catalog — Professional Outdoor Furniture"
+        description="Browse our curated catalog of professional outdoor furniture for hospitality. Filter by category, material, style, and compare offers from verified suppliers."
+      />
       <Header />
       <main className="pt-24 pb-16">
         {/* Supplier filter banner */}
@@ -264,21 +270,15 @@ const Products = () => {
               {t('products.subtitle')}
             </p>
 
-            {/* Search bar */}
-            <div className="mt-6 relative max-w-2xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
+            {/* Search bar with autocomplete */}
+            <div className="mt-6 max-w-2xl">
+              <SearchAutocomplete
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={setSearch}
+                onSearch={setSearch}
+                navigateOnSelect={true}
                 placeholder={t('products.searchPlaceholder')}
-                className="w-full pl-11 pr-4 py-3 text-sm font-body bg-card border border-border rounded-full focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all placeholder:text-muted-foreground"
               />
-              {search && (
-                <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                </button>
-              )}
             </div>
           </div>
         </section>
