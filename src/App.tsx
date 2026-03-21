@@ -15,6 +15,13 @@ import Auth from "./pages/Auth.tsx";
 import Messages from "./pages/Messages.tsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound.tsx";
+import CookieBanner from "@/components/CookieBanner";
+
+// Legal pages
+const Legal = lazy(() => import("./pages/Legal"));
+const CGV = lazy(() => import("./pages/CGV"));
+const CGU = lazy(() => import("./pages/CGU"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 
 // Lazy-loaded heavy page components
 const Admin = lazy(() => import("./pages/Admin"));
@@ -67,8 +74,13 @@ const App = () => (
                   <Route path="/boards/shared/:token" element={<SharedBoard />} />
                   <Route path="/mood-board" element={<ProtectedRoute><MoodBoard /></ProtectedRoute>} />
                   <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+                  <Route path="/mentions-legales" element={<Legal />} />
+                  <Route path="/cgv" element={<CGV />} />
+                  <Route path="/cgu" element={<CGU />} />
+                  <Route path="/confidentialite" element={<Privacy />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                <CookieBanner />
                 </Suspense>
               </div>
             </BrowserRouter>

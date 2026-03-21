@@ -621,7 +621,8 @@
     "becomePartner": "Become a Partner",
     "contact": "Contact",
     "privacy": "Privacy Policy",
-    "copyright": "© 2026 Terrassea HUB. All rights reserved."
+    "copyright": "© 2026 Terrassea HUB. All rights reserved.",
+    "legalTitle": "Legal"
   },
   "partnerDetail": {
     "supplierNotFound": "Supplier not found",
@@ -3367,5 +3368,12 @@
     "balanceStatus": "Balance",
     "noteLabel": "Payment notes",
     "notePlaceholder": "Add a note about this payment..."
+  },
+  "legal": {
+    "mentions": "Legal Notice",
+    "cgv": "Terms of Sale",
+    "cgu": "Terms of Use",
+    "privacy": "Privacy Policy",
+    "cookies": "Cookie Settings"
   }
 }

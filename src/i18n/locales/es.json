@@ -618,7 +618,8 @@
     "becomePartner": "Convertirse en socio",
     "contact": "Contacto",
     "privacy": "Política de privacidad",
-    "copyright": "© 2026 Terrassea HUB. Todos los derechos reservados."
+    "copyright": "© 2026 Terrassea HUB. Todos los derechos reservados.",
+    "legalTitle": "Legal"
   },
   "partnerDetail": {
     "supplierNotFound": "Proveedor no encontrado",
@@ -3273,5 +3274,12 @@
     "balanceStatus": "Saldo",
     "noteLabel": "Notas de pago",
     "notePlaceholder": "Añadir una nota sobre este pago..."
+  },
+  "legal": {
+    "mentions": "Aviso legal",
+    "cgv": "Condiciones de venta",
+    "cgu": "Condiciones de uso",
+    "privacy": "Privacidad",
+    "cookies": "Configuración cookies"
   }
 }
