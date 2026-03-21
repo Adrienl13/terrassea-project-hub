@@ -220,7 +220,13 @@ const ProjectCart = () => {
         product_id: item.product.id,
         quantity: item.quantity,
         concept_name: item.conceptName || null,
-        notes: null
+        notes: null,
+        selected_offer_id: item.selectedSupplier?.offerId || null,
+        selected_partner_id: item.selectedSupplier?.partnerId || null,
+        selected_partner_name: item.selectedSupplier?.partnerName || null,
+        selected_price: item.selectedSupplier?.price || null,
+        selected_stock_status: item.selectedSupplier?.stockStatus || null,
+        selected_delivery_days: item.selectedSupplier?.deliveryDelayDays || null,
       }));
       const { error: ciError } = await supabase.
       from("project_cart_items").
@@ -391,10 +397,10 @@ const ProjectCart = () => {
 
                               {/* Price */}
                               <div className="text-right">
-                                {selectedSupplier?.price ?? product.price_min ?
+                                {(selectedSupplier?.price ?? product.price_min) != null ?
                             <>
-                                    <p className="text-[10px] text-muted-foreground font-body">×€{(selectedSupplier?.price ?? product.price_min)?.toFixed(2)}</p>
-                                    <p className="font-display font-semibold text-foreground text-base">~€{((selectedSupplier?.price ?? product.price_min) * quantity).toLocaleString("fr-FR")}</p>
+                                    <p className="text-[10px] text-muted-foreground font-body">×€{(selectedSupplier?.price ?? product.price_min)!.toFixed(2)}</p>
+                                    <p className="font-display font-semibold text-foreground text-base">~€{((selectedSupplier?.price ?? product.price_min)! * quantity).toLocaleString("fr-FR")}</p>
                                   </> :
 
                             <p className="text-[10px] text-muted-foreground font-body">{t('projectCart.onRequest')}</p>

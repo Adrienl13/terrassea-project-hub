@@ -128,6 +128,8 @@ const QuoteRequestModal = ({
         partner_name: bestOffer?.partner?.name || null,
         quantity: form.quantity,
         first_name: form.firstName,
+        client_first_name: form.firstName,
+        client_city: null,
         last_name: form.lastName || null,
         email: form.email,
         company: form.company || sirenResult?.companyName || null,

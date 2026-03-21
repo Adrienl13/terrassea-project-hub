@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { useConversations, useMessages, createConversation, type ConversationSummary } from "@/hooks/useConversations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -332,17 +333,16 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
 // ── Main Messages Page ──
 export default function Messages() {
   const { user } = useAuth();
+  const { conversationId: urlConvId } = useParams();
   const { conversations, isLoading } = useConversations();
   const [activeConv, setActiveConv] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [search, setSearch] = useState("");
 
-  // Check URL for direct conversation link
+  // Sync URL param with active conversation
   useEffect(() => {
-    const path = window.location.pathname;
-    const match = path.match(/\/messages\/(.+)/);
-    if (match) setActiveConv(match[1]);
-  }, []);
+    if (urlConvId) setActiveConv(urlConvId);
+  }, [urlConvId]);
 
   const filtered = conversations.filter(c => {
     if (!search) return true;

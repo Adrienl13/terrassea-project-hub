@@ -1473,6 +1473,12 @@ export type Database = {
           product_id: string | null
           project_request_id: string | null
           quantity: number
+          selected_delivery_days: number | null
+          selected_offer_id: string | null
+          selected_partner_id: string | null
+          selected_partner_name: string | null
+          selected_price: number | null
+          selected_stock_status: string | null
         }
         Insert: {
           concept_name?: string | null
@@ -1482,6 +1488,12 @@ export type Database = {
           product_id?: string | null
           project_request_id?: string | null
           quantity?: number
+          selected_delivery_days?: number | null
+          selected_offer_id?: string | null
+          selected_partner_id?: string | null
+          selected_partner_name?: string | null
+          selected_price?: number | null
+          selected_stock_status?: string | null
         }
         Update: {
           concept_name?: string | null
@@ -1491,6 +1503,12 @@ export type Database = {
           product_id?: string | null
           project_request_id?: string | null
           quantity?: number
+          selected_delivery_days?: number | null
+          selected_offer_id?: string | null
+          selected_partner_id?: string | null
+          selected_partner_name?: string | null
+          selected_price?: number | null
+          selected_stock_status?: string | null
         }
         Relationships: [
           {
@@ -1498,6 +1516,20 @@ export type Database = {
             columns: ["project_request_id"]
             isOneToOne: false
             referencedRelation: "project_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_cart_items_selected_offer_id_fkey"
+            columns: ["selected_offer_id"]
+            isOneToOne: false
+            referencedRelation: "product_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_cart_items_selected_partner_id_fkey"
+            columns: ["selected_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]
