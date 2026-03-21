@@ -107,38 +107,75 @@ function fileToBase64(file: File): Promise<string> {
 // ── Hook ──────────────────────────────────────────────────
 
 export function useMoodBoard() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Platform settings ───────────────────────────────────
+  // User role for role-specific settings
+  const userRole = profile?.user_type ?? "client";
+  const isArchitect = userRole === "architect";
+  const isClient = userRole === "client";
+
+  // ── Platform settings (global + per-role) ───────────────
   const { data: settingsData } = useQuery({
-    queryKey: ["platform-settings", "mood_board"],
+    queryKey: ["platform-settings", "design_ai"],
     queryFn: async () => {
       const { data, error: err } = await supabase
         .from("platform_settings")
         .select("key, value")
-        .in("key", ["mood_board_enabled", "mood_board_max_analyses"]);
+        .in("key", [
+          "mood_board_enabled",
+          "mood_board_max_analyses",
+          "design_ai_enabled_client",
+          "design_ai_enabled_architect",
+          "design_ai_max_credits_client",
+          "design_ai_max_credits_architect",
+        ]);
       if (err) throw err;
       return data ?? [];
     },
     staleTime: 1000 * 60 * 10,
   });
 
-  const isEnabled = useMemo(() => {
-    const row = settingsData?.find((r) => r.key === "mood_board_enabled");
-    if (!row) return true; // default enabled
-    return row.value === true || row.value === "true";
+  const getSetting = useCallback((key: string): string | null => {
+    const row = settingsData?.find((r) => r.key === key);
+    if (!row) return null;
+    return String(row.value);
   }, [settingsData]);
 
+  const isEnabled = useMemo(() => {
+    // Global kill switch
+    const globalEnabled = getSetting("mood_board_enabled");
+    if (globalEnabled === "false") return false;
+
+    // Per-role toggle
+    if (isArchitect) {
+      const archEnabled = getSetting("design_ai_enabled_architect");
+      return archEnabled !== "false"; // default true
+    }
+    if (isClient) {
+      const clientEnabled = getSetting("design_ai_enabled_client");
+      return clientEnabled !== "false"; // default true
+    }
+
+    // Other roles (partner, admin): use global setting
+    return globalEnabled !== "false";
+  }, [settingsData, getSetting, isArchitect, isClient]);
+
   const maxAnalyses = useMemo(() => {
-    const row = settingsData?.find((r) => r.key === "mood_board_max_analyses");
-    if (!row) return 10; // sensible default
-    const val = typeof row.value === "number" ? row.value : Number(row.value);
-    return Number.isFinite(val) ? val : 10;
-  }, [settingsData]);
+    // Per-role credits
+    let raw: string | null = null;
+    if (isArchitect) raw = getSetting("design_ai_max_credits_architect");
+    else if (isClient) raw = getSetting("design_ai_max_credits_client");
+
+    // Fallback to global setting
+    if (raw === null) raw = getSetting("mood_board_max_analyses");
+
+    const val = raw !== null ? Number(raw) : 3;
+    return Number.isFinite(val) ? val : 3;
+  }, [settingsData, getSetting, isArchitect, isClient]);
 
   // ── Count user's past analyses ──────────────────────────
   const { data: analysesUsed = 0 } = useQuery({

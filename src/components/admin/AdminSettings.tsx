@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Settings, Save, Percent, CreditCard, Mail, Globe, Package, FileText, Clock } from "lucide-react";
+import { Settings, Save, Percent, CreditCard, Mail, Globe, Package, FileText, Clock, Sparkles } from "lucide-react";
 
 const CATEGORY_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+  features:   { label: "Fonctionnalités", icon: Sparkles, color: "#8B5CF6" },
   commission: { label: "Commissions", icon: Percent, color: "#D4603A" },
   orders:     { label: "Commandes & Livraisons", icon: CreditCard, color: "#2563EB" },
   quotes:     { label: "Devis & Signatures", icon: FileText, color: "#7C3AED" },
@@ -15,7 +16,7 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: any; color: string 
   shipping:   { label: "Livraison", icon: Clock, color: "#0891B2" },
 };
 
-const CATEGORY_ORDER = ["commission", "orders", "quotes", "plans", "email", "general", "shipping"];
+const CATEGORY_ORDER = ["features", "commission", "orders", "quotes", "plans", "email", "general", "shipping"];
 
 export default function AdminSettings() {
   const queryClient = useQueryClient();
