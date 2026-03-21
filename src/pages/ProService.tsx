@@ -12,7 +12,7 @@ const ProService = () => {
   const { profile, isLoading } = useAuth();
   const store = useProServiceStore();
 
-  if (isLoading) {
+  if (isLoading || store.isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />

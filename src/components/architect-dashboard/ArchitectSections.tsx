@@ -609,7 +609,7 @@ export function ArchitectProjectDetail({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { projects: dbProjects } = useArchitectProjects();
-  const { zones: dbZones, isLoading: zonesLoading } = useProjectZones(projectId);
+  const { zones: dbZones, isLoading: zonesLoading, addZone } = useProjectZones(projectId);
   const { boards, isLoading: boardsLoading } = useMaterialBoards(projectId);
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"zones" | "notes" | "boards">("zones");
@@ -623,6 +623,10 @@ export function ArchitectProjectDetail({
   const [notes, setNotes] = useState<ProjectNote[]>([]);
   const [activeZone, setActiveZone] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [showAddZone, setShowAddZone] = useState(false);
+  const [newZoneName, setNewZoneName] = useState("");
+  const [newZoneArea, setNewZoneArea] = useState("");
+  const [addingZone, setAddingZone] = useState(false);
   const [expandedQuote, setExpandedQuote] = useState<string | null>(null);
   const [previewProductId, setPreviewProductId] = useState<string | null>(null);
   const [editStatus, setEditStatus] = useState(project?.status || "draft");
@@ -762,8 +766,64 @@ export function ArchitectProjectDetail({
       </div>
 
       {/* Zones & Products tab */}
-      {activeTab === "zones" && project.zones.length > 0 && (
+      {activeTab === "zones" && (
         <div>
+          {/* Add zone button + inline form */}
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
+              {project.zones.length} zone{project.zones.length !== 1 ? "s" : ""}
+            </p>
+            <button
+              onClick={() => setShowAddZone(!showAddZone)}
+              className="flex items-center gap-1.5 text-[10px] font-display font-semibold px-3 py-1.5 rounded-full border border-border hover:border-foreground text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Plus className="h-3 w-3" /> {t("ad.detail.addZone") || "Add zone"}
+            </button>
+          </div>
+          {showAddZone && (
+            <div className="flex items-end gap-2 mb-3 p-3 border border-border rounded-sm bg-card">
+              <div className="flex-1">
+                <span className={labelCls}>{t("ad.detail.zoneName") || "Zone name"} *</span>
+                <input
+                  value={newZoneName}
+                  onChange={(e) => setNewZoneName(e.target.value)}
+                  placeholder="ex: Terrasse principale"
+                  className={inputCls}
+                />
+              </div>
+              <div className="w-32">
+                <span className={labelCls}>{t("ad.detail.zoneArea") || "Area"}</span>
+                <input
+                  value={newZoneArea}
+                  onChange={(e) => setNewZoneArea(e.target.value)}
+                  placeholder="ex: 80m²"
+                  className={inputCls}
+                />
+              </div>
+              <button
+                disabled={!newZoneName.trim() || addingZone}
+                onClick={async () => {
+                  if (!newZoneName.trim()) return;
+                  setAddingZone(true);
+                  try {
+                    await addZone({ name: newZoneName.trim(), area: newZoneArea.trim() || undefined });
+                    toast.success(t("ad.detail.zoneCreated") || "Zone created");
+                    setNewZoneName("");
+                    setNewZoneArea("");
+                    setShowAddZone(false);
+                  } catch (err: any) {
+                    toast.error(err?.message || "Failed to create zone");
+                  } finally {
+                    setAddingZone(false);
+                  }
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-sm hover:opacity-90 disabled:opacity-30 transition-opacity whitespace-nowrap"
+              >
+                <Plus className="h-3 w-3" /> {addingZone ? "..." : (t("ad.detail.create") || "Create")}
+              </button>
+            </div>
+          )}
+          {project.zones.length > 0 && (
           <div className="space-y-3">
             {project.zones.map((zone) => (
               <div key={zone.id} className="border border-border rounded-sm overflow-hidden">
@@ -823,12 +883,13 @@ export function ArchitectProjectDetail({
               </div>
             ))}
           </div>
-        </div>
-      )}
-      {activeTab === "zones" && project.zones.length === 0 && (
-        <div className="text-center py-8">
-          <MapPin className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
-          <p className="text-[10px] font-body text-muted-foreground">No zones yet</p>
+          )}
+          {project.zones.length === 0 && !showAddZone && (
+            <div className="text-center py-8">
+              <MapPin className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-[10px] font-body text-muted-foreground">No zones yet</p>
+            </div>
+          )}
         </div>
       )}
 

@@ -132,6 +132,9 @@ export function useArchitectProjects() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["architect-projects", user?.id] });
     },
+    onError: (err: any) => {
+      console.error("Failed to create architect project:", err);
+    },
   });
 
   const updateProject = useMutation({

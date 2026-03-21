@@ -195,6 +195,9 @@ export function usePaymentFlow() {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       queryClient.invalidateQueries({ queryKey: ["admin-order-events"] });
     },
+    onError: (err: any) => {
+      console.error("Failed to create order:", err);
+    },
   });
 
   // ── confirmDeposit ──────────────────────────────────────────────────────

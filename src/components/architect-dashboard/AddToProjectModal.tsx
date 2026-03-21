@@ -1,47 +1,18 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  FolderOpen, MapPin, ChevronRight, CheckCircle2, X, Plus, Package,
+  FolderOpen, MapPin, ChevronRight, CheckCircle2, X, Plus, Package, Loader2,
 } from "lucide-react";
 import type { DBProduct } from "@/lib/products";
 import type { SelectedSupplier } from "@/contexts/ProjectCartContext";
+import { useArchitectProjects, useProjectZones } from "@/hooks/useArchitectProjects";
+import { toast } from "sonner";
 
-// ── Mock projects (same as in ArchitectSections — would be shared context in prod) ──
-
-interface ProjectZoneMini {
-  id: string;
-  name: string;
-  area: string;
-}
-
-interface ArchitectProjectMini {
-  id: string;
-  clientName: string;
-  projectName: string;
-  venueType: string;
-  zones: ProjectZoneMini[];
-}
+// ── Component ──────────────────────────────────────────────────────────────────
 
 const VENUE_ICONS: Record<string, string> = {
   hotel: "🏨", restaurant: "🍽", bar: "🍸", "beach-club": "🏖", rooftop: "🌇", cafe: "☕",
 };
-
-const MOCK_ARCHITECT_PROJECTS: ArchitectProjectMini[] = [
-  { id: "1", clientName: "Groupe Accor", projectName: "Terrasse Rooftop — Sofitel Paris", venueType: "hotel", zones: [
-    { id: "z1", name: "Lounge Bar", area: "80m²" },
-    { id: "z2", name: "Espace Dining", area: "100m²" },
-    { id: "z3", name: "Solarium", area: "60m²" },
-  ]},
-  { id: "2", clientName: "Le Comptoir du Marais", projectName: "Patio & Jardin intérieur", venueType: "restaurant", zones: [
-    { id: "z4", name: "Patio intérieur", area: "35m²" },
-    { id: "z5", name: "Jardin arrière", area: "20m²" },
-  ]},
-  { id: "3", clientName: "Hôtel & Spa Biarritz", projectName: "Bord de piscine & Solarium", venueType: "hotel", zones: [] },
-  { id: "4", clientName: "Beach House Marseille", projectName: "Beach Club Lounge", venueType: "beach-club", zones: [] },
-  { id: "5", clientName: "La Villa Cannes", projectName: "Jardin Méditerranéen", venueType: "restaurant", zones: [] },
-];
-
-// ── Component ──────────────────────────────────────────────────────────────────
 
 interface AddToProjectModalProps {
   open: boolean;
@@ -60,14 +31,38 @@ export default function AddToProjectModal({
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
 
+  const { projects, isLoading: projectsLoading } = useArchitectProjects();
+  const { zones, isLoading: zonesLoading, addProductToZone } = useProjectZones(selectedProject ?? undefined);
+
   if (!open) return null;
 
-  const project = MOCK_ARCHITECT_PROJECTS.find(p => p.id === selectedProject);
+  const currentProject = projects.find(p => p.id === selectedProject);
 
-  const handleConfirm = () => {
-    if (!selectedProject || !project) return;
-    const zone = project.zones.find(z => z.id === selectedZone);
-    onConfirm(selectedProject, project.projectName, zone?.name);
+  const handleConfirm = async () => {
+    if (!selectedProject || !currentProject) return;
+    const zone = zones.find(z => z.id === selectedZone);
+
+    // Persist product to zone in DB if a zone is selected
+    if (selectedZone && zone) {
+      try {
+        await addProductToZone({
+          zoneId: selectedZone,
+          productId: product.id,
+          quantity,
+          supplierData: supplier ? {
+            supplier_id: supplier.partnerId,
+            supplier_name: supplier.partnerName,
+            unit_price: supplier.price ?? undefined,
+          } : undefined,
+        });
+      } catch (err: any) {
+        console.error("Failed to add product to zone:", err);
+        toast.error("Failed to add product to zone");
+        return;
+      }
+    }
+
+    onConfirm(selectedProject, currentProject.project_name, zone?.zone_name);
     setConfirmed(true);
     setTimeout(() => {
       setConfirmed(false);
@@ -111,9 +106,9 @@ export default function AddToProjectModal({
             <CheckCircle2 className="h-10 w-10 text-green-600 mb-3" />
             <p className="font-display font-bold text-sm text-foreground text-center">{t('addToProject.added')}</p>
             <p className="text-[10px] font-body text-muted-foreground text-center mt-1">
-              {quantity}× {product.name} → {project?.projectName}
-              {selectedZone && project?.zones.find(z => z.id === selectedZone) && (
-                <> · {project.zones.find(z => z.id === selectedZone)!.name}</>
+              {quantity}× {product.name} → {currentProject?.project_name}
+              {selectedZone && zones.find(z => z.id === selectedZone) && (
+                <> · {zones.find(z => z.id === selectedZone)!.zone_name}</>
               )}
             </p>
           </div>
@@ -127,23 +122,33 @@ export default function AddToProjectModal({
                   <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
                     {t('addToProject.selectProject')}
                   </p>
-                  {MOCK_ARCHITECT_PROJECTS.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => {
-                        setSelectedProject(p.id);
-                        if (p.zones.length === 0) setSelectedZone(null);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 border border-border rounded-sm hover:border-foreground/20 transition-colors text-left"
-                    >
-                      <span className="text-base">{VENUE_ICONS[p.venueType] || "📍"}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-display font-semibold text-foreground truncate">{p.projectName}</p>
-                        <p className="text-[10px] font-body text-muted-foreground">{p.clientName} · {p.zones.length} zones</p>
-                      </div>
-                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    </button>
-                  ))}
+                  {projectsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : projects.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-8">
+                      {t('addToProject.noProjects', 'No projects found. Create a project first.')}
+                    </p>
+                  ) : (
+                    projects.map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedProject(p.id);
+                          setSelectedZone(null);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 border border-border rounded-sm hover:border-foreground/20 transition-colors text-left"
+                      >
+                        <span className="text-base">{VENUE_ICONS[p.venue_type || ""] || "📍"}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-display font-semibold text-foreground truncate">{p.project_name}</p>
+                          <p className="text-[10px] font-body text-muted-foreground">{p.client_name || ""}</p>
+                        </div>
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      </button>
+                    ))
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -156,21 +161,25 @@ export default function AddToProjectModal({
                   </button>
 
                   <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-sm border border-border">
-                    <span className="text-base">{VENUE_ICONS[project!.venueType] || "📍"}</span>
+                    <span className="text-base">{VENUE_ICONS[currentProject?.venue_type || ""] || "📍"}</span>
                     <div>
-                      <p className="text-xs font-display font-semibold text-foreground">{project!.projectName}</p>
-                      <p className="text-[10px] font-body text-muted-foreground">{project!.clientName}</p>
+                      <p className="text-xs font-display font-semibold text-foreground">{currentProject!.project_name}</p>
+                      <p className="text-[10px] font-body text-muted-foreground">{currentProject!.client_name || ""}</p>
                     </div>
                   </div>
 
                   {/* Step 2: Select zone (if project has zones) */}
-                  {project!.zones.length > 0 && (
+                  {zonesLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : zones.length > 0 ? (
                     <div>
                       <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                         {t('addToProject.selectZone')}
                       </p>
                       <div className="space-y-1.5">
-                        {project!.zones.map(z => (
+                        {zones.map(z => (
                           <button
                             key={z.id}
                             onClick={() => setSelectedZone(z.id)}
@@ -182,8 +191,8 @@ export default function AddToProjectModal({
                           >
                             <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
                             <div>
-                              <p className="text-xs font-display font-semibold text-foreground">{z.name}</p>
-                              <p className="text-[10px] font-body text-muted-foreground">{z.area}</p>
+                              <p className="text-xs font-display font-semibold text-foreground">{z.zone_name}</p>
+                              {z.zone_area && <p className="text-[10px] font-body text-muted-foreground">{z.zone_area}</p>}
                             </div>
                             {selectedZone === z.id && (
                               <CheckCircle2 className="h-3.5 w-3.5 text-foreground ml-auto" />
@@ -206,7 +215,7 @@ export default function AddToProjectModal({
                         </button>
                       </div>
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Product summary */}
                   <div className="border border-border rounded-sm p-3 bg-muted/30">

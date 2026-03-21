@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProductSubmission } from "@/hooks/useProductSubmissions";
 import { toast } from "sonner";
 import {
   X, Upload, Sparkles, Camera, Check, Loader2, AlertTriangle,
@@ -125,6 +126,7 @@ export default function AddProductForm({
 }) {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { submitProduct, isSubmitting } = useProductSubmission();
   const config = PLAN_CONFIG[plan];
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -289,7 +291,7 @@ export default function AddProductForm({
         }
       }
 
-      const { error } = await supabase.from("products").insert({
+      const { duplicate } = await submitProduct({
         name: form.name,
         category: form.category,
         subcategory: form.subcategory || null,
@@ -324,14 +326,12 @@ export default function AddProductForm({
         estimated_delivery_days: form.estimated_delivery_days,
         country_of_manufacture: form.country_of_manufacture || null,
         warranty: form.warranty || null,
-        publish_status: "draft",
-        partner_id: null, // Will be linked when partner record exists
-      });
+      } as any);
 
-      if (error) throw error;
-
-      toast.success("Produit ajouté avec succès !", {
-        description: "Il sera visible après validation par l'équipe Terrassea.",
+      toast.success("Product submitted for review", {
+        description: duplicate
+          ? "A potential duplicate was detected — our team will review it."
+          : "Il sera visible après validation par l'équipe Terrassea.",
       });
       onSuccess();
     } catch (err: any) {

@@ -167,6 +167,9 @@ export function useSupplierCalls() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["supplier-calls", user?.id] });
     },
+    onError: (err: any) => {
+      console.error("Failed to create supplier call:", err);
+    },
   });
 
   // Update a call

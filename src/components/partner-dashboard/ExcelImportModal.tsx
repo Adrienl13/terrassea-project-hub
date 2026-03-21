@@ -69,7 +69,7 @@ const CATEGORY_ALIASES: Record<string, string> = {
   "bain de soleil": "loungers", "transat": "loungers", "lounger": "loungers", "loungers": "loungers",
   "canapé": "sofas", "canapés": "sofas", "banquette": "sofas", "sofa": "sofas", "sofas": "sofas",
   "accessoire": "accessories", "accessoires": "accessories", "accessories": "accessories",
-  "seating": "seating", "tables": "tables", "parasols": "parasols",
+  "seating": "seating",
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────

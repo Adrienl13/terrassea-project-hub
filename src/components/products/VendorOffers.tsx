@@ -9,6 +9,7 @@ import type { DBProduct } from "@/lib/products";
 import { useProjectCart, type SelectedSupplier } from "@/contexts/ProjectCartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AddToProjectModal from "@/components/architect-dashboard/AddToProjectModal";
+import QuoteRequestModal from "@/components/products/QuoteRequestModal";
 import { toast } from "sonner";
 
 interface VendorOffersProps {
@@ -121,8 +122,8 @@ function FitHelperText({ fit, offer, quantity }: { fit: QuantityFit; offer: Prod
   );
 }
 
-function OfferAction({ fit, offer, quantity, onAddToCart }: {
-  fit: QuantityFit; offer: ProductOffer; quantity: number; onAddToCart: (o: ProductOffer) => void;
+function OfferAction({ fit, offer, quantity, onAddToCart, onRequestQuote }: {
+  fit: QuantityFit; offer: ProductOffer; quantity: number; onAddToCart: (o: ProductOffer) => void; onRequestQuote?: (o: ProductOffer) => void;
 }) {
   const { t } = useTranslation();
   if (fit === "full_match") {
@@ -145,7 +146,7 @@ function OfferAction({ fit, offer, quantity, onAddToCart }: {
     ? t("vendorOffers.requestProductionQuote")
     : t("vendorOffers.requestQuoteFor", { count: quantity });
   return (
-    <button className="flex items-center gap-1.5 text-[10px] font-display font-semibold border border-foreground text-foreground rounded-full px-3 py-1.5 hover:bg-foreground hover:text-primary-foreground transition-colors">
+    <button onClick={() => onRequestQuote?.(offer)} className="flex items-center gap-1.5 text-[10px] font-display font-semibold border border-foreground text-foreground rounded-full px-3 py-1.5 hover:bg-foreground hover:text-primary-foreground transition-colors">
       <FileText className="h-3 w-3" /> {label}
     </button>
   );
@@ -190,6 +191,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
   const isArchitect = profile?.user_type === "architect";
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [pendingSupplier, setPendingSupplier] = useState<SelectedSupplier | null>(null);
+  const [quoteModalOffer, setQuoteModalOffer] = useState<ProductOffer | null>(null);
   const getPartnerTypeLabel = usePartnerTypeLabel();
 
   const getMaskedName = (index: number): string => {
@@ -428,7 +430,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
                   {/* Action */}
                   <td className="py-4">
                     <div className="flex flex-col items-end gap-1">
-                      <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={(o) => handleAddToCart(o, index)} />
+                      <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={(o) => handleAddToCart(o, index)} onRequestQuote={(o) => setQuoteModalOffer(o)} />
                       <FitHelperText fit={fit} offer={offer} quantity={quantity} />
                     </div>
                   </td>
@@ -494,7 +496,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
               </div>
               <div className="flex items-start gap-2">
                 <div className="flex-1 flex flex-col gap-1">
-                  <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={(o) => handleAddToCart(o, index)} />
+                  <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={(o) => handleAddToCart(o, index)} onRequestQuote={(o) => setQuoteModalOffer(o)} />
                   <FitHelperText fit={fit} offer={offer} quantity={quantity} />
                 </div>
               </div>
@@ -522,6 +524,13 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
           onConfirm={handleArchitectConfirm}
         />
       )}
+      <QuoteRequestModal
+        open={quoteModalOffer !== null}
+        onClose={() => setQuoteModalOffer(null)}
+        product={product}
+        offers={quoteModalOffer ? [quoteModalOffer] : []}
+        defaultQuantity={quantity}
+      />
     </section>
   );
 };

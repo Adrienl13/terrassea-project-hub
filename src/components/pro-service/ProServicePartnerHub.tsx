@@ -8,7 +8,7 @@ import {
 import {
   STATUS_CONFIG, CONNECTION_STATUS_CONFIG,
   computeMatchScore,
-  type ProProject, type ProConnection,
+  type ProProject, type ProConnection, type ProProfessional,
 } from "./proServiceMockData";
 import { type ProServiceStore, getConnectionsForProfessional } from "./useProServiceStore";
 
@@ -20,7 +20,18 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
 
   // Simulate this partner = pro-001
   const myId = "pro-001";
-  const myPro = store.professionals.find(p => p.id === myId)!;
+  const myProFound = store.professionals.find(p => p.id === myId);
+  // Fallback profile so the page doesn't crash when demo data is absent
+  const myPro: ProProfessional = myProFound ?? {
+    id: myId,
+    name: "Partner",
+    company: "",
+    type: "supplier",
+    specialties: [],
+    location: "",
+    rating: 0,
+    projectsCompleted: 0,
+  };
   const myConnections = getConnectionsForProfessional(store.connections, myId);
 
   // Available = projects not connected to (no connection at all), with open status

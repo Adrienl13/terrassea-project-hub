@@ -36,8 +36,23 @@ export default function ProServiceArchitectHub({ store }: { store: ProServiceSto
 
   // Simulate this architect = pro-002
   const myId = "pro-002";
-  const myPro = store.professionals.find(p => p.id === myId)!;
+  const myProFound = store.professionals.find(p => p.id === myId);
+  // Fallback profile so the page doesn't crash when demo data is absent
+  const myPro: ProProfessional = myProFound ?? {
+    id: myId,
+    name: "Architect",
+    company: "",
+    type: "architect",
+    specialties: [],
+    location: "",
+    rating: 0,
+    projectsCompleted: 0,
+  };
   const myConnections = getConnectionsForProfessional(store.connections, myId);
+  // Track which projects the architect already accepted (to show confirmation in mission cards)
+  const accepted = new Set(
+    myConnections.filter(c => c.status === "accepted" || c.status === "pending").map(c => c.projectId)
+  );
 
   // All project IDs this architect has any connection to (accepted, pending, completed, declined)
   const connectedProjectIds = new Set(myConnections.map(c => c.projectId));

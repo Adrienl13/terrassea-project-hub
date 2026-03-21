@@ -275,23 +275,83 @@ function ProductRow({
 export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNavigate: PartnerSectionSetter }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const config = PLAN_CONFIG[plan];
   const isElite = plan === "elite";
 
   const handleUpgrade = () => navigate("/become-partner");
+
+  // Resolve partner ID from the partners table using the user's email
+  const { data: partnerId } = useQuery({
+    queryKey: ["partner-id-for-overview", profile?.email],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("partners")
+        .select("id")
+        .eq("contact_email", profile!.email)
+        .maybeSingle();
+      return data?.id ?? null;
+    },
+    enabled: !!profile?.email && profile?.user_type === "partner",
+  });
+
+  // Pending quotes count
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ["partner-pending-quotes", partnerId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("quote_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("partner_id", partnerId!)
+        .eq("status", "pending");
+      return count ?? 0;
+    },
+    enabled: !!partnerId,
+  });
+
+  // Products listed count
+  const { data: productsCount = 0 } = useQuery({
+    queryKey: ["partner-products-count", partnerId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("product_offers")
+        .select("id", { count: "exact", head: true })
+        .eq("partner_id", partnerId!)
+        .eq("is_active", true);
+      return count ?? 0;
+    },
+    enabled: !!partnerId,
+  });
+
+  // Monthly revenue from orders
+  const { data: monthlyRevenue = 0 } = useQuery({
+    queryKey: ["partner-monthly-revenue", partnerId],
+    queryFn: async () => {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const { data } = await supabase
+        .from("orders")
+        .select("total_amount")
+        .eq("partner_id", partnerId!)
+        .gte("created_at", startOfMonth);
+      if (!data || data.length === 0) return 0;
+      return data.reduce((sum, o) => sum + Number(o.total_amount ?? 0), 0);
+    },
+    enabled: !!partnerId,
+  });
 
   return (
     <div className="space-y-5">
       {/* Commission reminder */}
       <CommissionReminder plan={plan} onUpgrade={handleUpgrade} />
 
-      {/* Stats — TODO: connect to real data (query quote_requests, product_offers, orders by partnerId) */}
+      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard value="—" label={t('pd.stats.pendingRequests')} icon={Inbox} />
-        <StatCard value="—" label={t('pd.stats.productsListed')} icon={Package} />
-        <StatCard value="—" label={t('pd.stats.monthlyRevenue')} icon={TrendingUp} />
+        <StatCard value={partnerId ? String(pendingCount) : "—"} label={t('pd.stats.pendingRequests')} icon={Inbox} />
+        <StatCard value={partnerId ? String(productsCount) : "—"} label={t('pd.stats.productsListed')} icon={Package} />
+        <StatCard value={partnerId ? `€${monthlyRevenue.toLocaleString()}` : "—"} label={t('pd.stats.monthlyRevenue')} icon={TrendingUp} />
         <StatCard
-          value="—"
+          value={isElite ? (partnerId ? "Coming soon" : "—") : "—"}
           label={t('pd.stats.commissionsPaid')}
           icon={BarChart3}
           locked={!isElite}
