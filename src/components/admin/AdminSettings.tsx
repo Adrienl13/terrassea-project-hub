@@ -25,10 +25,10 @@ export default function AdminSettings() {
   const { data: settings = [], isLoading } = useQuery({
     queryKey: ["platform-settings"],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from("platform_settings" as any)
+      const { data, error } = await supabase
+        .from("platform_settings")
         .select("*")
-        .order("category") as any);
+        .order("category");
       if (error) throw error;
       return data || [];
     },
@@ -48,10 +48,10 @@ export default function AdminSettings() {
     else if (!isNaN(Number(value)) && value.trim() !== "") jsonValue = Number(value);
     else jsonValue = value;
 
-    const { error } = await (supabase
-      .from("platform_settings" as any)
+    const { error } = await supabase
+      .from("platform_settings")
       .update({ value: jsonValue, updated_at: new Date().toISOString(), updated_by: user?.id })
-      .eq("key", key) as any);
+      .eq("key", key);
 
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success("Paramètre mis à jour");

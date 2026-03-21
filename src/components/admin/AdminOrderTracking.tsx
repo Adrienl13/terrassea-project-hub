@@ -43,10 +43,10 @@ export default function AdminOrderTracking() {
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["admin-orders"],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from("orders" as any)
+      const { data, error } = await supabase
+        .from("orders")
         .select("*, partner:partner_id(name, country_code, slug)")
-        .order("created_at", { ascending: false }) as any);
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -56,11 +56,11 @@ export default function AdminOrderTracking() {
     queryKey: ["admin-order-events", selectedId],
     enabled: !!selectedId,
     queryFn: async () => {
-      const { data } = await (supabase
-        .from("order_events" as any)
+      const { data } = await supabase
+        .from("order_events")
         .select("*")
         .eq("order_id", selectedId)
-        .order("created_at", { ascending: false }) as any);
+        .order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -80,10 +80,10 @@ export default function AdminOrderTracking() {
   const selected = selectedId ? orders.find((o: any) => o.id === selectedId) : null;
 
   const updateOrder = async (id: string, updates: Record<string, any>, eventType: string, eventDesc: string) => {
-    const { error } = await (supabase.from("orders" as any).update({ ...updates, updated_at: new Date().toISOString() }).eq("id", id) as any);
+    const { error } = await supabase.from("orders").update({ ...updates, updated_at: new Date().toISOString() }).eq("id", id);
     if (error) { toast.error("Erreur : " + error.message); return; }
     // Log event
-    await (supabase.from("order_events" as any).insert({ order_id: id, event_type: eventType, description: eventDesc, actor: "admin" }) as any);
+    await supabase.from("order_events").insert({ order_id: id, event_type: eventType, description: eventDesc, actor: "admin" });
     toast.success(eventDesc);
     queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     queryClient.invalidateQueries({ queryKey: ["admin-order-events", id] });

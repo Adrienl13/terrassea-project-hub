@@ -183,11 +183,11 @@ export async function checkTrackingStatus(
  */
 export async function refreshOrderTracking(orderId: string): Promise<TrackingStatus | null> {
   // Get order
-  const { data: order } = await (supabase
-    .from("orders" as any)
+  const { data: order } = await supabase
+    .from("orders")
     .select("tracking_number, shipping_carrier, tracking_auto_enabled, status")
     .eq("id", orderId)
-    .single() as any);
+    .single();
 
   if (!order?.tracking_number || !order.tracking_auto_enabled) return null;
 
@@ -215,17 +215,17 @@ export async function refreshOrderTracking(orderId: string): Promise<TrackingSta
     updates.balance_due_date = new Date(Date.now() + 7 * 86400000).toISOString();
 
     // Log event
-    const { error: eventError } = await (supabase.from("order_events" as any).insert({
+    const { error: eventError } = await supabase.from("order_events").insert({
       order_id: orderId,
       event_type: "delivered",
       description: `Livraison confirmée automatiquement par ${TRACKING_PROVIDER}: "${result.lastEvent}"`,
       actor: "system",
       metadata: { provider: TRACKING_PROVIDER, raw_status: result.status },
-    }) as any);
+    });
     if (eventError) console.error("Failed to insert order_event:", eventError.message);
   }
 
-  const { error: updateError } = await (supabase.from("orders" as any).update(updates).eq("id", orderId) as any);
+  const { error: updateError } = await supabase.from("orders").update(updates).eq("id", orderId);
   if (updateError) console.error("Failed to update order tracking:", updateError.message);
   return result;
 }
@@ -237,12 +237,12 @@ export async function refreshOrderTracking(orderId: string): Promise<TrackingSta
 export async function refreshAllShippedOrders(): Promise<number> {
   if (!isAutoTrackingEnabled) return 0;
 
-  const { data: orders, error: fetchError } = await (supabase
-    .from("orders" as any)
+  const { data: orders, error: fetchError } = await supabase
+    .from("orders")
     .select("id")
     .eq("status", "shipped")
     .eq("tracking_auto_enabled", true)
-    .limit(200) as any);
+    .limit(200);
 
   if (fetchError) {
     console.error("Failed to fetch shipped orders:", fetchError.message);

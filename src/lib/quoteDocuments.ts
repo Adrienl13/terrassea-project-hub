@@ -96,8 +96,8 @@ export async function uploadQuotePdf({
   }
 
   // Insert document reference
-  const { data, error: insertError } = await (supabase
-    .from("quote_documents" as any)
+  const { data, error: insertError } = await supabase
+    .from("quote_documents")
     .insert({
       quote_request_id: quoteRequestId,
       uploaded_by: uploaderId,
@@ -108,7 +108,7 @@ export async function uploadQuotePdf({
       doc_type: docType,
     })
     .select()
-    .single() as any);
+    .single();
 
   if (insertError) {
     console.error("Insert error:", insertError);
@@ -120,10 +120,10 @@ export async function uploadQuotePdf({
 
   // Update quote_requests with latest PDF path
   if (docType === "quote_pdf") {
-    const { error: updateError } = await (supabase
-      .from("quote_requests" as any)
-      .update({ latest_pdf_path: filePath } as any)
-      .eq("id", quoteRequestId) as any);
+    const { error: updateError } = await supabase
+      .from("quote_requests")
+      .update({ latest_pdf_path: filePath })
+      .eq("id", quoteRequestId);
     if (updateError) {
       console.error("Failed to update quote_requests latest_pdf_path:", updateError.message);
     }
@@ -147,11 +147,11 @@ export async function getDocumentUrl(filePath: string): Promise<string | null> {
 export async function listQuoteDocuments(
   quoteRequestId: string
 ): Promise<QuoteDocument[]> {
-  const { data, error } = await (supabase
-    .from("quote_documents" as any)
+  const { data, error } = await supabase
+    .from("quote_documents")
     .select("*")
     .eq("quote_request_id", quoteRequestId)
-    .order("created_at", { ascending: false }) as any);
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error("List documents error:", error);
@@ -173,15 +173,15 @@ export async function signDocument({
   provider?: string;
   reference?: string;
 }): Promise<{ success: boolean; error: string | null }> {
-  const { error } = await (supabase
-    .from("quote_documents" as any)
+  const { error } = await supabase
+    .from("quote_documents")
     .update({
       signed_at: new Date().toISOString(),
       signed_by: signedBy,
       signature_provider: provider,
       signature_reference: reference || null,
-    } as any)
-    .eq("id", documentId) as any);
+    })
+    .eq("id", documentId);
 
   if (error) {
     console.error("Sign error:", error);
@@ -189,22 +189,22 @@ export async function signDocument({
   }
 
   // Also update the quote_request
-  const { data: doc } = await (supabase
-    .from("quote_documents" as any)
+  const { data: doc } = await supabase
+    .from("quote_documents")
     .select("quote_request_id, file_path")
     .eq("id", documentId)
-    .single() as any);
+    .single();
 
   if (doc) {
-    const { error: updateError } = await (supabase
-      .from("quote_requests" as any)
+    const { error: updateError } = await supabase
+      .from("quote_requests")
       .update({
-        signed_pdf_path: (doc as any).file_path,
+        signed_pdf_path: doc.file_path,
         signed_at: new Date().toISOString(),
         signed_by: signedBy,
         status: "accepted",
-      } as any)
-      .eq("id", (doc as any).quote_request_id) as any);
+      })
+      .eq("id", doc.quote_request_id);
     if (updateError) {
       console.error("Failed to update quote_request after signing:", updateError.message);
     }
@@ -230,10 +230,10 @@ export async function deleteQuoteDocument(
   }
 
   // Delete from database
-  const { error: dbError } = await (supabase
-    .from("quote_documents" as any)
+  const { error: dbError } = await supabase
+    .from("quote_documents")
     .delete()
-    .eq("id", documentId) as any);
+    .eq("id", documentId);
 
   if (dbError) {
     console.error("DB delete error:", dbError);
@@ -251,19 +251,19 @@ export async function canClientAccessPdf(quoteRequestId: string): Promise<{
   canAccess: boolean;
   reason: PdfAccessReason;
 }> {
-  const { data: qr } = await (supabase
-    .from("quote_requests" as any)
+  const { data: qr } = await supabase
+    .from("quote_requests")
     .select("signed_at")
     .eq("id", quoteRequestId)
-    .single() as any);
+    .single();
 
   if (!qr?.signed_at) return { canAccess: false, reason: "not_signed" };
 
-  const { data: order } = await (supabase
-    .from("orders" as any)
+  const { data: order } = await supabase
+    .from("orders")
     .select("deposit_paid_at")
     .eq("quote_request_id", quoteRequestId)
-    .maybeSingle() as any);
+    .maybeSingle();
 
   if (!order?.deposit_paid_at) return { canAccess: false, reason: "deposit_pending" };
 

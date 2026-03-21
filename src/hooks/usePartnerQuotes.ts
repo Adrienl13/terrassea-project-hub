@@ -37,11 +37,11 @@ export function usePartnerQuotes() {
     queryKey: ["partner-id-for-user", profile?.email],
     queryFn: async () => {
       if (!profile?.email) return null;
-      const { data, error } = await (supabase
-        .from("partners" as any)
+      const { data, error } = await supabase
+        .from("partners")
         .select("id")
         .eq("contact_email", profile.email)
-        .single() as any);
+        .single();
       if (error) {
         console.error("Failed to find partner for user:", error.message);
         return null;
@@ -56,11 +56,11 @@ export function usePartnerQuotes() {
     queryKey: ["partner-quotes", partnerId],
     queryFn: async () => {
       if (!partnerId) return [];
-      const { data, error } = await (supabase
-        .from("quote_requests" as any)
+      const { data, error } = await supabase
+        .from("quote_requests")
         .select("id, product_name, product_id, quantity, unit_price, total_price, status, message, created_at, client_first_name, client_city, client_anonymous_id, latest_pdf_path, signed_at, project_request_id, project:project_request_id(project_name, venue_type)")
         .eq("partner_id", partnerId)
-        .order("created_at", { ascending: false }) as any);
+        .order("created_at", { ascending: false });
       if (error) { console.error(error); return []; }
       return (data || []).map((q: any) => ({
         ...q,
@@ -99,7 +99,7 @@ export function usePartnerQuotes() {
         updates.validity_expires_at = new Date(Date.now() + validityDays * 86400000).toISOString();
       }
       if (status === "replied") updates.replied_at = new Date().toISOString();
-      const { error } = await (supabase.from("quote_requests" as any).update(updates).eq("id", quoteId) as any);
+      const { error } = await supabase.from("quote_requests").update(updates).eq("id", quoteId);
       if (error) throw error;
     },
     onSuccess: () => {

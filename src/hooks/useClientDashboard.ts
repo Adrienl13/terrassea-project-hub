@@ -70,26 +70,26 @@ export interface ClientQuote {
 
 async function fetchClientProjects(userEmail: string): Promise<ClientProject[]> {
   // Fetch projects
-  const { data: projects, error } = await (supabase
-    .from("project_requests" as any)
+  const { data: projects, error } = await supabase
+    .from("project_requests")
     .select("*")
     .eq("contact_email", userEmail)
-    .order("updated_at", { ascending: false }) as any);
+    .order("updated_at", { ascending: false });
 
   if (error || !projects) return [];
 
   // Fetch cart items with product details for all projects
   const projectIds = projects.map((p: any) => p.id);
-  const { data: cartItems } = await (supabase
-    .from("project_cart_items" as any)
+  const { data: cartItems } = await supabase
+    .from("project_cart_items")
     .select("*, product:product_id(id, name, category, image_url, brand_source, price_min, material_structure, dimensions_length_cm, dimensions_width_cm, dimensions_height_cm, weight_kg, is_outdoor, is_stackable, uv_resistant, main_color)")
-    .in("project_request_id", projectIds) as any);
+    .in("project_request_id", projectIds);
 
   // Fetch quote counts per project
-  const { data: quotes } = await (supabase
-    .from("quote_requests" as any)
+  const { data: quotes } = await supabase
+    .from("quote_requests")
     .select("id, project_request_id")
-    .eq("email", userEmail) as any);
+    .eq("email", userEmail);
 
   const quoteCountByProject: Record<string, number> = {};
   (quotes || []).forEach((q: any) => {
@@ -156,11 +156,11 @@ async function fetchClientProjects(userEmail: string): Promise<ClientProject[]> 
 // ── Fetch quotes ───────────────────────────────────────────────────────────────
 
 async function fetchClientQuotes(userEmail: string): Promise<ClientQuote[]> {
-  const { data: quotes, error } = await (supabase
-    .from("quote_requests" as any)
+  const { data: quotes, error } = await supabase
+    .from("quote_requests")
     .select("*, project:project_request_id(project_name), order:orders!quote_request_id(deposit_paid_at)")
     .eq("email", userEmail)
-    .order("created_at", { ascending: false }) as any);
+    .order("created_at", { ascending: false });
 
   if (error || !quotes) return [];
 

@@ -15,10 +15,10 @@ export default function AdminRatingsModeration() {
   const { data: ratings = [], isLoading } = useQuery({
     queryKey: ["admin-ratings"],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from("partner_ratings" as any)
+      const { data, error } = await supabase
+        .from("partner_ratings")
         .select("*, partner:partner_id(name, slug, country_code), user:user_id(first_name, last_name, email, company)")
-        .order("created_at", { ascending: false }) as any);
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -44,14 +44,14 @@ export default function AdminRatingsModeration() {
   });
 
   const verifyRating = async (id: string) => {
-    const { error } = await (supabase.from("partner_ratings" as any).update({ is_verified: true }).eq("id", id) as any);
+    const { error } = await supabase.from("partner_ratings").update({ is_verified: true }).eq("id", id);
     if (error) { toast.error("Erreur"); return; }
     toast.success("Avis vérifié");
     queryClient.invalidateQueries({ queryKey: ["admin-ratings"] });
   };
 
   const unverifyRating = async (id: string) => {
-    const { error } = await (supabase.from("partner_ratings" as any).update({ is_verified: false }).eq("id", id) as any);
+    const { error } = await supabase.from("partner_ratings").update({ is_verified: false }).eq("id", id);
     if (error) { toast.error("Erreur"); return; }
     toast.success("Vérification retirée");
     queryClient.invalidateQueries({ queryKey: ["admin-ratings"] });
@@ -59,7 +59,7 @@ export default function AdminRatingsModeration() {
 
   const deleteRating = async (id: string) => {
     if (!confirm("Supprimer cet avis ? Cette action est irréversible.")) return;
-    const { error } = await (supabase.from("partner_ratings" as any).delete().eq("id", id) as any);
+    const { error } = await supabase.from("partner_ratings").delete().eq("id", id);
     if (error) { toast.error("Erreur"); return; }
     toast.success("Avis supprimé");
     queryClient.invalidateQueries({ queryKey: ["admin-ratings"] });

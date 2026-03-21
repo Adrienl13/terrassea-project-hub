@@ -47,10 +47,10 @@ export default function AdminPartnerVisibility() {
   );
 
   const updatePartner = async (partnerId: string, updates: Record<string, any>) => {
-    const { error } = await (supabase
-      .from("partners" as any)
+    const { error } = await supabase
+      .from("partners")
       .update(updates)
-      .eq("id", partnerId) as any);
+      .eq("id", partnerId);
     if (error) {
       toast.error("Erreur : " + error.message);
     } else {

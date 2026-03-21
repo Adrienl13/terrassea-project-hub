@@ -12,7 +12,7 @@ export default function AdminAnalytics() {
   const { data: quotes = [] } = useQuery({
     queryKey: ["analytics-quotes"],
     queryFn: async () => {
-      const { data } = await (supabase.from("quote_requests" as any).select("id, status, total_price, created_at, signed_at") as any);
+      const { data } = await supabase.from("quote_requests").select("id, status, total_price, created_at, signed_at");
       return data || [];
     },
   });
@@ -20,7 +20,7 @@ export default function AdminAnalytics() {
   const { data: orders = [] } = useQuery({
     queryKey: ["analytics-orders"],
     queryFn: async () => {
-      const { data } = await (supabase.from("orders" as any).select("id, status, total_amount, commission_amount, deposit_amount, deposit_paid_at, balance_amount, balance_paid_at, created_at, partner_id") as any);
+      const { data } = await supabase.from("orders").select("id, status, total_amount, commission_amount, deposit_amount, deposit_paid_at, balance_amount, balance_paid_at, created_at, partner_id");
       return data || [];
     },
   });
@@ -28,7 +28,7 @@ export default function AdminAnalytics() {
   const { data: partners = [] } = useQuery({
     queryKey: ["analytics-partners"],
     queryFn: async () => {
-      const { data } = await (supabase.from("partners" as any).select("id, name, plan") as any);
+      const { data } = await supabase.from("partners").select("id, name, plan");
       return data || [];
     },
   });

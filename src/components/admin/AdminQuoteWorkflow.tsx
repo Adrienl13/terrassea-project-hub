@@ -38,10 +38,10 @@ export default function AdminQuoteWorkflow() {
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ["admin-quotes"],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from("quote_requests" as any)
+      const { data, error } = await supabase
+        .from("quote_requests")
         .select("*, project:project_request_id(project_name, city, venue_type)")
-        .order("created_at", { ascending: false }) as any);
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -51,11 +51,11 @@ export default function AdminQuoteWorkflow() {
   const { data: partners = [] } = useQuery({
     queryKey: ["admin_partners_list"],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from("partners" as any)
+      const { data, error } = await supabase
+        .from("partners")
         .select("id, name, slug, country_code, plan")
         .eq("is_active", true)
-        .order("name") as any);
+        .order("name");
       if (error) {
         console.error("Failed to fetch partners list:", error.message);
         return [];
@@ -80,20 +80,20 @@ export default function AdminQuoteWorkflow() {
   const selected = selectedId ? quotes.find((q: any) => q.id === selectedId) : null;
 
   const updateQuoteStatus = async (id: string, status: string) => {
-    const { error } = await (supabase
-      .from("quote_requests" as any)
+    const { error } = await supabase
+      .from("quote_requests")
       .update({ status })
-      .eq("id", id) as any);
+      .eq("id", id);
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success(`Statut mis à jour : ${STATUS_CONFIG[status]?.label || status}`);
     queryClient.invalidateQueries({ queryKey: ["admin-quotes"] });
   };
 
   const assignPartner = async (quoteId: string, partnerId: string, partnerName: string) => {
-    const { error } = await (supabase
-      .from("quote_requests" as any)
+    const { error } = await supabase
+      .from("quote_requests")
       .update({ partner_id: partnerId, partner_name: partnerName })
-      .eq("id", quoteId) as any);
+      .eq("id", quoteId);
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success(`Partenaire assigné : ${partnerName}`);
     queryClient.invalidateQueries({ queryKey: ["admin-quotes"] });

@@ -29,14 +29,14 @@ export default function AdminSubscriptions() {
   const { data: partners = [], isLoading } = useQuery({
     queryKey: ["admin-subscriptions"],
     queryFn: async () => {
-      const { data: partnerData } = await (supabase
-        .from("partners" as any)
+      const { data: partnerData } = await supabase
+        .from("partners")
         .select("id, name, slug, country_code, plan, is_active, contact_email, created_at")
-        .order("name") as any);
+        .order("name");
 
-      const { data: subData } = await (supabase
-        .from("partner_subscriptions" as any)
-        .select("*") as any);
+      const { data: subData } = await supabase
+        .from("partner_subscriptions")
+        .select("*");
 
       const subMap: Record<string, any> = {};
       (subData || []).forEach((s: any) => { subMap[s.partner_id] = s; });
@@ -65,7 +65,7 @@ export default function AdminSubscriptions() {
 
   const changePlan = async (partnerId: string, newPlan: string) => {
     // Update partners.plan → trigger syncs subscription + visibility
-    const { error } = await (supabase.from("partners" as any).update({ plan: newPlan }).eq("id", partnerId) as any);
+    const { error } = await supabase.from("partners").update({ plan: newPlan }).eq("id", partnerId);
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success(`Plan mis à jour → ${PLAN_CONFIG[newPlan]?.label || newPlan}`);
     queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
@@ -74,14 +74,14 @@ export default function AdminSubscriptions() {
 
   const toggleSubscriptionStatus = async (partnerId: string, currentStatus: string) => {
     const newStatus = currentStatus === "active" ? "paused" : "active";
-    const { error } = await (supabase.from("partner_subscriptions" as any).update({ status: newStatus, updated_at: new Date().toISOString() }).eq("partner_id", partnerId) as any);
+    const { error } = await supabase.from("partner_subscriptions").update({ status: newStatus, updated_at: new Date().toISOString() }).eq("partner_id", partnerId);
     if (error) { toast.error("Erreur"); return; }
     toast.success(newStatus === "paused" ? "Abonnement mis en pause" : "Abonnement réactivé");
     queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
   };
 
   const updateCommissionRate = async (partnerId: string, rate: number) => {
-    const { error } = await (supabase.from("partner_subscriptions" as any).update({ commission_rate: rate, updated_at: new Date().toISOString() }).eq("partner_id", partnerId) as any);
+    const { error } = await supabase.from("partner_subscriptions").update({ commission_rate: rate, updated_at: new Date().toISOString() }).eq("partner_id", partnerId);
     if (error) { toast.error("Erreur"); return; }
     toast.success(`Commission mise à jour : ${rate}%`);
     queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });

@@ -96,10 +96,10 @@ export default function AdminPartners() {
   const { data: partners = [], isLoading } = useQuery<Partner[]>({
     queryKey: ["admin_partners"],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from("partners" as any)
+      const { data, error } = await supabase
+        .from("partners")
         .select("*")
-        .order("name") as any);
+        .order("name");
       if (error) throw error;
       return (data || []) as Partner[];
     },
@@ -170,9 +170,9 @@ export default function AdminPartners() {
 
     let error;
     if (isEditing && selectedId) {
-      ({ error } = await (supabase.from("partners" as any).update(cleanPayload).eq("id", selectedId) as any));
+      ({ error } = await supabase.from("partners").update(cleanPayload).eq("id", selectedId));
     } else {
-      ({ error } = await (supabase.from("partners" as any).insert({ ...cleanPayload, slug }) as any));
+      ({ error } = await supabase.from("partners").insert({ ...cleanPayload, slug }));
     }
 
     setSaving(false);
@@ -188,7 +188,7 @@ export default function AdminPartners() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer ce partenaire ? Cette action est irréversible.")) return;
-    const { error } = await (supabase.from("partners" as any).delete().eq("id", id) as any);
+    const { error } = await supabase.from("partners").delete().eq("id", id);
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success("Partenaire supprimé");
     queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
