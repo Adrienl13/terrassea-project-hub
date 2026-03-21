@@ -1362,34 +1362,79 @@ export function PartnerMessagesSection() {
 // ── PARTNER FEATURED PRODUCTS SECTION ────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function PartnerFeaturedSection({ plan }: { plan: PartnerPlan }) {
+export function PartnerFeaturedSection({ plan, partnerId }: { plan: PartnerPlan; partnerId?: string }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const config = PLAN_CONFIG[plan];
   const maxFeatured = plan === "elite" ? 10 : plan === "growth" ? 2 : 0;
   const isStarter = plan === "starter";
 
-  const [featured, setFeatured] = useState([
-    { id: "f1", name: "Chaise Riviera — Aluminium blanc", views: 342, quotes: 18 },
-    { id: "f2", name: "Parasol XL 3m — Beige", views: 218, quotes: 12 },
-  ]);
+  // Fetch real featured products from DB
+  const { data: featured = [] } = useQuery({
+    queryKey: ["partner-featured", partnerId],
+    queryFn: async () => {
+      if (!partnerId) return [];
+      const { data } = await supabase
+        .from("partner_featured_products")
+        .select("id, product_id, position, product:product_id(id, name, image_url)")
+        .eq("partner_id", partnerId)
+        .eq("is_active", true)
+        .order("position", { ascending: true });
+      return (data || []).map((f: any) => ({
+        id: f.id,
+        productId: f.product?.id || f.product_id,
+        name: f.product?.name || "Product",
+        views: 0,
+        quotes: 0,
+      }));
+    },
+    enabled: !!partnerId,
+  });
 
-  const availableProducts = [
-    { id: "a1", name: "Table ronde 80cm — Anthracite", views: 67, quotes: 5 },
-    { id: "a2", name: "Fauteuil Lounge — Gris texturé", views: 54, quotes: 3 },
-    { id: "a3", name: "Banquette 2m — Teck naturel", views: 41, quotes: 2 },
-  ];
+  // Fetch partner's products not yet featured
+  const { data: availableProducts = [] } = useQuery({
+    queryKey: ["partner-available-for-feature", partnerId, featured],
+    queryFn: async () => {
+      if (!partnerId) return [];
+      const featuredIds = featured.map((f: any) => f.productId).filter(Boolean);
+      let query = supabase
+        .from("product_offers")
+        .select("product_id, product:product_id(id, name, image_url)")
+        .eq("partner_id", partnerId)
+        .eq("is_active", true)
+        .limit(10);
+      const { data } = await query;
+      return (data || [])
+        .filter((o: any) => !featuredIds.includes(o.product_id))
+        .map((o: any) => ({
+          id: o.product?.id || o.product_id,
+          name: o.product?.name || "Product",
+          views: 0,
+          quotes: 0,
+        }));
+    },
+    enabled: !!partnerId,
+  });
 
-  const handleRemove = (id: string) => {
-    setFeatured(prev => prev.filter(p => p.id !== id));
+  const handleRemove = async (id: string) => {
+    await supabase.from("partner_featured_products").delete().eq("id", id);
+    queryClient.invalidateQueries({ queryKey: ["partner-featured", partnerId] });
     toast.success(t('pd.featured.removedToast'));
   };
 
-  const handleAdd = (product: typeof availableProducts[0]) => {
+  const handleAdd = async (product: { id: string; name: string }) => {
     if (featured.length >= maxFeatured) {
       toast.error(t('pd.featured.limitToast', { max: maxFeatured, plan: config.label }));
       return;
     }
-    setFeatured(prev => [...prev, product]);
+    if (!partnerId) return;
+    await supabase.from("partner_featured_products").insert({
+      partner_id: partnerId,
+      product_id: product.id,
+      position: featured.length,
+      is_active: true,
+    });
+    queryClient.invalidateQueries({ queryKey: ["partner-featured", partnerId] });
     toast.success(t('pd.featured.addedToast', { name: product.name }));
   };
 

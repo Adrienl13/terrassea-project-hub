@@ -406,7 +406,7 @@ const Account = () => {
         case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
         case "messages":    return <PartnerMessagesSection />;
         case "catalogue":   return <PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />;
-        case "featured":    return <PartnerFeaturedSection plan={partnerPlan} />;
+        case "featured":    return <PartnerFeaturedSection plan={partnerPlan} partnerId={partnerId} />;
         case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;
         case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan === "starter" ? "growth" : partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
         case "loyalty":     return partnerId ? <PartnerLoyaltyProgram partnerId={partnerId} /> : null;

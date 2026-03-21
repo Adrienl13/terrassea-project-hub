@@ -9,14 +9,8 @@ import { CompareProvider } from "@/contexts/CompareContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FavouritesProvider } from "@/contexts/FavouritesContext";
 import Index from "./pages/Index.tsx";
-import Products from "./pages/Products.tsx";
-import ProductDetail from "./pages/ProductDetail.tsx";
-import ProjectCart from "./pages/ProjectCart.tsx";
-import Partners from "./pages/Partners.tsx";
-import PartnerDetail from "./pages/PartnerDetail.tsx";
 import Inspirations from "./pages/Inspirations.tsx";
 import Resources from "./pages/Resources.tsx";
-import ProService from "./pages/ProService.tsx";
 import Auth from "./pages/Auth.tsx";
 import Messages from "./pages/Messages.tsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -30,6 +24,12 @@ const BecomePartner = lazy(() => import("./pages/BecomePartner"));
 const Account = lazy(() => import("./pages/Account"));
 const MoodBoard = lazy(() => import("./pages/MoodBoard"));
 const SharedBoard = lazy(() => import("./pages/SharedBoard"));
+const Products = lazy(() => import("./pages/Products"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const ProjectCart = lazy(() => import("./pages/ProjectCart"));
+const Partners = lazy(() => import("./pages/Partners"));
+const PartnerDetail = lazy(() => import("./pages/PartnerDetail"));
+const ProService = lazy(() => import("./pages/ProService"));
 
 const queryClient = new QueryClient();
 
