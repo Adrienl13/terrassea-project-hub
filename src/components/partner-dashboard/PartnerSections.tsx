@@ -1,10 +1,12 @@
 import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConversations } from "@/hooks/useConversations";
 import { usePartnerQuotes } from "@/hooks/usePartnerQuotes";
 import { usePartnerLeads } from "@/hooks/usePartnerLeads";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const AddProductForm = lazy(() => import("./AddProductForm"));
@@ -283,13 +285,13 @@ export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNav
       {/* Commission reminder */}
       <CommissionReminder plan={plan} onUpgrade={handleUpgrade} />
 
-      {/* Stats */}
+      {/* Stats — TODO: connect to real data (query quote_requests, product_offers, orders by partnerId) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard value="7" label={t('pd.stats.pendingRequests')} trend="+3" trendColor="#2563EB" icon={Inbox} />
-        <StatCard value="23" label={t('pd.stats.productsListed')} icon={Package} />
-        <StatCard value="€8 200" label={t('pd.stats.monthlyRevenue')} trend="+12%" trendColor="#059669" icon={TrendingUp} />
+        <StatCard value="—" label={t('pd.stats.pendingRequests')} icon={Inbox} />
+        <StatCard value="—" label={t('pd.stats.productsListed')} icon={Package} />
+        <StatCard value="—" label={t('pd.stats.monthlyRevenue')} icon={TrendingUp} />
         <StatCard
-          value={isElite ? "€246" : "—"}
+          value="—"
           label={t('pd.stats.commissionsPaid')}
           icon={BarChart3}
           locked={!isElite}
@@ -308,7 +310,7 @@ export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNav
             onClick={() => onNavigate("quotes")}
             className="text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
           >
-            {t('pd.overview.pending', { count: 7 })}
+            {t('pd.overview.pending', { count: 0 })}
           </button>
         </div>
         <div className="space-y-2">
@@ -859,7 +861,7 @@ export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
 // ── PARTNER CATALOGUE SECTION ────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function PartnerCatalogueSection({ plan }: { plan: PartnerPlan }) {
+export function PartnerCatalogueSection({ plan, partnerId }: { plan: PartnerPlan; partnerId?: string | null }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const config = PLAN_CONFIG[plan];
@@ -868,13 +870,40 @@ export function PartnerCatalogueSection({ plan }: { plan: PartnerPlan }) {
   const [showExcelImport, setShowExcelImport] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
 
-  const allProducts = [
-    { name: "Chaise Riviera — Aluminium blanc", price: 140, views: 142, quotes: 12, stock: "En stock" },
-    { name: "Parasol XL 3m — Beige", price: 320, views: 98, quotes: 8, stock: "En stock" },
-    { name: "Table ronde 80cm — Anthracite", price: 240, views: 67, quotes: 5, stock: "En stock" },
-    { name: "Fauteuil Lounge — Gris texturé", price: 210, views: 54, quotes: 3, stock: "Stock faible" },
-    { name: "Banquette 2m — Teck naturel", price: 450, views: 41, quotes: 2, stock: "En stock" },
-  ];
+  // Real product offers from DB
+  const { data: dbProducts = [] } = useQuery({
+    queryKey: ["partner-products", partnerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("product_offers")
+        .select("id, price, stock_status, stock_quantity, product_id")
+        .eq("partner_id", partnerId!)
+        .eq("is_active", true);
+      if (!data || data.length === 0) return [];
+
+      // Fetch associated product details
+      const productIds = data.map((d) => d.product_id);
+      const { data: products } = await supabase
+        .from("products")
+        .select("id, name, image_url, category")
+        .in("id", productIds);
+
+      const productMap = new Map((products || []).map((p) => [p.id, p]));
+      return data.map((offer) => {
+        const prod = productMap.get(offer.product_id);
+        return {
+          name: prod?.name ?? "Unknown product",
+          price: offer.price ?? 0,
+          views: 0, // TODO: connect to real analytics
+          quotes: 0, // TODO: connect to real quote_requests count
+          stock: offer.stock_status === "in_stock" ? "En stock" : offer.stock_status === "low_stock" ? "Stock faible" : (offer.stock_status ?? "—"),
+        };
+      });
+    },
+    enabled: !!partnerId,
+  });
+
+  const allProducts = dbProducts;
 
   const products = searchTerm
     ? allProducts.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))

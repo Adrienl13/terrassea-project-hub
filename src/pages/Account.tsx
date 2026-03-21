@@ -339,28 +339,40 @@ const Account = () => {
   const navigate = useNavigate();
   const [section, setSection] = useState<Section>("overview");
 
-  // Partner plan — default to "elite" for demo (would come from partner_subscriptions)
-  const partnerPlan: PartnerPlan = "elite";
   // Architect tier — default to "atelier" for demo (would come from architect_rewards)
   const architectTier: ArchitectTier = "atelier";
   // Architect created projects (local state — would come from Supabase in prod)
   const [createdProjects, setCreatedProjects] = useState<any[]>([]);
 
-  // Partner ID — resolved from partner's contact_email matching the user's email
-  const { data: partnerId } = useQuery({
-    queryKey: ["partner-id-for-user", profile?.email],
+  // Partner data — resolved from partner's contact_email matching the user's email
+  const { data: partnerData } = useQuery({
+    queryKey: ["partner-data-for-user", profile?.email],
     queryFn: async () => {
-      if (!profile?.email) return null;
       const { data, error } = await supabase
         .from("partners")
         .select("id")
-        .eq("contact_email", profile.email)
-        .single();
-      if (error) return null;
-      return data?.id || null;
+        .eq("contact_email", profile!.email)
+        .maybeSingle();
+      if (error || !data) return null;
+
+      // Fetch the subscription plan for this partner
+      const { data: sub } = await supabase
+        .from("partner_subscriptions")
+        .select("plan")
+        .eq("partner_id", data.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      return { id: data.id, plan: sub?.plan ?? null };
     },
     enabled: !!profile?.email && profile?.user_type === "partner",
   });
+
+  const partnerId = partnerData?.id ?? null;
+  const partnerPlan: PartnerPlan =
+    partnerData?.plan === "elite" || partnerData?.plan === "growth" || partnerData?.plan === "starter"
+      ? (partnerData.plan as PartnerPlan)
+      : "growth"; // default to growth, not elite
 
   if (isLoading) {
     return (
@@ -393,7 +405,7 @@ const Account = () => {
         case "overview":    return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
         case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
         case "messages":    return <PartnerMessagesSection />;
-        case "catalogue":   return <PartnerCatalogueSection plan={partnerPlan} />;
+        case "catalogue":   return <PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />;
         case "featured":    return <PartnerFeaturedSection plan={partnerPlan} />;
         case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;
         case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan === "starter" ? "growth" : partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;

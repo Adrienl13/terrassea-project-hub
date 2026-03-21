@@ -64,49 +64,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (user) await fetchProfile(user.id);
   };
 
+  // 1) Bootstrap: get initial session, then mark loading done
   useEffect(() => {
     let mounted = true;
 
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        if (event === "PASSWORD_RECOVERY") {
-          setIsPasswordRecovery(true);
-        }
-        if (event === "SIGNED_OUT") {
-          setIsPasswordRecovery(false);
-        }
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-        if (mounted) setIsLoading(false);
-      }
-    );
-
-    // THEN check current session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      }
-      setIsLoading(false);
     }).catch((err) => {
       console.error("Failed to get session:", err);
+    }).finally(() => {
       if (mounted) setIsLoading(false);
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => { mounted = false; };
   }, []);
+
+  // 2) Listen for auth changes (sign-in, sign-out, token refresh)
+  //    NEVER do async DB work inside this callback — it deadlocks Supabase
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (_event === "PASSWORD_RECOVERY") setIsPasswordRecovery(true);
+        if (_event === "SIGNED_OUT") setIsPasswordRecovery(false);
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (!session?.user) setProfile(null);
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // 3) Fetch profile whenever user changes (separate effect = no deadlock)
+  useEffect(() => {
+    if (user) {
+      fetchProfile(user.id);
+    } else {
+      setProfile(null);
+    }
+  }, [user?.id]);
 
   const signOut = async () => {
     await supabase.auth.signOut();

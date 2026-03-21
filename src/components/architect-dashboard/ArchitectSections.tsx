@@ -75,9 +75,7 @@ const EARNING_RULES = [
   { action: "profile_completed", points: 100, icon: CheckCircle2 },
 ];
 
-// ── Mock data ──────────────────────────────────────────────────────────────────
-
-const MOCK_POINTS = 2350;
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ProjectNote {
   id: string;
@@ -152,58 +150,7 @@ interface ArchitectQuote {
   attachments?: string[];
 }
 
-const MOCK_QUOTES: ArchitectQuote[] = [
-  {
-    id: "1", projectName: "Sofitel Paris", clientName: "Groupe Accor", supplierName: "Fermob Pro",
-    productSummary: "24× chaises Luxembourg, 8× tables", amount: 18500, dateSent: "18 mars", dateReply: "19 mars",
-    status: "replied", validUntil: "18 avril 2026",
-    supplierMessage: "Bonjour, veuillez trouver ci-joint notre meilleure offre pour les chaises Luxembourg en coloris vert olive. Délai de livraison : 6 semaines après confirmation. Un échantillon de tissu peut être envoyé sur demande.",
-    products: [
-      { name: "Chaise Luxembourg", qty: 24, unitPrice: 385, total: 9240 },
-      { name: "Table Bellevie 140×80", qty: 4, unitPrice: 890, total: 3560 },
-      { name: "Table Bellevie 196×90", qty: 4, unitPrice: 1425, total: 5700 },
-    ],
-    attachments: ["Devis_Fermob_Sofitel_2026.pdf"],
-  },
-  {
-    id: "2", projectName: "Sofitel Paris", clientName: "Groupe Accor", supplierName: "Vlaemynck",
-    productSummary: "12× bains de soleil Riviera", amount: 14200, dateSent: "17 mars",
-    status: "pending",
-    products: [
-      { name: "Bain de soleil Riviera", qty: 12, unitPrice: 980, total: 11760 },
-      { name: "Table d'appoint Riviera", qty: 6, unitPrice: 290, total: 1740 },
-    ],
-  },
-  {
-    id: "3", projectName: "Patio Le Comptoir", clientName: "Le Comptoir du Marais", supplierName: "Ethimo",
-    productSummary: "6× canapés modulaires Costes", amount: 9800, dateSent: "15 mars", dateReply: "16 mars",
-    status: "accepted", validUntil: "15 avril 2026",
-    supplierMessage: "Offre spéciale pour ce projet. Livraison incluse sur Paris intra-muros.",
-    products: [
-      { name: "Canapé modulaire Costes 2P", qty: 4, unitPrice: 1650, total: 6600 },
-      { name: "Canapé modulaire Costes 3P", qty: 2, unitPrice: 1600, total: 3200 },
-    ],
-  },
-  {
-    id: "4", projectName: "Beach Club", clientName: "Beach House Marseille", supplierName: "Vondom",
-    productSummary: "20× fauteuils Faz, 10× tables", amount: 22000, dateSent: "12 mars",
-    status: "pending",
-    products: [
-      { name: "Fauteuil Faz", qty: 20, unitPrice: 680, total: 13600 },
-      { name: "Table Faz Ø70", qty: 10, unitPrice: 420, total: 4200 },
-      { name: "Table basse Faz", qty: 6, unitPrice: 350, total: 2100 },
-    ],
-  },
-  {
-    id: "5", projectName: "Bord de piscine", clientName: "Hôtel Biarritz", supplierName: "Dedon",
-    productSummary: "8× daybeds Swingrest", amount: 31500, dateSent: "10 mars",
-    status: "expired", validUntil: "10 mars 2026",
-    products: [
-      { name: "Daybed Swingrest", qty: 8, unitPrice: 3450, total: 27600 },
-      { name: "Coussin Swingrest outdoor", qty: 8, unitPrice: 290, total: 2320 },
-    ],
-  },
-];
+// MOCK_QUOTES removed — now fetched from quote_requests table in ArchitectQuotesSection.
 
 interface ResponseProduct {
   name: string;
@@ -260,24 +207,7 @@ interface SupplierCall {
 
 // MOCK_SUPPLIER_CALLS removed — now using useSupplierCalls() hook for real DB data.
 
-interface PointsEntry {
-  id: string;
-  action: string;
-  description: string;
-  points: number;
-  date: string;
-}
-
-const MOCK_POINTS_HISTORY: PointsEntry[] = [
-  { id: "1", action: "order_confirmed", description: "Commande confirmée — La Villa Cannes", points: 124, date: "18 mars" },
-  { id: "2", action: "supplier_call", description: "Appel fournisseur — Sofitel Paris", points: 75, date: "15 mars" },
-  { id: "3", action: "quote_accepted", description: "Devis accepté — Ethimo / Le Comptoir", points: 50, date: "14 mars" },
-  { id: "4", action: "quote_sent", description: "Multi-devis envoyé — Beach Club", points: 25, date: "12 mars" },
-  { id: "5", action: "project_created", description: "Projet créé — Beach Club Lounge", points: 50, date: "10 mars" },
-  { id: "6", action: "quote_sent", description: "Multi-devis envoyé — Hôtel Biarritz", points: 25, date: "8 mars" },
-  { id: "7", action: "referral", description: "Parrainage — Beach House Marseille", points: 200, date: "5 mars" },
-  { id: "8", action: "review_left", description: "Avis laissé — Fermob Pro", points: 25, date: "3 mars" },
-];
+// MOCK_POINTS_HISTORY removed — rewards system is "coming soon".
 
 // ── Tier Badge ─────────────────────────────────────────────────────────────────
 
@@ -415,8 +345,11 @@ export function ArchitectOverview({
   const { calls, isLoading: callsLoading } = useSupplierCalls();
   const config = TIER_CONFIG[tier];
   const nextTier = tier === "studio" ? "atelier" : tier === "atelier" ? "maison" : null;
+  const activeProjectsCount = dbProjects.filter(p => p.status !== "archived" && p.status !== "delivered").length;
+  const quotesCount = dbProjects.reduce((sum, p) => sum + (Number((p as any).quotes_count) || 0), 0);
+  const totalSourced = stats.totalValue;
   const progress = nextTier
-    ? ((MOCK_POINTS - config.threshold) / (config.nextThreshold! - config.threshold)) * 100
+    ? ((0 - config.threshold) / (config.nextThreshold! - config.threshold)) * 100
     : 100;
   const recentProjects = dbProjects.slice(0, 3).map((row) => dbToArchitectProject(row));
   const activeCalls = calls.filter((c) => c.status !== "closed").slice(0, 2);
@@ -424,13 +357,13 @@ export function ArchitectOverview({
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard value="6" label={t('ad.stats.activeProjects')} trend="+2 ce mois" trendColor="#3A4D35" icon={FolderOpen} />
-        <StatCard value="14" label={t('ad.stats.quotesSent')} trend="+4 ce mois" trendColor="#2563EB" icon={Send} />
-        <StatCard value="€45 200" label={t('ad.stats.totalSourced')} trend="+18%" trendColor="#059669" icon={TrendingUp} />
-        <StatCard value={`${MOCK_POINTS}`} label={t('ad.stats.rewardPoints')} icon={Award} />
+        <StatCard value={`${activeProjectsCount}`} label={t('ad.stats.activeProjects')} icon={FolderOpen} />
+        <StatCard value={`${quotesCount}`} label={t('ad.stats.quotesSent')} icon={Send} />
+        <StatCard value={`€${totalSourced.toLocaleString()}`} label={t('ad.stats.totalSourced')} icon={TrendingUp} />
+        <StatCard value="—" label={t('ad.stats.rewardPoints')} icon={Award} />
       </div>
 
-      {/* Rewards progress */}
+      {/* Rewards progress — coming soon */}
       <div
         className="rounded-sm border p-4 cursor-pointer hover:border-foreground/20 transition-colors"
         style={{ borderColor: config.border, background: config.bg }}
@@ -439,11 +372,11 @@ export function ArchitectOverview({
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <TierBadge tier={tier} />
-            <span className="text-xs font-body text-muted-foreground">{MOCK_POINTS} pts</span>
+            <span className="text-xs font-body text-muted-foreground">{t('ad.rewards.comingSoonTitle')}</span>
           </div>
           {nextTier && (
             <span className="text-[10px] font-body text-muted-foreground">
-              {config.nextThreshold! - MOCK_POINTS} pts → {TIER_CONFIG[nextTier].label}
+              {t('ad.overview.seeRewards')}
             </span>
           )}
         </div>
@@ -714,7 +647,7 @@ export function ArchitectProjectDetail({
   }
 
   const st = STATUS_STYLES[editStatus] || STATUS_STYLES.draft;
-  const relatedQuotes = MOCK_QUOTES.filter(q => q.projectName.includes(project.projectName.split("—")[0].trim()) || q.clientName === project.clientName);
+  const relatedQuotes: ArchitectQuote[] = [];
 
   const addNote = () => {
     if (!newNote.trim()) return;
@@ -1246,8 +1179,49 @@ function QuoteDetail({ quote, onBack }: { quote: ArchitectQuote; onBack: () => v
 
 export function ArchitectQuotesSection({ tier }: { tier: ArchitectTier }) {
   const { t } = useTranslation();
+  const { profile } = useAuth();
   const [filter, setFilter] = useState<string>("all");
   const [selectedQuote, setSelectedQuote] = useState<string | null>(null);
+
+  const { data: dbQuotes = [] } = useQuery({
+    queryKey: ["architect-quotes", profile?.email],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quote_requests")
+        .select("*, project:project_request_id(project_name)")
+        .eq("email", profile?.email ?? "")
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!profile?.email,
+  });
+
+  // Map DB rows to the ArchitectQuote UI shape
+  const quotes: ArchitectQuote[] = dbQuotes.map((row: any) => {
+    const statusMap: Record<string, ArchitectQuote["status"]> = {
+      pending: "pending",
+      sent: "pending",
+      replied: "replied",
+      accepted: "accepted",
+      expired: "expired",
+      declined: "declined",
+      signed: "accepted",
+    };
+    return {
+      id: row.id,
+      projectName: row.project?.project_name || "—",
+      clientName: row.first_name ? `${row.first_name} ${row.last_name || ""}`.trim() : "—",
+      supplierName: row.partner_name || "—",
+      productSummary: row.product_name || "—",
+      amount: Number(row.total_price || row.unit_price || 0),
+      dateSent: row.created_at ? new Date(row.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "—",
+      dateReply: row.replied_at ? new Date(row.replied_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : undefined,
+      status: statusMap[row.status || "pending"] || "pending",
+      validUntil: row.validity_expires_at ? new Date(row.validity_expires_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : undefined,
+      supplierMessage: row.message || undefined,
+      products: row.product_name ? [{ name: row.product_name, qty: row.quantity || 1, unitPrice: Number(row.unit_price || 0), total: Number(row.total_price || 0) }] : [],
+    };
+  });
 
   const filters = [
     { id: "all", label: t('ad.quotes.all') },
@@ -1257,10 +1231,10 @@ export function ArchitectQuotesSection({ tier }: { tier: ArchitectTier }) {
     { id: "expired", label: t('ad.quotes.expired') },
   ];
 
-  const filtered = MOCK_QUOTES.filter(q => filter === "all" || q.status === filter);
+  const filtered = quotes.filter(q => filter === "all" || q.status === filter);
 
   if (selectedQuote) {
-    const quote = MOCK_QUOTES.find(q => q.id === selectedQuote);
+    const quote = quotes.find(q => q.id === selectedQuote);
     if (quote) return <QuoteDetail quote={quote} onBack={() => setSelectedQuote(null)} />;
   }
 
@@ -2385,75 +2359,48 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
 export function ArchitectRewardsSection({ tier }: { tier: ArchitectTier }) {
   const { t } = useTranslation();
   const config = TIER_CONFIG[tier];
-  const nextTier = tier === "studio" ? "atelier" : tier === "atelier" ? "maison" : null;
-  const progress = nextTier
-    ? ((MOCK_POINTS - config.threshold) / (config.nextThreshold! - config.threshold)) * 100
-    : 100;
 
   const allTiers: ArchitectTier[] = ["studio", "atelier", "maison"];
 
   const benefits = [
-    { key: "quotesMonth", getValue: (t: ArchitectTier) => TIER_CONFIG[t].quotesPerMonth ? `${TIER_CONFIG[t].quotesPerMonth}` : "Illimité" },
-    { key: "priority", getValue: (t: ArchitectTier) => t !== "studio" },
-    { key: "earlyAccess", getValue: (t: ArchitectTier) => t !== "studio" },
-    { key: "samples", getValue: (t: ArchitectTier) => t === "maison" ? "3/trim." : t === "atelier" ? "1/trim." : false },
-    { key: "accountManager", getValue: (t: ArchitectTier) => t === "maison" },
-    { key: "cobranding", getValue: (t: ArchitectTier) => t === "maison" },
-    { key: "featured", getValue: (t: ArchitectTier) => t === "maison" },
+    { key: "quotesMonth", getValue: (ti: ArchitectTier) => TIER_CONFIG[ti].quotesPerMonth ? `${TIER_CONFIG[ti].quotesPerMonth}` : "Illimite" },
+    { key: "priority", getValue: (ti: ArchitectTier) => ti !== "studio" },
+    { key: "earlyAccess", getValue: (ti: ArchitectTier) => ti !== "studio" },
+    { key: "samples", getValue: (ti: ArchitectTier) => ti === "maison" ? "3/trim." : ti === "atelier" ? "1/trim." : false },
+    { key: "accountManager", getValue: (ti: ArchitectTier) => ti === "maison" },
+    { key: "cobranding", getValue: (ti: ArchitectTier) => ti === "maison" },
+    { key: "featured", getValue: (ti: ArchitectTier) => ti === "maison" },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Tier banner */}
+      {/* Coming soon banner */}
       <div
-        className="rounded-sm border-2 p-5 relative overflow-hidden"
+        className="rounded-sm border-2 border-dashed p-8 relative overflow-hidden text-center"
         style={{ borderColor: config.border, background: `linear-gradient(135deg, ${config.bg}, white)` }}
       >
         <div className="relative">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <TierBadge tier={tier} />
-              <span className="text-sm font-display font-bold text-foreground">{MOCK_POINTS} {t('ad.rewards.points')}</span>
-            </div>
-            {nextTier && (
-              <span className="text-[10px] font-body text-muted-foreground">
-                {config.nextThreshold! - MOCK_POINTS} pts → {TIER_CONFIG[nextTier].label}
-              </span>
-            )}
-          </div>
-          <div className="w-full h-2 bg-background rounded-full overflow-hidden mb-2">
-            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(progress, 100)}%`, background: config.color }} />
-          </div>
-          <div className="flex items-center justify-between text-[10px] font-body text-muted-foreground">
-            <span>{config.label} — {config.threshold} pts</span>
-            {nextTier && <span>{TIER_CONFIG[nextTier].label} — {config.nextThreshold} pts</span>}
-          </div>
+          <Lock className="h-8 w-8 mx-auto text-muted-foreground/50 mb-3" />
+          <TierBadge tier={tier} />
+          <p className="text-lg font-display font-bold text-foreground mt-3">{t('ad.rewards.comingSoonTitle')}</p>
+          <p className="text-xs font-body text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
+            {t('ad.rewards.comingSoonDesc')}
+          </p>
         </div>
       </div>
 
-      {/* Coming soon: pro discount */}
-      <div className="rounded-sm border border-dashed border-border p-4 bg-muted/30">
-        <div className="flex items-center gap-2 mb-1.5">
-          <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-          <p className="text-xs font-display font-semibold text-foreground">{t('ad.rewards.comingSoonTitle')}</p>
-        </div>
-        <p className="text-[10px] font-body text-muted-foreground leading-relaxed">
-          {t('ad.rewards.comingSoonDesc')}
-        </p>
-      </div>
-
-      {/* Benefits comparison table */}
+      {/* Benefits comparison table (preview) */}
       <div>
         <p className="font-display font-bold text-sm text-foreground mb-3">{t('ad.rewards.benefits')}</p>
-        <div className="border border-border rounded-sm overflow-hidden">
+        <div className="border border-border rounded-sm overflow-hidden opacity-75">
           <div className="grid grid-cols-4 bg-muted/50">
             <div className="p-3 text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.rewards.benefit')}</div>
-            {allTiers.map(t => {
-              const tc = TIER_CONFIG[t];
+            {allTiers.map(tierKey => {
+              const tc = TIER_CONFIG[tierKey];
               const Icon = tc.icon;
-              const isCurrent = t === tier;
+              const isCurrent = tierKey === tier;
               return (
-                <div key={t} className={`p-3 text-center ${isCurrent ? "bg-card" : ""}`}>
+                <div key={tierKey} className={`p-3 text-center ${isCurrent ? "bg-card" : ""}`}>
                   <div className="flex items-center justify-center gap-1">
                     <Icon className="h-3 w-3" style={{ color: tc.color }} />
                     <span className={`text-[10px] font-display font-bold uppercase tracking-wider ${isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
@@ -2486,10 +2433,10 @@ export function ArchitectRewardsSection({ tier }: { tier: ArchitectTier }) {
         </div>
       </div>
 
-      {/* How to earn */}
+      {/* How to earn (preview) */}
       <div>
         <p className="font-display font-bold text-sm text-foreground mb-3">{t('ad.rewards.howToEarn')}</p>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 opacity-75">
           {EARNING_RULES.map((rule) => {
             const Icon = rule.icon;
             return (
@@ -2500,25 +2447,6 @@ export function ArchitectRewardsSection({ tier }: { tier: ArchitectTier }) {
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Points history */}
-      <div>
-        <p className="font-display font-bold text-sm text-foreground mb-3">{t('ad.rewards.history')}</p>
-        <div className="space-y-1.5">
-          {MOCK_POINTS_HISTORY.map((entry) => (
-            <div key={entry.id} className="flex items-center justify-between px-3 py-2.5 border border-border rounded-sm">
-              <div className="flex items-center gap-2 min-w-0">
-                <Award className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[11px] font-body text-foreground truncate">{entry.description}</p>
-                  <p className="text-[9px] font-body text-muted-foreground">{entry.date}</p>
-                </div>
-              </div>
-              <span className="text-xs font-display font-bold text-green-700 shrink-0">+{entry.points}</span>
-            </div>
-          ))}
         </div>
       </div>
     </div>
