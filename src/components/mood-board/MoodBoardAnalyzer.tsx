@@ -1,8 +1,10 @@
 import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Camera, Upload, RotateCcw, Plus, ArrowRight, Scan } from "lucide-react";
+import { Camera, Upload, RotateCcw, Plus, ArrowRight, Scan, ShoppingCart, Palette } from "lucide-react";
 import { useMoodBoard, type MoodBoardResult, type TerraceAnalysis } from "@/hooks/useMoodBoard";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProjectCart } from "@/contexts/ProjectCartContext";
 import type { DBProduct } from "@/lib/products";
 
 // ── Upload zone (State 1) ────────────────────────────────────
@@ -291,7 +293,9 @@ interface ResultsPanelProps {
   analysis: TerraceAnalysis;
   matchedProducts: (DBProduct & { matchScore: number })[];
   onAddToProject: (product: DBProduct) => void;
+  onAddAllToProject: (products: DBProduct[]) => void;
   onReset: () => void;
+  isArchitect?: boolean;
   t: (key: string, fallback?: string) => string;
 }
 
@@ -300,7 +304,9 @@ function ResultsPanel({
   analysis,
   matchedProducts,
   onAddToProject,
+  onAddAllToProject,
   onReset,
+  isArchitect,
   t,
 }: ResultsPanelProps) {
   const navigate = useNavigate();
@@ -491,15 +497,42 @@ function ResultsPanel({
           </div>
         )}
 
-        {/* CTA */}
+        {/* CTAs */}
         {matchedProducts.length > 0 && (
-          <button
-            onClick={() => navigate("/projects/new")}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-foreground text-primary-foreground font-display font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            {t("moodBoard.createProjectCTA", "Create a project with this selection")}
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => onAddAllToProject(matchedProducts)}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-full border border-border text-foreground font-display font-semibold text-sm hover:border-foreground transition-all"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {t("designAssistant.addAllToProject", "Add all to project")}
+            </button>
+            <button
+              onClick={() => {
+                const params = new URLSearchParams();
+                if (analysis.venue_type) params.set("venue", analysis.venue_type);
+                if (analysis.estimated_capacity > 0) params.set("capacity", String(analysis.estimated_capacity));
+                if (analysis.style_tags.length > 0) params.set("style", analysis.style_tags[0]);
+                navigate(`/projects/new?${params.toString()}`);
+              }}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-foreground text-primary-foreground font-display font-semibold text-sm hover:opacity-90 transition-opacity"
+            >
+              {t("designAssistant.createFromAnalysis", "Create a project from this analysis")}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            {isArchitect && (
+              <button
+                onClick={() => {
+                  // Placeholder for material board functionality
+                  navigate("/account");
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-full border border-border text-muted-foreground font-display font-semibold text-sm hover:border-foreground hover:text-foreground transition-all"
+              >
+                <Palette className="w-4 h-4" />
+                {t("designAssistant.saveMaterialBoard", "Save to material board")}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -508,9 +541,15 @@ function ResultsPanel({
 
 // ── Main component ───────────────────────────────────────────
 
-export default function MoodBoardAnalyzer() {
+interface MoodBoardAnalyzerProps {
+  onAnalysisComplete?: (result: MoodBoardResult) => void;
+}
+
+export default function MoodBoardAnalyzer({ onAnalysisComplete }: MoodBoardAnalyzerProps = {}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const { addItem } = useProjectCart();
   const {
     canAnalyze,
     remainingAnalyses,
@@ -519,6 +558,8 @@ export default function MoodBoardAnalyzer() {
     isAnalyzing,
     error,
   } = useMoodBoard();
+
+  const isArchitect = profile?.user_type === "architect";
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -538,10 +579,11 @@ export default function MoodBoardAnalyzer() {
     try {
       const res = await analyzeImage(imageFile);
       setResult(res);
+      onAnalysisComplete?.(res);
     } catch {
       // Error is handled by the hook
     }
-  }, [imageFile, analyzeImage]);
+  }, [imageFile, analyzeImage, onAnalysisComplete]);
 
   const handleReset = useCallback(() => {
     if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
@@ -551,11 +593,17 @@ export default function MoodBoardAnalyzer() {
   }, [imagePreviewUrl]);
 
   const handleAddToProject = useCallback(
-    (_product: DBProduct) => {
-      // For now, navigate to project builder. A full implementation would add to cart context.
-      navigate("/projects/new");
+    (product: DBProduct) => {
+      addItem(product, "AI Design Assistant", 1);
     },
-    [navigate],
+    [addItem],
+  );
+
+  const handleAddAllToProject = useCallback(
+    (products: DBProduct[]) => {
+      products.forEach((p) => addItem(p, "AI Design Assistant", 1));
+    },
+    [addItem],
   );
 
   // ── Determine current state ────────────────────────────────
@@ -596,7 +644,9 @@ export default function MoodBoardAnalyzer() {
           analysis={result.analysis}
           matchedProducts={result.matchedProducts}
           onAddToProject={handleAddToProject}
+          onAddAllToProject={handleAddAllToProject}
           onReset={handleReset}
+          isArchitect={isArchitect}
           t={t}
         />
       )}

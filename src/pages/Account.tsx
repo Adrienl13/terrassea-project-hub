@@ -6,7 +6,7 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox,
-  AlertTriangle, Rocket, Briefcase, Award, Megaphone,
+  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
@@ -48,6 +48,7 @@ import {
   ClientSettingsSection,
   type ClientSectionSetter,
 } from "@/components/client-dashboard/ClientSections";
+import DesignAssistantSection from "@/components/client-dashboard/DesignAssistantSection";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -70,6 +71,7 @@ type Section =
 
 const NAV_CLIENT = [
   { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "design-ai",  icon: Sparkles,        labelKey: "account.designAssistant" },
   { id: "projects",   icon: FolderOpen,      labelKey: "account.myProjects" },
   { id: "quotes",     icon: Inbox,           labelKey: "account.quoteRequests" },
   { id: "messages",   icon: MessageSquare,   labelKey: "account.messages" },
@@ -93,6 +95,7 @@ const getPartnerNav = (plan: PartnerPlan) =>
 
 const NAV_ARCHITECT = [
   { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "design-ai",  icon: Sparkles,        labelKey: "account.designAssistant" },
   { id: "projects",   icon: FolderOpen,      labelKey: "account.clientProjects" },
   { id: "quotes",     icon: MessageSquare,   labelKey: "account.multiQuotes" },
   { id: "calls",      icon: Megaphone,       labelKey: "account.supplierCalls" },
@@ -396,6 +399,7 @@ const Account = () => {
 
       switch (section) {
         case "overview":   return <ArchitectOverview tier={architectTier} onNavigate={handleArchitectNav} favourites={favourites} onToggleFavourite={toggleFavourite} />;
+        case "design-ai":  return <DesignAssistantSection />;
         case "projects":   return <ArchitectProjectsSection tier={architectTier} onNavigate={handleArchitectNav} extraProjects={createdProjects} />;
         case "quotes":     return <ArchitectQuotesSection tier={architectTier} />;
         case "calls":      return <ArchitectCallsSection tier={architectTier} />;
@@ -416,6 +420,7 @@ const Account = () => {
 
     switch (section) {
       case "overview":    return <ClientOverviewNew onNavigate={handleClientNav} favourites={favourites} onToggleFavourite={toggleFavourite} />;
+      case "design-ai":   return <DesignAssistantSection />;
       case "projects":    return <ClientProjectsSection onNavigate={handleClientNav} />;
       case "quotes":      return <ClientQuotesSection onNavigate={handleClientNav} />;
       case "messages":    return <ClientMessagesSection />;

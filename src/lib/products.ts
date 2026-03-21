@@ -195,6 +195,20 @@ export async function fetchProductById(id: string): Promise<DBProduct | null> {
   return data ? normalizeProduct(data) : null;
 }
 
+// ── Fetch products by IDs ─────────────────────────────────
+
+export async function fetchProductsByIds(ids: string[]): Promise<DBProduct[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .in("id", ids)
+    .neq("availability_type", "discontinued");
+
+  if (error) throw error;
+  return (data ?? []).map(normalizeProduct);
+}
+
 // ── Fetch products by archetype ───────────────────────────
 
 export async function fetchProductsByArchetype(

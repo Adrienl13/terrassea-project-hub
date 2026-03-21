@@ -6,7 +6,7 @@
     "guide": "Guida",
     "partners": "Partner",
     "proService": "Pro Service",
-    "moodBoard": "Mood Board",
+    "moodBoard": "Assistente Design IA",
     "myProject": "Il Mio Progetto",
     "myAccount": "Il Mio Account",
     "launchProject": "Lancia il mio progetto"
@@ -668,7 +668,8 @@
     "proLeads": "Lead Pro Service",
     "rewards": "Ricompense",
     "supplierCalls": "Bandi fornitori",
-    "newSupplierCall": "Nuovo bando fornitore"
+    "newSupplierCall": "Nuovo bando fornitore",
+    "designAssistant": "Design IA"
   },
   "cd": {
     "welcome": "Ciao {{name}}!",
@@ -2830,8 +2831,8 @@
   },
   "moodBoard": {
     "badge": "Analisi visiva",
-    "pageTitle": "Analizzatore Mood Board",
-    "pageSubtitle": "Carica una foto della tua terrazza e lascia che analizziamo lo stile, i colori e l'atmosfera per consigliarti l'arredamento perfetto.",
+    "pageTitle": "Assistente Design IA",
+    "pageSubtitle": "Carica una foto della tua terrazza e ricevi raccomandazioni di prodotti personalizzate",
     "uploadTitle": "Carica una foto della tua terrazza",
     "uploadHint": "Trascina e rilascia o clicca per sfogliare",
     "uploadedPreview": "Anteprima",
@@ -3067,5 +3068,24 @@
     "dayFri": "Ven",
     "daySat": "Sab",
     "daySun": "Dom"
+  },
+  "designAssistant": {
+    "pastAnalyses": "Le mie analisi",
+    "noAnalysesYet": "Nessuna analisi ancora. Carica la tua prima foto!",
+    "analysisFrom": "Analisi del {{date}}",
+    "viewProducts": "Vedi prodotti corrispondenti",
+    "createProject": "Crea un progetto",
+    "reAnalyze": "Nuova analisi",
+    "creditsRemaining": "{{count}}/{{max}} crediti rimanenti",
+    "noCreditsLeft": "Hai esaurito tutti i crediti. Contattaci per ottenerne di piu.",
+    "venueDetected": "Luogo: {{type}}",
+    "capacityDetected": "~{{count}} posti rilevati",
+    "matchedProducts_one": "{{count}} prodotto corrispondente",
+    "matchedProducts_other": "{{count}} prodotti corrispondenti",
+    "tabNewAnalysis": "Nuova analisi",
+    "tabMyAnalyses": "Le mie analisi",
+    "addAllToProject": "Aggiungi tutto al progetto",
+    "createFromAnalysis": "Crea un progetto da questa analisi",
+    "saveMaterialBoard": "Salva nella tavola dei materiali"
   }
 }

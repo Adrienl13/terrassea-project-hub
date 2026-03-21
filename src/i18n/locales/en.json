@@ -6,7 +6,7 @@
     "guide": "Guide",
     "partners": "Partners",
     "proService": "Pro Service",
-    "moodBoard": "Mood Board",
+    "moodBoard": "AI Design Assistant",
     "myProject": "My Project",
     "myAccount": "My Account",
     "launchProject": "Launch my project"
@@ -671,7 +671,8 @@
     "proLeads": "Pro Service leads",
     "rewards": "Rewards",
     "supplierCalls": "Supplier calls",
-    "newSupplierCall": "New supplier call"
+    "newSupplierCall": "New supplier call",
+    "designAssistant": "AI Design"
   },
   "cd": {
     "welcome": "Welcome back, {{name}}!",
@@ -2924,8 +2925,8 @@
   },
   "moodBoard": {
     "badge": "Visual analysis",
-    "pageTitle": "Mood Board Analyzer",
-    "pageSubtitle": "Upload a photo of your terrace and let us analyze the style, colors and ambiance to recommend the perfect furniture.",
+    "pageTitle": "AI Design Assistant",
+    "pageSubtitle": "Upload a photo of your terrace and get personalized product recommendations",
     "uploadTitle": "Upload a photo of your terrace",
     "uploadHint": "Drag & drop or click to browse",
     "uploadedPreview": "Preview",
@@ -3161,5 +3162,24 @@
     "dayFri": "Fri",
     "daySat": "Sat",
     "daySun": "Sun"
+  },
+  "designAssistant": {
+    "pastAnalyses": "My analyses",
+    "noAnalysesYet": "No analyses yet. Upload your first photo!",
+    "analysisFrom": "Analysis from {{date}}",
+    "viewProducts": "View matched products",
+    "createProject": "Create a project",
+    "reAnalyze": "New analysis",
+    "creditsRemaining": "{{count}}/{{max}} credits remaining",
+    "noCreditsLeft": "You've used all your credits. Contact us for more.",
+    "venueDetected": "Venue: {{type}}",
+    "capacityDetected": "~{{count}} seats detected",
+    "matchedProducts_one": "{{count}} matching product",
+    "matchedProducts_other": "{{count}} matching products",
+    "tabNewAnalysis": "New Analysis",
+    "tabMyAnalyses": "My Analyses",
+    "addAllToProject": "Add all to project",
+    "createFromAnalysis": "Create a project from this analysis",
+    "saveMaterialBoard": "Save to material board"
   }
 }

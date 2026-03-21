@@ -6,7 +6,7 @@
     "guide": "Guide",
     "partners": "Partenaires",
     "proService": "Pro Service",
-    "moodBoard": "Mood Board",
+    "moodBoard": "Assistant Design IA",
     "myProject": "Mon Projet",
     "myAccount": "Mon Compte",
     "launchProject": "Lancer mon projet"
@@ -671,7 +671,8 @@
     "proLeads": "Leads Pro Service",
     "rewards": "Récompenses",
     "supplierCalls": "Appels fournisseurs",
-    "newSupplierCall": "Nouvel appel fournisseur"
+    "newSupplierCall": "Nouvel appel fournisseur",
+    "designAssistant": "Design IA"
   },
   "cd": {
     "welcome": "Bonjour {{name}} !",
@@ -2924,8 +2925,8 @@
   },
   "moodBoard": {
     "badge": "Analyse visuelle",
-    "pageTitle": "Analyseur de Mood Board",
-    "pageSubtitle": "Importez une photo de votre terrasse et laissez-nous analyser le style, les couleurs et l'ambiance pour vous recommander le mobilier idéal.",
+    "pageTitle": "Assistant Design IA",
+    "pageSubtitle": "Uploadez une photo de votre terrasse et recevez des recommandations produits personnalisées",
     "uploadTitle": "Importez une photo de votre terrasse",
     "uploadHint": "Glissez-déposez ou cliquez pour parcourir",
     "uploadedPreview": "Aperçu",
@@ -3161,5 +3162,24 @@
     "dayFri": "Ven",
     "daySat": "Sam",
     "daySun": "Dim"
+  },
+  "designAssistant": {
+    "pastAnalyses": "Mes analyses",
+    "noAnalysesYet": "Aucune analyse pour le moment. Uploadez votre premiere photo !",
+    "analysisFrom": "Analyse du {{date}}",
+    "viewProducts": "Voir les produits correspondants",
+    "createProject": "Creer un projet",
+    "reAnalyze": "Nouvelle analyse",
+    "creditsRemaining": "{{count}}/{{max}} credits restants",
+    "noCreditsLeft": "Vous avez utilise tous vos credits. Contactez-nous pour en obtenir davantage.",
+    "venueDetected": "Lieu : {{type}}",
+    "capacityDetected": "~{{count}} places detectees",
+    "matchedProducts_one": "{{count}} produit correspondant",
+    "matchedProducts_other": "{{count}} produits correspondants",
+    "tabNewAnalysis": "Nouvelle analyse",
+    "tabMyAnalyses": "Mes analyses",
+    "addAllToProject": "Tout ajouter au projet",
+    "createFromAnalysis": "Creer un projet a partir de cette analyse",
+    "saveMaterialBoard": "Enregistrer dans le tableau de materiaux"
   }
 }

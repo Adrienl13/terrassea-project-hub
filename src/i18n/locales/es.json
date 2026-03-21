@@ -6,7 +6,7 @@
     "guide": "Guía",
     "partners": "Socios",
     "proService": "Pro Service",
-    "moodBoard": "Mood Board",
+    "moodBoard": "Asistente de Diseno IA",
     "myProject": "Mi Proyecto",
     "myAccount": "Mi Cuenta",
     "launchProject": "Lanzar mi proyecto"
@@ -668,7 +668,8 @@
     "proLeads": "Leads Pro Service",
     "rewards": "Recompensas",
     "supplierCalls": "Convocatorias a proveedores",
-    "newSupplierCall": "Nueva convocatoria"
+    "newSupplierCall": "Nueva convocatoria",
+    "designAssistant": "Diseno IA"
   },
   "cd": {
     "welcome": "¡Hola {{name}}!",
@@ -2830,8 +2831,8 @@
   },
   "moodBoard": {
     "badge": "Análisis visual",
-    "pageTitle": "Analizador de Mood Board",
-    "pageSubtitle": "Sube una foto de tu terraza y deja que analicemos el estilo, los colores y el ambiente para recomendarte el mobiliario perfecto.",
+    "pageTitle": "Asistente de Diseno IA",
+    "pageSubtitle": "Sube una foto de tu terraza y recibe recomendaciones de productos personalizadas",
     "uploadTitle": "Sube una foto de tu terraza",
     "uploadHint": "Arrastra y suelta o haz clic para explorar",
     "uploadedPreview": "Vista previa",
@@ -3067,5 +3068,24 @@
     "dayFri": "Vie",
     "daySat": "Sab",
     "daySun": "Dom"
+  },
+  "designAssistant": {
+    "pastAnalyses": "Mis analisis",
+    "noAnalysesYet": "Aun no hay analisis. Sube tu primera foto!",
+    "analysisFrom": "Analisis del {{date}}",
+    "viewProducts": "Ver productos coincidentes",
+    "createProject": "Crear un proyecto",
+    "reAnalyze": "Nuevo analisis",
+    "creditsRemaining": "{{count}}/{{max}} creditos restantes",
+    "noCreditsLeft": "Has usado todos tus creditos. Contactanos para obtener mas.",
+    "venueDetected": "Lugar: {{type}}",
+    "capacityDetected": "~{{count}} plazas detectadas",
+    "matchedProducts_one": "{{count}} producto coincidente",
+    "matchedProducts_other": "{{count}} productos coincidentes",
+    "tabNewAnalysis": "Nuevo analisis",
+    "tabMyAnalyses": "Mis analisis",
+    "addAllToProject": "Anadir todo al proyecto",
+    "createFromAnalysis": "Crear un proyecto a partir de este analisis",
+    "saveMaterialBoard": "Guardar en el tablero de materiales"
   }
 }
