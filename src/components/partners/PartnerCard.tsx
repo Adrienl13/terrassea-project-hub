@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { MapPin, Award, ArrowRight, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useFavouritePartners } from "@/hooks/useFavouritesDB";
 import { useAuth } from "@/contexts/AuthContext";
+import { ml } from "@/lib/i18nFields";
 
 interface Partner {
   id: string;
@@ -26,15 +28,16 @@ function countryFlag(code: string | null | undefined): string {
 }
 
 export default function PartnerCard({ partner }: { partner: Partner }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { isFavourite, toggle } = useFavouritePartners();
   const isFav = isFavourite(partner.id);
 
   const typeLabels: Record<string, string> = {
-    brand: "Brand",
-    manufacturer: "Manufacturer",
-    reseller: "Reseller",
-    designer: "Designer",
+    brand: t('partners.typeBrand'),
+    manufacturer: t('partners.typeManufacturer'),
+    reseller: t('partners.typeReseller'),
+    designer: t('partners.typeDesigner'),
   };
 
   const flag = countryFlag(partner.country_code);
@@ -86,7 +89,7 @@ export default function PartnerCard({ partner }: { partner: Partner }) {
           </div>
           {partner.is_featured && (
             <Badge className="bg-accent text-accent-foreground text-xs font-display">
-              Featured
+              {t('partners.featured')}
             </Badge>
           )}
         </div>
@@ -98,9 +101,9 @@ export default function PartnerCard({ partner }: { partner: Partner }) {
           </div>
         )}
 
-        {partner.description && (
+        {ml(partner, 'description') && (
           <p className="mt-3 text-sm font-body text-muted-foreground line-clamp-2">
-            {partner.description}
+            {ml(partner, 'description')}
           </p>
         )}
 
@@ -130,7 +133,7 @@ export default function PartnerCard({ partner }: { partner: Partner }) {
         )}
 
         <div className="flex items-center gap-1 mt-4 text-sm font-display font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-          View Profile <ArrowRight className="h-3.5 w-3.5" />
+          {t('partners.viewProfile')} <ArrowRight className="h-3.5 w-3.5" />
         </div>
       </Link>
     </div>

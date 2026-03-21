@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavouritePartners } from "@/hooks/useFavouritesDB";
+import { ml } from "@/lib/i18nFields";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
@@ -39,20 +40,20 @@ interface Partner {
 // ═══════════════════════════════════════════════════════════
 
 const CATEGORIES = [
-  { key: "all",          label: "All",           icon: Handshake  },
-  { key: "brand",        label: "Brands",        icon: Building2  },
-  { key: "manufacturer", label: "Manufacturers", icon: Factory    },
-  { key: "reseller",     label: "Resellers",     icon: Store      },
-  { key: "designer",     label: "Designers",     icon: Palette    },
+  { key: "all",          labelKey: "partners.categoryAll",           icon: Handshake  },
+  { key: "brand",        labelKey: "partners.categoryBrands",        icon: Building2  },
+  { key: "manufacturer", labelKey: "partners.categoryManufacturers", icon: Factory    },
+  { key: "reseller",     labelKey: "partners.categoryResellers",     icon: Store      },
+  { key: "designer",     labelKey: "partners.categoryDesigners",     icon: Palette    },
 ] as const;
 
 type CategoryKey = (typeof CATEGORIES)[number]["key"];
 
-const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; initial_bg: string }> = {
-  brand:        { label: "Brand",        color: "#712B13", bg: "#F5C4B3", initial_bg: "#D4603A" },
-  manufacturer: { label: "Manufacturer", color: "#0C447C", bg: "#B5D4F4", initial_bg: "#378ADD" },
-  reseller:     { label: "Reseller",     color: "#085041", bg: "#9FE1CB", initial_bg: "#1D9E75" },
-  designer:     { label: "Designer",     color: "#3C3489", bg: "#CECBF6", initial_bg: "#534AB7" },
+const TYPE_CONFIG: Record<string, { labelKey: string; color: string; bg: string; initial_bg: string }> = {
+  brand:        { labelKey: "partners.typeBrand",        color: "#712B13", bg: "#F5C4B3", initial_bg: "#D4603A" },
+  manufacturer: { labelKey: "partners.typeManufacturer", color: "#0C447C", bg: "#B5D4F4", initial_bg: "#378ADD" },
+  reseller:     { labelKey: "partners.typeReseller",     color: "#085041", bg: "#9FE1CB", initial_bg: "#1D9E75" },
+  designer:     { labelKey: "partners.typeDesigner",     color: "#3C3489", bg: "#CECBF6", initial_bg: "#534AB7" },
 };
 
 const COUNTRY_FLAGS: Record<string, string> = {
@@ -66,10 +67,10 @@ const COUNTRY_FLAGS: Record<string, string> = {
 // ANONYMOUS DISPLAY HELPERS
 // ═══════════════════════════════════════════════════════════
 
-function getAnonymousLabel(partner: Partner): string {
+function getAnonymousLabel(partner: Partner, t: (key: string) => string): string {
   const type = TYPE_CONFIG[partner.partner_type];
   const country = partner.country || "EU";
-  return `${type?.label || "Supplier"} · ${country}`;
+  return `${type ? t(type.labelKey) : t('partners.typeSupplier')} · ${country}`;
 }
 
 function getInitial(partner: Partner): string {
@@ -149,7 +150,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
               className="text-[10px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full"
               style={{ backgroundColor: type.bg, color: type.color }}
             >
-              {type.label}
+              {t(type.labelKey)}
             </span>
           </div>
 
@@ -158,7 +159,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
             <div className="absolute top-3 right-3">
               <span className="flex items-center gap-1 text-[10px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#FFF8F0] border border-[#D4603A]/20 text-[#D4603A]">
                 <Star className="h-3 w-3 fill-[#D4603A]" />
-                Featured
+                {t('partners.featured')}
               </span>
             </div>
           )}
@@ -177,13 +178,13 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
               {t('partners.verifiedSupplier')}
             </p>
             <h3 className="font-display font-bold text-foreground text-base leading-tight group-hover:text-foreground/80 transition-colors">
-              {getAnonymousLabel(partner)}
+              {getAnonymousLabel(partner, t)}
             </h3>
           </div>
 
           {/* Description */}
           <p className="text-sm font-body text-muted-foreground line-clamp-2 leading-relaxed mb-4">
-            {partner.description || "Specialist in professional outdoor furniture for the hospitality industry."}
+            {ml(partner, 'description') || t('partners.defaultDescription')}
           </p>
 
           {/* Meta info */}
@@ -221,7 +222,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
             <div className="flex items-center gap-1.5">
               <Lock className="h-3 w-3 text-muted-foreground" />
               <span className="text-[10px] font-body text-muted-foreground">
-                Supplier identity revealed in confirmed quote only
+                {t('partners.identityNotice')}
               </span>
             </div>
           </div>
@@ -237,6 +238,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
 // ═══════════════════════════════════════════════════════════
 
 function PremiumPlacementCTA() {
+  const { t } = useTranslation();
   return (
     <div className="my-12 rounded-2xl border border-dashed border-[#D4603A]/30 bg-[#FFF8F0] p-8">
       <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
@@ -246,11 +248,10 @@ function PremiumPlacementCTA() {
           </div>
           <div>
             <h3 className="font-display font-bold text-foreground text-base">
-              Get featured at the top of the network
+              {t('partners.featuredTitle')}
             </h3>
             <p className="text-sm font-body text-muted-foreground mt-1 max-w-lg">
-              Featured suppliers are seen first by hospitality professionals. Upgrade to Growth or Elite
-              to unlock featured placement, cover photo, photo gallery, and priority in project recommendations.
+              {t('partners.featuredDesc')}
             </p>
           </div>
         </div>
@@ -258,7 +259,7 @@ function PremiumPlacementCTA() {
           to="/become-partner"
           className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#D4603A] text-white font-display font-semibold text-sm hover:bg-[#C05030] transition-colors flex-shrink-0"
         >
-          Learn more <ArrowRight className="h-4 w-4" />
+          {t('partners.learnMore')} <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
     </div>
@@ -270,18 +271,19 @@ function PremiumPlacementCTA() {
 // ═══════════════════════════════════════════════════════════
 
 function EmptyState() {
+  const { t } = useTranslation();
   return (
     <div className="text-center py-20">
       <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
         <ImageOff className="h-7 w-7 text-muted-foreground" />
       </div>
-      <h3 className="font-display font-bold text-foreground text-lg">No partners yet in this category</h3>
-      <p className="text-sm font-body text-muted-foreground mt-2">Be the first — featured placements available now.</p>
+      <h3 className="font-display font-bold text-foreground text-lg">{t('partners.noPartnersTitle')}</h3>
+      <p className="text-sm font-body text-muted-foreground mt-2">{t('partners.noPartnersDesc')}</p>
       <Link
         to="/become-partner"
         className="inline-flex items-center gap-2 mt-6 px-6 py-2.5 rounded-full bg-foreground text-primary-foreground font-display font-semibold text-sm hover:bg-foreground/90 transition-colors"
       >
-        Apply as partner
+        {t('partners.applyAsPartner')}
       </Link>
     </div>
   );
@@ -318,7 +320,7 @@ export default function Partners() {
   const filtered = useMemo(() => {
     return partners.filter(p => {
       const matchCat     = activeCategory === "all" || p.partner_type === activeCategory;
-      const matchSearch  = !search || getAnonymousLabel(p).toLowerCase().includes(search.toLowerCase()) || (p.description || "").toLowerCase().includes(search.toLowerCase());
+      const matchSearch  = !search || getAnonymousLabel(p, t).toLowerCase().includes(search.toLowerCase()) || (p.description || "").toLowerCase().includes(search.toLowerCase());
       const matchCountry = !countryFilter || p.country === countryFilter;
       return matchCat && matchSearch && matchCountry;
     });
@@ -357,9 +359,9 @@ export default function Partners() {
                 transition={{ delay: 0.05 }}
                 className="font-display text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.1]"
               >
-                The trusted network<br />
-                for CHR outdoor<br />
-                professionals.
+                {t('partners.heroTitle1')}<br />
+                {t('partners.heroTitle2')}<br />
+                {t('partners.heroTitle3')}
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -367,9 +369,8 @@ export default function Partners() {
                 transition={{ delay: 0.1 }}
                 className="mt-6 text-base font-body text-muted-foreground max-w-md leading-relaxed"
               >
-                A curated ecosystem of verified manufacturers, brands and resellers
-                powering the European hospitality industry. Every partner is reviewed and approved by Terrassea.
-                Supplier identities are protected — all sourcing goes through Terrassea.
+                {t('partners.heroSubtitle')}
+                {' '}{t('partners.identityProtectedNotice')}
               </motion.p>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -381,7 +382,7 @@ export default function Partners() {
                   {t('partners.becomePartner')} <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a href="#partners-grid" className="px-6 py-3 rounded-full border border-border font-display font-semibold text-sm text-foreground hover:bg-muted transition-colors">
-                  Browse suppliers
+                  {t('partners.browseSuppliers')}
                 </a>
               </motion.div>
             </div>
@@ -394,10 +395,10 @@ export default function Partners() {
               className="grid grid-cols-2 gap-4"
             >
               {[
-                { value: `${partners.length || "—"}`, label: "Verified suppliers",  accent: "#D4603A" },
-                { value: `${countries.length || "7"}`, label: "Countries covered",  accent: "#4A90A4" },
-                { value: "100%",                        label: "CHR reviewed",       accent: "#1D9E75" },
-                { value: "Protected",                   label: "Supplier identity",  accent: "#8B7355" },
+                { value: `${partners.length || "—"}`, label: t('partners.verifiedSuppliersCount'),  accent: "#D4603A" },
+                { value: `${countries.length || "7"}`, label: t('partners.countriesCovered'),  accent: "#4A90A4" },
+                { value: "100%",                        label: t('partners.chrReviewed'),       accent: "#1D9E75" },
+                { value: t('partners.protected'),       label: t('partners.supplierIdentity'),  accent: "#8B7355" },
               ].map((stat, i) => (
                 <div key={i} className="rounded-xl border border-border bg-card p-5 text-center">
                   <p className="font-display font-bold text-2xl" style={{ color: stat.accent }}>
@@ -430,7 +431,7 @@ export default function Partners() {
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
-                  {cat.label}
+                  {t(cat.labelKey)}
                   <span className={`text-[10px] ml-0.5 ${isActive ? "text-primary-foreground/60" : "text-muted-foreground/50"}`}>
                     {count}
                   </span>
@@ -445,7 +446,7 @@ export default function Partners() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search..."
+                placeholder={t('partners.searchPlaceholder')}
                 className="pl-8 pr-4 py-1.5 text-xs font-body bg-card border border-border rounded-full outline-none focus:border-foreground w-36 transition-all focus:w-48"
               />
             </div>
@@ -456,7 +457,7 @@ export default function Partners() {
                 onChange={e => setCountryFilter(e.target.value)}
                 className="px-3 py-1.5 text-xs font-body bg-card border border-border rounded-full outline-none focus:border-foreground flex-shrink-0"
               >
-                <option value="">All countries</option>
+                <option value="">{t('partners.allCountries')}</option>
                 {countries.map(c => (
                   <option key={c} value={c}>{COUNTRY_FLAGS[c] || ""} {c}</option>
                 ))}
@@ -485,7 +486,7 @@ export default function Partners() {
                   <div className="flex items-center gap-2 mb-6">
                     <Star className="h-4 w-4 text-[#D4603A]" />
                     <h2 className="font-display font-bold text-foreground text-lg">
-                      Featured Suppliers
+                      {t('partners.featuredSuppliers')}
                     </h2>
                     <div className="flex-1 h-px bg-border ml-3" />
                   </div>
@@ -505,10 +506,10 @@ export default function Partners() {
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="font-display font-bold text-foreground text-lg">
-                      All Verified Suppliers
+                      {t('partners.allVerifiedSuppliers')}
                     </h2>
                     <div className="flex-1 h-px bg-border mx-4" />
-                    <span className="text-xs font-body text-muted-foreground">{standard.length} suppliers</span>
+                    <span className="text-xs font-body text-muted-foreground">{t('partners.suppliersCount', { count: standard.length })}</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {standard.map((partner, i) => (
@@ -529,9 +530,9 @@ export default function Partners() {
             <div className="flex items-start gap-3 flex-1">
               <Lock className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-display font-semibold text-foreground text-sm">Supplier identity is always protected</h3>
+                <h3 className="font-display font-semibold text-foreground text-sm">{t('partners.identityProtectedTitle')}</h3>
                 <p className="text-xs font-body text-muted-foreground mt-1">
-                  Full supplier details are only shared in a confirmed quote. All sourcing flows through Terrassea.
+                  {t('partners.identityProtectedDesc')}
                 </p>
               </div>
             </div>
@@ -539,7 +540,7 @@ export default function Partners() {
               to="/become-partner"
               className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border font-display font-semibold text-sm text-foreground hover:bg-muted transition-colors flex-shrink-0"
             >
-              Join the network <ArrowRight className="h-4 w-4" />
+              {t('partners.joinNetwork')} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>

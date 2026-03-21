@@ -1,14 +1,7 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-
-const placeholders = [
-  "terrace restaurant 80 seats mediterranean style",
-  "stackable restaurant terrace chairs",
-  "outdoor HPL table",
-  "rooftop lounge furniture",
-  "bistro chairs blue white",
-];
 
 interface SmartSearchProps {
   onSearch: (query: string) => void;
@@ -16,6 +9,14 @@ interface SmartSearchProps {
 }
 
 const SmartSearch = ({ onSearch, isLoading }: SmartSearchProps) => {
+  const { t } = useTranslation();
+  const placeholders = [
+    t('search.placeholder1', 'terrace restaurant 80 seats mediterranean style'),
+    t('search.placeholder2', 'stackable restaurant terrace chairs'),
+    t('search.placeholder3', 'outdoor HPL table'),
+    t('search.placeholder4', 'rooftop lounge furniture'),
+    t('search.placeholder5', 'bistro chairs blue white'),
+  ];
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
@@ -84,7 +85,7 @@ const SmartSearch = ({ onSearch, isLoading }: SmartSearchProps) => {
             if (!inputValue) setIsFocused(false);
           }}
           onKeyDown={handleKeyDown}
-          placeholder={isFocused ? "Describe what you need..." : displayText}
+          placeholder={isFocused ? t('search.focusPlaceholder', 'Describe what you need...') : displayText}
           className="w-full bg-transparent text-sm font-body text-foreground placeholder:text-muted-foreground outline-none"
         />
         {inputValue.trim() && (
@@ -97,14 +98,14 @@ const SmartSearch = ({ onSearch, isLoading }: SmartSearchProps) => {
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
               <>
-                Search <ArrowRight className="h-3.5 w-3.5" />
+                {t('search.button', 'Search')} <ArrowRight className="h-3.5 w-3.5" />
               </>
             )}
           </button>
         )}
       </div>
       <p className="text-center text-xs text-muted-foreground mt-4 font-body">
-        Search a product or describe your project — we'll adapt automatically
+        {t('search.hint', "Search a product or describe your project — we'll adapt automatically")}
       </p>
     </motion.div>
   );

@@ -8,6 +8,7 @@ import {
   Palette, Shield, Wrench, ArrowRightLeft,
 } from "lucide-react";
 import type { DBProduct } from "@/lib/products";
+import { ml } from "@/lib/i18nFields";
 import SupplierRecommendations from "./SupplierRecommendations";
 
 interface ProductDetailDrawerProps {
@@ -214,10 +215,10 @@ const ProductDetailDrawer = ({
             )}
 
             {/* ── Description ── */}
-            {(product.short_description || product.long_description) && (
+            {(ml(product, 'short_description') || ml(product, 'long_description')) && (
               <>
                 <p className="text-sm font-body text-foreground leading-relaxed mb-6">
-                  {product.long_description || product.short_description}
+                  {ml(product, 'long_description') || ml(product, 'short_description')}
                 </p>
                 <Separator className="mb-6" />
               </>
@@ -342,12 +343,12 @@ const ProductDetailDrawer = ({
             )}
 
             {/* ── Maintenance ── */}
-            {product.maintenance_info && (
+            {ml(product, 'maintenance_info') && (
               <div className="mb-6">
                 <h3 className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground mb-2">
                   Maintenance
                 </h3>
-                <p className="text-xs font-body text-muted-foreground">{product.maintenance_info}</p>
+                <p className="text-xs font-body text-muted-foreground">{ml(product, 'maintenance_info')}</p>
                 <Separator className="mt-6" />
               </div>
             )}

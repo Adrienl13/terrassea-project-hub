@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { ml } from "@/lib/i18nFields";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -240,11 +241,11 @@ const ProductDetail = () => {
                 {/* Description */}
                 <div>
                   <p className="text-sm text-foreground/80 font-body leading-relaxed">
-                    {product.short_description}
+                    {ml(product, 'short_description')}
                   </p>
-                  {product.long_description && (
+                  {ml(product, 'long_description') && (
                     <p className="text-sm text-muted-foreground font-body leading-relaxed mt-3">
-                      {product.long_description}
+                      {ml(product, 'long_description')}
                     </p>
                   )}
                 </div>
@@ -328,7 +329,7 @@ const ProductDetail = () => {
                     {product.country_of_manufacture && <SpecRow label={t('productDetail.madeIn')} value={product.country_of_manufacture} />}
                     {product.warranty && <SpecRow label={t('productDetail.warranty')} value={product.warranty} />}
                     {product.requires_assembly && <SpecRow label={t('productDetail.assembly')} value={t('productDetail.assemblyRequired')} />}
-                    {product.maintenance_info && <SpecRow label={t('productDetail.maintenance')} value={product.maintenance_info} />}
+                    {ml(product, 'maintenance_info') && <SpecRow label={t('productDetail.maintenance')} value={ml(product, 'maintenance_info')} />}
                   </div>
                 </div>
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function PartnerContactDialog({ open, onOpenChange, partnerId, partnerName }: Props) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -38,11 +40,11 @@ export default function PartnerContactDialog({ open, onOpenChange, partnerId, pa
 
     setLoading(false);
     if (error) {
-      toast.error("Failed to send request. Please try again.");
+      toast.error(t('partners.contactError'));
       return;
     }
 
-    toast.success("Request sent! Terrassea will connect you shortly.");
+    toast.success(t('partners.contactSuccess'));
     onOpenChange(false);
   };
 
@@ -51,50 +53,50 @@ export default function PartnerContactDialog({ open, onOpenChange, partnerId, pa
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            Contact {partnerName} via Terrassea
+            {t('partners.contactDialogTitle', { name: partnerName })}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="font-display text-xs">Name *</Label>
+              <Label className="font-display text-xs">{t('partners.name')} *</Label>
               <Input name="name" required className="mt-1" />
             </div>
             <div>
-              <Label className="font-display text-xs">Company</Label>
+              <Label className="font-display text-xs">{t('partners.company')}</Label>
               <Input name="company" className="mt-1" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="font-display text-xs">Country</Label>
+              <Label className="font-display text-xs">{t('partners.country')}</Label>
               <Input name="country" className="mt-1" />
             </div>
             <div>
-              <Label className="font-display text-xs">Project Type</Label>
-              <Input name="project_type" placeholder="Restaurant, Hotel…" className="mt-1" />
+              <Label className="font-display text-xs">{t('partners.projectType')}</Label>
+              <Input name="project_type" placeholder={t('partners.projectTypePlaceholder')} className="mt-1" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="font-display text-xs">Estimated Quantity</Label>
+              <Label className="font-display text-xs">{t('partners.estimatedQuantity')}</Label>
               <Input name="quantity" className="mt-1" />
             </div>
             <div>
-              <Label className="font-display text-xs">Budget Range</Label>
-              <Input name="budget" placeholder="€5k – €20k" className="mt-1" />
+              <Label className="font-display text-xs">{t('partners.budgetRange')}</Label>
+              <Input name="budget" placeholder={t('partners.budgetPlaceholder')} className="mt-1" />
             </div>
           </div>
           <div>
-            <Label className="font-display text-xs">Project Date</Label>
-            <Input name="date" placeholder="Q2 2026" className="mt-1" />
+            <Label className="font-display text-xs">{t('partners.projectDate')}</Label>
+            <Input name="date" placeholder={t('partners.projectDatePlaceholder')} className="mt-1" />
           </div>
           <div>
-            <Label className="font-display text-xs">Message</Label>
+            <Label className="font-display text-xs">{t('partners.message')}</Label>
             <Textarea name="message" rows={3} className="mt-1" />
           </div>
           <Button type="submit" disabled={loading} className="w-full rounded-full font-display font-semibold">
-            {loading ? "Sending…" : "Send Request"}
+            {loading ? t('partners.sending') : t('partners.sendRequest')}
           </Button>
         </form>
       </DialogContent>

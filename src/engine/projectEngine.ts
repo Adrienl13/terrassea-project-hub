@@ -13,6 +13,7 @@ import {
   ConceptAlternative,
   ClimateProfile,
   VenueNeeds,
+  ProductCategorySelection,
 } from "./types";
 import { generateLayouts } from "./layoutEngine";
 import type { DBProduct, ProductTypeTags } from "@/lib/products";
@@ -174,31 +175,48 @@ function deriveConceptPalette(
   templateHex: string[],
   templateNames: string[]
 ): { hex: string[]; names: string[] } {
-  const realColors = selectedProducts
-    .filter(p => p.main_color)
-    .map(p => p.main_color!);
-
-  const derivedHex = realColors
-    .map(c => COLOR_SLUG_TO_HEX[c.toLowerCase()])
-    .filter((h): h is string => !!h)
-    .slice(0, 5);
-
-  const derivedNames = realColors
-    .filter(c => COLOR_SLUG_TO_HEX[c.toLowerCase()])
-    .slice(0, 5)
-    .map(c => c.charAt(0).toUpperCase() + c.slice(1).replace(/-/g, " "));
-
-  // Supplement with template palette if not enough real colors
-  if (derivedHex.length < 3) {
-    const supplementHex   = templateHex.filter(h => !derivedHex.includes(h));
-    const supplementNames = templateNames.filter((_, i) => !derivedHex.includes(templateHex[i]));
-    return {
-      hex:   [...derivedHex,   ...supplementHex].slice(0, 5),
-      names: [...derivedNames, ...supplementNames].slice(0, 5),
-    };
+  // Extract unique real product colors
+  const seen = new Set<string>();
+  const realHex: string[] = [];
+  const realNames: string[] = [];
+  for (const p of selectedProducts) {
+    if (!p.main_color) continue;
+    const hex = COLOR_SLUG_TO_HEX[p.main_color.toLowerCase()];
+    if (!hex || seen.has(hex)) continue;
+    seen.add(hex);
+    realHex.push(hex);
+    realNames.push(p.main_color.charAt(0).toUpperCase() + p.main_color.slice(1).replace(/-/g, " "));
   }
 
-  return { hex: derivedHex, names: derivedNames };
+  // Strategy: template palette is the BASE (defines concept identity),
+  // enriched with real product colors that complement it.
+  // Template provides the first 3 colors, then real product colors fill the rest.
+  const finalHex: string[] = [];
+  const finalNames: string[] = [];
+
+  // Start with template colors (up to 3 — the concept's visual identity)
+  for (let i = 0; i < Math.min(3, templateHex.length); i++) {
+    finalHex.push(templateHex[i]);
+    finalNames.push(templateNames[i] || "");
+  }
+
+  // Add unique real product colors that aren't already in the palette
+  for (let i = 0; i < realHex.length && finalHex.length < 5; i++) {
+    if (!finalHex.includes(realHex[i])) {
+      finalHex.push(realHex[i]);
+      finalNames.push(realNames[i]);
+    }
+  }
+
+  // Fill remaining slots from template if needed
+  for (let i = 3; i < templateHex.length && finalHex.length < 5; i++) {
+    if (!finalHex.includes(templateHex[i])) {
+      finalHex.push(templateHex[i]);
+      finalNames.push(templateNames[i] || "");
+    }
+  }
+
+  return { hex: finalHex, names: finalNames };
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -268,6 +286,80 @@ function getVenueNeeds(establishmentType: string): VenueNeeds {
 }
 
 // ═══════════════════════════════════════════════════════════
+// CATEGORY SELECTION — filter products by user's chosen categories
+// ═══════════════════════════════════════════════════════════
+
+/** Map category selection slugs → DB category substrings for matching */
+const CATEGORY_SLUG_TO_DB: Record<ProductCategorySelection, string[]> = {
+  chairs:          ["chair"],
+  armchairs:       ["armchair"],
+  tables:          ["table"],
+  "bar-stools":    ["bar stool", "stool"],
+  parasols:        ["parasol", "shade"],
+  "sun-loungers":  ["lounger", "daybed"],
+  "lounge-seating": ["lounge", "sofa"],
+  benches:         ["bench"],
+  accessories:     ["accessor", "cushion", "cover", "planter"],
+};
+
+/** Get default category selection for a venue type (used for "complete proposal") */
+export function getDefaultCategories(establishmentType: string): ProductCategorySelection[] {
+  const needs = getVenueNeeds(establishmentType);
+  const allCats: ProductCategorySelection[] = [];
+
+  const dbToSelection = (dbCat: string): ProductCategorySelection | null => {
+    const lower = dbCat.toLowerCase();
+    for (const [sel, matchers] of Object.entries(CATEGORY_SLUG_TO_DB)) {
+      if (matchers.some(m => lower.includes(m))) return sel as ProductCategorySelection;
+    }
+    return null;
+  };
+
+  for (const m of [...needs.mandatory, ...needs.preferred]) {
+    const sel = dbToSelection(m);
+    if (sel && !allCats.includes(sel)) allCats.push(sel);
+  }
+
+  // Always include accessories as optional
+  if (!allCats.includes("accessories")) allCats.push("accessories");
+
+  return allCats;
+}
+
+/** Filter products to only include selected categories */
+function filterBySelectedCategories(
+  products: DBProduct[],
+  selectedCategories: ProductCategorySelection[] | null | undefined
+): DBProduct[] {
+  // null/undefined = no filter (complete proposal)
+  if (!selectedCategories || selectedCategories.length === 0) return products;
+
+  const allowedMatchers = selectedCategories.flatMap(sel => CATEGORY_SLUG_TO_DB[sel] || []);
+
+  return products.filter(p => {
+    const catLower = (p.category || "").toLowerCase();
+    return allowedMatchers.some(m => catLower.includes(m));
+  });
+}
+
+/** Adjust venue needs based on selected categories */
+function adjustVenueNeeds(
+  venueNeeds: VenueNeeds,
+  selectedCategories: ProductCategorySelection[] | null | undefined
+): VenueNeeds {
+  if (!selectedCategories || selectedCategories.length === 0) return venueNeeds;
+
+  const allowedMatchers = selectedCategories.flatMap(sel => CATEGORY_SLUG_TO_DB[sel] || []);
+  const isAllowed = (cat: string) => allowedMatchers.some(m => cat.toLowerCase().includes(m));
+
+  return {
+    ...venueNeeds,
+    mandatory: venueNeeds.mandatory.filter(isAllowed),
+    preferred: venueNeeds.preferred.filter(isAllowed),
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
 // FIX 3 — CLIMATE PROFILE
 // ═══════════════════════════════════════════════════════════
 
@@ -320,11 +412,15 @@ const BUDGET_MAX: Record<string, number> = {
 };
 
 function budgetPenalty(product: DBProduct, budgetLevel: string): number {
-  if (!budgetLevel || budgetLevel === "luxury") return 0;
-  const max = BUDGET_MAX[budgetLevel] ?? 99999;
+  if (!budgetLevel) return 0;
+  const isStrict = budgetLevel.endsWith("-strict");
+  const level = isStrict ? budgetLevel.replace("-strict", "") : budgetLevel;
+  if (level === "luxury") return 0;
+  const max = BUDGET_MAX[level] ?? 99999;
   if (product.price_min === null) return 0;
   const ratio = product.price_min / max;
   if (ratio <= 1.0) return 0;
+  if (isStrict) return 50.0; // hard elimination
   if (ratio <= 1.1) return 1.5;
   if (ratio <= 1.3) return 4.0;
   if (ratio <= 1.6) return 7.0;
@@ -342,6 +438,181 @@ function capacityBonus(product: DBProduct, capacity: number | null): number {
   if (capacity > 80  && product.is_chr_heavy_use) bonus += 1.5;
   if (capacity > 150 && product.is_stackable)    bonus += 1.5;
   if (capacity < 40  && !product.is_stackable)   bonus += 0.5;
+  return bonus;
+}
+
+// ═══════════════════════════════════════════════════════════
+// WEIGHT / ERGONOMICS — penalize heavy products for high-handling venues
+// ═══════════════════════════════════════════════════════════
+
+const HIGH_HANDLING_VENUES = ["beach-club", "event", "camping", "bar"];
+const MODERATE_HANDLING_VENUES = ["restaurant", "cafe", "brasserie", "pool"];
+
+function weightErgonomicsBonus(product: DBProduct, params: ProjectParameters): number {
+  const weight = product.weight_kg;
+  if (!weight) return 0;
+  const venue = params.establishmentType;
+  let bonus = 0;
+
+  // High-handling venues: staff moves furniture daily (beach club, events, camping)
+  if (HIGH_HANDLING_VENUES.includes(venue)) {
+    if (weight <= 4)  bonus += 2.5;  // excellent for daily handling
+    else if (weight <= 6)  bonus += 1.5;
+    else if (weight <= 8)  bonus += 0.5;
+    else if (weight > 12) bonus -= 2.0; // too heavy for daily setup
+    else if (weight > 8)  bonus -= 1.0;
+  }
+  // Moderate-handling venues: weekly rearrangement
+  else if (MODERATE_HANDLING_VENUES.includes(venue)) {
+    if (weight <= 5)  bonus += 1.0;
+    else if (weight > 15) bonus -= 1.0;
+  }
+  // Rooftop: weight is good for wind resistance
+  else if (venue === "rooftop" || params.projectZone === "rooftop") {
+    if (weight >= 8)  bonus += 1.5;  // heavier = more stable in wind
+    if (weight >= 12) bonus += 1.0;
+    if (weight < 4)   bonus -= 1.0;  // too light for wind
+  }
+
+  // Stackability bonus scales with capacity
+  if (product.is_stackable && params.seatingCapacity) {
+    if (params.seatingCapacity > 60) bonus += 1.0;
+  }
+
+  return bonus;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DURABILITY / WARRANTY — favor products with longer lifecycle
+// ═══════════════════════════════════════════════════════════
+
+function durabilityBonus(product: DBProduct): number {
+  let bonus = 0;
+  const warranty = (product.warranty || "").toLowerCase();
+
+  // Parse warranty duration
+  const yearMatch = warranty.match(/(\d+)\s*(?:year|an|año|anno|jahr)/i);
+  if (yearMatch) {
+    const years = parseInt(yearMatch[1]);
+    if (years >= 5) bonus += 2.0;
+    else if (years >= 3) bonus += 1.0;
+    else if (years >= 2) bonus += 0.5;
+  }
+
+  // Material-based durability heuristics
+  const materials = product.material_tags || [];
+  // Premium durable materials
+  if (materials.includes("teak"))       bonus += 1.0;
+  if (materials.includes("aluminium"))  bonus += 0.5;
+  if (materials.includes("steel"))      bonus += 0.5;
+  // Less durable
+  if (materials.includes("polypropylene") && !product.technical_tags?.includes("fibreglass-reinforced")) {
+    bonus -= 0.5;
+  }
+
+  // CHR certification bonus
+  if (product.technical_tags?.includes("en-12727-level-4") || product.technical_tags?.includes("chr-heavy-use")) {
+    bonus += 1.0;
+  }
+
+  return bonus;
+}
+
+// ═══════════════════════════════════════════════════════════
+// COLOR HARMONY — advanced palette compatibility
+// ═══════════════════════════════════════════════════════════
+
+const COLOR_FAMILIES: Record<string, string> = {
+  // Darks
+  black: "dark", anthracite: "dark", charcoal: "dark", graphite: "dark",
+  // Lights
+  white: "light", cream: "light", ivory: "light", "off-white": "light",
+  // Warm neutrals
+  beige: "warm-neutral", sand: "warm-neutral", taupe: "warm-neutral", champagne: "warm-neutral",
+  // Cool neutrals
+  grey: "cool-neutral", silver: "cool-neutral",
+  // Woods
+  teak: "wood", walnut: "wood", "dark-brown": "wood", chocolate: "wood",
+  // Earths
+  terracotta: "earth", rust: "earth", copper: "earth", bronze: "earth",
+  // Nature
+  green: "nature", sage: "nature", olive: "nature",
+  // Cool tones
+  blue: "cool-tone", navy: "cool-tone", "petrol-blue": "cool-tone",
+  // Warm tones
+  red: "warm-tone", mustard: "warm-tone", gold: "warm-tone", yellow: "warm-tone",
+  // Pastels
+  "blush-pink": "pastel", bordeaux: "warm-tone",
+};
+
+// Families that harmonize well together
+const HARMONIOUS_PAIRS: [string, string][] = [
+  ["dark", "light"], ["dark", "warm-neutral"], ["dark", "wood"],
+  ["light", "warm-neutral"], ["light", "nature"], ["light", "cool-tone"],
+  ["warm-neutral", "wood"], ["warm-neutral", "earth"],
+  ["cool-neutral", "cool-tone"], ["cool-neutral", "nature"],
+  ["wood", "earth"], ["wood", "nature"],
+  ["earth", "warm-tone"],
+];
+
+// Families that clash
+const CLASHING_PAIRS: [string, string][] = [
+  ["warm-tone", "cool-tone"],
+  ["pastel", "dark"],
+  ["earth", "cool-tone"],
+];
+
+function colorHarmonyScore(productColor: string | null, conceptColors: string[]): number {
+  if (!productColor) return 0;
+  const productFamily = COLOR_FAMILIES[productColor.toLowerCase()];
+  if (!productFamily) return 0;
+
+  const conceptFamilies = conceptColors
+    .map(c => COLOR_FAMILIES[c.toLowerCase()])
+    .filter((f): f is string => !!f);
+
+  if (conceptFamilies.length === 0) return 0;
+
+  let score = 0;
+  for (const cf of conceptFamilies) {
+    if (cf === productFamily) { score += 1.5; continue; } // same family = good
+    const isHarmonious = HARMONIOUS_PAIRS.some(
+      ([a, b]) => (a === productFamily && b === cf) || (b === productFamily && a === cf)
+    );
+    if (isHarmonious) { score += 1.0; continue; }
+    const isClashing = CLASHING_PAIRS.some(
+      ([a, b]) => (a === productFamily && b === cf) || (b === productFamily && a === cf)
+    );
+    if (isClashing) { score -= 1.5; }
+  }
+
+  return score;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SEASONAL SCORING
+// ═══════════════════════════════════════════════════════════
+
+function seasonalBonus(product: DBProduct): number {
+  const month = new Date().getMonth(); // 0-11
+  const ptt: ProductTypeTags = product.product_type_tags || {};
+  let bonus = 0;
+
+  // Spring/Summer (Mar-Aug): boost shade & cooling
+  if (month >= 2 && month <= 7) {
+    if (product.category?.toLowerCase().includes("parasol")) bonus += 1.5;
+    if (product.category?.toLowerCase().includes("lounger")) bonus += 1.0;
+    if (product.uv_resistant) bonus += 0.5;
+  }
+
+  // Autumn/Winter (Sep-Feb): boost covered/heated solutions
+  if (month >= 8 || month <= 1) {
+    // Boost products suitable for covered terraces
+    if (product.technical_tags?.includes("indoor-outdoor")) bonus += 1.0;
+    // Accessories like heaters, windbreaks
+    if (product.category?.toLowerCase().includes("accessor")) bonus += 0.5;
+  }
+
   return bonus;
 }
 
@@ -458,6 +729,7 @@ export function parseProjectRequest(input: string): ProjectParameters {
     terraceLength: null,
     terraceWidth: null,
     tableMix: [],
+    selectedCategories: null, // null = complete proposal
   };
 }
 
@@ -469,35 +741,33 @@ export function detectMissingFields(params: ProjectParameters): DiscoveryQuestio
   const questions: DiscoveryQuestion[] = [];
 
   if (params.style.length === 0) {
-    questions.push({ id: "style", question: "What style defines your terrace?",
-      options: ["Bistro", "Mediterranean", "Natural / Wood", "Modern", "Lounge", "Coastal"],
+    questions.push({ id: "style", question: "discovery.styleQuestion",
+      options: ["discovery.styleBistro", "discovery.styleMediterranean", "discovery.styleNatural", "discovery.styleModern", "discovery.styleLounge", "discovery.styleCoastal"],
       field: "style", priority: 10 });
   }
   if (params.materialPreferences.length === 0) {
-    questions.push({ id: "material", question: "What material do you prefer for seating?",
-      options: ["Professional polypropylene", "Aluminium + rope", "Aluminium + textilene", "Teak / wood", "Rattan"],
+    questions.push({ id: "material", question: "discovery.materialQuestion",
+      options: ["discovery.materialPP", "discovery.materialAluRope", "discovery.materialAluTextilene", "discovery.materialTeak", "discovery.materialRattan"],
       field: "materialPreferences", priority: 9 });
   }
   if (!params.seatingLayout) {
-    questions.push({ id: "seatingLayout", question: "How do you want to organize your seating layout?",
-      options: ["Mostly 2-seater tables", "Balanced mix of 2 and 4-seater tables",
-        "Mostly 4-seater tables", "Flexible modular layout", "Group dining friendly"],
+    questions.push({ id: "seatingLayout", question: "discovery.layoutQuestion",
+      options: ["discovery.layoutMostly2", "discovery.layoutBalanced", "discovery.layoutMostly4", "discovery.layoutModular", "discovery.layoutGroup"],
       field: "seatingLayout", priority: 8.5 });
   }
   if (!params.layoutPriority) {
-    questions.push({ id: "layoutPriority", question: "What matters most for your layout?",
-      options: ["Maximize seating capacity", "Balanced comfort and capacity",
-        "Spacious premium layout", "Flexible tables for groups"],
+    questions.push({ id: "layoutPriority", question: "discovery.priorityQuestion",
+      options: ["discovery.priorityMaxCapacity", "discovery.priorityBalanced", "discovery.prioritySpacious", "discovery.priorityFlexible"],
       field: "layoutPriority", priority: 8 });
   }
   if (!params.budgetLevel) {
-    questions.push({ id: "budget", question: "What is your budget per seat?",
+    questions.push({ id: "budget", question: "discovery.budgetQuestion",
       options: ["€50–80", "€80–120", "€120–180", "€180+"],
       field: "budgetLevel", priority: 7.5 });
   }
   if (params.colorPalette.length === 0) {
-    questions.push({ id: "palette", question: "Which color palette do you prefer?",
-      options: ["Terracotta / natural", "Wood / beige", "Black / anthracite", "Blue / white", "Olive green"],
+    questions.push({ id: "palette", question: "discovery.paletteQuestion",
+      options: ["discovery.paletteTerracotta", "discovery.paletteWood", "discovery.paletteBlack", "discovery.paletteBlue", "discovery.paletteOlive"],
       field: "colorPalette", priority: 7 });
   }
 
@@ -879,8 +1149,25 @@ function scoreProduct(
   if (params.isOutdoor && product.is_outdoor) score += W.technical;
 
   // Dimension match for tables
-  if (ptt.dimension_tag && product.category.toLowerCase().includes("table")) {
-    score += W.dimension * 0.5; // has a dimension specified
+  if (product.category.toLowerCase().includes("table")) {
+    if (ptt.dimension_tag) {
+      score += W.dimension * 0.5; // has a dimension specified
+      // Expert mode: boost if dimension matches user's tableMix
+      if (params.tableMix && params.tableMix.length > 0) {
+        const matchesUserFormat = params.tableMix.some(
+          tm => ptt.dimension_tag && ptt.dimension_tag.includes(tm.format)
+        );
+        if (matchesUserFormat) score += W.dimension * 1.5;
+      }
+    }
+  }
+
+  // Base/top compatible matching — boost if product has defined compatibility
+  if (ptt.table_type === "base-only" && ptt.compatible_tops?.length) {
+    score += 1.5; // has documented compatible tops
+  }
+  if (ptt.table_type === "top-only" && ptt.compatible_bases?.length) {
+    score += 1.5; // has documented compatible bases
   }
 
   // FIX 2 — Venue needs
@@ -896,6 +1183,16 @@ function scoreProduct(
   // FIX 6 — Capacity
   score += capacityBonus(product, params.seatingCapacity);
 
+  // Weight & ergonomics — penalize heavy products for high-handling venues
+  score += weightErgonomicsBonus(product, params);
+
+  // Durability & warranty — favor products with longer lifecycle
+  score += durabilityBonus(product);
+
+  // Color harmony — advanced palette compatibility
+  const conceptColorSlugs = concept.colorNames.map(c => c.toLowerCase().replace(/\s+/g, "-"));
+  score += colorHarmonyScore(product.main_color, conceptColorSlugs);
+
   // Popularity (kept low to not override quality signals)
   score += product.popularity_score * W.popularity;
 
@@ -908,6 +1205,9 @@ function scoreProduct(
   // Availability
   if (product.availability_type === "available") score += 1.5;
   else if (product.availability_type === "on-order") score += 0.75;
+
+  // Seasonal bonus
+  score += seasonalBonus(product);
 
   // FIX 1 — Soft budget penalty
   score -= budgetPenalty(product, params.budgetLevel);
@@ -1073,7 +1373,136 @@ function selectProductsForConcept(
     });
   }
 
+  // Re-rank: boost scores by cohesion with already-selected products
+  if (selected.length >= 2) {
+    const cohesion = computeCohesionScore(selected.map(s => s.product));
+    // If cohesion is low, try swapping the weakest non-mandatory product
+    if (cohesion < 1.0 && selected.length >= 3) {
+      const weakestIdx = selected.reduce((minIdx, s, idx) => {
+        const catNorm = (s.product.category || "").toLowerCase();
+        const isMandatory = venueNeeds.mandatory.some(m => catNorm.includes(m.toLowerCase()));
+        if (isMandatory) return minIdx; // never swap mandatory
+        return s.score < selected[minIdx].score ? idx : minIdx;
+      }, 0);
+
+      // Find a replacement that improves cohesion
+      const weakest = selected[weakestIdx];
+      const weakestCatNorm = (weakest.product.category || "").toLowerCase();
+      const isMandatory = venueNeeds.mandatory.some(m => weakestCatNorm.includes(m.toLowerCase()));
+
+      if (!isMandatory) {
+        const remaining = scoredWithP.filter(
+          item => !selected.some(s => s.product.id === item.product.id)
+            && item.score > weakest.score * 0.7
+        );
+        for (const candidate of remaining) {
+          const testSet = [...selected];
+          testSet[weakestIdx] = candidate;
+          const newCohesion = computeCohesionScore(testSet.map(s => s.product));
+          if (newCohesion > cohesion + 1.0) {
+            selected[weakestIdx] = candidate;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // ── Base/top auto-pairing ─────────────────────────────────
+  // If a base-only or top-only table was selected, try to find its compatible counterpart
+  const baseOnlyProducts = selected.filter(s => {
+    const ptt: ProductTypeTags = s.product.product_type_tags || {};
+    return ptt.table_type === "base-only" && ptt.compatible_tops?.length;
+  });
+  const topOnlyProducts = selected.filter(s => {
+    const ptt: ProductTypeTags = s.product.product_type_tags || {};
+    return ptt.table_type === "top-only" && ptt.compatible_bases?.length;
+  });
+  for (const baseItem of baseOnlyProducts) {
+    const ptt: ProductTypeTags = baseItem.product.product_type_tags || {};
+    const compatTopIds = ptt.compatible_tops || [];
+    const matchingTop = scoredWithP.find(
+      item => compatTopIds.includes(item.product.id) && !selected.some(s => s.product.id === item.product.id)
+    );
+    if (matchingTop && selected.length < maxProducts + 1) {
+      selected.push(matchingTop);
+    }
+  }
+  for (const topItem of topOnlyProducts) {
+    const ptt: ProductTypeTags = topItem.product.product_type_tags || {};
+    const compatBaseIds = ptt.compatible_bases || [];
+    const matchingBase = scoredWithP.find(
+      item => compatBaseIds.includes(item.product.id) && !selected.some(s => s.product.id === item.product.id)
+    );
+    if (matchingBase && selected.length < maxProducts + 1) {
+      selected.push(matchingBase);
+    }
+  }
+
   return { selected, allScores: allRawScores };
+}
+
+// ═══════════════════════════════════════════════════════════
+// AESTHETIC COHESION — bonus when concept products share palette
+// ═══════════════════════════════════════════════════════════
+
+function computeCohesionScore(selected: DBProduct[]): number {
+  if (selected.length < 2) return 0;
+  const colors = selected
+    .map(p => p.main_color?.toLowerCase())
+    .filter((c): c is string => !!c);
+  if (colors.length < 2) return 0;
+
+  // Group colors by family
+  const FAMILY: Record<string, string> = {
+    black: "dark", anthracite: "dark", charcoal: "dark", graphite: "dark",
+    white: "light", cream: "light", ivory: "light", "off-white": "light",
+    beige: "warm-neutral", sand: "warm-neutral", taupe: "warm-neutral",
+    grey: "cool-neutral", silver: "cool-neutral",
+    teak: "wood", walnut: "wood", "dark-brown": "wood",
+    terracotta: "earth", rust: "earth", copper: "earth", bronze: "earth",
+    green: "nature", sage: "nature", olive: "nature",
+    blue: "cool", navy: "cool", "petrol-blue": "cool",
+  };
+
+  const families = colors.map(c => FAMILY[c] || c);
+  const familyCounts: Record<string, number> = {};
+  for (const f of families) familyCounts[f] = (familyCounts[f] || 0) + 1;
+
+  // Score: how many products share the dominant family
+  const maxFamilyCount = Math.max(...Object.values(familyCounts));
+  const uniqueFamilies = Object.keys(familyCounts).length;
+
+  // 3/3 same family = +4.0, 2/3 = +2.0, all different = 0
+  if (maxFamilyCount >= 3) return 4.0;
+  if (maxFamilyCount >= 2 && uniqueFamilies <= 2) return 2.5;
+  if (maxFamilyCount >= 2) return 1.5;
+  return 0;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DELIVERY COHERENCE — penalize concepts with scattered delivery
+// ═══════════════════════════════════════════════════════════
+
+function computeDeliveryPenalty(products: DBProduct[]): number {
+  const deliveryDays = products
+    .map(p => p.estimated_delivery_days)
+    .filter((d): d is number => d != null && d > 0);
+  if (deliveryDays.length < 2) return 0;
+
+  const maxDays = Math.max(...deliveryDays);
+  const minDays = Math.min(...deliveryDays);
+  const spread = maxDays - minDays;
+
+  let penalty = 0;
+  // Penalize if slowest item is very slow
+  if (maxDays > 56) penalty += 2.0;  // > 8 weeks
+  if (maxDays > 84) penalty += 3.0;  // > 12 weeks
+  // Penalize if big gap between fastest and slowest
+  if (spread > 42) penalty += 2.0;   // > 6 weeks gap
+  if (spread > 70) penalty += 2.0;   // > 10 weeks gap
+
+  return penalty;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1153,6 +1582,18 @@ function buildAlternative(
 // Reason generation
 // ═══════════════════════════════════════════════════════════
 
+/**
+ * Generate a structured reason for product recommendation.
+ * Returns a key + interpolation params for i18n-ready rendering.
+ * The UI should call t(reason.key, reason.params) to display.
+ * Fallback: the `text` field always contains a readable English string.
+ */
+export interface RecommendationReason {
+  key: string;
+  params: Record<string, string>;
+  text: string; // English fallback
+}
+
 function generateReason(
   product: DBProduct,
   concept: ConceptTemplate,
@@ -1165,14 +1606,17 @@ function generateReason(
   const isMandatory   = venueNeeds.mandatory.some(m => catNorm.includes(m.toLowerCase()));
   const isClimate     = (climate.isCoastal && product.weather_resistant) || (climate.isHighUV && product.uv_resistant);
   const ptt: ProductTypeTags = product.product_type_tags || {};
+  const style = matchedStyles[0] || "";
+  const venue = params.establishmentType || "";
+  const materials = product.material_tags.slice(0, 2).join(" & ");
 
-  if (isMandatory && isClimate) return `Essential for ${params.establishmentType} — weather & UV rated`;
-  if (isMandatory && matchedStyles.length > 0) return `${matchedStyles[0]} style, essential for ${params.establishmentType}`;
-  if (isClimate && matchedStyles.length > 0) return `${matchedStyles[0]}, marine-grade for coastal use`;
-  if (ptt.silhouette && matchedStyles.length > 0) return `${matchedStyles[0]} ${ptt.silhouette} — ${params.establishmentType}`;
-  if (matchedStyles.length > 0) return `${matchedStyles[0]} aesthetic · ${product.material_tags.slice(0, 2).join(" & ")}`;
-  if (product.is_chr_heavy_use) return `Professional-grade for high-traffic hospitality`;
-  return `Complements the ${concept.titleTemplate} palette`;
+  if (isMandatory && isClimate) return `reason:essential_climate|venue:${venue}`;
+  if (isMandatory && style)     return `reason:essential_style|style:${style}|venue:${venue}`;
+  if (isClimate && style)       return `reason:climate_style|style:${style}`;
+  if (ptt.silhouette && style)  return `reason:silhouette_style|style:${style}|silhouette:${ptt.silhouette}|venue:${venue}`;
+  if (style)                    return `reason:style_material|style:${style}|materials:${materials}`;
+  if (product.is_chr_heavy_use) return `reason:professional_grade`;
+  return `reason:complements_palette|theme:${concept.titleTemplate}`;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1182,7 +1626,8 @@ function generateReason(
 function inferRequirementType(product: DBProduct): LayoutRequirementType {
   const cat = (product.category || "").toLowerCase().replace(/[_\s-]/g, "");
   const sub = (product.subcategory || "").toLowerCase().replace(/[_\s-]/g, "");
-  if (cat.includes("armchair") || sub.includes("armchair")) return "armchair";
+  // Armchairs map to "chair" requirement (unified seating slot)
+  if (cat.includes("armchair") || sub.includes("armchair")) return "chair";
   if (cat.includes("chair")    || sub.includes("chair"))    return "chair";
   if (cat.includes("stool"))                                return "bar_stool" as any;
   if (cat.includes("parasol"))                              return "parasol";
@@ -1199,15 +1644,35 @@ function inferRequirementType(product: DBProduct): LayoutRequirementType {
 
 function buildLayoutRequirements(layout: LayoutRecommendation): LayoutRequirement[] {
   const reqs: LayoutRequirement[] = [];
-  reqs.push({ id: "chairs-main",   type: "chair",   label: "Chair seating",   requiredQuantity: Math.max(layout.chairCount, 1) });
-  reqs.push({ id: "armchairs-main",type: "armchair",label: "Armchair seating", requiredQuantity: Math.max(1, Math.round(layout.chairCount * 0.25)) });
-  reqs.push({ id: "parasols-main", type: "parasol", label: "Parasol coverage", requiredQuantity: Math.max(1, Math.round(layout.totalSeats / 4)) });
-  layout.tableGroups.forEach((group, i) => {
-    const suffix = `${group.tableFormat} (${group.quantity})`;
-    reqs.push({ id: `complete-table-${i}`, type: "complete_table", label: `Complete table ${suffix}`, requiredQuantity: group.quantity, tableFormat: group.tableFormat });
-    reqs.push({ id: `table-base-${i}`,     type: "table_base",     label: `Table base ${suffix}`,     requiredQuantity: group.quantity, tableFormat: group.tableFormat });
-    reqs.push({ id: `tabletop-${i}`,       type: "tabletop",       label: `Tabletop ${suffix}`,       requiredQuantity: group.quantity, tableFormat: group.tableFormat });
+
+  // Seating: ONE chair requirement (not chair + armchair — the engine picks the right product)
+  reqs.push({
+    id: "seating-main",
+    type: "chair",
+    label: "Seating",
+    requiredQuantity: Math.max(layout.chairCount, 1),
   });
+
+  // Parasols: 1 per 4 seats
+  reqs.push({
+    id: "parasols-main",
+    type: "parasol",
+    label: "Parasol coverage",
+    requiredQuantity: Math.max(1, Math.round(layout.totalSeats / 4)),
+  });
+
+  // Tables: ONE requirement per table group (complete_table preferred; base/top matched later if needed)
+  layout.tableGroups.forEach((group, i) => {
+    const suffix = `${group.tableFormat} (×${group.quantity})`;
+    reqs.push({
+      id: `table-group-${i}`,
+      type: "complete_table",
+      label: `Table ${suffix}`,
+      requiredQuantity: group.quantity,
+      tableFormat: group.tableFormat,
+    });
+  });
+
   return reqs;
 }
 
@@ -1251,7 +1716,9 @@ export function generateProjectConcepts(
   if (overrideParams) parameters = { ...parameters, ...overrideParams };
 
   const climate    = inferClimateProfile(parameters);
-  const venueNeeds = getVenueNeeds(parameters.establishmentType);
+  const rawVenueNeeds = getVenueNeeds(parameters.establishmentType);
+  const venueNeeds = adjustVenueNeeds(rawVenueNeeds, parameters.selectedCategories);
+  const filteredProducts = filterBySelectedCategories(products, parameters.selectedCategories);
   const layouts    = generateLayouts(parameters);
   const templates  = getConceptTemplates(parameters);
 
@@ -1262,7 +1729,7 @@ export function generateProjectConcepts(
     const layout = layouts[i] || layouts[0];
 
     const { selected } = selectProductsForConcept(
-      template, parameters, products,
+      template, parameters, filteredProducts,
       globalUsedArchetypes, globalUsedProducts,
       climate, venueNeeds
     );
@@ -1283,21 +1750,80 @@ export function generateProjectConcepts(
     }
 
     // Build BOM slots from selected products + layout quantities
-    const bomSlots: BOMSlot[] = selected.map(({ product, percentile }) => {
+    // FIX: Assign layout quantities to products with role-based dedup.
+    // - Each layout requirement is assigned to at most ONE product (highest scored).
+    // - Multiple table groups each get their own product if available.
+    // - Extra products of the same role are excluded from BOM (available as alternatives).
+    const usedRequirementIds = new Set<string>();
+    const roleCursors: Record<string, number> = {};
+
+    const bomSlots: BOMSlot[] = [];
+    for (const { product, percentile } of selected) {
       const role = inferBOMRole(product);
-      const req  = requirements.find(r => r.type === inferRequirementType(product));
-      const qty  = req?.requiredQuantity ?? 1;
-      return buildBOMSlot(
+      const reqType = inferRequirementType(product);
+      const ptt: ProductTypeTags = product.product_type_tags || {};
+
+      // Find the best matching requirement for this product
+      let matchedReq: LayoutRequirement | undefined;
+
+      // For tables, try to match by dimension_tag to the correct table group
+      if (reqType === "complete_table" && ptt.dimension_tag) {
+        matchedReq = requirements.find(
+          r => r.type === reqType && !usedRequirementIds.has(r.id)
+            && r.tableFormat && ptt.dimension_tag?.includes(r.tableFormat)
+        );
+      }
+
+      // Fallback: first unused requirement of this type
+      if (!matchedReq) {
+        const cursor = roleCursors[reqType] || 0;
+        const candidates = requirements.filter(r => r.type === reqType && !usedRequirementIds.has(r.id));
+        matchedReq = candidates[0];
+        roleCursors[reqType] = cursor + 1;
+      }
+
+      // Skip product if no requirement slot available (duplicate role)
+      if (!matchedReq) continue;
+
+      usedRequirementIds.add(matchedReq.id);
+      const qty = matchedReq.requiredQuantity;
+
+      bomSlots.push(buildBOMSlot(
         product, role, qty, percentile,
         generateReason(product, template, parameters, venueNeeds, climate),
-        req ? { id: req.id, type: req.type, label: req.label } : undefined
-      );
-    });
+        { id: matchedReq.id, type: matchedReq.type, label: matchedReq.label }
+      ));
+    }
+
+    // Add selected products that don't have a layout requirement type (accessories, etc.)
+    // Products that HAVE a requirement type but didn't get a slot are intentionally excluded
+    // (they are duplicates of a role already filled by a higher-scored product).
+    const typesWithRequirements = new Set(requirements.map(r => r.type));
+    for (const { product, percentile } of selected) {
+      const alreadyInBOM = bomSlots.some(s => s.product.id === product.id);
+      if (alreadyInBOM) continue;
+      const reqType = inferRequirementType(product);
+      // Only add if this product type has NO layout requirement at all
+      if (typesWithRequirements.has(reqType)) continue;
+      const role = inferBOMRole(product);
+      bomSlots.push(buildBOMSlot(
+        product, role, 1, percentile,
+        generateReason(product, template, parameters, venueNeeds, climate)
+      ));
+    }
 
     const bom = buildConceptBOM(bomSlots, venueNeeds);
 
     // Build alternative
-    const alternative = buildAlternative(bomSlots, template, parameters, products, climate, venueNeeds);
+    const alternative = buildAlternative(bomSlots, template, parameters, filteredProducts, climate, venueNeeds);
+
+    // Concept-level quality metrics
+    const cohesionScore = computeCohesionScore(selected.map(s => s.product));
+    const deliveryPenalty = computeDeliveryPenalty(selected.map(s => s.product));
+    const deliveryDays = selected
+      .map(s => s.product.estimated_delivery_days)
+      .filter((d): d is number => d != null && d > 0);
+    const maxDeliveryDays = deliveryDays.length > 0 ? Math.max(...deliveryDays) : null;
 
     // FIX A — Derive palette from real product colors
     const { hex: derivedHex, names: derivedNames } = deriveConceptPalette(
@@ -1321,6 +1847,9 @@ export function generateProjectConcepts(
         min: bom.indicativeTotalMin,
         max: bom.indicativeTotalMax,
       },
+      cohesionScore,
+      deliveryPenalty,
+      maxDeliveryDays,
     };
   });
 

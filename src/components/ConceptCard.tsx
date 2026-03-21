@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Plus, Check, AlertTriangle, ChevronRight, ArrowLeftRight } from "lucide-react";
 import { ProjectConcept, LayoutRecommendation, LayoutRequirementType, BOMSlot, BOMSlotRole } from "@/engine/types";
@@ -11,7 +12,6 @@ interface ConceptCardProps {
   concept: ProjectConcept;
   index: number;
   products: DBProduct[];
-  budgetEstimate?: { min: number; max: number; avgPerSeat: number } | null;
 }
 
 type ConceptProduct = DBProduct & {
@@ -57,10 +57,16 @@ const ROLE_COLORS: Record<BOMSlotRole, string> = {
 // ── BOM bar — compact summary of quantities + price ───────
 
 function BOMBar({ concept }: { concept: ProjectConcept }) {
+  const { t } = useTranslation();
   const bom = concept.bom;
   if (!bom || bom.slots.length === 0) return null;
 
   const hasPrice = bom.indicativeTotalMin != null;
+
+  // Compute per-cover cost from BOM total and layout seats
+  const totalSeats = concept.layout?.totalSeats || 0;
+  const perCoverMin = hasPrice && totalSeats > 0 ? Math.round(bom.indicativeTotalMin! / totalSeats) : null;
+  const perCoverMax = hasPrice && totalSeats > 0 && bom.indicativeTotalMax ? Math.round(bom.indicativeTotalMax / totalSeats) : null;
 
   return (
     <div className="mt-6 border border-border rounded-sm bg-card/50 p-4">
@@ -79,7 +85,7 @@ function BOMBar({ concept }: { concept: ProjectConcept }) {
         {hasPrice && (
           <div className="text-right">
             <span className="text-[9px] font-body uppercase tracking-wider text-muted-foreground block">
-              Indicative total
+              {t('concept.totalProject', 'Total project estimate')}
             </span>
             <span className="text-sm font-display font-semibold text-foreground">
               ~€{bom.indicativeTotalMin!.toLocaleString("fr-FR")}
@@ -91,25 +97,38 @@ function BOMBar({ concept }: { concept: ProjectConcept }) {
         )}
       </div>
 
-      {/* Total items */}
+      {/* Per-cover + total items */}
       <div className="flex items-center justify-between mt-2">
         <span className="text-[10px] font-body text-muted-foreground">
-          {bom.totalItems} items · excl. delivery & VAT · based on indicative prices
+          {t('concept.bomNotice', '{{count}} items · excl. delivery & VAT · based on catalogue prices', { count: bom.totalItems })}
         </span>
         {hasPrice && (
           <span className="text-[9px] font-body text-muted-foreground italic">
-            +15% logistics est.
+            {t('concept.logisticsMargin', '+15% logistics est.')}
           </span>
         )}
       </div>
+
+      {/* Per cover breakdown */}
+      {perCoverMin && (
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+          <span className="text-[10px] font-body text-muted-foreground">
+            {t('concept.perCover', 'Per cover ({{seats}} seats)', { seats: totalSeats })}
+          </span>
+          <span className="text-xs font-display font-medium text-foreground">
+            €{perCoverMin.toLocaleString("fr-FR")}
+            {perCoverMax && perCoverMax !== perCoverMin ? ` – €${perCoverMax.toLocaleString("fr-FR")}` : ""}
+            {" "}{t('concept.perCoverUnit', '/ seat')}
+          </span>
+        </div>
+      )}
 
       {/* Missing slots warning */}
       {bom.missingSlots.length > 0 && (
         <div className="flex items-start gap-2 mt-3 text-amber-700 bg-amber-500/10 border border-amber-500/20 rounded-sm px-3 py-2">
           <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
           <span className="text-[10px] font-body leading-relaxed">
-            No {bom.missingSlots.map(r => ROLE_LABELS[r] || r).join(", ")} in catalogue yet —
-            we'll source them via Pro Service.
+            {t('concept.missingSlots', "No {{slots}} in catalogue yet — we'll source them via Pro Service.", { slots: bom.missingSlots.map(r => ROLE_LABELS[r] || r).join(", ") })}
           </span>
         </div>
       )}
@@ -167,7 +186,8 @@ function TerraseaScore({ score }: { score: number }) {
 
 // ── Main ConceptCard ──────────────────────────────────────
 
-const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardProps) => {
+const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
+  const { t } = useTranslation();
   const { addItem, items, updateQuantity } = useProjectCart();
   const [layout, setLayout] = useState<LayoutRecommendation | undefined>(concept.layout);
   const [showAlternative, setShowAlternative] = useState(false);
@@ -287,7 +307,7 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <span className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
-              Concept {index + 1}
+              {t('concept.label', 'Concept')} {index + 1}
             </span>
             <h3 className="font-display text-xl md:text-2xl font-bold text-foreground mt-1">
               {concept.title}
@@ -305,7 +325,7 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
               onClick={handleAddAll}
               className="text-xs font-body text-muted-foreground hover:text-foreground border border-border hover:border-foreground rounded-full px-4 py-2 transition-all"
             >
-              Add all to project
+              {t('concept.addAll', 'Add all to project')}
             </button>
           </div>
         </div>
@@ -357,7 +377,6 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
             <EditableLayoutDisplay
               layout={layout}
               onLayoutChange={setLayout}
-              budgetEstimate={budgetEstimate}
             />
           </div>
         )}
@@ -367,7 +386,7 @@ const ConceptCard = ({ concept, index, products, budgetEstimate }: ConceptCardPr
       <div className="border-t border-border">
         <div className="px-6 pt-4 pb-2 flex items-center justify-between">
           <span className="text-[10px] font-body uppercase tracking-[0.15em] text-muted-foreground">
-            {showAlternative ? "Alternative selection" : "Matching products"}
+            {showAlternative ? t('concept.alternativeSelection', 'Alternative selection') : t('concept.matchingProducts', 'Matching products')}
           </span>
           {conceptProducts.length > 0 && (
             <span className="text-[10px] font-body text-muted-foreground">

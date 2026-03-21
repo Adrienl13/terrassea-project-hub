@@ -13,6 +13,7 @@ import ProjectBuilderModeSelect from "@/components/project-builder/ProjectBuilde
 import ProjectBuilderExpertInputs from "@/components/project-builder/ProjectBuilderExpertInputs";
 import CapacityStep from "@/components/project-builder/CapacityStep";
 import StyleStep from "@/components/project-builder/StyleStep";
+import CategorySelectionStep from "@/components/project-builder/CategorySelectionStep";
 import ProjectResults from "@/components/ProjectResults";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
 import { useProducts } from "@/hooks/useProducts";
@@ -37,6 +38,7 @@ const DEFAULT_PARAMS: ProjectParameters = {
   terraceLength: null,
   terraceWidth: null,
   tableMix: [],
+  selectedCategories: null,
 };
 
 const STYLE_INFERENCE: Record<string, { ambience: string[]; colorPalette: string[] }> = {
@@ -74,6 +76,7 @@ const ProjectBuilder = () => {
   const guidedSteps = useMemo(() => [
     { id: "mode",     label: t('projectBuilder.steps.start'),    description: t('projectBuilder.stepDescriptions.howToBegin') },
     { id: "type",     label: t('projectBuilder.steps.type'),     description: t('projectBuilder.stepDescriptions.establishmentType') },
+    { id: "needs",    label: t('projectBuilder.steps.needs', 'Needs'), description: t('projectBuilder.stepDescriptions.whatYouNeed', 'What you need') },
     { id: "budget",   label: t('projectBuilder.steps.budget'),   description: t('projectBuilder.stepDescriptions.budgetPerSeat') },
     { id: "capacity", label: t('projectBuilder.steps.capacity'), description: t('projectBuilder.stepDescriptions.guestsSpace') },
     { id: "style",    label: t('projectBuilder.steps.style'),    description: t('projectBuilder.stepDescriptions.aestheticDirection') },
@@ -133,7 +136,7 @@ const ProjectBuilder = () => {
 
   useEffect(() => {
     if (urlStyle && urlFrom === "inspirations") {
-      setCurrentStep(3);
+      setCurrentStep(4); // skip to capacity (after needs step)
     }
   }, [urlStyle, urlFrom]);
 
@@ -143,6 +146,7 @@ const ProjectBuilder = () => {
   const isModeStep   = stepId === "mode";
   const isReviewStep = stepId === "review";
   const isExpertStep = stepId === "expert";
+  const isNeedsStep  = stepId === "needs";
   const isCapacityStep = stepId === "capacity";
   const isStyleStep  = stepId === "style";
 
@@ -188,18 +192,33 @@ const ProjectBuilder = () => {
     }
   };
 
+  const buildQuery = (p: ProjectParameters) => [
+    p.establishmentType,
+    ...p.style,
+    p.seatingCapacity ? `${p.seatingCapacity} seats` : "",
+    p.budgetLevel,
+  ].filter(Boolean).join(" ");
+
   const handleGenerate = () => {
     if (products.length === 0) return;
     setIsGenerating(true);
-    const query = [
-      params.establishmentType,
-      ...params.style,
-      params.seatingCapacity ? `${params.seatingCapacity} seats` : "",
-      params.budgetLevel,
-    ].filter(Boolean).join(" ");
+    const query = buildQuery(params);
 
     setTimeout(() => {
       const { parameters, concepts } = generateProjectConcepts(query, products, params);
+      setResults({ parameters, concepts, query });
+      setIsGenerating(false);
+    }, 1200);
+  };
+
+  const handleRegenerate = (updatedParams: ProjectParameters) => {
+    if (products.length === 0) return;
+    setIsGenerating(true);
+    setParams(updatedParams);
+    const query = buildQuery(updatedParams);
+
+    setTimeout(() => {
+      const { parameters, concepts } = generateProjectConcepts(query, products, updatedParams);
       setResults({ parameters, concepts, query });
       setIsGenerating(false);
     }, 1200);
@@ -232,6 +251,8 @@ const ProjectBuilder = () => {
           concepts={results.concepts}
           query={results.query}
           products={products}
+          onRegenerate={handleRegenerate}
+          isRegenerating={isGenerating}
         />
         <Footer />
       </div>
@@ -320,6 +341,34 @@ const ProjectBuilder = () => {
                       onBack={() => setCurrentStep(0)}
                       onNext={() => setCurrentStep(2)}
                     />
+                  ) : isNeedsStep ? (
+                    <motion.div
+                      key="needs"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="space-y-8"
+                    >
+                      <CategorySelectionStep
+                        establishmentType={params.establishmentType}
+                        selectedCategories={params.selectedCategories ?? null}
+                        onChange={(cats) => setParams(prev => ({ ...prev, selectedCategories: cats }))}
+                      />
+                      <div className="flex items-center justify-between pt-4">
+                        <button
+                          onClick={() => setCurrentStep(currentStep - 1)}
+                          className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          ← {t('projectBuilder.back', 'Back')}
+                        </button>
+                        <button
+                          onClick={() => setCurrentStep(currentStep + 1)}
+                          className="px-6 py-2.5 rounded-full bg-foreground text-primary-foreground font-display font-semibold text-sm hover:opacity-90 transition-opacity"
+                        >
+                          {t('projectBuilder.continue', 'Continue')} →
+                        </button>
+                      </div>
+                    </motion.div>
                   ) : isStyleStep ? (
                     <StyleStep
                       key="style"

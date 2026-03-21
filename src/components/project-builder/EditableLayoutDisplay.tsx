@@ -8,7 +8,6 @@ import SpatialMetricsDisplay from "./SpatialMetricsDisplay";
 interface Props {
   layout: LayoutRecommendation;
   onLayoutChange?: (layout: LayoutRecommendation) => void;
-  budgetEstimate?: { min: number; max: number; avgPerSeat: number } | null;
 }
 
 const TABLE_FORMAT_OPTIONS = [
@@ -21,7 +20,7 @@ const TABLE_FORMAT_OPTIONS = [
   { format: "Ø120", shape: "round", seats: 6 },
 ];
 
-const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props) => {
+const EditableLayoutDisplay = ({ layout, onLayoutChange }: Props) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [groups, setGroups] = useState<TableGroup[]>(layout.tableGroups);
@@ -180,22 +179,7 @@ const EditableLayoutDisplay = ({ layout, onLayoutChange, budgetEstimate }: Props
         <SpatialMetricsDisplay metrics={layout.spatialMetrics} />
       )}
 
-      {budgetEstimate && (
-        <div className="mt-3 pt-3 border-t border-border">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-body text-muted-foreground">{t('projectBuilder.editableLayout.estimatedBudget')}</span>
-            <span className="text-sm font-display font-semibold text-foreground">
-              €{budgetEstimate.min.toLocaleString()} – €{budgetEstimate.max.toLocaleString()}
-            </span>
-          </div>
-          <div className="flex items-center justify-between mt-1">
-            <span className="text-[10px] font-body text-muted-foreground">{t('projectBuilder.editableLayout.avgPerSeat')}</span>
-            <span className="text-xs font-body text-muted-foreground">
-              €{budgetEstimate.avgPerSeat.toFixed(0)}
-            </span>
-          </div>
-        </div>
-      )}
+      {/* Budget estimate removed — replaced by BOM-based total in ConceptCard */}
 
       {layout.notes && (
         <p className="text-[11px] font-body text-muted-foreground mt-2 italic">

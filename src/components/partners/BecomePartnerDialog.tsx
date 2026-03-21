@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function BecomePartnerDialog({ open, onOpenChange }: Props) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [partnerType, setPartnerType] = useState<string>("");
 
@@ -36,11 +38,11 @@ export default function BecomePartnerDialog({ open, onOpenChange }: Props) {
 
     setLoading(false);
     if (error) {
-      toast.error("Failed to submit application. Please try again.");
+      toast.error(t('partners.submitError'));
       return;
     }
 
-    toast.success("Application submitted! We'll review it shortly.");
+    toast.success(t('partners.submitSuccess'));
     onOpenChange(false);
   };
 
@@ -49,60 +51,60 @@ export default function BecomePartnerDialog({ open, onOpenChange }: Props) {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            Become a Terrassea Partner
+            {t('partners.becomePartnerDialogTitle')}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="font-display text-xs">Company Name *</Label>
+              <Label className="font-display text-xs">{t('partners.companyName')} *</Label>
               <Input name="company_name" required className="mt-1" />
             </div>
             <div>
-              <Label className="font-display text-xs">Country *</Label>
+              <Label className="font-display text-xs">{t('partners.country')} *</Label>
               <Input name="country" required className="mt-1" />
             </div>
           </div>
           <div>
-            <Label className="font-display text-xs">Partner Type *</Label>
+            <Label className="font-display text-xs">{t('partners.partnerType')} *</Label>
             <Select value={partnerType} onValueChange={setPartnerType} required>
               <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder={t('partners.selectType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="brand">Brand</SelectItem>
-                <SelectItem value="manufacturer">Manufacturer</SelectItem>
-                <SelectItem value="reseller">Reseller / Distributor</SelectItem>
-                <SelectItem value="designer">Designer / Architect</SelectItem>
+                <SelectItem value="brand">{t('partners.typeBrand')}</SelectItem>
+                <SelectItem value="manufacturer">{t('partners.typeManufacturer')}</SelectItem>
+                <SelectItem value="reseller">{t('partners.resellerDistributor')}</SelectItem>
+                <SelectItem value="designer">{t('partners.designerArchitect')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="font-display text-xs">Contact Name</Label>
+              <Label className="font-display text-xs">{t('partners.contactName')}</Label>
               <Input name="contact_name" className="mt-1" />
             </div>
             <div>
-              <Label className="font-display text-xs">Contact Email *</Label>
+              <Label className="font-display text-xs">{t('partners.contactEmail')} *</Label>
               <Input name="contact_email" type="email" required className="mt-1" />
             </div>
           </div>
           <div>
-            <Label className="font-display text-xs">Website</Label>
+            <Label className="font-display text-xs">{t('partners.website')}</Label>
             <Input name="website" placeholder="https://…" className="mt-1" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="font-display text-xs">Product Category</Label>
-              <Input name="product_category" placeholder="Chairs, Tables…" className="mt-1" />
+              <Label className="font-display text-xs">{t('partners.productCategory')}</Label>
+              <Input name="product_category" placeholder={t('partners.productCategoryPlaceholder')} className="mt-1" />
             </div>
             <div>
-              <Label className="font-display text-xs">Certifications</Label>
-              <Input name="certifications" placeholder="ISO, FSC…" className="mt-1" />
+              <Label className="font-display text-xs">{t('partners.certifications')}</Label>
+              <Input name="certifications" placeholder={t('partners.certificationsPlaceholder')} className="mt-1" />
             </div>
           </div>
           <Button type="submit" disabled={loading || !partnerType} className="w-full rounded-full font-display font-semibold">
-            {loading ? "Submitting…" : "Submit Application"}
+            {loading ? t('partners.submitting') : t('partners.submitApplication')}
           </Button>
         </form>
       </DialogContent>

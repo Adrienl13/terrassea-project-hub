@@ -90,6 +90,23 @@ const Index = () => {
     }, 800);
   };
 
+  const handleRegenerate = (updatedParams: ProjectParameters) => {
+    if (products.length === 0) return;
+    setIsGenerating(true);
+    setTimeout(() => {
+      const query = [
+        updatedParams.establishmentType,
+        ...updatedParams.style,
+        updatedParams.seatingCapacity ? `${updatedParams.seatingCapacity} seats` : "",
+        updatedParams.budgetLevel,
+      ].filter(Boolean).join(" ");
+      const { parameters, concepts } = generateProjectConcepts(query, products, updatedParams);
+      setSearchResults({ parameters, concepts, query });
+      setSearchQuery(query);
+      setIsGenerating(false);
+    }, 800);
+  };
+
   const handleReset = () => {
     setPhase("idle");
     setSearchQuery("");
@@ -236,7 +253,7 @@ const Index = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
               <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin mx-auto" />
               <p className="text-sm font-body text-muted-foreground">
-                Generating your project concepts...
+                {t('home.generating', 'Generating your project concepts...')}
               </p>
             </motion.div>
           </div>
@@ -249,7 +266,9 @@ const Index = () => {
           parameters={searchResults.parameters}
           concepts={searchResults.concepts}
           query={searchResults.query}
-          products={products} />
+          products={products}
+          onRegenerate={handleRegenerate}
+          isRegenerating={isGenerating} />
         
         </div>
       }

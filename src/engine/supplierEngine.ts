@@ -9,6 +9,7 @@ export interface ScoredOffer extends ProductOffer {
     availability: number;  // 0-100
     leadTime: number;      // 0-100
     price: number;         // 0-100
+    reputation: number;    // 0-100 (from partner ratings)
     total: number;         // weighted composite
   };
   badges: SupplierBadge[];
@@ -16,27 +17,30 @@ export interface ScoredOffer extends ProductOffer {
   recommendationReason?: string;
 }
 
-export type SupplierBadge = "best_stock" | "fastest" | "best_project_fit" | "recommended";
+export type SupplierBadge = "best_stock" | "fastest" | "best_project_fit" | "recommended" | "top_rated";
 
 interface ScoringWeights {
   consistency: number;
   availability: number;
   leadTime: number;
   price: number;
+  reputation: number;
 }
 
 const NORMAL_WEIGHTS: ScoringWeights = {
-  consistency: 0.40,
-  availability: 0.30,
-  leadTime: 0.20,
+  consistency: 0.30,
+  availability: 0.25,
+  leadTime: 0.15,
   price: 0.10,
+  reputation: 0.20,
 };
 
 const URGENT_WEIGHTS: ScoringWeights = {
-  consistency: 0.20,
-  availability: 0.35,
-  leadTime: 0.40,
+  consistency: 0.15,
+  availability: 0.30,
+  leadTime: 0.35,
   price: 0.05,
+  reputation: 0.15,
 };
 
 // ── Fetch all offers for a set of product IDs ──
@@ -129,6 +133,36 @@ function scorePrice(offer: ProductOffer, allOffers: ProductOffer[]): number {
   return Math.round(100 - ((offer.price - minPrice) / (maxPrice - minPrice)) * 80);
 }
 
+// ── Reputation scoring from partner ratings ──
+
+async function fetchPartnerReputations(partnerIds: string[]): Promise<Record<string, number>> {
+  if (partnerIds.length === 0) return {};
+  const { data } = await supabase
+    .from("partner_ratings")
+    .select("partner_id, rating")
+    .in("partner_id", partnerIds);
+
+  const reputations: Record<string, { sum: number; count: number }> = {};
+  for (const row of data || []) {
+    if (!reputations[row.partner_id]) reputations[row.partner_id] = { sum: 0, count: 0 };
+    reputations[row.partner_id].sum += row.rating;
+    reputations[row.partner_id].count += 1;
+  }
+
+  const result: Record<string, number> = {};
+  for (const [partnerId, { sum, count }] of Object.entries(reputations)) {
+    const avg = sum / count; // 1-5 scale
+    // Convert to 0-100: 1→0, 3→50, 5→100
+    result[partnerId] = Math.round(((avg - 1) / 4) * 100);
+  }
+  return result;
+}
+
+function scoreReputation(partnerId: string, reputations: Record<string, number>): number {
+  // If no ratings exist, return neutral score (not penalized)
+  return reputations[partnerId] ?? 60;
+}
+
 // ── Assign badges ──
 
 function assignBadges(scoredOffers: ScoredOffer[]): void {
@@ -145,6 +179,10 @@ function assignBadges(scoredOffers: ScoredOffer[]): void {
   // Best project fit
   const bestFit = scoredOffers.reduce((a, b) => a.scores.consistency > b.scores.consistency ? a : b);
   if (bestFit.scores.consistency >= 40) bestFit.badges.push("best_project_fit");
+
+  // Top rated
+  const bestRated = scoredOffers.reduce((a, b) => a.scores.reputation > b.scores.reputation ? a : b);
+  if (bestRated.scores.reputation >= 75) bestRated.badges.push("top_rated");
 
   // Recommended = highest total
   const best = scoredOffers.reduce((a, b) => a.scores.total > b.scores.total ? a : b);
@@ -163,6 +201,9 @@ function buildRecommendationReason(offer: ScoredOffer, totalOffers: number): str
   }
   if (offer.scores.leadTime >= 80) {
     reasons.push("offers the fastest delivery");
+  }
+  if (offer.scores.reputation >= 80) {
+    reasons.push("highly rated by other buyers");
   }
   if (reasons.length === 0) {
     reasons.push("best overall balance of availability, lead time and project consistency");
@@ -188,22 +229,28 @@ export async function scoreSupplierOffers(
   const coverage = buildPartnerCoverage(allOffers, uniqueIds);
   const weights = isUrgent ? URGENT_WEIGHTS : NORMAL_WEIGHTS;
 
+  // Fetch partner reputations
+  const partnerIds = [...new Set(targetOffers.map(o => o.partner_id))];
+  const reputations = await fetchPartnerReputations(partnerIds);
+
   const scored: ScoredOffer[] = targetOffers.map((offer) => {
     const consistency = scoreConsistency(offer.partner_id, coverage, uniqueIds.length);
     const availability = scoreAvailability(offer);
     const leadTime = scoreLeadTime(offer, allOffers);
     const price = scorePrice(offer, allOffers);
+    const reputation = scoreReputation(offer.partner_id, reputations);
 
     const total = Math.round(
       consistency * weights.consistency +
       availability * weights.availability +
       leadTime * weights.leadTime +
-      price * weights.price
+      price * weights.price +
+      reputation * weights.reputation
     );
 
     return {
       ...offer,
-      scores: { consistency, availability, leadTime, price, total },
+      scores: { consistency, availability, leadTime, price, reputation, total },
       badges: [],
       isRecommended: false,
     };

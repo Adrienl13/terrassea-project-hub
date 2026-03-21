@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavouritePartners } from "@/hooks/useFavouritesDB";
+import { ml } from "@/lib/i18nFields";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
@@ -301,11 +302,11 @@ export default function PartnerDetail() {
               </div>
 
               {/* About */}
-              {partner.description && (
+              {ml(partner, 'description') && (
                 <div>
                   <h2 className="font-display font-semibold text-lg text-foreground mb-2">About</h2>
                   <p className="font-body text-muted-foreground leading-relaxed">
-                    {partner.description}
+                    {ml(partner, 'description')}
                   </p>
                 </div>
               )}

@@ -59,6 +59,8 @@ export type Database = {
           created_by: string | null
           id: string
           last_message_at: string | null
+          project_name: string | null
+          project_ref: string | null
           subject: string | null
           updated_at: string | null
         }
@@ -67,6 +69,8 @@ export type Database = {
           created_by?: string | null
           id?: string
           last_message_at?: string | null
+          project_name?: string | null
+          project_ref?: string | null
           subject?: string | null
           updated_at?: string | null
         }
@@ -75,6 +79,8 @@ export type Database = {
           created_by?: string | null
           id?: string
           last_message_at?: string | null
+          project_name?: string | null
+          project_ref?: string | null
           subject?: string | null
           updated_at?: string | null
         }
@@ -168,12 +174,301 @@ export type Database = {
           },
         ]
       }
+      order_events: {
+        Row: {
+          actor: string | null
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          order_id: string
+        }
+        Insert: {
+          actor?: string | null
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          order_id: string
+        }
+        Update: {
+          actor?: string | null
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          admin_notes: string | null
+          auto_delivery_confirmed: boolean | null
+          balance_amount: number | null
+          balance_due_date: string | null
+          balance_paid_at: string | null
+          balance_payment_ref: string | null
+          client_email: string
+          client_user_id: string | null
+          commission_amount: number | null
+          commission_rate: number | null
+          created_at: string
+          delivered_at: string | null
+          delivery_confirmed_by: string | null
+          delivery_proof_path: string | null
+          deposit_amount: number | null
+          deposit_paid_at: string | null
+          deposit_payment_ref: string | null
+          deposit_percent: number | null
+          dispute_reason: string | null
+          dispute_resolved_at: string | null
+          estimated_delivery_date: string | null
+          id: string
+          partner_id: string | null
+          product_id: string | null
+          product_name: string
+          production_confirmed_at: string | null
+          project_request_id: string | null
+          quantity: number
+          quote_request_id: string | null
+          shipped_at: string | null
+          shipping_carrier: string | null
+          status: string
+          supplier_payout_balance: number | null
+          supplier_payout_balance_at: string | null
+          supplier_payout_deposit: number | null
+          supplier_payout_deposit_at: string | null
+          total_amount: number
+          tracking_auto_enabled: boolean | null
+          tracking_last_checked: string | null
+          tracking_last_event: string | null
+          tracking_number: string | null
+          tracking_provider: string | null
+          tracking_status: string | null
+          tracking_url: string | null
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          auto_delivery_confirmed?: boolean | null
+          balance_amount?: number | null
+          balance_due_date?: string | null
+          balance_paid_at?: string | null
+          balance_payment_ref?: string | null
+          client_email: string
+          client_user_id?: string | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_confirmed_by?: string | null
+          delivery_proof_path?: string | null
+          deposit_amount?: number | null
+          deposit_paid_at?: string | null
+          deposit_payment_ref?: string | null
+          deposit_percent?: number | null
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          estimated_delivery_date?: string | null
+          id?: string
+          partner_id?: string | null
+          product_id?: string | null
+          product_name: string
+          production_confirmed_at?: string | null
+          project_request_id?: string | null
+          quantity?: number
+          quote_request_id?: string | null
+          shipped_at?: string | null
+          shipping_carrier?: string | null
+          status?: string
+          supplier_payout_balance?: number | null
+          supplier_payout_balance_at?: string | null
+          supplier_payout_deposit?: number | null
+          supplier_payout_deposit_at?: string | null
+          total_amount: number
+          tracking_auto_enabled?: boolean | null
+          tracking_last_checked?: string | null
+          tracking_last_event?: string | null
+          tracking_number?: string | null
+          tracking_provider?: string | null
+          tracking_status?: string | null
+          tracking_url?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          auto_delivery_confirmed?: boolean | null
+          balance_amount?: number | null
+          balance_due_date?: string | null
+          balance_paid_at?: string | null
+          balance_payment_ref?: string | null
+          client_email?: string
+          client_user_id?: string | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_confirmed_by?: string | null
+          delivery_proof_path?: string | null
+          deposit_amount?: number | null
+          deposit_paid_at?: string | null
+          deposit_payment_ref?: string | null
+          deposit_percent?: number | null
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          estimated_delivery_date?: string | null
+          id?: string
+          partner_id?: string | null
+          product_id?: string | null
+          product_name?: string
+          production_confirmed_at?: string | null
+          project_request_id?: string | null
+          quantity?: number
+          quote_request_id?: string | null
+          shipped_at?: string | null
+          shipping_carrier?: string | null
+          status?: string
+          supplier_payout_balance?: number | null
+          supplier_payout_balance_at?: string | null
+          supplier_payout_deposit?: number | null
+          supplier_payout_deposit_at?: string | null
+          total_amount?: number
+          tracking_auto_enabled?: boolean | null
+          tracking_last_checked?: string | null
+          tracking_last_event?: string | null
+          tracking_number?: string | null
+          tracking_provider?: string | null
+          tracking_status?: string | null
+          tracking_url?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_project_request_id_fkey"
+            columns: ["project_request_id"]
+            isOneToOne: false
+            referencedRelation: "project_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests_supplier_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_api_connections: {
+        Row: {
+          consecutive_errors: number | null
+          created_at: string | null
+          external_api_headers: Json | null
+          external_api_key: string | null
+          external_api_url: string | null
+          field_mapping: Json | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          last_sync_message: string | null
+          last_sync_products_count: number | null
+          last_sync_status: string | null
+          partner_id: string | null
+          pull_interval_minutes: number | null
+          sync_mode: string
+          terrassea_api_key: string | null
+          total_syncs: number | null
+          updated_at: string | null
+          webhook_secret: string | null
+        }
+        Insert: {
+          consecutive_errors?: number | null
+          created_at?: string | null
+          external_api_headers?: Json | null
+          external_api_key?: string | null
+          external_api_url?: string | null
+          field_mapping?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          last_sync_message?: string | null
+          last_sync_products_count?: number | null
+          last_sync_status?: string | null
+          partner_id?: string | null
+          pull_interval_minutes?: number | null
+          sync_mode?: string
+          terrassea_api_key?: string | null
+          total_syncs?: number | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+        }
+        Update: {
+          consecutive_errors?: number | null
+          created_at?: string | null
+          external_api_headers?: Json | null
+          external_api_key?: string | null
+          external_api_url?: string | null
+          field_mapping?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          last_sync_message?: string | null
+          last_sync_products_count?: number | null
+          last_sync_status?: string | null
+          partner_id?: string | null
+          pull_interval_minutes?: number | null
+          sync_mode?: string
+          terrassea_api_key?: string | null
+          total_syncs?: number | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_api_connections_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_applications: {
         Row: {
           company_name: string
           contact_name: string
           country: string
           created_at: string | null
+          created_partner_id: string | null
           delivery_countries: string[] | null
           email: string
           estimated_annual_volume: string | null
@@ -185,6 +480,7 @@ export type Database = {
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          selected_plan: string | null
           status: string | null
           vat_number: string | null
           website: string | null
@@ -194,6 +490,7 @@ export type Database = {
           contact_name: string
           country: string
           created_at?: string | null
+          created_partner_id?: string | null
           delivery_countries?: string[] | null
           email: string
           estimated_annual_volume?: string | null
@@ -205,6 +502,7 @@ export type Database = {
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          selected_plan?: string | null
           status?: string | null
           vat_number?: string | null
           website?: string | null
@@ -214,6 +512,7 @@ export type Database = {
           contact_name?: string
           country?: string
           created_at?: string | null
+          created_partner_id?: string | null
           delivery_countries?: string[] | null
           email?: string
           estimated_annual_volume?: string | null
@@ -225,11 +524,20 @@ export type Database = {
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          selected_plan?: string | null
           status?: string | null
           vat_number?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "partner_applications_created_partner_id_fkey"
+            columns: ["created_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_commissions: {
         Row: {
@@ -272,6 +580,99 @@ export type Database = {
           {
             foreignKeyName: "partner_commissions_quote_request_id_fkey"
             columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "project_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_featured_products: {
+        Row: {
+          boosted_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          partner_id: string
+          position: number | null
+          product_id: string
+        }
+        Insert: {
+          boosted_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          partner_id: string
+          position?: number | null
+          product_id: string
+        }
+        Update: {
+          boosted_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          partner_id?: string
+          position?: number | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_featured_products_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_featured_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          is_verified: boolean | null
+          partner_id: string
+          project_request_id: string | null
+          rating: number
+          review: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean | null
+          partner_id: string
+          project_request_id?: string | null
+          rating: number
+          review?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean | null
+          partner_id?: string
+          project_request_id?: string | null
+          rating?: number
+          review?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_ratings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_ratings_project_request_id_fkey"
+            columns: ["project_request_id"]
             isOneToOne: false
             referencedRelation: "project_requests"
             referencedColumns: ["id"]
@@ -324,16 +725,34 @@ export type Database = {
           trial_ends_at?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "partner_subscriptions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: true
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partners: {
         Row: {
+          admin_notes: string | null
+          admin_visibility_override: boolean | null
+          application_id: string | null
           city: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
           country: string | null
+          country_code: string | null
           cover_photo_url: string | null
           created_at: string | null
           delivery_countries: string[] | null
           description: string | null
+          description_es: string | null
+          description_fr: string | null
+          description_it: string | null
           founded_year: number | null
           gallery_urls: string[] | null
           id: string
@@ -347,15 +766,28 @@ export type Database = {
           product_categories: string[] | null
           slug: string
           specialty_tags: string[] | null
+          user_id: string | null
+          vat_number: string | null
+          visibility_level: string | null
           website: string | null
         }
         Insert: {
+          admin_notes?: string | null
+          admin_visibility_override?: boolean | null
+          application_id?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           country?: string | null
+          country_code?: string | null
           cover_photo_url?: string | null
           created_at?: string | null
           delivery_countries?: string[] | null
           description?: string | null
+          description_es?: string | null
+          description_fr?: string | null
+          description_it?: string | null
           founded_year?: number | null
           gallery_urls?: string[] | null
           id?: string
@@ -369,15 +801,28 @@ export type Database = {
           product_categories?: string[] | null
           slug: string
           specialty_tags?: string[] | null
+          user_id?: string | null
+          vat_number?: string | null
+          visibility_level?: string | null
           website?: string | null
         }
         Update: {
+          admin_notes?: string | null
+          admin_visibility_override?: boolean | null
+          application_id?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           country?: string | null
+          country_code?: string | null
           cover_photo_url?: string | null
           created_at?: string | null
           delivery_countries?: string[] | null
           description?: string | null
+          description_es?: string | null
+          description_fr?: string | null
+          description_it?: string | null
           founded_year?: number | null
           gallery_urls?: string[] | null
           id?: string
@@ -391,7 +836,207 @@ export type Database = {
           product_categories?: string[] | null
           slug?: string
           specialty_tags?: string[] | null
+          user_id?: string | null
+          vat_number?: string | null
+          visibility_level?: string | null
           website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partners_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "partner_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_settings: {
+        Row: {
+          category: string
+          key: string
+          label: string | null
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          category?: string
+          key: string
+          label?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          category?: string
+          key?: string
+          label?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      pro_service_matches: {
+        Row: {
+          admin_notes: string | null
+          admin_validated_at: string | null
+          admin_validated_by: string | null
+          commission_rate: number | null
+          created_at: string | null
+          estimated_order_value: number | null
+          id: string
+          partner_id: string
+          partner_responded_at: string | null
+          partner_response: string | null
+          request_id: string
+          score_capacity: number | null
+          score_category: number | null
+          score_location: number | null
+          score_plan: number | null
+          score_rating: number | null
+          score_style: number | null
+          score_total: number
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          admin_validated_at?: string | null
+          admin_validated_by?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          estimated_order_value?: number | null
+          id?: string
+          partner_id: string
+          partner_responded_at?: string | null
+          partner_response?: string | null
+          request_id: string
+          score_capacity?: number | null
+          score_category?: number | null
+          score_location?: number | null
+          score_plan?: number | null
+          score_rating?: number | null
+          score_style?: number | null
+          score_total?: number
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          admin_validated_at?: string | null
+          admin_validated_by?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          estimated_order_value?: number | null
+          id?: string
+          partner_id?: string
+          partner_responded_at?: string | null
+          partner_response?: string | null
+          request_id?: string
+          score_capacity?: number | null
+          score_category?: number | null
+          score_location?: number | null
+          score_plan?: number | null
+          score_rating?: number | null
+          score_style?: number | null
+          score_total?: number
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_service_matches_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_service_matches_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "pro_service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pro_service_requests: {
+        Row: {
+          admin_notes: string | null
+          budget_range: string | null
+          categories_needed: string[] | null
+          client_company: string | null
+          client_email: string
+          client_name: string
+          client_phone: string | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          matched_at: string | null
+          outdoor_required: boolean | null
+          project_city: string | null
+          project_country: string | null
+          project_title: string
+          project_type: string
+          quantity_estimate: number | null
+          special_requirements: string | null
+          status: string | null
+          style_preferences: string[] | null
+          timeline: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          budget_range?: string | null
+          categories_needed?: string[] | null
+          client_company?: string | null
+          client_email: string
+          client_name: string
+          client_phone?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          matched_at?: string | null
+          outdoor_required?: boolean | null
+          project_city?: string | null
+          project_country?: string | null
+          project_title: string
+          project_type: string
+          quantity_estimate?: number | null
+          special_requirements?: string | null
+          status?: string | null
+          style_preferences?: string[] | null
+          timeline?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          budget_range?: string | null
+          categories_needed?: string[] | null
+          client_company?: string | null
+          client_email?: string
+          client_name?: string
+          client_phone?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          matched_at?: string | null
+          outdoor_required?: boolean | null
+          project_city?: string | null
+          project_country?: string | null
+          project_title?: string
+          project_type?: string
+          quantity_estimate?: number | null
+          special_requirements?: string | null
+          status?: string | null
+          style_preferences?: string[] | null
+          timeline?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -582,12 +1227,21 @@ export type Database = {
           is_stackable: boolean | null
           lightweight: boolean | null
           long_description: string | null
+          long_description_es: string | null
+          long_description_fr: string | null
+          long_description_it: string | null
           main_color: string | null
           maintenance_info: string | null
+          maintenance_info_es: string | null
+          maintenance_info_fr: string | null
+          maintenance_info_it: string | null
           material_seat: string | null
           material_structure: string | null
           material_tags: string[] | null
           name: string
+          name_es: string | null
+          name_fr: string | null
+          name_it: string | null
           palette_tags: string[] | null
           partner_id: string | null
           popularity_score: number | null
@@ -603,6 +1257,9 @@ export type Database = {
           seat_height_cm: number | null
           secondary_color: string | null
           short_description: string | null
+          short_description_es: string | null
+          short_description_fr: string | null
+          short_description_it: string | null
           stock_quantity: number | null
           stock_status: string | null
           style_tags: string[] | null
@@ -653,12 +1310,21 @@ export type Database = {
           is_stackable?: boolean | null
           lightweight?: boolean | null
           long_description?: string | null
+          long_description_es?: string | null
+          long_description_fr?: string | null
+          long_description_it?: string | null
           main_color?: string | null
           maintenance_info?: string | null
+          maintenance_info_es?: string | null
+          maintenance_info_fr?: string | null
+          maintenance_info_it?: string | null
           material_seat?: string | null
           material_structure?: string | null
           material_tags?: string[] | null
           name: string
+          name_es?: string | null
+          name_fr?: string | null
+          name_it?: string | null
           palette_tags?: string[] | null
           partner_id?: string | null
           popularity_score?: number | null
@@ -674,6 +1340,9 @@ export type Database = {
           seat_height_cm?: number | null
           secondary_color?: string | null
           short_description?: string | null
+          short_description_es?: string | null
+          short_description_fr?: string | null
+          short_description_it?: string | null
           stock_quantity?: number | null
           stock_status?: string | null
           style_tags?: string[] | null
@@ -724,12 +1393,21 @@ export type Database = {
           is_stackable?: boolean | null
           lightweight?: boolean | null
           long_description?: string | null
+          long_description_es?: string | null
+          long_description_fr?: string | null
+          long_description_it?: string | null
           main_color?: string | null
           maintenance_info?: string | null
+          maintenance_info_es?: string | null
+          maintenance_info_fr?: string | null
+          maintenance_info_it?: string | null
           material_seat?: string | null
           material_structure?: string | null
           material_tags?: string[] | null
           name?: string
+          name_es?: string | null
+          name_fr?: string | null
+          name_it?: string | null
           palette_tags?: string[] | null
           partner_id?: string | null
           popularity_score?: number | null
@@ -745,6 +1423,9 @@ export type Database = {
           seat_height_cm?: number | null
           secondary_color?: string | null
           short_description?: string | null
+          short_description_es?: string | null
+          short_description_fr?: string | null
+          short_description_it?: string | null
           stock_quantity?: number | null
           stock_status?: string | null
           style_tags?: string[] | null
@@ -832,11 +1513,15 @@ export type Database = {
           country: string | null
           created_at: string | null
           detected_attributes: Json | null
+          estimated_value: number | null
           free_text_request: string | null
           id: string
           project_name: string | null
           status: string | null
           timeline: string | null
+          updated_at: string | null
+          user_id: string | null
+          venue_type: string | null
         }
         Insert: {
           budget_range?: string | null
@@ -848,11 +1533,15 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           detected_attributes?: Json | null
+          estimated_value?: number | null
           free_text_request?: string | null
           id?: string
           project_name?: string | null
           status?: string | null
           timeline?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          venue_type?: string | null
         }
         Update: {
           budget_range?: string | null
@@ -864,76 +1553,259 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           detected_attributes?: Json | null
+          estimated_value?: number | null
           free_text_request?: string | null
           id?: string
           project_name?: string | null
           status?: string | null
           timeline?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          venue_type?: string | null
         }
         Relationships: []
       }
+      quote_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          quote_request_id: string | null
+          signature_provider: string | null
+          signature_reference: string | null
+          signed_at: string | null
+          signed_by: string | null
+          uploaded_by: string | null
+          uploader_type: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          quote_request_id?: string | null
+          signature_provider?: string | null
+          signature_reference?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          uploaded_by?: string | null
+          uploader_type: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          quote_request_id?: string | null
+          signature_provider?: string | null
+          signature_reference?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          uploaded_by?: string | null
+          uploader_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_documents_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_documents_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests_supplier_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_requests: {
         Row: {
+          client_anonymous_id: string | null
+          client_city: string | null
+          client_first_name: string | null
           company: string | null
           created_at: string | null
+          delivery_conditions: string | null
+          delivery_delay_days: number | null
           email: string
           first_name: string
           fit_status: string | null
           id: string
           last_name: string | null
+          latest_pdf_path: string | null
           message: string | null
           offer_id: string | null
+          partner_conditions: string | null
           partner_id: string | null
           partner_name: string | null
+          payment_conditions: string | null
           product_id: string | null
           product_name: string | null
+          project_request_id: string | null
           quantity: number | null
+          replied_at: string | null
+          signed_at: string | null
+          signed_by: string | null
+          signed_pdf_path: string | null
           siren: string | null
           status: string | null
+          supplier_country_code: string | null
           total_price: number | null
+          tva_rate: number | null
           unit_price: number | null
+          validity_days: number | null
+          validity_expires_at: string | null
         }
         Insert: {
+          client_anonymous_id?: string | null
+          client_city?: string | null
+          client_first_name?: string | null
           company?: string | null
           created_at?: string | null
+          delivery_conditions?: string | null
+          delivery_delay_days?: number | null
           email: string
           first_name: string
           fit_status?: string | null
           id?: string
           last_name?: string | null
+          latest_pdf_path?: string | null
           message?: string | null
           offer_id?: string | null
+          partner_conditions?: string | null
           partner_id?: string | null
           partner_name?: string | null
+          payment_conditions?: string | null
           product_id?: string | null
           product_name?: string | null
+          project_request_id?: string | null
           quantity?: number | null
+          replied_at?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          signed_pdf_path?: string | null
           siren?: string | null
           status?: string | null
+          supplier_country_code?: string | null
           total_price?: number | null
+          tva_rate?: number | null
           unit_price?: number | null
+          validity_days?: number | null
+          validity_expires_at?: string | null
         }
         Update: {
+          client_anonymous_id?: string | null
+          client_city?: string | null
+          client_first_name?: string | null
           company?: string | null
           created_at?: string | null
+          delivery_conditions?: string | null
+          delivery_delay_days?: number | null
           email?: string
           first_name?: string
           fit_status?: string | null
           id?: string
           last_name?: string | null
+          latest_pdf_path?: string | null
           message?: string | null
           offer_id?: string | null
+          partner_conditions?: string | null
           partner_id?: string | null
           partner_name?: string | null
+          payment_conditions?: string | null
           product_id?: string | null
           product_name?: string | null
+          project_request_id?: string | null
           quantity?: number | null
+          replied_at?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          signed_pdf_path?: string | null
           siren?: string | null
           status?: string | null
+          supplier_country_code?: string | null
           total_price?: number | null
+          tva_rate?: number | null
           unit_price?: number | null
+          validity_days?: number | null
+          validity_expires_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quote_requests_project_request_id_fkey"
+            columns: ["project_request_id"]
+            isOneToOne: false
+            referencedRelation: "project_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_sync_logs: {
+        Row: {
+          connection_id: string | null
+          created_at: string | null
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          partner_id: string | null
+          products_failed: number | null
+          products_updated: number | null
+          request_payload: Json | null
+          status: string
+          sync_mode: string
+        }
+        Insert: {
+          connection_id?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          partner_id?: string | null
+          products_failed?: number | null
+          products_updated?: number | null
+          request_payload?: Json | null
+          status: string
+          sync_mode: string
+        }
+        Update: {
+          connection_id?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          partner_id?: string | null
+          products_failed?: number | null
+          products_updated?: number | null
+          request_payload?: Json | null
+          status?: string
+          sync_mode?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_sync_logs_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "partner_api_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_sync_logs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tag_definitions: {
         Row: {
@@ -974,6 +1846,30 @@ export type Database = {
           notes?: string | null
           slug?: string
           tag_type?: string
+        }
+        Relationships: []
+      }
+      user_favourites: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1018,7 +1914,68 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      partner_ratings_summary: {
+        Row: {
+          avg_rating: number | null
+          partner_id: string | null
+          total_ratings: number | null
+          verified_ratings: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_ratings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_requests_supplier_view: {
+        Row: {
+          client_display_name: string | null
+          client_reference: string | null
+          created_at: string | null
+          delivery_city: string | null
+          id: string | null
+          message: string | null
+          partner_id: string | null
+          product_id: string | null
+          quantity: number | null
+          status: string | null
+          total_price: number | null
+          unit_price: number | null
+        }
+        Insert: {
+          client_display_name?: string | null
+          client_reference?: string | null
+          created_at?: string | null
+          delivery_city?: string | null
+          id?: string | null
+          message?: string | null
+          partner_id?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          status?: string | null
+          total_price?: number | null
+          unit_price?: number | null
+        }
+        Update: {
+          client_display_name?: string | null
+          client_reference?: string | null
+          created_at?: string | null
+          delivery_city?: string | null
+          id?: string | null
+          message?: string | null
+          partner_id?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          status?: string | null
+          total_price?: number | null
+          unit_price?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       fuzzy_search_products: {
@@ -1039,6 +1996,7 @@ export type Database = {
           relevance_score: number
         }[]
       }
+      generate_partner_slug: { Args: { company: string }; Returns: string }
       search_products_multilang: {
         Args: {
           category_filter?: string

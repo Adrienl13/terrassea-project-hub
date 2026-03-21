@@ -4,6 +4,17 @@ import type { DBProduct } from "@/lib/products";
 // PROJECT PARAMETERS
 // ═══════════════════════════════════════════════════════════
 
+export type ProductCategorySelection =
+  | "chairs"
+  | "armchairs"
+  | "tables"
+  | "bar-stools"
+  | "parasols"
+  | "sun-loungers"
+  | "lounge-seating"
+  | "benches"
+  | "accessories";
+
 export interface ProjectParameters {
   builderMode:          "guided" | "expert" | "";
   establishmentType:    string;
@@ -23,6 +34,8 @@ export interface ProjectParameters {
   terraceLength:        number | null;
   terraceWidth:         number | null;
   tableMix?:            TableMixEntry[];
+  /** Selected product categories — null = "complete proposal" (all venue-relevant) */
+  selectedCategories?:  ProductCategorySelection[] | null;
 }
 
 export interface TableMixEntry {
@@ -165,6 +178,9 @@ export interface ProjectConcept {
     min: number | null;
     max: number | null;
   };
+  cohesionScore?: number;
+  deliveryPenalty?: number;
+  maxDeliveryDays?: number | null;
   products: RecommendedProduct[];
 }
 

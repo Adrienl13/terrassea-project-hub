@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
-import { Search, ArrowRight, Sparkles, SlidersHorizontal, X } from "lucide-react";
+import { Search, ArrowRight, Sparkles, SlidersHorizontal, X, ExternalLink } from "lucide-react";
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import type { DBProduct } from "@/lib/products";
+import { ml } from "@/lib/i18nFields";
 import ProductCard from "./ProductCard";
 
 interface ProductSearchResultsProps {
@@ -80,6 +83,7 @@ const ProductSearchResults = ({
     }));
   };
 
+  const { t } = useTranslation();
   const activeFilterCount = Object.values(activeFilters).flat().length;
 
   return (
@@ -94,15 +98,15 @@ const ProductSearchResults = ({
           <div className="flex items-center gap-2 mb-4">
             <Search className="h-4 w-4 text-foreground" />
             <span className="text-xs font-body uppercase tracking-[0.2em] text-muted-foreground">
-              Product Search
+              {t('searchResults.label', 'Product Search')}
             </span>
           </div>
 
           <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Results for "{query}"
+            {t('searchResults.resultsFor', 'Results for "{{query}}"', { query })}
           </h2>
           <p className="text-sm text-muted-foreground font-body">
-            {filteredRecommended.length} product{filteredRecommended.length !== 1 ? "s" : ""} found
+            {t('searchResults.productsFound', '{{count}} products found', { count: filteredRecommended.length })}
           </p>
         </motion.div>
 
@@ -113,7 +117,7 @@ const ProductSearchResults = ({
             className="flex items-center gap-2 text-sm font-display font-semibold text-foreground border border-border rounded-full px-4 py-2 hover:border-foreground transition-colors"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            Filters
+            {t('searchResults.filters', 'Filters')}
             {activeFilterCount > 0 && (
               <span className="bg-foreground text-primary-foreground text-[10px] rounded-full w-5 h-5 flex items-center justify-center">
                 {activeFilterCount}
@@ -127,17 +131,17 @@ const ProductSearchResults = ({
               animate={{ opacity: 1, height: "auto" }}
               className="mt-4 space-y-4"
             >
-              <FilterRow label="Style" options={filterOptions.style} active={activeFilters.style} onToggle={(v) => toggleFilter("style", v)} />
-              <FilterRow label="Color" options={filterOptions.color} active={activeFilters.color} onToggle={(v) => toggleFilter("color", v)} />
-              <FilterRow label="Material" options={filterOptions.material} active={activeFilters.material} onToggle={(v) => toggleFilter("material", v)} />
-              <FilterRow label="Use case" options={filterOptions.useCase} active={activeFilters.useCase} onToggle={(v) => toggleFilter("useCase", v)} />
+              <FilterRow label={t('searchResults.filterStyle', 'Style')} options={filterOptions.style} active={activeFilters.style} onToggle={(v) => toggleFilter("style", v)} />
+              <FilterRow label={t('searchResults.filterColor', 'Color')} options={filterOptions.color} active={activeFilters.color} onToggle={(v) => toggleFilter("color", v)} />
+              <FilterRow label={t('searchResults.filterMaterial', 'Material')} options={filterOptions.material} active={activeFilters.material} onToggle={(v) => toggleFilter("material", v)} />
+              <FilterRow label={t('searchResults.filterUseCase', 'Use case')} options={filterOptions.useCase} active={activeFilters.useCase} onToggle={(v) => toggleFilter("useCase", v)} />
 
               {activeFilterCount > 0 && (
                 <button
                   onClick={() => setActiveFilters({ style: [], color: [], material: [], useCase: [] })}
                   className="flex items-center gap-1.5 text-xs font-body text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <X className="h-3 w-3" /> Clear all filters
+                  <X className="h-3 w-3" /> {t('searchResults.clearFilters', 'Clear all filters')}
                 </button>
               )}
             </motion.div>
@@ -158,7 +162,7 @@ const ProductSearchResults = ({
         ) : (
           <div className="text-center py-12">
             <p className="text-sm text-muted-foreground font-body">
-              No products match your current filters. Try adjusting your search.
+              {t('searchResults.noMatch', 'No products match your current filters. Try adjusting your search.')}
             </p>
           </div>
         )}
@@ -167,7 +171,7 @@ const ProductSearchResults = ({
         {similar.length > 0 && (
           <div className="mt-16">
             <h3 className="font-display text-lg font-bold text-foreground mb-6">
-              Similar products
+              {t('searchResults.similar', 'Similar products')}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
               {similar.map((product) => (
@@ -185,10 +189,10 @@ const ProductSearchResults = ({
         {compatible.length > 0 && (
           <div className="mt-16">
             <h3 className="font-display text-lg font-bold text-foreground mb-6">
-              Compatible products
+              {t('searchResults.compatible', 'Compatible products')}
             </h3>
             <p className="text-xs text-muted-foreground font-body mb-4">
-              Products that pair well with your selection
+              {t('searchResults.compatibleDesc', 'Products that pair well with your selection')}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
               {compatible.map((product) => (
@@ -213,6 +217,7 @@ function ProductSearchCard({
   product: DBProduct;
   onCreateProject: (product: DBProduct) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -221,49 +226,51 @@ function ProductSearchCard({
       transition={{ duration: 0.5 }}
       className="group"
     >
-      <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4 relative">
-        <img
-          src={product.image_url || "/placeholder.svg"}
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          loading="lazy"
-        />
-      </div>
-      <div>
-        <h3 className="font-display font-semibold text-sm text-foreground truncate">
-          {product.name}
-        </h3>
-        <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-body">
-          {product.short_description}
-        </p>
-        <p className="text-sm font-display font-medium text-foreground mt-2">
-          {product.indicative_price}
-        </p>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1 mt-2">
-          {product.style_tags.slice(0, 2).map(tag => (
-            <span key={tag} className="text-[10px] font-body text-muted-foreground bg-card border border-border rounded-full px-2 py-0.5 capitalize">
-              {tag}
-            </span>
-          ))}
-          {product.material_tags.slice(0, 1).map(tag => (
-            <span key={tag} className="text-[10px] font-body text-muted-foreground bg-card border border-border rounded-full px-2 py-0.5 capitalize">
-              {tag}
-            </span>
-          ))}
+      <Link to={`/products/${product.id}`} className="block">
+        <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4 relative">
+          <img
+            src={product.image_url || "/placeholder.svg"}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            loading="lazy"
+          />
         </div>
+        <div>
+          <h3 className="font-display font-semibold text-sm text-foreground truncate group-hover:text-foreground/80 transition-colors">
+            {product.name}
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-body">
+            {ml(product, 'short_description')}
+          </p>
+          <p className="text-sm font-display font-medium text-foreground mt-2">
+            {product.indicative_price}
+          </p>
 
-        {/* CTA */}
-        <button
-          onClick={() => onCreateProject(product)}
-          className="mt-3 flex items-center gap-1.5 text-xs font-display font-semibold text-foreground hover:opacity-70 transition-opacity"
-        >
-          <Sparkles className="h-3 w-3" />
-          Create a project with this product
-          <ArrowRight className="h-3 w-3" />
-        </button>
-      </div>
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1 mt-2">
+            {product.style_tags.slice(0, 2).map(tag => (
+              <span key={tag} className="text-[10px] font-body text-muted-foreground bg-card border border-border rounded-full px-2 py-0.5 capitalize">
+                {tag}
+              </span>
+            ))}
+            {product.material_tags.slice(0, 1).map(tag => (
+              <span key={tag} className="text-[10px] font-body text-muted-foreground bg-card border border-border rounded-full px-2 py-0.5 capitalize">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </Link>
+
+      {/* CTA — outside the Link to avoid nested links */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onCreateProject(product); }}
+        className="mt-3 flex items-center gap-1.5 text-xs font-display font-semibold text-foreground hover:opacity-70 transition-opacity"
+      >
+        <Sparkles className="h-3 w-3" />
+        {t('searchResults.createProject', 'Create a project with this product')}
+        <ArrowRight className="h-3 w-3" />
+      </button>
     </motion.div>
   );
 }

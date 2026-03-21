@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ml } from "@/lib/i18nFields";
 import { motion } from "framer-motion";
 import {
   Search, SlidersHorizontal, X, Plus, LayoutGrid, List, BarChart3, ChevronDown, Heart,
@@ -571,7 +572,7 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
           <StockBadge status={product.stock_status} />
         </div>
         <p className="text-xs text-muted-foreground mt-1 line-clamp-1 font-body">
-          {product.short_description}
+          {ml(product, 'short_description')}
         </p>
         <div className="flex items-center gap-2 mt-2">
           <span className="text-sm font-display font-medium text-foreground">
