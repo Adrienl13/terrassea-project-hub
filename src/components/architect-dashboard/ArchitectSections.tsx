@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useConversations, useMessages, createConversation } from "@/hooks/useConversations";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSupplierCalls } from "@/hooks/useSupplierCalls";
@@ -431,7 +431,7 @@ export function ArchitectOverview({
         </div>
         <div className="space-y-2">
           {activeCalls.map((c) => (
-            <div key={c.id} className="flex items-center justify-between px-4 py-3 border border-border rounded-sm hover:border-foreground/20 transition-colors cursor-pointer">
+            <div key={c.id} onClick={() => onNavigate("calls")} className="flex items-center justify-between px-4 py-3 border border-border rounded-sm hover:border-foreground/20 transition-colors cursor-pointer">
               <div className="flex items-center gap-3 min-w-0">
                 <Megaphone className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
@@ -608,7 +608,7 @@ export function ArchitectProjectDetail({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { projects: dbProjects } = useArchitectProjects();
+  const { projects: dbProjects, updateProject } = useArchitectProjects();
   const { zones: dbZones, isLoading: zonesLoading, addZone } = useProjectZones(projectId);
   const { boards, isLoading: boardsLoading } = useMaterialBoards(projectId);
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
@@ -686,7 +686,25 @@ export function ArchitectProjectDetail({
             ) : (
               <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${st.style}`}>{st.label}</span>
             )}
-            <button onClick={() => setEditing(!editing)}
+            <button onClick={async () => {
+                if (editing) {
+                  try {
+                    await updateProject({
+                      id: projectId,
+                      status: editStatus,
+                      description: editDesc,
+                      address: editAddress,
+                      deadline: editDeadline,
+                      constraints: editConstraints,
+                    });
+                    toast.success(t('ad.detail.saveSuccess', 'Project updated'));
+                  } catch {
+                    toast.error(t('ad.detail.saveError', 'Failed to save project'));
+                    return;
+                  }
+                }
+                setEditing(!editing);
+              }}
               className={`text-[10px] font-display font-semibold px-3 py-1 rounded-full border transition-colors ${editing ? "border-foreground bg-foreground text-primary-foreground" : "border-border hover:border-foreground text-muted-foreground hover:text-foreground"}`}>
               {editing ? t('ad.detail.save') : t('ad.detail.edit')}
             </button>
@@ -1132,7 +1150,37 @@ export function ArchitectProjectsSection({
 
 function QuoteDetail({ quote, onBack }: { quote: ArchitectQuote; onBack: () => void }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const qst = QUOTE_STATUS_STYLES[quote.status];
+
+  const handleAccept = async () => {
+    const { error } = await supabase
+      .from("quote_requests")
+      .update({ status: "accepted" })
+      .eq("id", quote.id);
+    if (error) {
+      toast.error(t('ad.quoteDetail.acceptError', 'Failed to accept quote'));
+    } else {
+      toast.success(t('ad.quoteDetail.acceptSuccess', 'Quote accepted'));
+      queryClient.invalidateQueries({ queryKey: ["architect-quotes"] });
+      onBack();
+    }
+  };
+
+  const handleDecline = async () => {
+    const { error } = await supabase
+      .from("quote_requests")
+      .update({ status: "declined" })
+      .eq("id", quote.id);
+    if (error) {
+      toast.error(t('ad.quoteDetail.declineError', 'Failed to decline quote'));
+    } else {
+      toast.success(t('ad.quoteDetail.declineSuccess', 'Quote declined'));
+      queryClient.invalidateQueries({ queryKey: ["architect-quotes"] });
+      onBack();
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -1219,13 +1267,13 @@ function QuoteDetail({ quote, onBack }: { quote: ArchitectQuote; onBack: () => v
       {/* Actions */}
       {quote.status === "replied" && (
         <div className="flex items-center gap-3 pt-2">
-          <button className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
+          <button onClick={handleAccept} className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
             <CheckCircle2 className="h-3.5 w-3.5" /> {t('ad.quoteDetail.accept')}
           </button>
-          <button className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold border border-border text-foreground rounded-full hover:border-foreground transition-colors">
+          <button onClick={() => navigate("/messages")} className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold border border-border text-foreground rounded-full hover:border-foreground transition-colors">
             <MessageSquare className="h-3.5 w-3.5" /> {t('ad.quoteDetail.negotiate')}
           </button>
-          <button className="text-xs font-body text-muted-foreground hover:text-red-500 transition-colors">
+          <button onClick={handleDecline} className="text-xs font-body text-muted-foreground hover:text-red-500 transition-colors">
             {t('ad.quoteDetail.decline')}
           </button>
         </div>

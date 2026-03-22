@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Eye,
@@ -97,6 +98,7 @@ function SparkDots({ trend }: { trend: number }) {
 
 export default function PartnerAnalyticsDashboard({ partnerId, tier }: Props) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [periodKey, setPeriodKey] = useState<PeriodKey>("30d");
 
   const { analytics, trends, topProducts, isLoading, period, setPeriod } =
@@ -305,7 +307,7 @@ export default function PartnerAnalyticsDashboard({ partnerId, tier }: Props) {
               <p className="text-[10px] font-body text-muted-foreground mb-3 leading-relaxed">
                 {t("partnerAnalytics.advancedLockedDesc")}
               </p>
-              <button className="flex items-center gap-2 px-4 py-2 text-xs font-display font-semibold rounded-full text-white bg-amber-600 hover:bg-amber-700 transition-colors mx-auto">
+              <button onClick={() => navigate("/become-partner")} className="flex items-center gap-2 px-4 py-2 text-xs font-display font-semibold rounded-full text-white bg-amber-600 hover:bg-amber-700 transition-colors mx-auto">
                 <Crown className="h-3 w-3" />
                 {t("partnerAnalytics.upgradeToElite")}
               </button>

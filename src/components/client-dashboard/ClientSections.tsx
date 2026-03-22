@@ -21,8 +21,9 @@ import {
   Lightbulb, ShieldCheck, Star, Eye, MapPin, X,
   ChevronDown, ChevronUp, Truck, ClipboardList,
   ExternalLink, Bookmark, Lock, Unlock, PenTool,
-  Download, AlertTriangle, Upload,
+  Download, AlertTriangle, Upload, Check,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -310,6 +311,7 @@ export function ClientOverview({
           {quotes.slice(0, 3).map((q) => (
             <div
               key={q.id}
+              onClick={() => onNavigate("quotes")}
               className="flex items-center justify-between px-4 py-3 border border-border rounded-lg hover:border-foreground/20 transition-colors cursor-pointer"
             >
               <div>
@@ -660,6 +662,7 @@ export function ClientProjectDetail({
           <Package className="h-4 w-4 text-[#D4603A]" /> {t("cd.detail.addProducts")}
         </button>
         <button
+          onClick={() => navigate("/products")}
           className="flex items-center gap-2 px-4 py-3 border border-border rounded-lg text-xs font-display font-semibold hover:border-foreground/30 transition-colors"
         >
           <FileText className="h-4 w-4 text-[#D4603A]" /> {t("cd.detail.requestQuote")}
@@ -1751,27 +1754,119 @@ function EmptyFavState({
 
 export function ClientSettingsSection({ profile }: { profile: any }) {
   const { t } = useTranslation();
+  const { refreshProfile } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    first_name: profile.first_name || "",
+    last_name: profile.last_name || "",
+    company: profile.company || "",
+    phone: profile.phone || "",
+  });
 
-  const fields = [
-    { label: t("cd.settings.email"), value: profile.email },
-    { label: t("cd.settings.firstName"), value: profile.first_name },
-    { label: t("cd.settings.lastName"), value: profile.last_name },
-    { label: t("cd.settings.company"), value: profile.company },
-    { label: t("cd.settings.siren"), value: profile.siren },
-    { label: t("cd.settings.phone"), value: profile.phone },
-    { label: t("cd.settings.country"), value: profile.country },
-    { label: t("cd.settings.accountType"), value: profile.user_type },
-  ].filter(({ value }) => value);
+  const editableKeys = new Set(["first_name", "last_name", "company", "phone"]);
+
+  const fields: { label: string; key: string; value: string }[] = [
+    { label: t("cd.settings.email"), key: "email", value: profile.email },
+    { label: t("cd.settings.firstName"), key: "first_name", value: profile.first_name },
+    { label: t("cd.settings.lastName"), key: "last_name", value: profile.last_name },
+    { label: t("cd.settings.company"), key: "company", value: profile.company },
+    { label: t("cd.settings.siren"), key: "siren", value: profile.siren },
+    { label: t("cd.settings.phone"), key: "phone", value: profile.phone },
+    { label: t("cd.settings.country"), key: "country", value: profile.country },
+    { label: t("cd.settings.accountType"), key: "accountType", value: profile.user_type },
+  ].filter(({ value }) => value || (editing && editableKeys.has(fields.find((f) => f.value === value)?.key ?? "")));
+
+  const handleCancel = () => {
+    setForm({
+      first_name: profile.first_name || "",
+      last_name: profile.last_name || "",
+      company: profile.company || "",
+      phone: profile.phone || "",
+    });
+    setEditing(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({
+          first_name: form.first_name || null,
+          last_name: form.last_name || null,
+          company: form.company || null,
+          phone: form.phone || null,
+        })
+        .eq("id", profile.id);
+      if (error) throw error;
+      await refreshProfile();
+      setEditing(false);
+    } catch {
+      // keep editing mode open on failure
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Build the display list — always show all standard fields
+  const displayFields: { label: string; key: string; value: string }[] = [
+    { label: t("cd.settings.email"), key: "email", value: profile.email || "" },
+    { label: t("cd.settings.firstName"), key: "first_name", value: editing ? form.first_name : (profile.first_name || "") },
+    { label: t("cd.settings.lastName"), key: "last_name", value: editing ? form.last_name : (profile.last_name || "") },
+    { label: t("cd.settings.company"), key: "company", value: editing ? form.company : (profile.company || "") },
+    { label: t("cd.settings.siren"), key: "siren", value: profile.siren || "" },
+    { label: t("cd.settings.phone"), key: "phone", value: editing ? form.phone : (profile.phone || "") },
+    { label: t("cd.settings.country"), key: "country", value: profile.country || "" },
+    { label: t("cd.settings.accountType"), key: "accountType", value: profile.user_type || "" },
+  ].filter(({ value, key }) => value || (editing && editableKeys.has(key)));
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display font-bold text-lg text-foreground">{t("cd.settings.title")}</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display font-bold text-lg text-foreground">{t("cd.settings.title")}</h2>
+        {!editing ? (
+          <button
+            onClick={() => setEditing(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors"
+          >
+            <PenTool className="h-3.5 w-3.5" />
+            {t("cd.settings.edit", { defaultValue: "Edit" })}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCancel}
+              disabled={saving}
+              className="px-3 py-1.5 text-xs font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors"
+            >
+              {t("cd.settings.cancel", { defaultValue: "Cancel" })}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              <Check className="h-3.5 w-3.5" />
+              {saving ? t("cd.settings.saving", { defaultValue: "Saving..." }) : t("cd.settings.save", { defaultValue: "Save" })}
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-        {fields.map(({ label, value }) => (
-          <div key={label}>
+        {displayFields.map(({ label, key, value }) => (
+          <div key={key}>
             <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-            <p className="text-sm font-body text-foreground mt-0.5">{value}</p>
+            {editing && editableKeys.has(key) ? (
+              <input
+                value={(form as any)[key] || ""}
+                onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                className="w-full text-sm font-body text-foreground mt-0.5 bg-transparent border-b border-border outline-none focus:border-foreground transition-colors py-0.5"
+              />
+            ) : (
+              <p className="text-sm font-body text-foreground mt-0.5">{value || "—"}</p>
+            )}
           </div>
         ))}
       </div>

@@ -19,33 +19,6 @@ interface Props {
   isReadOnly?: boolean;
 }
 
-interface BoardProduct {
-  id: string;
-  product: DBProduct;
-  note: string;
-  position: number;
-}
-
-interface MaterialBoard {
-  id: string;
-  name: string;
-  description: string;
-  projectName: string | null;
-  products: BoardProduct[];
-}
-
-// ── Mock data (will be replaced by real queries) ────────────────────────────────
-
-const MOCK_BOARDS: Record<string, MaterialBoard> = {
-  "board-1": {
-    id: "board-1",
-    name: "Mediterranean Terrace",
-    description: "Warm tones, natural materials, coastal feel",
-    projectName: "Sofitel Rooftop Paris",
-    products: [],
-  },
-};
-
 // ── Helpers ─────────────────────────────────────────────────────────────────────
 
 function generateShareLink(boardId: string): string {
@@ -75,16 +48,41 @@ export default function MaterialBoardView({ boardId, isReadOnly = false }: Props
   const { t } = useTranslation();
   const { addItem } = useProjectCart();
 
-  // Board state (mock-backed for now; hook is available when backend is wired)
-  const [board, setBoard] = useState<MaterialBoard>(
-    () => MOCK_BOARDS[boardId] ?? {
-      id: boardId,
-      name: t("materialBoard.untitledBoard"),
-      description: "",
-      projectName: null,
-      products: [],
-    },
-  );
+  // Real DB data via useMaterialBoards hook
+  const {
+    boards,
+    updateBoard,
+    addItem: addBoardItem,
+    removeItem,
+    updateItemNote,
+  } = useMaterialBoards();
+
+  const rawBoard = boards.find((b) => b.id === boardId);
+
+  // Derive a view-friendly board shape from the DB row + joined items
+  const board = useMemo(() => {
+    if (!rawBoard) {
+      return {
+        id: boardId,
+        name: t("materialBoard.untitledBoard"),
+        description: "",
+        projectName: null as string | null,
+        products: [] as { id: string; product: DBProduct; note: string; position: number }[],
+      };
+    }
+    return {
+      id: rawBoard.id,
+      name: rawBoard.board_name,
+      description: rawBoard.description || "",
+      projectName: rawBoard.project_id || null,
+      products: ((rawBoard as any).items ?? []).map((item: any, idx: number) => ({
+        id: item.id,
+        product: item.product as DBProduct,
+        note: item.note || "",
+        position: item.sort_order ?? idx,
+      })),
+    };
+  }, [rawBoard, boardId, t]);
 
   // Editable name
   const [editingName, setEditingName] = useState(false);
@@ -142,53 +140,50 @@ export default function MaterialBoardView({ boardId, isReadOnly = false }: Props
 
   // ── Handlers ──────────────────────────────────────────────────────────────────
 
-  const handleSaveName = useCallback(() => {
-    setBoard((b) => ({ ...b, name: draftName }));
-    setEditingName(false);
-    toast.success(t("materialBoard.boardUpdated"));
-  }, [draftName, t]);
+  const handleSaveName = useCallback(async () => {
+    try {
+      await updateBoard({ id: boardId, board_name: draftName });
+      setEditingName(false);
+      toast.success(t("materialBoard.boardUpdated"));
+    } catch {
+      toast.error(t("materialBoard.updateFailed"));
+    }
+  }, [draftName, boardId, updateBoard, t]);
 
-  const handleAddProduct = useCallback((product: DBProduct) => {
-    const exists = board.products.some((bp) => bp.product.id === product.id);
+  const handleAddProduct = useCallback(async (product: DBProduct) => {
+    const exists = board.products.some((bp) => bp.product?.id === product.id);
     if (exists) {
       toast.info(t("materialBoard.alreadyOnBoard"));
       return;
     }
-    setBoard((b) => ({
-      ...b,
-      products: [
-        ...b.products,
-        {
-          id: `bp-${Date.now()}`,
-          product,
-          note: "",
-          position: b.products.length,
-        },
-      ],
-    }));
-    setShowSearch(false);
-    setSearchQuery("");
-    toast.success(t("materialBoard.productAdded"));
-  }, [board.products, t]);
+    try {
+      await addBoardItem({ boardId, productId: product.id, note: "" });
+      setShowSearch(false);
+      setSearchQuery("");
+      toast.success(t("materialBoard.productAdded"));
+    } catch {
+      toast.error(t("materialBoard.addFailed"));
+    }
+  }, [board.products, boardId, addBoardItem, t]);
 
-  const handleRemoveProduct = useCallback((bpId: string) => {
-    setBoard((b) => ({
-      ...b,
-      products: b.products.filter((bp) => bp.id !== bpId),
-    }));
-    toast.success(t("materialBoard.productRemoved"));
-  }, [t]);
+  const handleRemoveProduct = useCallback(async (bpId: string) => {
+    try {
+      await removeItem(bpId);
+      toast.success(t("materialBoard.productRemoved"));
+    } catch {
+      toast.error(t("materialBoard.removeFailed"));
+    }
+  }, [removeItem, t]);
 
-  const handleSaveNote = useCallback((bpId: string) => {
-    setBoard((b) => ({
-      ...b,
-      products: b.products.map((bp) =>
-        bp.id === bpId ? { ...bp, note: draftNote } : bp,
-      ),
-    }));
-    setEditingNoteId(null);
-    setDraftNote("");
-  }, [draftNote]);
+  const handleSaveNote = useCallback(async (bpId: string) => {
+    try {
+      await updateItemNote({ itemId: bpId, note: draftNote });
+      setEditingNoteId(null);
+      setDraftNote("");
+    } catch {
+      toast.error(t("materialBoard.updateFailed"));
+    }
+  }, [draftNote, updateItemNote, t]);
 
   const handleShare = useCallback(() => {
     const link = generateShareLink(boardId);

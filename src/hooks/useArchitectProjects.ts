@@ -567,7 +567,7 @@ export function useMaterialBoards(projectId?: string) {
       if (!user) return [];
       let query = supabase
         .from("material_boards")
-        .select("*, items:board_items(*)")
+        .select("*, items:board_items(*, product:product_id(*))")
         .eq("architect_id", user.id)
         .order("updated_at", { ascending: false });
       if (projectId) {

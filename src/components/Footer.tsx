@@ -20,17 +20,17 @@ const Footer = () => {
             <h4 className="font-display font-semibold text-sm mb-4">{t('footer.platform')}</h4>
             <div className="flex flex-col gap-3">
               <Link to="/" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.exploreSpaces')}</Link>
-              <Link to="/" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.products')}</Link>
+              <Link to="/products" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.products')}</Link>
               <Link to="/inspirations" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.inspirations')}</Link>
-              <Link to="/" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.launchProject')}</Link>
+              <Link to="/projects/new" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.launchProject')}</Link>
             </div>
           </div>
           <div>
             <h4 className="font-display font-semibold text-sm mb-4">{t('footer.company')}</h4>
             <div className="flex flex-col gap-3">
-              <Link to="/" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.about')}</Link>
+              <Link to="/mentions-legales" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.about')}</Link>
               <Link to="/become-partner" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.becomePartner')}</Link>
-              <Link to="/" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.contact')}</Link>
+              <a href="mailto:contact@terrassea.com" className="text-sm font-body opacity-60 hover:opacity-100 transition-opacity">{t('footer.contact')}</a>
             </div>
           </div>
           <div>
