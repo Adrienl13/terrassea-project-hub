@@ -11,14 +11,19 @@ import { toast } from "sonner";
 
 // ── Qualification logic ───────────────────────────────────────────────────────
 
-const MIN_COVERS = 80;
-const MIN_BUDGET = 30000;
+const MIN_COVERS_DISPLAY = 80;
+const MIN_BUDGET_DISPLAY = 30000;
+const MIN_COVERS_TOLERANCE = 72;   // 80 - 10%
+const MIN_BUDGET_TOLERANCE = 24000; // 30K - 20%
 
 function isQualified(covers: number | null, budget: string): boolean {
-  if (covers !== null && covers >= MIN_COVERS) return true;
   const budgetNum = parseBudget(budget);
-  if (budgetNum !== null && budgetNum >= MIN_BUDGET) return true;
-  return false;
+  // Rule 1: Budget >= 30K alone = always qualified (premium client)
+  if (budgetNum !== null && budgetNum >= MIN_BUDGET_DISPLAY) return true;
+  // Rule 2: Both covers and budget within tolerance
+  const coversOk = covers !== null && covers >= MIN_COVERS_TOLERANCE;
+  const budgetOk = budgetNum !== null && budgetNum >= MIN_BUDGET_TOLERANCE;
+  return coversOk && budgetOk;
 }
 
 function parseBudget(val: string): number | null {

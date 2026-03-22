@@ -1317,8 +1317,10 @@ function ProRequestCard({ request }: { request: any }) {
 // NEW PRO REQUEST FORM (comprehensive qualification form)
 // ══════════════════════════════════════════════════════════════════════════════
 
-const MIN_COVERS_QUAL = 80;
-const MIN_BUDGET_QUAL = 30000;
+const MIN_COVERS_DISPLAY = 80;        // Displayed to user
+const MIN_BUDGET_DISPLAY = 30000;     // Displayed to user
+const MIN_COVERS_TOLERANCE = 72;      // 80 - 10% tolerance
+const MIN_BUDGET_TOLERANCE = 24000;   // 30K - 20% tolerance
 
 const BUDGET_OPTIONS = [
   { value: "<10000", label: "< 10 000 \u20ac" },
@@ -1463,7 +1465,13 @@ function NewProRequestForm({
   const coversNum = parseInt(form.covers);
   const budgetNum = parseBudgetRange(form.budget);
 
-  const isQualified = (coversNum >= MIN_COVERS_QUAL) || (budgetNum !== null && budgetNum >= MIN_BUDGET_QUAL);
+  // Qualification logic:
+  // 1. Budget >= 30K alone = always qualified (premium client, wants quality)
+  // 2. Otherwise: covers >= 72 (80 - 10% tolerance) AND budget >= 24K (30K - 20% tolerance)
+  const hasPremiumBudget = budgetNum !== null && budgetNum >= MIN_BUDGET_DISPLAY;
+  const coversInTolerance = !isNaN(coversNum) && coversNum >= MIN_COVERS_TOLERANCE;
+  const budgetInTolerance = budgetNum !== null && budgetNum >= MIN_BUDGET_TOLERANCE;
+  const isQualified = hasPremiumBudget || (coversInTolerance && budgetInTolerance);
 
   const inputClass = "w-full text-sm font-body bg-white border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all placeholder:text-muted-foreground/40";
   const inputErrorClass = "w-full text-sm font-body bg-white border border-red-400 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition-all placeholder:text-muted-foreground/40";
