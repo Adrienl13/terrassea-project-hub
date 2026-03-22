@@ -137,29 +137,20 @@ export interface DBProduct {
   publish_status?: string;
 }
 
-// ── Fetch all products ────────────────────────────────────
+// ── Offer enrichment (reusable) ───────────────────────────
 
-export async function fetchProducts(): Promise<DBProduct[]> {
-  const [productsRes, offersRes] = await Promise.all([
-    supabase
-      .from("products")
-      .select("*")
-      .neq("availability_type", "discontinued")
-      .order("priority_score", { ascending: false })
-      .limit(2000),
-    supabase
-      .from("product_offers")
-      .select("product_id, price, is_active")
-      .eq("is_active", true)
-      .limit(10000),
-  ]);
+async function fetchOfferStats(): Promise<Map<string, { count: number; minPrice: number | null }>> {
+  const { data, error } = await supabase
+    .from("product_offers")
+    .select("product_id, price, is_active")
+    .eq("is_active", true)
+    .limit(10000);
 
-  if (productsRes.error) throw productsRes.error;
-  if (offersRes.error)   throw offersRes.error;
+  if (error) throw error;
 
-  const offerStats = new Map<string, { count: number; minPrice: number | null }>();
-  for (const o of offersRes.data ?? []) {
-    const existing = offerStats.get(o.product_id) ?? { count: 0, minPrice: null };
+  const stats = new Map<string, { count: number; minPrice: number | null }>();
+  for (const o of data ?? []) {
+    const existing = stats.get(o.product_id) ?? { count: 0, minPrice: null };
     existing.count++;
     if (o.price != null) {
       existing.minPrice =
@@ -167,8 +158,41 @@ export async function fetchProducts(): Promise<DBProduct[]> {
           ? Math.min(existing.minPrice, o.price)
           : o.price;
     }
-    offerStats.set(o.product_id, existing);
+    stats.set(o.product_id, existing);
   }
+  return stats;
+}
+
+export function enrichProductsWithOffers(
+  products: DBProduct[],
+  offerStats: Map<string, { count: number; minPrice: number | null }>
+): DBProduct[] {
+  return products.map((product) => {
+    const stats = offerStats.get(product.id);
+    if (stats) {
+      product.offers_count = stats.count;
+      if (stats.minPrice != null && product.price_min == null) {
+        product.price_min = stats.minPrice;
+      }
+    }
+    return product;
+  });
+}
+
+// ── Fetch all products ────────────────────────────────────
+
+export async function fetchProducts(): Promise<DBProduct[]> {
+  const [productsRes, offerStats] = await Promise.all([
+    supabase
+      .from("products")
+      .select("*")
+      .neq("availability_type", "discontinued")
+      .order("priority_score", { ascending: false })
+      .limit(2000),
+    fetchOfferStats(),
+  ]);
+
+  if (productsRes.error) throw productsRes.error;
 
   return (productsRes.data ?? []).map((raw) => {
     const stats   = offerStats.get(raw.id);
