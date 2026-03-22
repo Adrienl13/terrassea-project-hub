@@ -511,16 +511,9 @@ const Account = () => {
       <SEO title="My Account" noindex />
       <Header />
 
-      <div className="pt-24 pb-16 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex gap-8">
-            {/* ── Sidebar ────────────────────────────────────────────── */}
-            <div className="hidden md:flex flex-col w-56 flex-shrink-0">
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto"
-              >
+      {/* ── Fixed Sidebar ────────────────────────────────────── */}
+      <aside className="hidden md:block fixed top-24 left-0 w-56 h-[calc(100vh-6rem)] overflow-y-auto px-6 py-4 bg-background z-30 border-r border-border">
+        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
                 {/* Profile header */}
                 <div className="mb-6">
                   <div
@@ -712,23 +705,22 @@ const Account = () => {
                   </>
                 )}
               </div>
-            </div>
+      </aside>
 
-            {/* ── Main content ────────────────────────────────────────── */}
-            <div className="flex-1 min-w-0">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={section}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {renderSection()}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
+      {/* ── Main content ────────────────────────────────────────── */}
+      <div className="pt-24 pb-16 md:ml-56 px-6">
+        <div className="max-w-5xl mx-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={section}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              {renderSection()}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
       <Footer />
