@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Navigate, Link } from "react-router-dom";
+import { useNavigate, Navigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import SEO from "@/components/SEO";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -337,7 +338,25 @@ const Account = () => {
   const { favourites, toggleFavourite } = useFavourites();
   const { totalUnread } = useConversations();
   const navigate = useNavigate();
-  const [section, setSection] = useState<Section>("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [section, setSection] = useState<Section>(() => {
+    const sectionParam = searchParams.get("section");
+    return (sectionParam as Section) || "overview";
+  });
+
+  // Handle Stripe payment redirect query params
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    if (paymentStatus === "success") {
+      toast.success(t("stripe.paymentSuccess"));
+      searchParams.delete("payment");
+      setSearchParams(searchParams, { replace: true });
+    } else if (paymentStatus === "cancelled") {
+      toast.error(t("stripe.paymentCancelled"));
+      searchParams.delete("payment");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Architect tier — default to "atelier" for demo (would come from architect_rewards)
   const architectTier: ArchitectTier = "atelier";

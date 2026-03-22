@@ -3375,5 +3375,16 @@
     "cgu": "Terms of Use",
     "privacy": "Privacy Policy",
     "cookies": "Cookie Settings"
+  },
+  "stripe": {
+    "payDeposit": "Pay deposit",
+    "payBalance": "Pay balance",
+    "securedByStripe": "Secured by Stripe",
+    "paid": "Paid",
+    "paidOn": "Paid on",
+    "paymentSuccess": "Payment confirmed! Your order is being processed.",
+    "paymentCancelled": "Payment cancelled. You can try again.",
+    "processing": "Processing...",
+    "orBankTransfer": "OR pay by bank transfer"
   }
 }

@@ -3375,5 +3375,16 @@
     "cgu": "CGU",
     "privacy": "Confidentialité",
     "cookies": "Paramètres cookies"
+  },
+  "stripe": {
+    "payDeposit": "Payer l'acompte",
+    "payBalance": "Payer le solde",
+    "securedByStripe": "Paiement sécurisé par Stripe",
+    "paid": "Payé",
+    "paidOn": "Payé le",
+    "paymentSuccess": "Paiement confirmé ! Votre commande est en cours de traitement.",
+    "paymentCancelled": "Paiement annulé. Vous pouvez réessayer.",
+    "processing": "Traitement...",
+    "orBankTransfer": "OU payer par virement bancaire"
   }
 }

@@ -3281,5 +3281,16 @@
     "cgu": "Condizioni d'uso",
     "privacy": "Privacy",
     "cookies": "Impostazioni cookie"
+  },
+  "stripe": {
+    "payDeposit": "Paga acconto",
+    "payBalance": "Paga saldo",
+    "securedByStripe": "Pagamento sicuro con Stripe",
+    "paid": "Pagato",
+    "paidOn": "Pagato il",
+    "paymentSuccess": "Pagamento confermato! Il tuo ordine è in elaborazione.",
+    "paymentCancelled": "Pagamento annullato. Puoi riprovare.",
+    "processing": "Elaborazione...",
+    "orBankTransfer": "O paga tramite bonifico bancario"
   }
 }

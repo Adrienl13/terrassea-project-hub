@@ -7,7 +7,9 @@ import {
 } from "lucide-react";
 import { useClientOrders, useOrderDetail, type ClientOrder } from "@/hooks/useOrders";
 import { usePaymentFlow } from "@/hooks/usePaymentFlow";
+import { useAuth } from "@/contexts/AuthContext";
 import PaymentInstructions from "@/components/payments/PaymentInstructions";
+import PayNowButton from "@/components/payments/PayNowButton";
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -221,6 +223,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
   const { t } = useTranslation();
   const { order, events, isLoading } = useOrderDetail(orderId);
   const { paymentSettings } = usePaymentFlow();
+  const { profile } = useAuth();
 
   if (isLoading) {
     return (
@@ -432,6 +435,82 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
           )}
         </div>
       </div>
+
+      {/* Stripe payment buttons */}
+      {order.paymentReference && (() => {
+        const isDepositPending = !order.depositPaidAt;
+        const isBalancePending = !!order.depositPaidAt && !order.balancePaidAt;
+        const customerEmail = profile?.email ?? "";
+
+        if (isDepositPending && order.depositAmount != null) {
+          return (
+            <div className="border border-border rounded-lg p-4">
+              <PayNowButton
+                orderId={order.id}
+                amount={order.depositAmount}
+                customerEmail={customerEmail}
+                description={`${t("stripe.payDeposit")} — ${order.productName}`}
+                label={t("stripe.payDeposit")}
+                isPaid={false}
+              />
+            </div>
+          );
+        }
+
+        if (isBalancePending && order.balanceAmount != null) {
+          return (
+            <div className="border border-border rounded-lg p-4">
+              <PayNowButton
+                orderId={order.id}
+                amount={order.balanceAmount}
+                customerEmail={customerEmail}
+                description={`${t("stripe.payBalance")} — ${order.productName}`}
+                label={t("stripe.payBalance")}
+                isPaid={false}
+              />
+            </div>
+          );
+        }
+
+        // Both paid
+        if (order.depositPaidAt && order.balancePaidAt) {
+          return (
+            <div className="border border-border rounded-lg p-4 space-y-2">
+              <PayNowButton
+                orderId={order.id}
+                amount={order.depositAmount ?? 0}
+                customerEmail={customerEmail}
+                description=""
+                label={t("stripe.payDeposit")}
+                isPaid={true}
+                paidAt={order.depositPaidAt}
+              />
+              <PayNowButton
+                orderId={order.id}
+                amount={order.balanceAmount ?? 0}
+                customerEmail={customerEmail}
+                description=""
+                label={t("stripe.payBalance")}
+                isPaid={true}
+                paidAt={order.balancePaidAt}
+              />
+            </div>
+          );
+        }
+
+        return null;
+      })()}
+
+      {/* OR separator when Stripe + bank transfer both shown */}
+      {order.paymentReference && (!order.depositPaidAt || (!!order.depositPaidAt && !order.balancePaidAt)) && (
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("stripe.orBankTransfer")}
+          </span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+      )}
 
       {/* Bank transfer instructions */}
       {order.paymentReference && (() => {
