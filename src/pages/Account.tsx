@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox,
-  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles,
+  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,6 +56,7 @@ import DesignAssistantSection from "@/components/client-dashboard/DesignAssistan
 import ClientOrdersSection from "@/components/client-dashboard/ClientOrdersSection";
 import PartnerAnalyticsDashboard from "@/components/partner-dashboard/PartnerAnalyticsDashboard";
 import PartnerLoyaltyProgram from "@/components/partner-dashboard/PartnerLoyaltyProgram";
+import PartnerArrivalsSection from "@/components/partner-dashboard/PartnerArrivalsSection";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -92,6 +93,7 @@ const NAV_PARTNER_BASE = [
   { id: "quotes",       icon: Inbox,           labelKey: "account.quoteRequests" },
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "catalogue",    icon: Package,         labelKey: "account.catalogue" },
+  { id: "arrivals",     icon: Truck,           labelKey: "account.arrivals" },
   { id: "featured",     icon: Rocket,          labelKey: "account.featuredProducts", eliteOnly: false },
   { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: true },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
@@ -425,6 +427,7 @@ const Account = () => {
         case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
         case "messages":    return <PartnerMessagesSection />;
         case "catalogue":   return <PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />;
+        case "arrivals":    return <PartnerArrivalsSection partnerId={partnerId} />;
         case "featured":    return <PartnerFeaturedSection plan={partnerPlan} partnerId={partnerId} />;
         case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;
         case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan === "starter" ? "growth" : partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;

@@ -680,7 +680,8 @@
     "newSupplierCall": "Nuovo bando fornitore",
     "designAssistant": "Design IA",
     "loyalty": "Fedeltà",
-    "orders": "I miei ordini"
+    "orders": "I miei ordini",
+    "arrivals": "Arrivi"
   },
   "orders": {
     "title": "I miei ordini",
@@ -3292,5 +3293,51 @@
     "paymentCancelled": "Pagamento annullato. Puoi riprovare.",
     "processing": "Elaborazione...",
     "orBankTransfer": "O paga tramite bonifico bancario"
+  },
+  "restock": {
+    "inStock": "{{count}} disponibili",
+    "outOfStock": "Esaurito",
+    "arrivingOn": "In arrivo il {{date}}",
+    "arrivingIn": "+{{qty}} in arrivo {{date}}",
+    "availableFrom": "Disponibile dal {{date}} ({{count}} unita)",
+    "preorder": "Preordine",
+    "preorderButton": "Preordinare",
+    "preorderSuccess": "Preordine confermato per {{count}} unita",
+    "confirm": "Conferma",
+    "unitsExpected": "{{count}} unita previste",
+    "unitsAvailable": "{{count}} unita disponibili",
+    "today": "oggi",
+    "tomorrow": "domani",
+    "inDays": "tra {{count}} giorni",
+    "inWeeks": "tra {{count}} settimane"
+  },
+  "arrivals": {
+    "title": "Gestione arrivi",
+    "newArrival": "Nuovo arrivo",
+    "name": "Nome",
+    "planned": "Pianificato",
+    "inTransit": "In transito",
+    "arrived": "Ricevuto",
+    "cancelled": "Annullato",
+    "expectedDate": "Data prevista",
+    "expectedQty": "Qta prevista",
+    "receivedQty": "Qta ricevuta",
+    "reserved": "Riservato",
+    "available": "Disponibile",
+    "preorderEnabled": "Preordine attivato",
+    "markInTransit": "Segna in transito",
+    "markArrived": "Segna ricevuto",
+    "cancel": "Annulla",
+    "addProduct": "Aggiungi un prodotto",
+    "searchProduct": "Cerca un prodotto...",
+    "units": "unita",
+    "noArrivals": "Nessun arrivo al momento",
+    "arrivalsCount": "arrivo/i",
+    "products": "prodotti",
+    "create": "Crea",
+    "created": "Arrivo creato",
+    "productAdded": "Prodotto aggiunto",
+    "product": "Prodotto",
+    "add": "Aggiungi"
   }
 }

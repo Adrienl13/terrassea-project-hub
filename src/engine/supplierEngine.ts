@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { ProductOffer } from "@/lib/productOffers";
+import type { ProductArrival } from "@/hooks/useArrivals";
 
 // ── Types ──
 
@@ -87,20 +88,41 @@ function scoreConsistency(
   return Math.round((covered / totalProducts) * 100);
 }
 
-function scoreAvailability(offer: ProductOffer): number {
+function scoreAvailability(offer: ProductOffer, offerArrivals: ProductArrival[] = []): number {
   const status = offer.stock_status?.toLowerCase() || "available";
   const qty = offer.stock_quantity;
 
+  let base: number;
   if (status === "available" || status === "in_stock") {
-    if (qty !== null && qty > 50) return 100;
-    if (qty !== null && qty > 20) return 85;
-    if (qty !== null && qty > 0) return 60;
-    return 80; // available but no qty info
+    if (qty !== null && qty > 50) base = 100;
+    else if (qty !== null && qty > 20) base = 85;
+    else if (qty !== null && qty > 0) base = 60;
+    else base = 80; // available but no qty info
+  } else if (status === "low_stock") {
+    base = 50;
+  } else if (status === "production" || status === "on_order") {
+    base = 30;
+  } else if (status === "out_of_stock") {
+    base = 10;
+  } else {
+    base = 40;
   }
-  if (status === "low_stock") return 50;
-  if (status === "production" || status === "on_order") return 30;
-  if (status === "out_of_stock") return 10;
-  return 40;
+
+  // Arrival-awareness bonus
+  if (offerArrivals.length > 0) {
+    const now = new Date();
+    const soonest = offerArrivals[0]; // already sorted by date
+    const diffDays = Math.ceil(
+      (new Date(soonest.expectedDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays <= 14) base += 20;
+    else if (diffDays <= 42) base += 10;
+
+    if (soonest.preorderEnabled) base += 5;
+  }
+
+  return Math.min(base, 100);
 }
 
 function scoreLeadTime(offer: ProductOffer, allOffers: ProductOffer[]): number {
@@ -217,7 +239,8 @@ function buildRecommendationReason(offer: ScoredOffer, totalOffers: number): str
 export async function scoreSupplierOffers(
   targetProductId: string,
   projectProductIds: string[],
-  isUrgent: boolean = false
+  isUrgent: boolean = false,
+  arrivals: ProductArrival[] = []
 ): Promise<ScoredOffer[]> {
   // Fetch all offers across the project
   const uniqueIds = [...new Set([...projectProductIds, targetProductId])];
@@ -235,8 +258,9 @@ export async function scoreSupplierOffers(
   const reputations = await fetchPartnerReputations(partnerIds);
 
   const scored: ScoredOffer[] = targetOffers.map((offer) => {
+    const offerArrivals = arrivals.filter((a) => a.partnerId === offer.partner_id);
     const consistency = scoreConsistency(offer.partner_id, coverage, uniqueIds.length);
-    const availability = scoreAvailability(offer);
+    const availability = scoreAvailability(offer, offerArrivals);
     const leadTime = scoreLeadTime(offer, allOffers);
     const price = scorePrice(offer, allOffers);
     const reputation = scoreReputation(offer.partner_id, reputations);

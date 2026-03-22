@@ -6,10 +6,12 @@ import {
 } from "lucide-react";
 import type { ProductOffer } from "@/lib/productOffers";
 import type { DBProduct } from "@/lib/products";
+import type { ProductArrival } from "@/hooks/useArrivals";
 import { useProjectCart, type SelectedSupplier } from "@/contexts/ProjectCartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AddToProjectModal from "@/components/architect-dashboard/AddToProjectModal";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
+import RestockBadge from "@/components/products/RestockBadge";
 import { toast } from "sonner";
 
 interface VendorOffersProps {
@@ -17,6 +19,7 @@ interface VendorOffersProps {
   product: DBProduct;
   defaultQuantity?: number;
   isAdmin?: boolean;
+  arrivals?: ProductArrival[];
 }
 
 // ── Country flags ─────────────────────────────────────────────────────────────
@@ -183,7 +186,7 @@ function SupplierAvatar({ index, isAdmin, offer }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }: VendorOffersProps) => {
+const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, arrivals = [] }: VendorOffersProps) => {
   const { t } = useTranslation();
   const [quantity, setQuantity] = useState(defaultQuantity);
   const { addItem, selectSupplier } = useProjectCart();
@@ -193,6 +196,14 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
   const [pendingSupplier, setPendingSupplier] = useState<SelectedSupplier | null>(null);
   const [quoteModalOffer, setQuoteModalOffer] = useState<ProductOffer | null>(null);
   const getPartnerTypeLabel = usePartnerTypeLabel();
+
+  const getOfferArrivals = (partnerId: string) =>
+    arrivals.filter((a) => a.partnerId === partnerId);
+
+  const handlePreorder = (_arrivalItemId: string, qty: number) => {
+    toast.success(t("restock.preorderSuccess", { count: qty }));
+    // Preorder creation would go through a Supabase insert to the preorders table
+  };
 
   const getMaskedName = (index: number): string => {
     return t("vendorOffers.verifiedSupplier", { index: index + 1 });
@@ -406,13 +417,12 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
                   </td>
                   {/* Stock */}
                   <td className="py-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${stockDot}`} />
-                      <span className="text-xs">{stockLabel}</span>
-                      {offer.stock_quantity != null && (
-                        <span className="text-[10px] text-muted-foreground">({offer.stock_quantity})</span>
-                      )}
-                    </div>
+                    <RestockBadge
+                      stockStatus={offer.stock_status}
+                      stockQuantity={offer.stock_quantity}
+                      arrivals={getOfferArrivals(offer.partner_id)}
+                      onPreorder={handlePreorder}
+                    />
                   </td>
                   {/* Fit */}
                   <td className="py-4">
@@ -485,10 +495,13 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false }:
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${stockDot}`} /> {stockLabel}
-                </span>
+              <div className="flex flex-wrap items-start gap-4 text-xs text-muted-foreground">
+                <RestockBadge
+                  stockStatus={offer.stock_status}
+                  stockQuantity={offer.stock_quantity}
+                  arrivals={getOfferArrivals(offer.partner_id)}
+                  onPreorder={handlePreorder}
+                />
                 {offer.delivery_delay_days && (
                   <span className="flex items-center gap-1"><Truck className="h-3 w-3" /> {offer.delivery_delay_days}d</span>
                 )}

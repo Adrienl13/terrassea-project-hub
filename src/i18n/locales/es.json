@@ -680,7 +680,8 @@
     "newSupplierCall": "Nueva convocatoria",
     "designAssistant": "Diseno IA",
     "loyalty": "Fidelidad",
-    "orders": "Mis pedidos"
+    "orders": "Mis pedidos",
+    "arrivals": "Llegadas"
   },
   "orders": {
     "title": "Mis pedidos",
@@ -3292,5 +3293,51 @@
     "paymentCancelled": "Pago cancelado. Puedes intentarlo de nuevo.",
     "processing": "Procesando...",
     "orBankTransfer": "O pagar por transferencia bancaria"
+  },
+  "restock": {
+    "inStock": "{{count}} en stock",
+    "outOfStock": "Agotado",
+    "arrivingOn": "Llegada el {{date}}",
+    "arrivingIn": "+{{qty}} en camino {{date}}",
+    "availableFrom": "Disponible a partir del {{date}} ({{count}} unidades)",
+    "preorder": "Reserva",
+    "preorderButton": "Reservar",
+    "preorderSuccess": "Reserva confirmada para {{count}} unidades",
+    "confirm": "Confirmar",
+    "unitsExpected": "{{count}} unidades esperadas",
+    "unitsAvailable": "{{count}} unidades disponibles",
+    "today": "hoy",
+    "tomorrow": "manana",
+    "inDays": "en {{count}} dias",
+    "inWeeks": "en {{count}} semanas"
+  },
+  "arrivals": {
+    "title": "Gestion de llegadas",
+    "newArrival": "Nueva llegada",
+    "name": "Nombre",
+    "planned": "Planificado",
+    "inTransit": "En transito",
+    "arrived": "Recibido",
+    "cancelled": "Cancelado",
+    "expectedDate": "Fecha prevista",
+    "expectedQty": "Cant. prevista",
+    "receivedQty": "Cant. recibida",
+    "reserved": "Reservado",
+    "available": "Disponible",
+    "preorderEnabled": "Reserva anticipada activada",
+    "markInTransit": "Marcar en transito",
+    "markArrived": "Marcar recibido",
+    "cancel": "Cancelar",
+    "addProduct": "Anadir un producto",
+    "searchProduct": "Buscar un producto...",
+    "units": "unidades",
+    "noArrivals": "Sin llegadas por el momento",
+    "arrivalsCount": "llegada(s)",
+    "products": "productos",
+    "create": "Crear",
+    "created": "Llegada creada",
+    "productAdded": "Producto anadido",
+    "product": "Producto",
+    "add": "Anadir"
   }
 }

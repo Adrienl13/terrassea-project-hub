@@ -437,6 +437,9 @@ export type Database = {
           shipped_at: string | null
           shipping_carrier: string | null
           status: string
+          stripe_balance_payment_id: string | null
+          stripe_payment_id: string | null
+          stripe_session_id: string | null
           supplier_payout_balance: number | null
           supplier_payout_balance_at: string | null
           supplier_payout_deposit: number | null
@@ -492,6 +495,9 @@ export type Database = {
           shipped_at?: string | null
           shipping_carrier?: string | null
           status?: string
+          stripe_balance_payment_id?: string | null
+          stripe_payment_id?: string | null
+          stripe_session_id?: string | null
           supplier_payout_balance?: number | null
           supplier_payout_balance_at?: string | null
           supplier_payout_deposit?: number | null
@@ -547,6 +553,9 @@ export type Database = {
           shipped_at?: string | null
           shipping_carrier?: string | null
           status?: string
+          stripe_balance_payment_id?: string | null
+          stripe_payment_id?: string | null
+          stripe_session_id?: string | null
           supplier_payout_balance?: number | null
           supplier_payout_balance_at?: string | null
           supplier_payout_deposit?: number | null
@@ -794,6 +803,98 @@ export type Database = {
           {
             foreignKeyName: "partner_applications_created_partner_id_fkey"
             columns: ["created_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_arrival_items: {
+        Row: {
+          arrival_id: string
+          created_at: string | null
+          expected_quantity: number
+          id: string
+          offer_id: string | null
+          preorder_reserved: number | null
+          product_id: string
+          received_quantity: number | null
+        }
+        Insert: {
+          arrival_id: string
+          created_at?: string | null
+          expected_quantity?: number
+          id?: string
+          offer_id?: string | null
+          preorder_reserved?: number | null
+          product_id: string
+          received_quantity?: number | null
+        }
+        Update: {
+          arrival_id?: string
+          created_at?: string | null
+          expected_quantity?: number
+          id?: string
+          offer_id?: string | null
+          preorder_reserved?: number | null
+          product_id?: string
+          received_quantity?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_arrival_items_arrival_id_fkey"
+            columns: ["arrival_id"]
+            isOneToOne: false
+            referencedRelation: "partner_arrivals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_arrival_items_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "product_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_arrivals: {
+        Row: {
+          created_at: string | null
+          expected_date: string
+          id: string
+          name: string
+          notes: string | null
+          partner_id: string
+          preorder_enabled: boolean | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expected_date: string
+          id?: string
+          name: string
+          notes?: string | null
+          partner_id: string
+          preorder_enabled?: boolean | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expected_date?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          partner_id?: string
+          preorder_enabled?: boolean | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_arrivals_partner_id_fkey"
+            columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
             referencedColumns: ["id"]
@@ -1280,6 +1381,44 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      preorders: {
+        Row: {
+          arrival_item_id: string
+          created_at: string | null
+          id: string
+          product_id: string
+          quantity: number
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          arrival_item_id: string
+          created_at?: string | null
+          id?: string
+          product_id: string
+          quantity: number
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          arrival_item_id?: string
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          quantity?: number
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preorders_arrival_item_id_fkey"
+            columns: ["arrival_item_id"]
+            isOneToOne: false
+            referencedRelation: "partner_arrival_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pro_service_events: {
         Row: {

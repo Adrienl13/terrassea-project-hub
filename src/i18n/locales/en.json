@@ -683,7 +683,8 @@
     "newSupplierCall": "New supplier call",
     "designAssistant": "AI Design",
     "loyalty": "Loyalty",
-    "orders": "My orders"
+    "orders": "My orders",
+    "arrivals": "Arrivals"
   },
   "orders": {
     "title": "My Orders",
@@ -3386,5 +3387,51 @@
     "paymentCancelled": "Payment cancelled. You can try again.",
     "processing": "Processing...",
     "orBankTransfer": "OR pay by bank transfer"
+  },
+  "restock": {
+    "inStock": "{{count}} in stock",
+    "outOfStock": "Out of stock",
+    "arrivingOn": "Arriving on {{date}}",
+    "arrivingIn": "+{{qty}} arriving {{date}}",
+    "availableFrom": "Available from {{date}} ({{count}} units)",
+    "preorder": "Preorder",
+    "preorderButton": "Preorder",
+    "preorderSuccess": "Preorder confirmed for {{count}} units",
+    "confirm": "Confirm",
+    "unitsExpected": "{{count}} units expected",
+    "unitsAvailable": "{{count}} units available",
+    "today": "today",
+    "tomorrow": "tomorrow",
+    "inDays": "in {{count}} days",
+    "inWeeks": "in {{count}} weeks"
+  },
+  "arrivals": {
+    "title": "Arrivals management",
+    "newArrival": "New arrival",
+    "name": "Name",
+    "planned": "Planned",
+    "inTransit": "In transit",
+    "arrived": "Arrived",
+    "cancelled": "Cancelled",
+    "expectedDate": "Expected date",
+    "expectedQty": "Expected qty",
+    "receivedQty": "Received qty",
+    "reserved": "Reserved",
+    "available": "Available",
+    "preorderEnabled": "Preorder enabled",
+    "markInTransit": "Mark in transit",
+    "markArrived": "Mark arrived",
+    "cancel": "Cancel",
+    "addProduct": "Add a product",
+    "searchProduct": "Search a product...",
+    "units": "units",
+    "noArrivals": "No arrivals yet",
+    "arrivalsCount": "arrival(s)",
+    "products": "products",
+    "create": "Create",
+    "created": "Arrival created",
+    "productAdded": "Product added",
+    "product": "Product",
+    "add": "Add"
   }
 }

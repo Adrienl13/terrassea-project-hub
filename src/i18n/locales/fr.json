@@ -683,7 +683,8 @@
     "newSupplierCall": "Nouvel appel fournisseur",
     "designAssistant": "Design IA",
     "loyalty": "Fidélité",
-    "orders": "Mes commandes"
+    "orders": "Mes commandes",
+    "arrivals": "Arrivages"
   },
   "orders": {
     "title": "Mes commandes",
@@ -3386,5 +3387,51 @@
     "paymentCancelled": "Paiement annulé. Vous pouvez réessayer.",
     "processing": "Traitement...",
     "orBankTransfer": "OU payer par virement bancaire"
+  },
+  "restock": {
+    "inStock": "{{count}} en stock",
+    "outOfStock": "Rupture de stock",
+    "arrivingOn": "Arrivage le {{date}}",
+    "arrivingIn": "+{{qty}} en arrivage {{date}}",
+    "availableFrom": "Disponible a partir du {{date}} ({{count}} unites)",
+    "preorder": "Precommande",
+    "preorderButton": "Precommander",
+    "preorderSuccess": "Precommande confirmee pour {{count}} unites",
+    "confirm": "Confirmer",
+    "unitsExpected": "{{count}} unites attendues",
+    "unitsAvailable": "{{count}} unites disponibles",
+    "today": "aujourd'hui",
+    "tomorrow": "demain",
+    "inDays": "dans {{count}} jours",
+    "inWeeks": "dans {{count}} semaines"
+  },
+  "arrivals": {
+    "title": "Gestion des arrivages",
+    "newArrival": "Nouvel arrivage",
+    "name": "Nom",
+    "planned": "Planifie",
+    "inTransit": "En transit",
+    "arrived": "Recu",
+    "cancelled": "Annule",
+    "expectedDate": "Date prevue",
+    "expectedQty": "Qte prevue",
+    "receivedQty": "Qte recue",
+    "reserved": "Reserve",
+    "available": "Disponible",
+    "preorderEnabled": "Precommande activee",
+    "markInTransit": "Marquer en transit",
+    "markArrived": "Marquer recu",
+    "cancel": "Annuler",
+    "addProduct": "Ajouter un produit",
+    "searchProduct": "Rechercher un produit...",
+    "units": "unites",
+    "noArrivals": "Aucun arrivage pour le moment",
+    "arrivalsCount": "arrivage(s)",
+    "products": "produits",
+    "create": "Creer",
+    "created": "Arrivage cree",
+    "productAdded": "Produit ajoute",
+    "product": "Produit",
+    "add": "Ajouter"
   }
 }

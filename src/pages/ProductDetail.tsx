@@ -17,6 +17,7 @@ import VendorOffers from "@/components/products/VendorOffers";
 import CompatibleProducts from "@/components/products/CompatibleProducts";
 import { fetchProductById, fetchProducts, type DBProduct } from "@/lib/products";
 import { fetchProductOffers } from "@/lib/productOffers";
+import { useProductArrivals } from "@/hooks/useArrivals";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
@@ -53,6 +54,8 @@ const ProductDetail = () => {
     queryFn: () => fetchProductOffers(id!),
     enabled: !!id,
   });
+
+  const { arrivals } = useProductArrivals(id);
 
   // Compute offer-based stats (hooks before early returns)
   const lowestOfferPrice = useMemo(() => {
@@ -413,7 +416,7 @@ const ProductDetail = () => {
         {/* Vendor offers */}
         <section className="px-6 mt-4">
           <div className="container mx-auto">
-            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} />
+            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} />
           </div>
         </section>
 
