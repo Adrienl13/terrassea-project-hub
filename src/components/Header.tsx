@@ -122,7 +122,7 @@ const Header = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md"
+        className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md"
       >
         <div className="container mx-auto flex items-center justify-between py-5 px-6">
           <Link to="/" className="font-display text-xl font-bold tracking-tight text-foreground">
@@ -142,21 +142,20 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center gap-4">
-            {/* Language selector */}
-            <div className="hidden md:flex items-center gap-1 border border-border rounded-full px-2 py-1">
-              {LANGS.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => i18n.changeLanguage(lang.code)}
-                  className={`text-[10px] font-display font-bold px-1.5 py-0.5 rounded-full transition-all ${
-                    i18n.language.startsWith(lang.code)
-                      ? "bg-foreground text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {lang.flag}
-                </button>
-              ))}
+            {/* Language selector — dropdown */}
+            <div className="hidden md:block relative">
+              <select
+                value={i18n.language.split("-")[0]}
+                onChange={(e) => i18n.changeLanguage(e.target.value)}
+                className="appearance-none text-[11px] font-display font-semibold bg-transparent border border-border rounded-full pl-3 pr-7 py-1.5 text-foreground cursor-pointer hover:border-foreground/40 transition-colors focus:outline-none"
+                style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+              >
+                {LANGS.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.code.toUpperCase()}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <NotificationBell />
@@ -199,7 +198,7 @@ const Header = () => {
         </div>
 
         {/* Desktop category nav bar */}
-        <div className="hidden md:block bg-[#2C2C2A] border-t border-white/5 relative z-50">
+        <div className="hidden md:block bg-[#2C2C2A] border-t border-white/5 relative z-40">
           <div className="container mx-auto px-6 overflow-x-auto no-scrollbar">
             <div className="flex items-center gap-7 py-2.5 min-w-max">
               <Link
@@ -248,7 +247,7 @@ const Header = () => {
         {/* Desktop dropdown */}
         {openCat && (
           <div
-            className="hidden md:block fixed bg-[#2C2C2A] border border-white/10 rounded-xl shadow-lg py-3 min-w-[200px] z-[60]"
+            className="hidden md:block fixed bg-[#2C2C2A] border border-white/10 rounded-xl shadow-lg py-3 min-w-[200px] z-[45]"
             style={{ left: dropdownPos.left, top: dropdownPos.top }}
             onMouseEnter={() => setOpenCat(openCat)}
             onMouseLeave={() => setOpenCat(null)}
