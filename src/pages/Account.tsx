@@ -407,6 +407,11 @@ const Account = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  // Admin users should use /admin, redirect them
+  if (profile.user_type === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+
   const userType = profile.user_type as keyof typeof PROFILE_CONFIG;
   const config = PROFILE_CONFIG[userType] ?? PROFILE_CONFIG.client;
   const nav = userType === "partner" ? getPartnerNav(partnerPlan) : config.nav;
