@@ -8,9 +8,10 @@ import {
   XCircle, Clock, AlertTriangle, Star, TrendingUp,
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
-  CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft,
+  CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { DBProduct, ProductTypeTags, TagDefinition } from "@/lib/products";
 import type { Json } from "@/integrations/supabase/types";
@@ -1572,7 +1573,14 @@ const TAB_TITLES: Record<Tab, string> = {
 const Admin = () => {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const { data: products = [] } = useProducts();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   const { data: pendingApps = [] } = useQuery({
     queryKey: ["partner_applications_pending"],
@@ -1696,6 +1704,13 @@ const Admin = () => {
             <ChevronLeft className="h-3.5 w-3.5" />
             Retour au site
           </Link>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 px-3 py-2 mt-1 w-full text-[11px] font-display font-semibold text-red-400/70 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Déconnexion
+          </button>
         </div>
       </aside>
 
