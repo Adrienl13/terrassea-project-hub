@@ -64,25 +64,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (user) await fetchProfile(user.id);
   };
 
-  // 1) Bootstrap: get initial session, then mark loading done
+  // 1) Bootstrap: get initial session + fetch profile, THEN mark loading done
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      setSession(session);
-      setUser(session?.user ?? null);
-    }).catch((err) => {
-      console.error("Failed to get session:", err);
-    }).finally(() => {
-      if (mounted) setIsLoading(false);
-    });
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        }
+      } catch (err) {
+        console.error("Failed to get session:", err);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    })();
 
     return () => { mounted = false; };
   }, []);
 
   // 2) Listen for auth changes (sign-in, sign-out, token refresh)
-  //    NEVER do async DB work inside this callback — it deadlocks Supabase
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -90,20 +95,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (_event === "SIGNED_OUT") setIsPasswordRecovery(false);
         setSession(session);
         setUser(session?.user ?? null);
-        if (!session?.user) setProfile(null);
+        if (!session?.user) {
+          setProfile(null);
+        } else {
+          // Fetch profile on auth change (sign-in, token refresh)
+          fetchProfile(session.user.id);
+        }
       }
     );
     return () => subscription.unsubscribe();
   }, []);
-
-  // 3) Fetch profile whenever user changes (separate effect = no deadlock)
-  useEffect(() => {
-    if (user) {
-      fetchProfile(user.id);
-    } else {
-      setProfile(null);
-    }
-  }, [user?.id]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
