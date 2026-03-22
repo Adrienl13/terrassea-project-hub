@@ -67,7 +67,7 @@ function InfoBlock({ icon, title, items }: {
 // SOURCING CTA CARD
 // ═══════════════════════════════════════════════════════════
 
-function SourcingCTA({ partnerType, slug }: { partnerType: string; slug: string }) {
+function SourcingCTA({ partnerType, slug, productCount }: { partnerType: string; slug: string; productCount: number }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -93,7 +93,7 @@ function SourcingCTA({ partnerType, slug }: { partnerType: string; slug: string 
         className="w-full flex items-center justify-center gap-2 py-3 font-display font-semibold text-sm text-white rounded-full hover:opacity-90 transition-opacity mb-3"
         style={{ background: "#D4603A" }}
       >
-        {t("partnerDetail.seeProducts")} <ArrowRight className="h-4 w-4" />
+        {t("partnerDetail.seeProducts")} {productCount > 0 && `(${productCount})`} <ArrowRight className="h-4 w-4" />
       </button>
 
       <button
@@ -162,6 +162,21 @@ export default function PartnerDetail() {
       return data;
     },
     enabled: !!slug,
+  });
+
+  // Product count for this partner
+  const { data: productCount = 0 } = useQuery({
+    queryKey: ["partner-product-count", partner?.id],
+    queryFn: async () => {
+      if (!partner?.id) return 0;
+      const { count } = await supabase
+        .from("product_offers")
+        .select("id", { count: "exact", head: true })
+        .eq("partner_id", partner.id)
+        .eq("is_active", true);
+      return count ?? 0;
+    },
+    enabled: !!partner?.id,
   });
 
   // Loading
@@ -379,7 +394,7 @@ export default function PartnerDetail() {
 
             {/* ── RIGHT COLUMN — sticky CTA ── */}
             <div className="lg:sticky lg:top-28 self-start">
-              <SourcingCTA partnerType={partner.partner_type} slug={partner.slug} />
+              <SourcingCTA partnerType={partner.partner_type} slug={partner.slug} productCount={productCount} />
             </div>
           </motion.div>
         </div>

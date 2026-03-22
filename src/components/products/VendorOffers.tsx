@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Package, Truck, ShoppingCart, FileText,
@@ -376,9 +377,15 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
                       <SupplierAvatar index={index} isAdmin={isAdmin} offer={offer} />
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-display font-semibold text-foreground text-xs">
-                            {displayName}
-                          </span>
+                          {isAdmin && offer.partner?.slug ? (
+                            <Link to={`/partners/${offer.partner.slug}`} className="font-display font-semibold text-foreground text-xs hover:underline">
+                              {displayName}
+                            </Link>
+                          ) : (
+                            <span className="font-display font-semibold text-foreground text-xs">
+                              {displayName}
+                            </span>
+                          )}
                           {index === summary.bestStockIndex && (
                             <span className="text-[9px] font-display font-semibold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
                               {t("vendorOffers.bestMatch")}

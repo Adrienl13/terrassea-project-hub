@@ -129,6 +129,8 @@ export interface DBProduct {
   popularity_score:   number;
   priority_score:     number;
   data_quality_score: number;
+  // Linked partner (supplier who owns this product)
+  partner_id: string | null;
   // Computed at fetch time from product_offers
   offers_count?: number;
   // Publish workflow field
@@ -282,6 +284,7 @@ export function normalizeProduct(raw: any): DBProduct {
     dismountable:     raw.dismountable      ?? false,
     requires_assembly: raw.requires_assembly ?? false,
     combinable:       raw.combinable        ?? false,
+    partner_id:       raw.partner_id        ?? null,
     popularity_score:   raw.popularity_score   ?? 0,
     priority_score:     raw.priority_score     ?? 0,
     data_quality_score: raw.data_quality_score ?? 0,

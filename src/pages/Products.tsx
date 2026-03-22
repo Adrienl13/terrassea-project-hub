@@ -219,7 +219,7 @@ const Products = () => {
     }
 
     return result;
-  }, [products, search, filters, sortKey, supplierSlug]);
+  }, [products, search, filters, sortKey, supplierSlug, supplierPartner]);
 
   const handleAdd = (product: DBProduct) => {
     addItem(product);
