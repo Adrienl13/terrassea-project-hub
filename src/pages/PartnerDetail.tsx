@@ -169,12 +169,14 @@ export default function PartnerDetail() {
     queryKey: ["partner-product-count", partner?.id],
     queryFn: async () => {
       if (!partner?.id) return 0;
-      const { count } = await supabase
+      const { data } = await supabase
         .from("product_offers")
-        .select("id", { count: "exact", head: true })
+        .select("product_id")
         .eq("partner_id", partner.id)
         .eq("is_active", true);
-      return count ?? 0;
+      // Count DISTINCT products, not raw offer rows
+      const uniqueProducts = new Set((data || []).map((d: any) => d.product_id));
+      return uniqueProducts.size;
     },
     enabled: !!partner?.id,
   });

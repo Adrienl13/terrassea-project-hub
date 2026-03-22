@@ -60,6 +60,21 @@ const Products = () => {
     enabled: !!supplierSlug,
   });
 
+  // Fetch product IDs this partner offers (via product_offers table)
+  const { data: supplierProductIds } = useQuery({
+    queryKey: ["supplier-product-ids", supplierPartner?.id],
+    queryFn: async () => {
+      if (!supplierPartner?.id) return [];
+      const { data } = await supabase
+        .from("product_offers")
+        .select("product_id")
+        .eq("partner_id", supplierPartner.id)
+        .eq("is_active", true);
+      return [...new Set((data || []).map((d: any) => d.product_id as string))];
+    },
+    enabled: !!supplierPartner?.id,
+  });
+
   const clearSupplierFilter = () => {
     searchParams.delete("supplier");
     setSearchParams(searchParams);
@@ -98,11 +113,13 @@ const Products = () => {
   const filtered = useMemo(() => {
     let result = products;
 
-    // Supplier filter from URL param — match by partner_id (if partner found) or by slug in text fields
+    // Supplier filter: match via product_offers (primary) + products.partner_id + text fallbacks
     if (supplierSlug) {
+      const offerIds = supplierProductIds ?? [];
       const partnerId = supplierPartner?.id ?? null;
       result = result.filter(
         (p) =>
+          offerIds.includes(p.id) ||
           (partnerId && p.partner_id === partnerId) ||
           p.supplier_internal?.toLowerCase() === supplierSlug.toLowerCase() ||
           p.brand_source?.toLowerCase() === supplierSlug.toLowerCase()
@@ -219,7 +236,7 @@ const Products = () => {
     }
 
     return result;
-  }, [products, search, filters, sortKey, supplierSlug, supplierPartner]);
+  }, [products, search, filters, sortKey, supplierSlug, supplierPartner, supplierProductIds]);
 
   const handleAdd = (product: DBProduct) => {
     addItem(product);
