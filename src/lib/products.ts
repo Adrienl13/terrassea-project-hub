@@ -81,6 +81,7 @@ export interface DBProduct {
   archetype_confidence: number | null;
   image_url:    string | null;
   gallery_urls: string[];
+  environment_urls: string[];
   documents:    any[];
   price_min: number | null;
   price_max: number | null;
@@ -293,6 +294,7 @@ export function normalizeProduct(raw: any): DBProduct {
     technical_tags:  raw.technical_tags  ?? [],
     available_colors: raw.available_colors ?? [],
     gallery_urls:    raw.gallery_urls    ?? [],
+    environment_urls: raw.environment_urls ?? [],
     documents:       raw.documents       ?? [],
     color_variants:  raw.color_variants  ?? [],
     product_type_tags: raw.product_type_tags ?? {},

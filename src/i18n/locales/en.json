@@ -3485,5 +3485,14 @@
       "createProject": "Create project",
       "requestQuote": "Request quote"
     }
+  },
+  "gallery": {
+    "productPhotos": "Product photos",
+    "environmentPhotos": "Environment photos",
+    "inSitu": "In situ",
+    "maxProductPhotos": "Up to 5 product photos (JPG, PNG, WebP)",
+    "maxEnvironmentPhotos": "Up to 3 environment photos (in situ)",
+    "uploadProduct": "Product photos",
+    "uploadEnvironment": "Environment photos (in situ)"
   }
 }

@@ -3485,5 +3485,14 @@
       "createProject": "Creer un projet",
       "requestQuote": "Demander un devis"
     }
+  },
+  "gallery": {
+    "productPhotos": "Photos produit",
+    "environmentPhotos": "Photos d'ambiance",
+    "inSitu": "In situ",
+    "maxProductPhotos": "Jusqu'a 5 photos produit (JPG, PNG, WebP)",
+    "maxEnvironmentPhotos": "Jusqu'a 3 photos d'ambiance (in situ)",
+    "uploadProduct": "Photos produit",
+    "uploadEnvironment": "Photos d'ambiance (in situ)"
   }
 }

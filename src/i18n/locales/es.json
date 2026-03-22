@@ -3391,5 +3391,14 @@
       "createProject": "Crear proyecto",
       "requestQuote": "Solicitar presupuesto"
     }
+  },
+  "gallery": {
+    "productPhotos": "Fotos del producto",
+    "environmentPhotos": "Fotos de ambiente",
+    "inSitu": "In situ",
+    "maxProductPhotos": "Hasta 5 fotos de producto (JPG, PNG, WebP)",
+    "maxEnvironmentPhotos": "Hasta 3 fotos de ambiente (in situ)",
+    "uploadProduct": "Fotos de producto",
+    "uploadEnvironment": "Fotos de ambiente (in situ)"
   }
 }

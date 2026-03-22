@@ -50,6 +50,7 @@ interface ProductFormData {
   long_description: string;
   image_url: string;
   gallery_urls: string[];
+  environment_urls: string[];
   price_min: number | null;
   price_max: number | null;
   main_color: string;
@@ -81,7 +82,7 @@ interface ProductFormData {
 
 const EMPTY_FORM: ProductFormData = {
   name: "", category: "", subcategory: "", short_description: "", long_description: "",
-  image_url: "", gallery_urls: [], price_min: null, price_max: null,
+  image_url: "", gallery_urls: [], environment_urls: [], price_min: null, price_max: null,
   main_color: "", secondary_color: "", material_structure: "", material_seat: "",
   style_tags: [], ambience_tags: [], material_tags: [], use_case_tags: [],
   dimensions_length_cm: null, dimensions_width_cm: null, dimensions_height_cm: null,
@@ -129,10 +130,14 @@ export default function AddProductForm({
   const { submitProduct, isSubmitting } = useProductSubmission();
   const config = PLAN_CONFIG[plan];
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const envInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<ProductFormData>(EMPTY_FORM);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<{ file: File; preview: string }[]>([]);
+  const [envFiles, setEnvFiles] = useState<{ file: File; preview: string }[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [aiConfidence, setAiConfidence] = useState<number | null>(null);
   const [aiApplied, setAiApplied] = useState(false);
@@ -179,6 +184,72 @@ export default function AddProductForm({
     reader.readAsDataURL(file);
     setAiApplied(false);
     setAiConfidence(null);
+  };
+
+  // ── Gallery / Environment image handling ──
+
+  const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const remaining = 5 - galleryFiles.length;
+    const toAdd = files.slice(0, remaining).filter(f => f.size <= 10 * 1024 * 1024);
+    toAdd.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setGalleryFiles(prev => {
+          if (prev.length >= 5) return prev;
+          return [...prev, { file, preview: ev.target?.result as string }];
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    if (e.target) e.target.value = "";
+  };
+
+  const handleEnvSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const remaining = 3 - envFiles.length;
+    const toAdd = files.slice(0, remaining).filter(f => f.size <= 10 * 1024 * 1024);
+    toAdd.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setEnvFiles(prev => {
+          if (prev.length >= 3) return prev;
+          return [...prev, { file, preview: ev.target?.result as string }];
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    if (e.target) e.target.value = "";
+  };
+
+  const removeGalleryFile = (index: number) => {
+    setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeEnvFile = (index: number) => {
+    setEnvFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadExtraImages = async (
+    files: { file: File; preview: string }[],
+    prefix: string,
+  ): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const { file, preview } of files) {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `products/${user!.id}/${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(path, file, { contentType: file.type });
+      if (uploadError) {
+        console.warn("Upload failed, using preview:", uploadError.message);
+        urls.push(preview);
+      } else {
+        const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+        urls.push(urlData.publicUrl);
+      }
+    }
+    return urls;
   };
 
   // ── AI Analysis ──
@@ -291,6 +362,14 @@ export default function AddProductForm({
         }
       }
 
+      // Upload gallery and environment images
+      const galleryUrls = galleryFiles.length > 0
+        ? await uploadExtraImages(galleryFiles, "gallery")
+        : form.gallery_urls;
+      const environmentUrls = envFiles.length > 0
+        ? await uploadExtraImages(envFiles, "env")
+        : form.environment_urls;
+
       const { duplicate } = await submitProduct({
         name: form.name,
         category: form.category,
@@ -298,7 +377,8 @@ export default function AddProductForm({
         short_description: form.short_description || null,
         long_description: form.long_description || null,
         image_url: finalImageUrl || null,
-        gallery_urls: form.gallery_urls.length > 0 ? form.gallery_urls : null,
+        gallery_urls: galleryUrls.length > 0 ? galleryUrls : null,
+        environment_urls: environmentUrls.length > 0 ? environmentUrls : null,
         price_min: form.price_min,
         price_max: form.price_max,
         main_color: form.main_color || null,
@@ -570,6 +650,117 @@ export default function AddProductForm({
                   </p>
                 </div>
               )}
+
+              {/* Product gallery photos */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("gallery.uploadProduct")} ({galleryFiles.length}/5)
+                  </label>
+                  {galleryFiles.length < 5 && (
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="text-[10px] font-display font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                      + {t("gallery.productPhotos")}
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleGallerySelect}
+                  className="hidden"
+                />
+                {galleryFiles.length > 0 ? (
+                  <div className="flex gap-2 flex-wrap">
+                    {galleryFiles.map((g, i) => (
+                      <div key={i} className="relative w-16 h-16 rounded-sm overflow-hidden border-2 border-blue-200">
+                        <img src={g.preview} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryFile(i)}
+                          className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-background/80 border border-border flex items-center justify-center hover:bg-background"
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-blue-500" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="w-full border border-dashed border-blue-200 rounded-sm p-3 text-center hover:border-blue-400 transition-colors"
+                  >
+                    <ImageIcon className="h-5 w-5 text-blue-300 mx-auto mb-1" />
+                    <p className="text-[10px] font-body text-muted-foreground">
+                      {t("gallery.maxProductPhotos")}
+                    </p>
+                  </button>
+                )}
+              </div>
+
+              {/* Environment photos */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("gallery.uploadEnvironment")} ({envFiles.length}/3)
+                  </label>
+                  {envFiles.length < 3 && (
+                    <button
+                      type="button"
+                      onClick={() => envInputRef.current?.click()}
+                      className="text-[10px] font-display font-semibold text-green-600 hover:text-green-700 transition-colors"
+                    >
+                      + {t("gallery.environmentPhotos")}
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={envInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleEnvSelect}
+                  className="hidden"
+                />
+                {envFiles.length > 0 ? (
+                  <div className="flex gap-2 flex-wrap">
+                    {envFiles.map((g, i) => (
+                      <div key={i} className="relative w-16 h-16 rounded-sm overflow-hidden border-2 border-green-200">
+                        <img src={g.preview} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeEnvFile(i)}
+                          className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-background/80 border border-border flex items-center justify-center hover:bg-background"
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-green-500" />
+                        <span className="absolute top-0.5 left-0.5 text-[6px] font-display font-semibold bg-green-500/80 text-white px-1 rounded">
+                          {t("gallery.inSitu")}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => envInputRef.current?.click()}
+                    className="w-full border border-dashed border-green-200 rounded-sm p-3 text-center hover:border-green-400 transition-colors"
+                  >
+                    <ImageIcon className="h-5 w-5 text-green-300 mx-auto mb-1" />
+                    <p className="text-[10px] font-body text-muted-foreground">
+                      {t("gallery.maxEnvironmentPhotos")}
+                    </p>
+                  </button>
+                )}
+              </div>
 
               {!imagePreview && (
                 <div className="flex items-start gap-2 px-4 py-3 bg-card border border-border rounded-sm">

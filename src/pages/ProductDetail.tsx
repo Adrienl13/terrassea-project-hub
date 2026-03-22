@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ProductGallery from "@/components/products/ProductGallery";
 import VendorOffers from "@/components/products/VendorOffers";
 import CompatibleProducts from "@/components/products/CompatibleProducts";
 import { fetchProductById, fetchProducts, type DBProduct } from "@/lib/products";
@@ -114,8 +115,6 @@ const ProductDetail = () => {
 
   // Determine displayed image based on selected color variant
   const activeVariant = product.color_variants.find((v) => v.color_slug === selectedVariant);
-  const displayImage = activeVariant?.image_url || product.image_url || "/placeholder.svg";
-
   const handleAdd = () => {
     if (isArchitect) {
       setProjectModalOpen(true);
@@ -198,22 +197,13 @@ const ProductDetail = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4">
-                  <img
-                    src={displayImage}
-                    alt={localName}
-                    className="w-full h-full object-cover transition-all duration-300"
-                  />
-                </div>
-                {product.gallery_urls.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {product.gallery_urls.slice(0, 4).map((url, i) => (
-                      <div key={i} className="aspect-square overflow-hidden bg-card rounded-sm">
-                        <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <ProductGallery
+                  mainImage={product.image_url}
+                  galleryUrls={product.gallery_urls}
+                  environmentUrls={product.environment_urls}
+                  selectedVariantImage={activeVariant?.image_url || null}
+                  productName={localName}
+                />
               </motion.div>
 
               {/* Info */}
