@@ -3468,6 +3468,24 @@
     "privacy": "Confidentialité",
     "cookies": "Paramètres cookies"
   },
+  "cookieBanner": {
+    "title": "Gestion des cookies",
+    "close": "Fermer",
+    "description": "Nous utilisons des cookies pour assurer le bon fonctionnement de la plateforme et, avec votre consentement, pour analyser notre audience afin d'améliorer nos services. Consultez notre",
+    "privacyPolicy": "Politique de confidentialité",
+    "learnMore": "pour en savoir plus.",
+    "acceptAll": "Tout accepter",
+    "settings": "Paramétrer",
+    "refuse": "Refuser",
+    "necessaryCookies": "Cookies strictement nécessaires",
+    "necessaryDesc": "Indispensables au fonctionnement de la plateforme (authentification, session, langue).",
+    "necessaryAlwaysActive": "Cookies nécessaires — toujours actifs",
+    "analyticsCookies": "Cookies analytiques",
+    "analyticsDesc": "Permettent de mesurer l'audience et d'améliorer la plateforme.",
+    "analyticsLabel": "Cookies analytiques",
+    "saveChoices": "Enregistrer mes choix",
+    "back": "Retour"
+  },
   "stripe": {
     "payDeposit": "Payer l'acompte",
     "payBalance": "Payer le solde",

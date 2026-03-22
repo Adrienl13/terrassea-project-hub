@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSupplierCalls } from "@/hooks/useSupplierCalls";
 import type { SupplierCall as HookSupplierCall, SupplierResponse as HookSupplierResponse } from "@/hooks/useSupplierCalls";
-import { useArchitectProjects, useProjectZones, useProjectAnnotations, useMaterialBoards } from "@/hooks/useArchitectProjects";
+import { useArchitectProjects, useProjectZones, useProjectAnnotations, useMaterialBoards, useProjectTemplates } from "@/hooks/useArchitectProjects";
 import type { ZoneWithProducts } from "@/hooks/useArchitectProjects";
 
 const ProjectAnnotations = lazy(() => import("./ProjectAnnotations"));
@@ -487,7 +487,9 @@ const labelCls = "text-[10px] font-display font-semibold uppercase tracking-wide
 export function ArchitectCreateProject({ onBack, onCreated }: { onBack: () => void; onCreated?: (project: ArchitectProject) => void }) {
   const { t } = useTranslation();
   const { createProject } = useArchitectProjects();
+  const { templates, createFromTemplate } = useProjectTemplates();
   const [submitting, setSubmitting] = useState(false);
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
   const [form, setForm] = useState({
     projectName: "", venueType: "restaurant",
     clientName: "", clientEmail: "", clientPhone: "", clientCompany: "",
@@ -534,8 +536,52 @@ export function ArchitectCreateProject({ onBack, onCreated }: { onBack: () => vo
         <button onClick={onBack} className="flex items-center gap-1.5 text-[10px] font-body text-muted-foreground hover:text-foreground transition-colors mb-3">
           <ArrowLeft className="h-3 w-3" /> {t('ad.create.back')}
         </button>
-        <h2 className="font-display font-bold text-lg text-foreground">{t('ad.create.title')}</h2>
-        <p className="text-[10px] font-body text-muted-foreground mt-0.5">{t('ad.create.subtitle')}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display font-bold text-lg text-foreground">{t('ad.create.title')}</h2>
+            <p className="text-[10px] font-body text-muted-foreground mt-0.5">{t('ad.create.subtitle')}</p>
+          </div>
+          {templates.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                className="text-[10px] font-display font-semibold px-3 py-1.5 rounded-full border border-border hover:border-foreground text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+              >
+                <FileText className="h-3 w-3" />
+                {t('ad.create.fromTemplate', 'Créer depuis un template')}
+              </button>
+              {showTemplateDropdown && (
+                <div className="absolute right-0 top-full mt-1 w-56 bg-card border border-border rounded-sm shadow-lg z-20 py-1">
+                  {templates.map((tpl: any) => (
+                    <button
+                      key={tpl.id}
+                      onClick={async () => {
+                        setShowTemplateDropdown(false);
+                        setSubmitting(true);
+                        try {
+                          const created = await createFromTemplate({
+                            templateId: tpl.id,
+                            projectName: tpl.template_name + " (copy)",
+                          });
+                          toast.success(t('ad.create.templateSuccess', 'Project created from template'));
+                          onCreated?.(dbToArchitectProject(created));
+                        } catch {
+                          toast.error(t('ad.create.templateError', 'Failed to create from template'));
+                        } finally {
+                          setSubmitting(false);
+                        }
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-body text-foreground hover:bg-muted transition-colors"
+                    >
+                      {tpl.template_name}
+                      {tpl.venue_type && <span className="text-muted-foreground ml-1">({tpl.venue_type})</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Client info */}
@@ -611,8 +657,10 @@ export function ArchitectProjectDetail({
   const { projects: dbProjects, updateProject } = useArchitectProjects();
   const { zones: dbZones, isLoading: zonesLoading, addZone } = useProjectZones(projectId);
   const { boards, isLoading: boardsLoading } = useMaterialBoards(projectId);
+  const { saveAsTemplate } = useProjectTemplates();
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"zones" | "notes" | "boards">("zones");
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   // Find the DB row and convert
   const dbRow = dbProjects.find((p) => p.id === projectId);
@@ -707,6 +755,24 @@ export function ArchitectProjectDetail({
               }}
               className={`text-[10px] font-display font-semibold px-3 py-1 rounded-full border transition-colors ${editing ? "border-foreground bg-foreground text-primary-foreground" : "border-border hover:border-foreground text-muted-foreground hover:text-foreground"}`}>
               {editing ? t('ad.detail.save') : t('ad.detail.edit')}
+            </button>
+            <button
+              onClick={async () => {
+                if (savingTemplate) return;
+                setSavingTemplate(true);
+                try {
+                  await saveAsTemplate({ projectId, templateName: project.projectName });
+                  toast.success(t('ad.detail.templateSaved', 'Saved as template'));
+                } catch {
+                  toast.error(t('ad.detail.templateSaveError', 'Failed to save template'));
+                } finally {
+                  setSavingTemplate(false);
+                }
+              }}
+              disabled={savingTemplate}
+              className="text-[10px] font-display font-semibold px-3 py-1 rounded-full border border-border hover:border-foreground text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
+            >
+              {savingTemplate ? "..." : t('ad.detail.saveAsTemplate', 'Sauvegarder comme template')}
             </button>
           </div>
         </div>

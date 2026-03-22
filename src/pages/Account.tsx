@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
-  TrendingUp, Star, ChevronRight, Percent, Inbox,
+  TrendingUp, Star, ChevronRight, Percent, Inbox, Clock,
   AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -225,47 +225,7 @@ function FavMiniCard({ product, onRemove }: { product: any; onRemove: () => void
 
 // ── Section content ───────────────────────────────────────────────────────────
 
-function ClientOverview({ favourites, onToggleFavourite }: { favourites: any[]; onToggleFavourite: (p: any) => void }) {
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard value="2" label="Active projects" />
-        <StatCard value="5" label="Quote requests" trend="+2 this month" trendColor="#085041" />
-        <StatCard value="€12,400" label="Total estimated" />
-        <StatCard value={String(favourites.length)} label="Favourites" />
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-display font-bold text-sm text-foreground">Recent projects</p>
-          <button className="text-[10px] font-body text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-            View all <ChevronRight className="h-3 w-3" />
-          </button>
-        </div>
-        <div className="space-y-2">
-          <ProjectRow title="Rooftop Bar — Paris 11" meta="24 products · Updated 2d ago" badge="In progress" badgeStyle="bg-amber-50 text-amber-700" />
-          <ProjectRow title="Hotel Lobby — Lyon" meta="12 products · Updated 1w ago" badge="Quoted" badgeStyle="bg-green-50 text-green-700" />
-          <ProjectRow title="Beach Club — Marseille" meta="36 products · Updated 3w ago" badge="Draft" badgeStyle="bg-muted text-muted-foreground" />
-        </div>
-      </div>
-
-      {favourites.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-display font-bold text-sm text-foreground">Favourites</p>
-            <span className="text-[10px] font-body text-muted-foreground">{favourites.length} saved</span>
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-            {favourites.slice(0, 6).map((p) => (
-              <FavMiniCard key={p.id} product={p} onRemove={() => onToggleFavourite(p)} />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
+// ClientOverview (old mock version) has been removed — ClientOverviewNew from ClientSections is used instead.
 // PartnerOverview is now imported from PartnerSections
 
 // ArchitectOverview moved to @/components/architect-dashboard/ArchitectSections
@@ -428,6 +388,21 @@ const Account = () => {
     if (userType === "partner") {
       if (section === "settings") return <SettingsSection profile={profile} />;
       if (section === "favourites") return <FavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
+
+      // If partner has no partners row, show "account being reviewed" message
+      if (!partnerId && section !== "settings" && section !== "favourites") {
+        return (
+          <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center">
+              <Clock className="h-6 w-6 text-amber-600" />
+            </div>
+            <h3 className="font-display font-bold text-lg text-foreground">{t('account.partnerReviewTitle', 'Your account is being reviewed')}</h3>
+            <p className="text-sm font-body text-muted-foreground max-w-md">
+              {t('account.partnerReviewDesc', 'Our team is reviewing your partner application. You will receive a notification once your account is activated. This usually takes 24-48 hours.')}
+            </p>
+          </div>
+        );
+      }
 
       const partnerSectionContent = (() => {
         switch (section) {

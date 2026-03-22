@@ -126,13 +126,13 @@ export default function ProServiceLanding() {
     if (!qualified) { setPhase("not_qualified"); return; }
     setSubmitting(true);
     try {
-      await supabase.from("project_requests").insert({
-        project_name: `Pro Service — ${form.company || form.name}`,
-        contact_name: form.name, contact_company: form.company,
-        contact_email: form.email, contact_phone: form.phone,
-        city: form.location, budget_range: form.budget, timeline: form.timeline,
-        free_text_request: `${form.notes}\n\nType: ${form.establishmentType}\nCovers: ${form.covers}\nSpaces: ${form.spaces}\nStyle: ${form.style}\nConstraints: ${form.constraints}`,
-        detected_attributes: { service_type: "pro_service", siren: form.siren, covers: coversNum, spaces: form.spaces },
+      await supabase.from("pro_service_requests").insert({
+        project_title: `Pro Service — ${form.company || form.name}`,
+        client_name: form.name, client_company: form.company,
+        client_email: form.email, client_phone: form.phone,
+        project_city: form.location, budget_range: form.budget, timeline: form.timeline,
+        description: `${form.notes}\n\nType: ${form.establishmentType}\nCovers: ${form.covers}\nSpaces: ${form.spaces}\nStyle: ${form.style}\nConstraints: ${form.constraints}`,
+        status: "open",
       });
       setPhase("submitted");
     } catch {

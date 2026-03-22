@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { X } from "lucide-react";
@@ -27,6 +28,7 @@ function storeConsent(consent: CookieConsent) {
 }
 
 const CookieBanner = () => {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [analytics, setAnalytics] = useState(false);
@@ -60,12 +62,12 @@ const CookieBanner = () => {
       <div className="mx-auto max-w-2xl rounded-xl border bg-background shadow-xl p-5 md:p-6">
         <div className="flex items-start justify-between gap-4 mb-3">
           <h3 className="font-display font-semibold text-sm">
-            Gestion des cookies
+            {t("cookieBanner.title")}
           </h3>
           <button
             onClick={refuse}
             className="text-muted-foreground hover:text-foreground transition-colors -mt-1"
-            aria-label="Fermer"
+            aria-label={t("cookieBanner.close")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -74,20 +76,18 @@ const CookieBanner = () => {
         {!showSettings ? (
           <>
             <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-              Nous utilisons des cookies pour assurer le bon fonctionnement de la plateforme et, avec
-              votre consentement, pour analyser notre audience afin d'améliorer nos services.
-              Consultez notre{" "}
+              {t("cookieBanner.description")}{" "}
               <Link
                 to="/confidentialite"
                 className="text-primary underline hover:text-primary/80"
               >
-                Politique de confidentialité
+                {t("cookieBanner.privacyPolicy")}
               </Link>{" "}
-              pour en savoir plus.
+              {t("cookieBanner.learnMore")}
             </p>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={accept} className="text-xs">
-                Tout accepter
+                {t("cookieBanner.acceptAll")}
               </Button>
               <Button
                 size="sm"
@@ -95,7 +95,7 @@ const CookieBanner = () => {
                 onClick={() => setShowSettings(true)}
                 className="text-xs"
               >
-                Paramétrer
+                {t("cookieBanner.settings")}
               </Button>
               <Button
                 size="sm"
@@ -103,7 +103,7 @@ const CookieBanner = () => {
                 onClick={refuse}
                 className="text-xs text-muted-foreground"
               >
-                Refuser
+                {t("cookieBanner.refuse")}
               </Button>
             </div>
           </>
@@ -112,30 +112,30 @@ const CookieBanner = () => {
             <div className="space-y-4 mb-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-medium">Cookies strictement nécessaires</p>
+                  <p className="text-xs font-medium">{t("cookieBanner.necessaryCookies")}</p>
                   <p className="text-xs text-muted-foreground">
-                    Indispensables au fonctionnement de la plateforme (authentification, session, langue).
+                    {t("cookieBanner.necessaryDesc")}
                   </p>
                 </div>
-                <Switch checked disabled aria-label="Cookies nécessaires — toujours actifs" />
+                <Switch checked disabled aria-label={t("cookieBanner.necessaryAlwaysActive")} />
               </div>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-medium">Cookies analytiques</p>
+                  <p className="text-xs font-medium">{t("cookieBanner.analyticsCookies")}</p>
                   <p className="text-xs text-muted-foreground">
-                    Permettent de mesurer l'audience et d'améliorer la plateforme.
+                    {t("cookieBanner.analyticsDesc")}
                   </p>
                 </div>
                 <Switch
                   checked={analytics}
                   onCheckedChange={setAnalytics}
-                  aria-label="Cookies analytiques"
+                  aria-label={t("cookieBanner.analyticsLabel")}
                 />
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={saveSettings} className="text-xs">
-                Enregistrer mes choix
+                {t("cookieBanner.saveChoices")}
               </Button>
               <Button
                 size="sm"
@@ -143,7 +143,7 @@ const CookieBanner = () => {
                 onClick={() => setShowSettings(false)}
                 className="text-xs text-muted-foreground"
               >
-                Retour
+                {t("cookieBanner.back")}
               </Button>
             </div>
           </>

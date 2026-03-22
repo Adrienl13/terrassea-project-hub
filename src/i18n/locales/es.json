@@ -3374,6 +3374,24 @@
     "privacy": "Privacidad",
     "cookies": "Configuración cookies"
   },
+  "cookieBanner": {
+    "title": "Configuración de cookies",
+    "close": "Cerrar",
+    "description": "Utilizamos cookies para garantizar el buen funcionamiento de la plataforma y, con su consentimiento, para analizar nuestra audiencia con el fin de mejorar nuestros servicios. Consulte nuestra",
+    "privacyPolicy": "Política de privacidad",
+    "learnMore": "para saber más.",
+    "acceptAll": "Aceptar todo",
+    "settings": "Personalizar",
+    "refuse": "Rechazar",
+    "necessaryCookies": "Cookies estrictamente necesarias",
+    "necessaryDesc": "Esenciales para el funcionamiento de la plataforma (autenticación, sesión, idioma).",
+    "necessaryAlwaysActive": "Cookies necesarias — siempre activas",
+    "analyticsCookies": "Cookies analíticas",
+    "analyticsDesc": "Permiten medir la audiencia y mejorar la plataforma.",
+    "analyticsLabel": "Cookies analíticas",
+    "saveChoices": "Guardar mis preferencias",
+    "back": "Volver"
+  },
   "stripe": {
     "payDeposit": "Pagar depósito",
     "payBalance": "Pagar saldo",

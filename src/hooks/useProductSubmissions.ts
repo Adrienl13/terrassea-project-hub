@@ -56,14 +56,14 @@ export function useProductSubmission() {
               "merge-descriptions",
               {
                 body: {
-                  newDescription: productData.long_description ?? productData.short_description ?? "",
-                  existingDescription:
+                  description_b: productData.long_description ?? productData.short_description ?? "",
+                  description_a:
                     bestMatch.product.long_description ?? bestMatch.product.short_description ?? "",
-                  productName: productData.name ?? "",
+                  product_name: productData.name ?? "",
                 },
               }
             );
-            mergedDescription = mergeData?.merged_description ?? null;
+            mergedDescription = mergeData?.merged ?? null;
           } catch {
             // Edge function may not be deployed yet; continue without merge
           }
@@ -290,13 +290,13 @@ export function useAdminSubmissions() {
         "merge-descriptions",
         {
           body: {
-            newDescription:
+            description_b:
               (submission.product_data as Record<string, unknown>)?.long_description ??
               (submission.product_data as Record<string, unknown>)?.short_description ??
               "",
-            existingDescription:
+            description_a:
               existing?.long_description ?? existing?.short_description ?? "",
-            productName:
+            product_name:
               (submission.product_data as Record<string, unknown>)?.name ?? "",
           },
         }
@@ -304,7 +304,7 @@ export function useAdminSubmissions() {
 
       if (fnError) throw fnError;
 
-      const mergedDescription = mergeData?.merged_description ?? null;
+      const mergedDescription = mergeData?.merged ?? null;
 
       const { error: updateError } = await supabase
         .from("product_submissions")

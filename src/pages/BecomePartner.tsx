@@ -203,8 +203,31 @@ const BecomePartner = () => {
         delivery_countries: form.deliveryCountries,
         message: form.message || null,
         status: "pending",
+        selected_plan: selectedPlan,
       });
       if (error) throw error;
+
+      // Notify admins about the new partner application
+      try {
+        const { data: admins } = await supabase
+          .from("user_profiles")
+          .select("id")
+          .eq("user_type", "admin")
+          .limit(50);
+        if (admins && admins.length > 0) {
+          const notifications = admins.map((admin) => ({
+            user_id: admin.id,
+            title: "Nouvelle candidature partenaire",
+            body: `Nouvelle candidature partenaire : ${form.companyName}`,
+            type: "partner_application",
+            link: "/admin?tab=applications",
+          }));
+          await supabase.from("notifications").insert(notifications);
+        }
+      } catch {
+        // Non-blocking: don't fail the application if notification fails
+      }
+
       setPhase("submitted");
     } catch (err) {
       console.error(err);

@@ -321,6 +321,21 @@ export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNav
     enabled: !!partnerId,
   });
 
+  // Recent quote requests for the overview list
+  const { data: recentQuotes = [] } = useQuery({
+    queryKey: ["partner-recent-quotes", partnerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quote_requests")
+        .select("id, product_name, client_name, quantity, unit_price, status, created_at")
+        .eq("partner_id", partnerId!)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      return data ?? [];
+    },
+    enabled: !!partnerId,
+  });
+
   // Products listed count
   const { data: productsCount = 0 } = useQuery({
     queryKey: ["partner-products-count", partnerId],
@@ -386,36 +401,27 @@ export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNav
           </button>
         </div>
         <div className="space-y-2">
-          <QuoteRow
-            title="40× Chaise Riviera — Aluminium blanc"
-            client="Hotel Le Grand, Paris"
-            amount="€5 600"
-            date="il y a 2h"
-            status="Nouveau"
-            statusStyle="bg-blue-50 text-blue-700"
-            commission={`€${(5600 * config.commission / 100).toFixed(0)}`}
-            onClick={() => onNavigate("quotes")}
-          />
-          <QuoteRow
-            title="12× Parasol XL 3m — Beige"
-            client="Beach Club Cala, Nice"
-            amount="€3 840"
-            date="il y a 1j"
-            status="Nouveau"
-            statusStyle="bg-blue-50 text-blue-700"
-            commission={`€${(3840 * config.commission / 100).toFixed(0)}`}
-            onClick={() => onNavigate("quotes")}
-          />
-          <QuoteRow
-            title="8× Table ronde 80cm — Anthracite"
-            client="Brasserie du Port, Marseille"
-            amount="€1 920"
-            date="il y a 3j"
-            status="En cours"
-            statusStyle="bg-amber-50 text-amber-700"
-            commission={`€${(1920 * config.commission / 100).toFixed(0)}`}
-            onClick={() => onNavigate("quotes")}
-          />
+          {recentQuotes.length > 0 ? recentQuotes.map((q: any) => {
+            const amount = q.quantity && q.unit_price ? q.quantity * q.unit_price : 0;
+            const statusLabel = q.status === "pending" ? t('pd.overview.statusNew') : q.status === "in_progress" ? t('pd.overview.statusInProgress') : q.status;
+            const statusStyle = q.status === "pending" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700";
+            const dateStr = q.created_at ? new Date(q.created_at).toLocaleDateString() : "";
+            return (
+              <QuoteRow
+                key={q.id}
+                title={`${q.quantity ? q.quantity + "× " : ""}${q.product_name || t('pd.overview.quoteRequest')}`}
+                client={q.client_name || "—"}
+                amount={amount > 0 ? `€${amount.toLocaleString()}` : "—"}
+                date={dateStr}
+                status={statusLabel}
+                statusStyle={statusStyle}
+                commission={amount > 0 ? `€${(amount * config.commission / 100).toFixed(0)}` : "—"}
+                onClick={() => onNavigate("quotes")}
+              />
+            );
+          }) : (
+            <p className="text-xs font-body text-muted-foreground py-4 text-center">{t('pd.overview.noRecentRequests', 'Aucune demande récente')}</p>
+          )}
         </div>
         <button
           onClick={() => onNavigate("quotes")}

@@ -1617,7 +1617,7 @@ const Admin = () => {
   const { data: pendingSubmissions = [] } = useQuery({
     queryKey: ["admin-submissions-pending-count"],
     queryFn: async () => {
-      const { data } = await supabase.from("product_submissions").select("id").eq("review_status", "pending_review");
+      const { data } = await supabase.from("product_submissions").select("id").eq("status", "pending_review");
       return data || [];
     },
   });

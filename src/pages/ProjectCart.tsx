@@ -233,6 +233,8 @@ const ProjectCart = () => {
       if (ciError) throw ciError;
 
       localStorage.removeItem("terrassea_cart_form");
+      localStorage.removeItem("terrassea_cart_items");
+      localStorage.removeItem("terrassea_cart_notes");
       await markCartSubmitted();
       setSubmitted(true);
       toast.success(t('projectCart.submitSuccess'));

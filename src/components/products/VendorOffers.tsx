@@ -21,6 +21,7 @@ interface VendorOffersProps {
   defaultQuantity?: number;
   isAdmin?: boolean;
   arrivals?: ProductArrival[];
+  selectedColor?: string | null;
 }
 
 // ── Country flags ─────────────────────────────────────────────────────────────
@@ -187,7 +188,7 @@ function SupplierAvatar({ index, isAdmin, offer }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, arrivals = [] }: VendorOffersProps) => {
+const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, arrivals = [], selectedColor = null }: VendorOffersProps) => {
   const { t } = useTranslation();
   const [quantity, setQuantity] = useState(defaultQuantity);
   const { addItem, selectSupplier } = useProjectCart();
@@ -257,13 +258,13 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
       return;
     }
 
-    addItem(product, undefined, quantity);
+    addItem(product, undefined, quantity, undefined, selectedColor ?? undefined);
     selectSupplier(product.id, supplier);
     toast.success(t("vendorOffers.addedToProject", { count: quantity, name: product.name }));
   };
 
   const handleArchitectConfirm = (projectId: string, projectName: string, zoneName?: string) => {
-    addItem(product, zoneName || projectName, quantity);
+    addItem(product, zoneName || projectName, quantity, undefined, selectedColor ?? undefined);
     if (pendingSupplier) {
       selectSupplier(product.id, pendingSupplier);
     }

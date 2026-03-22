@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import type { DBProduct } from "@/lib/products";
 
 interface CompareContextType {
@@ -13,7 +13,22 @@ interface CompareContextType {
 const CompareContext = createContext<CompareContextType | undefined>(undefined);
 
 export function CompareProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<DBProduct[]>([]);
+  const [items, setItems] = useState<DBProduct[]>(() => {
+    try {
+      const saved = localStorage.getItem("terrassea_compare");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("terrassea_compare", JSON.stringify(items));
+    } catch (err) {
+      console.warn("Failed to persist compare items to localStorage:", err);
+    }
+  }, [items]);
 
   const addToCompare = useCallback((product: DBProduct) => {
     setItems((prev) => {

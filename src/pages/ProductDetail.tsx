@@ -406,7 +406,7 @@ const ProductDetail = () => {
         {/* Vendor offers */}
         <section className="px-6 mt-4">
           <div className="container mx-auto">
-            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} />
+            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} selectedColor={selectedVariant} />
           </div>
         </section>
 
