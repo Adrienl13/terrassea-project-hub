@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import {
   Sparkles, Zap, Crown, Gem, Check, X, TrendingUp,
-  FileText, ShoppingCart, Star, UserCheck, Gift,
+  FileText, ShoppingCart, Star, UserCheck, Gift, Shield,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,33 +26,38 @@ interface Props {
 // ── Tier visual helpers ────────────────────────────────────────────────────────
 
 const TIER_ICONS: Record<PartnerTier, typeof Zap> = {
+  starter: Shield,
   growth: Zap,
   elite: Crown,
-  elite_prestige: Gem,
+  elite_pro: Gem,
 };
 
 const TIER_GRADIENT: Record<PartnerTier, string> = {
+  starter: "from-slate-400 to-slate-500",
   growth: "from-blue-500 to-blue-600",
   elite: "from-amber-500 to-amber-600",
-  elite_prestige: "from-purple-500 to-violet-600",
+  elite_pro: "from-purple-500 to-violet-600",
 };
 
 const TIER_BG: Record<PartnerTier, string> = {
+  starter: "bg-slate-50 border-slate-200",
   growth: "bg-blue-50 border-blue-200",
   elite: "bg-amber-50 border-amber-200",
-  elite_prestige: "bg-purple-50 border-purple-200",
+  elite_pro: "bg-purple-50 border-purple-200",
 };
 
 const TIER_TEXT: Record<PartnerTier, string> = {
+  starter: "text-slate-700",
   growth: "text-blue-700",
   elite: "text-amber-700",
-  elite_prestige: "text-purple-700",
+  elite_pro: "text-purple-700",
 };
 
 const TIER_RING: Record<PartnerTier, string> = {
+  starter: "ring-slate-300",
   growth: "ring-blue-300",
   elite: "ring-amber-300",
-  elite_prestige: "ring-purple-300",
+  elite_pro: "ring-purple-300",
 };
 
 // ── Action icon map ────────────────────────────────────────────────────────────
@@ -115,22 +120,49 @@ export default function PartnerLoyaltyProgram({ partnerId }: Props) {
   const tierConfig = TIER_CONFIG[currentTier];
   const nextTierConfig = nextTier ? TIER_CONFIG[nextTier] : null;
 
-  const TIER_KEYS: PartnerTier[] = ["growth", "elite", "elite_prestige"];
+  const TIER_KEYS: PartnerTier[] = ["starter", "growth", "elite", "elite_pro"];
 
   const FEATURES: {
     key: string;
-    field: keyof typeof TIER_CONFIG.growth;
+    label: string;
+    field: keyof typeof TIER_CONFIG.starter;
     type: "value" | "boolean";
+    format?: (v: any) => string;
   }[] = [
-    { key: "commission", field: "commission", type: "value" },
-    { key: "maxProducts", field: "maxProducts", type: "value" },
-    { key: "featuredProducts", field: "featuredProducts", type: "value" },
-    { key: "advancedAnalytics", field: "hasAdvancedAnalytics", type: "boolean" },
-    { key: "proLeads", field: "hasProLeads", type: "boolean" },
-    { key: "csvExport", field: "hasCsvExport", type: "boolean" },
-    { key: "prioritySupport", field: "hasPrioritySupport", type: "boolean" },
-    { key: "dedicatedManager", field: "hasDedicatedManager", type: "boolean" },
-    { key: "coBranding", field: "hasCoBranding", type: "boolean" },
+    // Pricing & engagement
+    { key: "monthlyPrice", label: "Prix mensuel", field: "monthlyPrice", type: "value", format: (v: number) => v === 0 ? "Gratuit" : `${v}\u20AC` },
+    { key: "commission", label: "Commission", field: "commission", type: "value", format: (v: number) => `${v}%` },
+    { key: "engagement", label: "Engagement", field: "engagement", type: "value", format: (v: string) => v === "none" ? "Aucun" : v === "6_months" ? "6 mois" : "12 mois" },
+    // Catalogue
+    { key: "maxProducts", label: "Produits max", field: "maxProducts", type: "value" },
+    { key: "maxCategories", label: "Cat\u00e9gories", field: "maxCategories", type: "value", format: (v: number | null) => v === null ? "Toutes" : String(v) },
+    { key: "featuredProducts", label: "Produits mis en avant", field: "featuredProducts", type: "value" },
+    { key: "searchPriority", label: "Priorit\u00e9 recherche", field: "searchPriority", type: "value", format: (v: string) => v === "standard" ? "Standard" : v === "high" ? "Haute" : "Maximum" },
+    // Analytics & tools
+    { key: "advancedAnalytics", label: "Analytiques avanc\u00e9es", field: "hasAdvancedAnalytics", type: "boolean" },
+    { key: "premiumAnalytics", label: "Analytiques premium", field: "hasPremiumAnalytics", type: "boolean" },
+    { key: "csvExport", label: "Export CSV", field: "hasCsvExport", type: "boolean" },
+    { key: "apiExport", label: "Export API", field: "hasApiExport", type: "boolean" },
+    { key: "realtimeApi", label: "API temps r\u00e9el", field: "hasRealtimeApi", type: "boolean" },
+    // Leads & support
+    { key: "proLeads", label: "Pro Leads", field: "hasProLeads", type: "boolean" },
+    { key: "proLeadsPriority", label: "Priorit\u00e9 leads", field: "proLeadsPriority", type: "value", format: (v: string) => v === "standard" ? "Standard" : v === "priority" ? "Prioritaire" : "Exclusif 48h" },
+    { key: "prioritySupport", label: "Support prioritaire", field: "hasPrioritySupport", type: "boolean" },
+    { key: "sharedManager", label: "Account manager partag\u00e9", field: "hasSharedManager", type: "boolean" },
+    { key: "dedicatedManager", label: "Account manager d\u00e9di\u00e9", field: "hasDedicatedManager", type: "boolean" },
+    // Brand & visibility
+    { key: "coBranding", label: "Co-branding", field: "hasCoBranding", type: "boolean" },
+    { key: "brandPage", label: "Page marque", field: "brandPageType", type: "value", format: (v: string) => v === "basic" ? "Basique" : v === "gallery" ? "Galerie" : "Galerie + vid\u00e9o" },
+    { key: "badge", label: "Badge", field: "badge", type: "value", format: (v: string) => v === "" ? "\u2014" : v === "verified" ? "V\u00e9rifi\u00e9" : v === "elite" ? "Elite" : "Elite Pro" },
+    { key: "socialPosts", label: "Posts r\u00e9seaux / mois", field: "socialPosts", type: "value" },
+    { key: "sponsoredBanners", label: "Banni\u00e8res / mois", field: "sponsoredBanners", type: "value" },
+    // Operations
+    { key: "stockSync", label: "Sync stock", field: "stockSync", type: "value", format: (v: string) => v === "csv_manual" ? "CSV manuel" : v === "csv_auto" ? "CSV auto" : "API temps r\u00e9el" },
+    { key: "onboarding", label: "Onboarding", field: "onboardingType", type: "value", format: (v: string) => v === "self_service" ? "Self-service" : v === "assisted_10" ? "Assist\u00e9 (10 prod.)" : "Int\u00e9gration compl\u00e8te" },
+    { key: "multiUsers", label: "Multi-utilisateurs", field: "hasMultiUsers", type: "boolean" },
+    { key: "maxUsers", label: "Utilisateurs max", field: "maxUsers", type: "value" },
+    { key: "marketReport", label: "Rapport march\u00e9", field: "marketReport", type: "value", format: (v: string) => v === "none" ? "\u2014" : v === "quarterly" ? "Trimestriel" : "Mensuel" },
+    { key: "betaAccess", label: "Acc\u00e8s b\u00eata", field: "hasBetaAccess", type: "boolean" },
   ];
 
   const EARN_ACTIONS = [
@@ -301,8 +333,8 @@ export default function PartnerLoyaltyProgram({ partnerId }: Props) {
               <TableBody>
                 {FEATURES.map((feat) => (
                   <TableRow key={feat.key}>
-                    <TableCell className="pl-5 font-medium text-sm">
-                      {t(`partnerLoyalty.features.${feat.key}`)}
+                    <TableCell className="pl-5 font-medium text-sm whitespace-nowrap">
+                      {feat.label}
                     </TableCell>
                     {TIER_KEYS.map((tier) => {
                       const cfg = TIER_CONFIG[tier];
@@ -316,13 +348,10 @@ export default function PartnerLoyaltyProgram({ partnerId }: Props) {
                         ) : (
                           <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
                         );
-                      } else if (feat.key === "commission") {
-                        display = `${val}%`;
-                      } else if (feat.key === "maxProducts") {
-                        display =
-                          val === null
-                            ? t("partnerLoyalty.unlimited")
-                            : String(val);
+                      } else if (feat.format) {
+                        display = feat.format(val);
+                      } else if (val === null) {
+                        display = t("partnerLoyalty.unlimited");
                       } else {
                         display = String(val);
                       }

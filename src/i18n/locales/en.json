@@ -3156,6 +3156,12 @@
     "nothingToAdd": "No products to add",
     "addedToProject": "{{count}} products added to project"
   },
+  "partnerTiers": {
+    "starter": "Starter",
+    "growth": "Growth",
+    "elite": "Elite",
+    "elitePro": "Elite Pro"
+  },
   "partnerLoyalty": {
     "comingSoon": "The loyalty program is coming soon — stay tuned!",
     "points": "points",
@@ -3171,13 +3177,15 @@
     "noActivity": "No points activity yet. Start earning today!",
     "howToEarn": "How to Earn Points",
     "tier": {
+      "starter": "Starter",
       "growth": "Growth",
       "elite": "Elite",
-      "elite_prestige": "Elite Prestige"
+      "elite_pro": "Elite Pro"
     },
     "tierTeaser": {
-      "elite": "Lower commission, advanced analytics, and priority support",
-      "elite_prestige": "Dedicated manager, co-branding, and unlimited products"
+      "growth": "Lower commission, advanced analytics, and verified badge",
+      "elite": "Priority leads, co-branding, and shared account manager",
+      "elite_pro": "Dedicated manager, premium analytics, and real-time API"
     },
     "features": {
       "commission": "Commission",

@@ -3062,6 +3062,12 @@
     "nothingToAdd": "No hay productos para agregar",
     "addedToProject": "{{count}} productos agregados al proyecto"
   },
+  "partnerTiers": {
+    "starter": "Starter",
+    "growth": "Growth",
+    "elite": "Elite",
+    "elitePro": "Elite Pro"
+  },
   "partnerLoyalty": {
     "comingSoon": "El programa de fidelidad llega pronto — mantente atento!",
     "points": "puntos",
@@ -3077,13 +3083,15 @@
     "noActivity": "Sin actividad de puntos todavia. Empieza a ganar hoy!",
     "howToEarn": "Como ganar puntos",
     "tier": {
+      "starter": "Starter",
       "growth": "Growth",
       "elite": "Elite",
-      "elite_prestige": "Elite Prestige"
+      "elite_pro": "Elite Pro"
     },
     "tierTeaser": {
-      "elite": "Comision reducida, analiticas avanzadas y soporte prioritario",
-      "elite_prestige": "Manager dedicado, co-branding y productos ilimitados"
+      "growth": "Comision reducida, analiticas avanzadas y badge verificado",
+      "elite": "Leads prioritarios, co-branding y account manager compartido",
+      "elite_pro": "Manager dedicado, analiticas premium y API en tiempo real"
     },
     "features": {
       "commission": "Comision",

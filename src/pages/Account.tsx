@@ -95,14 +95,14 @@ const NAV_PARTNER_BASE = [
   { id: "catalogue",    icon: Package,         labelKey: "account.catalogue" },
   { id: "arrivals",     icon: Truck,           labelKey: "account.arrivals" },
   { id: "featured",     icon: Rocket,          labelKey: "account.featuredProducts", eliteOnly: false },
-  { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: true },
+  { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: false },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
   { id: "loyalty",      icon: Award,           labelKey: "account.loyalty" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
 const getPartnerNav = (plan: PartnerPlan) =>
-  NAV_PARTNER_BASE.filter(item => !item.eliteOnly || plan === "elite");
+  NAV_PARTNER_BASE.filter(item => !item.eliteOnly || plan === "elite" || plan === "elite_pro");
 
 const NAV_ARCHITECT = [
   { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
@@ -391,9 +391,9 @@ const Account = () => {
 
   const partnerId = partnerData?.id ?? null;
   const partnerPlan: PartnerPlan =
-    partnerData?.plan === "elite" || partnerData?.plan === "growth" || partnerData?.plan === "starter"
+    partnerData?.plan === "elite_pro" || partnerData?.plan === "elite" || partnerData?.plan === "growth" || partnerData?.plan === "starter"
       ? (partnerData.plan as PartnerPlan)
-      : "growth"; // default to growth, not elite
+      : "starter"; // default to starter
 
   if (isLoading) {
     return (
@@ -435,7 +435,7 @@ const Account = () => {
         case "arrivals":    return <PartnerArrivalsSection partnerId={partnerId} />;
         case "featured":    return <PartnerFeaturedSection plan={partnerPlan} partnerId={partnerId} />;
         case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;
-        case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan === "starter" ? "growth" : partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
+        case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
         case "loyalty":     return partnerId ? <PartnerLoyaltyProgram partnerId={partnerId} /> : null;
         default:            return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
       }
@@ -603,7 +603,7 @@ const Account = () => {
                       )}
                       {item.id === "featured" && (
                         <span className="ml-auto text-[9px] font-display font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
-                          {partnerPlan === "elite" ? "10" : partnerPlan === "growth" ? "2" : "0"}
+                          {partnerPlan === "elite_pro" ? "30" : partnerPlan === "elite" ? "15" : "0"}
                         </span>
                       )}
                     </button>
@@ -664,17 +664,17 @@ const Account = () => {
                         </span>
                       )}
                     </button>
-                    {partnerPlan !== "elite" && (
+                    {partnerPlan !== "elite_pro" && (
                       <button
                         onClick={() => navigate("/become-partner")}
                         className="w-full text-center py-2 text-[9px] font-display font-semibold rounded-full border hover:opacity-80 transition-opacity"
                         style={{
-                          background: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : "elite"].bg,
-                          color: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : "elite"].color,
-                          borderColor: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : "elite"].border,
+                          background: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : partnerPlan === "growth" ? "elite" : "elite_pro"].bg,
+                          color: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : partnerPlan === "growth" ? "elite" : "elite_pro"].color,
+                          borderColor: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : partnerPlan === "growth" ? "elite" : "elite_pro"].border,
                         }}
                       >
-                        Passer au plan {partnerPlan === "starter" ? "Growth" : "Elite"} →
+                        Passer au plan {partnerPlan === "starter" ? "Growth" : partnerPlan === "growth" ? "Elite" : "Elite Pro"} →
                       </button>
                     )}
                   </>

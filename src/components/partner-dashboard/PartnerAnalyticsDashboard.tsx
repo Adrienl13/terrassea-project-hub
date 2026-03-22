@@ -29,7 +29,7 @@ import {
 
 interface Props {
   partnerId: string;
-  tier: "growth" | "elite" | "elite_prestige";
+  tier: "starter" | "growth" | "elite" | "elite_pro";
 }
 
 // ── Period mapping ─────────────────────────────────────────────────────────────
@@ -117,14 +117,14 @@ export default function PartnerAnalyticsDashboard({ partnerId, tier }: Props) {
 
   const tierCfg = TIER_CONFIG[tier];
   const hasAdvanced = tierCfg.hasAdvancedAnalytics;
-  const hasPrestige = tier === "elite_prestige";
+  const hasPrestige = tier === "elite_pro";
   const hasCsvExport = tierCfg.hasCsvExport;
 
   // Commission calculations
   const commissionRate = tierCfg.commission;
   const thisMonthRevenue = analytics?.totalRevenue ?? 0;
   const thisMonthCommission = Math.round(thisMonthRevenue * (commissionRate / 100));
-  const monthlyTarget = tier === "elite_prestige" ? 5000 : tier === "elite" ? 2000 : 500;
+  const monthlyTarget = tier === "elite_pro" ? 5000 : tier === "elite" ? 2000 : tier === "growth" ? 500 : 200;
   const commissionProgress = monthlyTarget > 0 ? Math.min(100, Math.round((thisMonthCommission / monthlyTarget) * 100)) : 0;
 
   // CSV Export
@@ -235,8 +235,8 @@ export default function PartnerAnalyticsDashboard({ partnerId, tier }: Props) {
             <span
               className="text-[9px] font-display font-bold px-2 py-0.5 rounded-full"
               style={{
-                background: tier === "elite_prestige" ? "#F5F3FF" : tier === "elite" ? "#FFFBEB" : "#EFF6FF",
-                color: tier === "elite_prestige" ? "#7C3AED" : tier === "elite" ? "#D97706" : "#2563EB",
+                background: tier === "elite_pro" ? "#F5F3FF" : tier === "elite" ? "#FFFBEB" : "#EFF6FF",
+                color: tier === "elite_pro" ? "#7C3AED" : tier === "elite" ? "#D97706" : "#2563EB",
               }}
             >
               {commissionRate}%
@@ -286,7 +286,7 @@ export default function PartnerAnalyticsDashboard({ partnerId, tier }: Props) {
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${commissionProgress}%`,
-                  background: commissionProgress >= 100 ? "#059669" : tier === "elite_prestige" ? "#7C3AED" : tier === "elite" ? "#D97706" : "#2563EB",
+                  background: commissionProgress >= 100 ? "#059669" : tier === "elite_pro" ? "#7C3AED" : tier === "elite" ? "#D97706" : "#2563EB",
                 }}
               />
             </div>

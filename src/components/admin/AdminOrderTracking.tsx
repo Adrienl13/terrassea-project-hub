@@ -116,6 +116,92 @@ export default function AdminOrderTracking() {
         await notifyUser(order.client_email, "Mise à jour commande", message, "/account?tab=orders");
       }
     }
+
+    // ── Auto-migration: Starter → Growth after 3 confirmed orders ──────────
+    if (updates.status === "completed" || updates.status === "delivered") {
+      const order = orders.find((o: any) => o.id === id);
+      const partnerId = order?.partner_id;
+      if (partnerId) {
+        try {
+          // Check if partner is on starter plan
+          const { data: partner } = await supabase
+            .from("partners")
+            .select("plan, name")
+            .eq("id", partnerId)
+            .maybeSingle();
+
+          if (partner?.plan === "starter") {
+            // Count completed/delivered orders for this partner
+            const { count } = await supabase
+              .from("orders")
+              .select("id", { count: "exact", head: true })
+              .eq("partner_id", partnerId)
+              .in("status", ["completed", "delivered"]);
+
+            if (count != null && count >= 3) {
+              // Auto-upgrade to growth
+              await supabase.from("partners").update({ plan: "growth" }).eq("id", partnerId);
+
+              // Update subscription record
+              await supabase.from("partner_subscriptions").update({
+                plan: "growth",
+                updated_at: new Date().toISOString(),
+              } as any).eq("partner_id", partnerId);
+
+              // Notify partner (find user profile via partner's contact_email)
+              const { data: partnerRow } = await supabase
+                .from("partners")
+                .select("contact_email")
+                .eq("id", partnerId)
+                .maybeSingle();
+
+              const partnerEmail = partnerRow?.contact_email;
+              const { data: partnerProfile } = partnerEmail
+                ? await supabase
+                    .from("user_profiles")
+                    .select("id")
+                    .eq("email", partnerEmail)
+                    .maybeSingle()
+                : { data: null };
+
+              if (partnerProfile?.id) {
+                await supabase.from("notifications").insert({
+                  user_id: partnerProfile.id,
+                  title: "Plan mis \u00e0 niveau automatiquement",
+                  body: "F\u00e9licitations ! Votre plan a \u00e9t\u00e9 automatiquement mis \u00e0 niveau vers Growth suite \u00e0 vos 3 premi\u00e8res commandes.",
+                  type: "info",
+                  link: "/account?tab=subscription",
+                } as Record<string, unknown>);
+              }
+
+              // Notify admin (in-app toast)
+              toast.success(`Auto-migration : ${partner.name} pass\u00e9 de Starter \u2192 Growth (${count} commandes confirm\u00e9es)`);
+
+              // Create admin notification
+              const { data: admins } = await supabase
+                .from("user_profiles")
+                .select("id")
+                .eq("user_type", "admin")
+                .limit(5);
+
+              for (const admin of admins || []) {
+                await supabase.from("notifications").insert({
+                  user_id: admin.id,
+                  title: "Auto-migration partenaire",
+                  body: `${partner.name} a \u00e9t\u00e9 automatiquement migr\u00e9 vers le plan Growth apr\u00e8s ${count} commandes confirm\u00e9es.`,
+                  type: "info",
+                  link: "/admin?tab=subscriptions",
+                } as Record<string, unknown>);
+              }
+
+              queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
+            }
+          }
+        } catch (err) {
+          console.warn("Auto-migration check failed:", err);
+        }
+      }
+    }
   };
 
   // ── Detail ──

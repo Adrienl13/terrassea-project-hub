@@ -26,7 +26,7 @@ const ExcelImportModal = lazy(() => import("./ExcelImportModal"));
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-export type PartnerPlan = "starter" | "growth" | "elite";
+export type PartnerPlan = "starter" | "growth" | "elite" | "elite_pro";
 
 export type PartnerSectionSetter = (section: string) => void;
 
@@ -56,9 +56,19 @@ export const PLAN_CONFIG = {
     color: "#D97706",
     bg: "#FFFBEB",
     border: "#FDE68A",
-    commission: 3,
-    maxProducts: null,
-    price: "Sur mesure",
+    commission: 3.5,
+    maxProducts: 150,
+    price: "499€/mois",
+    icon: Crown,
+  },
+  elite_pro: {
+    label: "Elite Pro",
+    color: "#7C3AED",
+    bg: "#F5F3FF",
+    border: "#C4B5FD",
+    commission: 2.5,
+    maxProducts: 300,
+    price: "899€/mois",
     icon: Crown,
   },
 };
@@ -92,7 +102,7 @@ export function CommissionReminder({ plan, onUpgrade }: { plan: PartnerPlan; onU
       <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
       <span>
         <strong>{t('pd.commission.label', { percent: config.commission })}</strong>
-        {plan !== "elite" && onUpgrade && (
+        {plan !== "elite_pro" && onUpgrade && (
           <> — <button onClick={onUpgrade} className="underline font-semibold hover:opacity-80 transition-opacity">{t('pd.commission.upgrade')}</button></>
         )}
       </span>
@@ -105,19 +115,17 @@ export function CommissionReminder({ plan, onUpgrade }: { plan: PartnerPlan; onU
 export function UpgradeCTA({ currentPlan }: { currentPlan: PartnerPlan }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  if (currentPlan === "elite") return null;
+  if (currentPlan === "elite_pro") return null;
 
-  const nextPlan = currentPlan === "starter" ? "growth" : "elite";
+  const nextPlan: PartnerPlan = currentPlan === "starter" ? "growth" : currentPlan === "growth" ? "elite" : "elite_pro";
   const nextConfig = PLAN_CONFIG[nextPlan];
   const currentConfig = PLAN_CONFIG[currentPlan];
   const savings = currentConfig.commission - nextConfig.commission;
 
   const handleUpgrade = () => {
-    if (nextPlan === "growth") {
-      navigate("/become-partner");
-    } else {
-      navigate("/become-partner");
-      toast.info("Contactez-nous pour discuter du plan Elite.");
+    navigate("/become-partner");
+    if (nextPlan === "elite" || nextPlan === "elite_pro") {
+      toast.info(`Contactez-nous pour discuter du plan ${nextConfig.label}.`);
     }
   };
 
@@ -277,7 +285,7 @@ export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNav
   const navigate = useNavigate();
   const { profile } = useAuth();
   const config = PLAN_CONFIG[plan];
-  const isElite = plan === "elite";
+  const isElite = plan === "elite" || plan === "elite_pro";
 
   const handleUpgrade = () => navigate("/become-partner");
 
@@ -1078,16 +1086,16 @@ export function PartnerCatalogueSection({ plan, partnerId }: { plan: PartnerPlan
         <button
           onClick={() => setShowApiPanel(true)}
           className={`flex items-center gap-2 px-4 py-2 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors ${
-            plan !== "elite" ? "text-muted-foreground" : ""
+            plan !== "elite" && plan !== "elite_pro" ? "text-muted-foreground" : ""
           }`}
         >
           <Zap className="h-3 w-3" /> Sync API temps réel
-          {plan !== "elite" && <Lock className="h-2.5 w-2.5 ml-0.5" />}
+          {plan !== "elite" && plan !== "elite_pro" && <Lock className="h-2.5 w-2.5 ml-0.5" />}
         </button>
       </div>
 
       {/* Upsell */}
-      {plan !== "elite" && maxProducts && productsCount >= maxProducts * 0.8 && (
+      {plan !== "elite_pro" && maxProducts && productsCount >= maxProducts * 0.8 && (
         <UpgradeCTA currentPlan={plan} />
       )}
 
@@ -1141,7 +1149,7 @@ export function PartnerPerformanceSection({ plan }: { plan: PartnerPlan }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const config = PLAN_CONFIG[plan];
-  const isElite = plan === "elite";
+  const isElite = plan === "elite" || plan === "elite_pro";
 
   const handleExportCSV = () => {
     toast.success("Export CSV en cours de génération...");
@@ -1366,7 +1374,7 @@ export function PartnerFeaturedSection({ plan, partnerId }: { plan: PartnerPlan;
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const config = PLAN_CONFIG[plan];
-  const maxFeatured = plan === "elite" ? 10 : plan === "growth" ? 2 : 0;
+  const maxFeatured = plan === "elite_pro" ? 30 : plan === "elite" ? 15 : 0;
   const isStarter = plan === "starter";
 
   // Fetch real featured products from DB
@@ -1541,7 +1549,7 @@ export function PartnerFeaturedSection({ plan, partnerId }: { plan: PartnerPlan;
             </p>
           </div>
 
-          {plan !== "elite" && <UpgradeCTA currentPlan={plan} />}
+          {plan !== "elite_pro" && <UpgradeCTA currentPlan={plan} />}
         </>
       )}
     </div>

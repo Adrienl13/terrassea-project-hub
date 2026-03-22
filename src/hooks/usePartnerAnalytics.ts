@@ -5,77 +5,110 @@ import { useAuth } from "@/contexts/AuthContext";
 
 // ── Tier Types & Config ─────────────────────────────────────────────────────
 
-export type PartnerTier = "growth" | "elite" | "elite_prestige";
+export type PartnerTier = "starter" | "growth" | "elite" | "elite_pro";
 
 export interface TierConfig {
   key: PartnerTier;
   name: string;
   nameKey: string;
-  commission: number;
-  maxProducts: number | null;
+  monthlyPrice: number; // €/month HT
+  annualPrice: number | null; // €/year HT (-15%)
+  commission: number; // %
+  engagement: string; // "none" | "6_months" | "12_months"
+  maxProducts: number;
+  maxCategories: number | null; // null = all
   featuredProducts: number;
+  searchPriority: "standard" | "high" | "maximum";
   hasAdvancedAnalytics: boolean;
+  hasPremiumAnalytics: boolean;
   hasProLeads: boolean;
+  proLeadsPriority: "standard" | "priority" | "exclusive_48h";
   hasCsvExport: boolean;
+  hasApiExport: boolean;
+  hasRealtimeApi: boolean;
   hasPrioritySupport: boolean;
   hasDedicatedManager: boolean;
+  hasSharedManager: boolean;
   hasCoBranding: boolean;
+  hasBetaAccess: boolean;
+  hasMultiUsers: boolean;
+  maxUsers: number;
+  socialPosts: number; // per month
+  videoRelays: number; // per month
+  sponsoredBanners: number; // per month
+  onboardingType: "self_service" | "assisted_10" | "full_integration";
+  stockSync: "csv_manual" | "csv_auto" | "api_realtime";
+  brandPageType: "basic" | "gallery" | "gallery_video";
+  badge: string; // "" | "verified" | "elite" | "elite_pro"
+  marketReport: "none" | "quarterly" | "monthly";
   color: string;
   icon: string;
 }
 
 export const TIER_CONFIG: Record<PartnerTier, TierConfig> = {
+  starter: {
+    key: "starter", name: "Starter", nameKey: "partnerTiers.starter",
+    monthlyPrice: 0, annualPrice: null, commission: 8, engagement: "none",
+    maxProducts: 30, maxCategories: 2, featuredProducts: 0,
+    searchPriority: "standard",
+    hasAdvancedAnalytics: false, hasPremiumAnalytics: false,
+    hasProLeads: true, proLeadsPriority: "standard",
+    hasCsvExport: true, hasApiExport: false, hasRealtimeApi: false,
+    hasPrioritySupport: false, hasDedicatedManager: false, hasSharedManager: false,
+    hasCoBranding: false, hasBetaAccess: false, hasMultiUsers: false, maxUsers: 1,
+    socialPosts: 0, videoRelays: 0, sponsoredBanners: 0,
+    onboardingType: "self_service", stockSync: "csv_manual",
+    brandPageType: "basic", badge: "", marketReport: "none",
+    color: "slate", icon: "Shield",
+  },
   growth: {
-    key: "growth",
-    name: "Growth",
-    nameKey: "partnerTiers.growth",
-    commission: 5,
-    maxProducts: 50,
-    featuredProducts: 2,
-    hasAdvancedAnalytics: false,
-    hasProLeads: false,
-    hasCsvExport: false,
-    hasPrioritySupport: false,
-    hasDedicatedManager: false,
-    hasCoBranding: false,
-    color: "blue",
-    icon: "Zap",
+    key: "growth", name: "Growth", nameKey: "partnerTiers.growth",
+    monthlyPrice: 249, annualPrice: 2540, commission: 5, engagement: "6_months",
+    maxProducts: 50, maxCategories: 3, featuredProducts: 0,
+    searchPriority: "standard",
+    hasAdvancedAnalytics: true, hasPremiumAnalytics: false,
+    hasProLeads: true, proLeadsPriority: "standard",
+    hasCsvExport: true, hasApiExport: false, hasRealtimeApi: false,
+    hasPrioritySupport: false, hasDedicatedManager: false, hasSharedManager: false,
+    hasCoBranding: false, hasBetaAccess: false, hasMultiUsers: false, maxUsers: 1,
+    socialPosts: 0, videoRelays: 0, sponsoredBanners: 0,
+    onboardingType: "self_service", stockSync: "csv_manual",
+    brandPageType: "basic", badge: "verified", marketReport: "none",
+    color: "blue", icon: "Zap",
   },
   elite: {
-    key: "elite",
-    name: "Elite",
-    nameKey: "partnerTiers.elite",
-    commission: 3,
-    maxProducts: 200,
-    featuredProducts: 10,
-    hasAdvancedAnalytics: true,
-    hasProLeads: true,
-    hasCsvExport: true,
-    hasPrioritySupport: true,
-    hasDedicatedManager: false,
-    hasCoBranding: false,
-    color: "amber",
-    icon: "Crown",
+    key: "elite", name: "Elite", nameKey: "partnerTiers.elite",
+    monthlyPrice: 499, annualPrice: 5090, commission: 3.5, engagement: "6_months",
+    maxProducts: 150, maxCategories: null, featuredProducts: 15,
+    searchPriority: "high",
+    hasAdvancedAnalytics: true, hasPremiumAnalytics: false,
+    hasProLeads: true, proLeadsPriority: "priority",
+    hasCsvExport: true, hasApiExport: true, hasRealtimeApi: false,
+    hasPrioritySupport: true, hasDedicatedManager: false, hasSharedManager: true,
+    hasCoBranding: true, hasBetaAccess: true, hasMultiUsers: false, maxUsers: 1,
+    socialPosts: 2, videoRelays: 1, sponsoredBanners: 1,
+    onboardingType: "assisted_10", stockSync: "csv_auto",
+    brandPageType: "gallery", badge: "elite", marketReport: "quarterly",
+    color: "amber", icon: "Crown",
   },
-  elite_prestige: {
-    key: "elite_prestige",
-    name: "Elite Prestige",
-    nameKey: "partnerTiers.elitePrestige",
-    commission: 2,
-    maxProducts: null,
-    featuredProducts: 25,
-    hasAdvancedAnalytics: true,
-    hasProLeads: true,
-    hasCsvExport: true,
-    hasPrioritySupport: true,
-    hasDedicatedManager: true,
-    hasCoBranding: true,
-    color: "purple",
-    icon: "Gem",
+  elite_pro: {
+    key: "elite_pro", name: "Elite Pro", nameKey: "partnerTiers.elitePro",
+    monthlyPrice: 899, annualPrice: 9170, commission: 2.5, engagement: "12_months",
+    maxProducts: 300, maxCategories: null, featuredProducts: 30,
+    searchPriority: "maximum",
+    hasAdvancedAnalytics: true, hasPremiumAnalytics: true,
+    hasProLeads: true, proLeadsPriority: "exclusive_48h",
+    hasCsvExport: true, hasApiExport: true, hasRealtimeApi: true,
+    hasPrioritySupport: true, hasDedicatedManager: true, hasSharedManager: false,
+    hasCoBranding: true, hasBetaAccess: true, hasMultiUsers: true, maxUsers: 3,
+    socialPosts: 4, videoRelays: 3, sponsoredBanners: 3,
+    onboardingType: "full_integration", stockSync: "api_realtime",
+    brandPageType: "gallery_video", badge: "elite_pro", marketReport: "monthly",
+    color: "purple", icon: "Gem",
   },
 };
 
-const TIER_ORDER: PartnerTier[] = ["growth", "elite", "elite_prestige"];
+const TIER_ORDER: PartnerTier[] = ["starter", "growth", "elite", "elite_pro"];
 
 // ── Helper ──────────────────────────────────────────────────────────────────
 
@@ -297,13 +330,15 @@ export interface PointsHistoryEntry {
 }
 
 interface LoyaltyThresholds {
+  growth: number;
   elite: number;
-  elite_prestige: number;
+  elite_pro: number;
 }
 
 const DEFAULT_THRESHOLDS: LoyaltyThresholds = {
+  growth: 2000,
   elite: 5000,
-  elite_prestige: 20000,
+  elite_pro: 20000,
 };
 
 // ── Hook 2: usePartnerLoyalty ───────────────────────────────────────────────
@@ -385,13 +420,15 @@ export function usePartnerLoyalty(partnerId: string | undefined) {
       raw &&
       typeof raw === "object" &&
       !Array.isArray(raw) &&
+      "growth" in raw &&
       "elite" in raw &&
-      "elite_prestige" in raw
+      "elite_pro" in raw
     ) {
       return {
+        growth: Number((raw as Record<string, unknown>).growth) || DEFAULT_THRESHOLDS.growth,
         elite: Number((raw as Record<string, unknown>).elite) || DEFAULT_THRESHOLDS.elite,
-        elite_prestige:
-          Number((raw as Record<string, unknown>).elite_prestige) || DEFAULT_THRESHOLDS.elite_prestige,
+        elite_pro:
+          Number((raw as Record<string, unknown>).elite_pro) || DEFAULT_THRESHOLDS.elite_pro,
       };
     }
     return DEFAULT_THRESHOLDS;
@@ -401,37 +438,49 @@ export function usePartnerLoyalty(partnerId: string | undefined) {
   const lifetimePoints = loyalty?.lifetimePoints ?? 0;
 
   const currentTier: PartnerTier =
-    lifetimePoints >= thresholds.elite_prestige
-      ? "elite_prestige"
+    lifetimePoints >= thresholds.elite_pro
+      ? "elite_pro"
       : lifetimePoints >= thresholds.elite
         ? "elite"
-        : "growth";
+        : lifetimePoints >= thresholds.growth
+          ? "growth"
+          : "starter";
 
   const nextTier: PartnerTier | null =
-    currentTier === "elite_prestige"
+    currentTier === "elite_pro"
       ? null
       : currentTier === "elite"
-        ? "elite_prestige"
-        : "elite";
+        ? "elite_pro"
+        : currentTier === "growth"
+          ? "elite"
+          : "growth";
 
   const pointsToNextTier: number | null = (() => {
-    if (currentTier === "elite_prestige") return null;
+    if (currentTier === "elite_pro") return null;
     const target =
       currentTier === "elite"
-        ? thresholds.elite_prestige
-        : thresholds.elite;
+        ? thresholds.elite_pro
+        : currentTier === "growth"
+          ? thresholds.elite
+          : thresholds.growth;
     return Math.max(0, target - lifetimePoints);
   })();
 
   const tierProgress: number = (() => {
-    if (currentTier === "elite_prestige") return 100;
+    if (currentTier === "elite_pro") return 100;
 
     const currentThreshold =
-      currentTier === "elite" ? thresholds.elite : 0;
+      currentTier === "elite"
+        ? thresholds.elite
+        : currentTier === "growth"
+          ? thresholds.growth
+          : 0;
     const nextThreshold =
       currentTier === "elite"
-        ? thresholds.elite_prestige
-        : thresholds.elite;
+        ? thresholds.elite_pro
+        : currentTier === "growth"
+          ? thresholds.elite
+          : thresholds.growth;
 
     const range = nextThreshold - currentThreshold;
     if (range <= 0) return 100;
@@ -490,10 +539,10 @@ export function usePartnerTierConfig(partnerId: string | undefined) {
 
   const subscriptionPlan: PartnerTier = (() => {
     const plan = partner?.plan;
-    if (plan === "elite_prestige" || plan === "elite" || plan === "growth") {
+    if (plan === "elite_pro" || plan === "elite" || plan === "growth" || plan === "starter") {
       return plan;
     }
-    return "growth";
+    return "starter";
   })();
 
   // Effective tier:
