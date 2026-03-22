@@ -106,9 +106,25 @@ async function autoCreateOrder(quoteRequestId: string) {
   if (existing && existing.length > 0) return { skipped: true, reason: "Order already exists" };
 
   const totalAmount = Number(quote.total_price || 0);
-  const depositPercent = 40;
+
+  // Dynamic deposit percent from platform_settings (default 30)
+  const depositPercentSetting = await getSetting("deposit_percent");
+  const depositPercent = depositPercentSetting ? Number(depositPercentSetting) : 30;
   const depositAmount = Math.round(totalAmount * depositPercent) / 100;
-  const commissionRate = 12;
+
+  // Dynamic commission from partner's plan
+  const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, elite_pro: 2.5 };
+  let commissionRate = 8; // default starter
+  if (quote.partner_id) {
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("plan")
+      .eq("id", quote.partner_id)
+      .single();
+    if (partner?.plan && COMMISSION_BY_PLAN[partner.plan] !== undefined) {
+      commissionRate = COMMISSION_BY_PLAN[partner.plan];
+    }
+  }
   const commissionAmount = Math.round(totalAmount * commissionRate) / 100;
 
   const { data: order, error: oErr } = await supabase

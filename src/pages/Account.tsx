@@ -57,6 +57,7 @@ import ClientOrdersSection from "@/components/client-dashboard/ClientOrdersSecti
 import PartnerAnalyticsDashboard from "@/components/partner-dashboard/PartnerAnalyticsDashboard";
 import PartnerLoyaltyProgram from "@/components/partner-dashboard/PartnerLoyaltyProgram";
 import PartnerArrivalsSection from "@/components/partner-dashboard/PartnerArrivalsSection";
+import UpgradeSuggestion from "@/components/partner-dashboard/UpgradeSuggestion";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -427,18 +428,28 @@ const Account = () => {
     if (userType === "partner") {
       if (section === "settings") return <SettingsSection profile={profile} />;
       if (section === "favourites") return <FavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
-      switch (section) {
-        case "overview":    return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
-        case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
-        case "messages":    return <PartnerMessagesSection />;
-        case "catalogue":   return <PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />;
-        case "arrivals":    return <PartnerArrivalsSection partnerId={partnerId} />;
-        case "featured":    return <PartnerFeaturedSection plan={partnerPlan} partnerId={partnerId} />;
-        case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;
-        case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
-        case "loyalty":     return partnerId ? <PartnerLoyaltyProgram partnerId={partnerId} /> : null;
-        default:            return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
-      }
+
+      const partnerSectionContent = (() => {
+        switch (section) {
+          case "overview":    return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
+          case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
+          case "messages":    return <PartnerMessagesSection />;
+          case "catalogue":   return <PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />;
+          case "arrivals":    return <PartnerArrivalsSection partnerId={partnerId} />;
+          case "featured":    return <PartnerFeaturedSection plan={partnerPlan} partnerId={partnerId} />;
+          case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;
+          case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
+          case "loyalty":     return partnerId ? <PartnerLoyaltyProgram partnerId={partnerId} /> : null;
+          default:            return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
+        }
+      })();
+
+      return (
+        <div className="space-y-4">
+          {partnerId && <UpgradeSuggestion partnerId={partnerId} currentPlan={partnerPlan} />}
+          {partnerSectionContent}
+        </div>
+      );
     }
 
     // Architect-specific sections

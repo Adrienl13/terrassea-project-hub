@@ -83,6 +83,21 @@ export function usePaymentFlow() {
       const quantity = Number(quote.quantity ?? 1);
       const unitPrice = Number(quote.unit_price ?? 0);
 
+      // 1b. Look up partner's plan to determine commission rate
+      const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, elite_pro: 2.5 };
+      let commissionRate = 8; // default starter
+      if (quote.partner_id) {
+        const { data: partnerRow } = await supabase
+          .from("partners")
+          .select("plan")
+          .eq("id", quote.partner_id)
+          .maybeSingle();
+        if (partnerRow?.plan && COMMISSION_BY_PLAN[partnerRow.plan] !== undefined) {
+          commissionRate = COMMISSION_BY_PLAN[partnerRow.plan];
+        }
+      }
+      const commissionAmount = Math.round((totalPrice * commissionRate) / 100 * 100) / 100;
+
       // 2. Calculate deposit and balance
       const depositAmount = Math.round((totalPrice * paymentSettings.depositPercent) / 100 * 100) / 100;
       const balanceAmount = Math.round((totalPrice - depositAmount) * 100) / 100;
@@ -132,6 +147,8 @@ export function usePaymentFlow() {
           balance_due_date: balanceDueDate.toISOString(),
           payment_reference: paymentReference,
           invoice_number: invoiceNumber,
+          commission_rate: commissionRate,
+          commission_amount: commissionAmount,
           payment_method: "bank_transfer",
           status: "pending_deposit",
         } as Record<string, unknown>)

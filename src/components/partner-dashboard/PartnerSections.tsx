@@ -8,6 +8,10 @@ import { usePartnerQuotes } from "@/hooks/usePartnerQuotes";
 import { usePartnerLeads } from "@/hooks/usePartnerLeads";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  TIER_CONFIG as TIER_CONFIG_ANALYTICS,
+  type PartnerTier as PartnerTierType,
+} from "@/hooks/usePartnerAnalytics";
 
 const AddProductForm = lazy(() => import("./AddProductForm"));
 const ApiConnectionPanel = lazy(() => import("./ApiConnectionPanel"));
@@ -938,6 +942,20 @@ export function PartnerCatalogueSection({ plan, partnerId }: { plan: PartnerPlan
   const [showExcelImport, setShowExcelImport] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
 
+  // Read subscription overrides for this partner
+  const { data: subOverrides } = useQuery({
+    queryKey: ["partner-sub-overrides", partnerId],
+    queryFn: async () => {
+      const { data } = await supabase.from("partner_subscriptions")
+        .select("max_products, commission_rate")
+        .eq("partner_id", partnerId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!partnerId,
+  });
+  const effectiveMaxProducts = subOverrides?.max_products ?? config.maxProducts;
+
   // Real product offers from DB
   const { data: dbProducts = [] } = useQuery({
     queryKey: ["partner-products", partnerId],
@@ -978,10 +996,14 @@ export function PartnerCatalogueSection({ plan, partnerId }: { plan: PartnerPlan
     : allProducts;
 
   const productsCount = allProducts.length;
-  const maxProducts = config.maxProducts;
+  const maxProducts = effectiveMaxProducts;
   const usagePercent = maxProducts ? Math.round((productsCount / maxProducts) * 100) : 0;
 
   const handleAddProduct = () => {
+    if (maxProducts && productsCount >= maxProducts) {
+      toast.error(t('pd.catalogue.limitReached', `Limite atteinte : ${productsCount}/${maxProducts} produits. Passez au plan supérieur pour ajouter plus de produits.`));
+      return;
+    }
     setShowAddForm(true);
   };
 
@@ -1374,7 +1396,23 @@ export function PartnerFeaturedSection({ plan, partnerId }: { plan: PartnerPlan;
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const config = PLAN_CONFIG[plan];
-  const maxFeatured = plan === "elite_pro" ? 30 : plan === "elite" ? 15 : 0;
+
+  // Read subscription overrides for this partner
+  const { data: featSubOverrides } = useQuery({
+    queryKey: ["partner-sub-overrides", partnerId],
+    queryFn: async () => {
+      const { data } = await supabase.from("partner_subscriptions")
+        .select("max_products, max_featured, commission_rate")
+        .eq("partner_id", partnerId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!partnerId,
+  });
+
+  // Use TIER_CONFIG from usePartnerAnalytics for default featured limit, with override support
+  const defaultFeatured = TIER_CONFIG_ANALYTICS[plan as PartnerTierType]?.featuredProducts ?? 0;
+  const maxFeatured = featSubOverrides?.max_featured ?? defaultFeatured;
   const isStarter = plan === "starter";
 
   // Fetch real featured products from DB

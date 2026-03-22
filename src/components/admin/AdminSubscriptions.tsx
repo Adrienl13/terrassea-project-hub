@@ -94,6 +94,22 @@ export default function AdminSubscriptions() {
   const changePlan = async (partnerId: string, newPlan: string) => {
     const { error } = await supabase.from("partners").update({ plan: newPlan }).eq("id", partnerId);
     if (error) { toast.error("Erreur : " + error.message); return; }
+
+    // Also update partner_subscriptions.plan to keep in sync
+    const { data: existingSub } = await supabase
+      .from("partner_subscriptions")
+      .select("id")
+      .eq("partner_id", partnerId)
+      .maybeSingle();
+    if (existingSub) {
+      await supabase.from("partner_subscriptions")
+        .update({ plan: newPlan, updated_at: new Date().toISOString() })
+        .eq("partner_id", partnerId);
+    } else {
+      await supabase.from("partner_subscriptions")
+        .insert({ partner_id: partnerId, plan: newPlan, status: "active" } as any);
+    }
+
     toast.success(`Plan mis \u00e0 jour \u2192 ${PLAN_CONFIG[newPlan]?.label || newPlan}`);
     queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
     queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
