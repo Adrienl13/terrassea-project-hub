@@ -19,16 +19,26 @@ const ProtectedRoute = ({
     return () => clearTimeout(timer);
   }, [isLoading]);
 
+  // Still loading auth session
   if (isLoading && !timedOut) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
+  // Not logged in
   if (!user) return (
     <Navigate to="/login" state={{ from: location }} replace />
   );
 
+  // User exists but profile not loaded yet — wait for it (don't redirect prematurely)
+  if (requireAdmin && profile === null && !timedOut) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  // Profile loaded — check admin role
   if (requireAdmin && profile?.user_type !== "admin") return (
     <Navigate to="/" replace />
   );
