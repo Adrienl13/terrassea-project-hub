@@ -519,7 +519,7 @@ const Account = () => {
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="sticky top-28"
+                className="sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto"
               >
                 {/* Profile header */}
                 <div className="mb-6">
