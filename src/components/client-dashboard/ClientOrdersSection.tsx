@@ -72,6 +72,9 @@ function useReorder() {
       const orderRef = order.id.slice(0, 8).toUpperCase();
       toast.success(t("orders.reorderSuccess", { count: 1, ref: `TRS-${orderRef}` }));
       navigate("/project-cart");
+    } catch (err) {
+      console.error("Reorder error:", err);
+      toast.error(t("orders.reorderNoProduct"));
     } finally {
       setIsReordering(false);
     }

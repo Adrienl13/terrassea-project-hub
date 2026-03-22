@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { normalizeProduct, type DBProduct } from "@/lib/products";
@@ -31,6 +31,7 @@ export function useChatbot() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isEnabled, setIsEnabled] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const sessionId = useRef(crypto.randomUUID());
 
   // Check if chatbot is enabled via platform_settings
   useEffect(() => {
@@ -148,6 +149,7 @@ export function useChatbot() {
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim()) return;
+      if (!isEnabled) { setError("Chatbot is currently disabled."); return; }
       setError(null);
 
       const userMsg: ChatMessage = {
@@ -171,13 +173,15 @@ export function useChatbot() {
         }));
 
         // 3. Call the chatbot edge function
+        const lastUserMessage = text.trim();
         const { data, error: fnError } = await supabase.functions.invoke(
           "chatbot",
           {
             body: {
-              messages: history,
+              message: lastUserMessage,
               productContext,
               conversationId,
+              sessionId: sessionId.current,
               userId: user?.id ?? null,
             },
           }
@@ -186,7 +190,7 @@ export function useChatbot() {
         if (fnError) throw fnError;
 
         const responseText: string =
-          data?.response ?? data?.message ?? "Sorry, I couldn't process your request.";
+          data?.reply ?? data?.response ?? data?.message ?? "Sorry, I couldn't process your request.";
         const newConversationId: string | null =
           data?.conversationId ?? conversationId;
 

@@ -57,19 +57,18 @@ export default function AdminChatbotStats() {
   const { data: settings } = useQuery({
     queryKey: ["chatbot-settings"],
     queryFn: async (): Promise<ChatbotSettings> => {
-      const row = await safeQuery(() =>
-        supabase.from("platform_settings").select("*").eq("key", "chatbot").single()
+      const rows = await safeQuery(() =>
+        supabase.from("platform_settings").select("key, value")
+          .in("key", ["chatbot_enabled", "chatbot_max_messages_per_day", "chatbot_monthly_budget_limit", "chatbot_alert_threshold_percent"])
       );
-      if (row && typeof (row as any).value === "object") {
-        const v = (row as any).value as Record<string, any>;
-        return {
-          chatbot_enabled: v.chatbot_enabled ?? true,
-          max_messages_per_user_per_day: v.max_messages_per_user_per_day ?? 50,
-          monthly_budget_limit: v.monthly_budget_limit ?? 100,
-          alert_threshold_percent: v.alert_threshold_percent ?? 80,
-        };
-      }
-      return { chatbot_enabled: true, max_messages_per_user_per_day: 50, monthly_budget_limit: 100, alert_threshold_percent: 80 };
+      const map: Record<string, any> = {};
+      ((rows as any[]) || []).forEach((r: any) => { map[r.key] = r.value; });
+      return {
+        chatbot_enabled: String(map.chatbot_enabled ?? "true") !== "false",
+        max_messages_per_user_per_day: Number(map.chatbot_max_messages_per_day ?? 20),
+        monthly_budget_limit: Number(map.chatbot_monthly_budget_limit ?? 5000),
+        alert_threshold_percent: Number(map.chatbot_alert_threshold_percent ?? 80),
+      };
     },
   });
 
@@ -86,11 +85,15 @@ export default function AdminChatbotStats() {
 
   const saveMutation = useMutation({
     mutationFn: async (s: ChatbotSettings) => {
-      await supabase.from("platform_settings").upsert({
-        key: "chatbot",
-        value: s as any,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "key" });
+      const updates = [
+        { key: "chatbot_enabled", value: String(s.chatbot_enabled), category: "features", label: "Enable AI chatbot assistant" },
+        { key: "chatbot_max_messages_per_day", value: String(s.max_messages_per_user_per_day), category: "features", label: "Max chatbot messages per user per day" },
+        { key: "chatbot_monthly_budget_limit", value: String(s.monthly_budget_limit), category: "features", label: "Monthly chatbot message limit (global)" },
+        { key: "chatbot_alert_threshold_percent", value: String(s.alert_threshold_percent), category: "features", label: "Alert admin when this % of monthly budget is used" },
+      ];
+      for (const u of updates) {
+        await supabase.from("platform_settings").upsert(u, { onConflict: "key" });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["chatbot-settings"] });
