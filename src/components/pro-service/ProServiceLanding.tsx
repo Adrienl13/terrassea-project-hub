@@ -11,8 +11,8 @@ import { toast } from "sonner";
 
 // ── Qualification logic ───────────────────────────────────────────────────────
 
-const MIN_COVERS = 100;
-const MIN_BUDGET = 35000;
+const MIN_COVERS = 80;
+const MIN_BUDGET = 30000;
 
 function isQualified(covers: number | null, budget: string): boolean {
   if (covers !== null && covers >= MIN_COVERS) return true;
@@ -159,24 +159,24 @@ export default function ProServiceLanding() {
     );
   }
 
-  // ── Not qualified ──
+  // ── Not qualified — positive redirect ──
   if (phase === "not_qualified") {
     return (
       <div className="container mx-auto px-4 md:px-6 py-32 max-w-xl text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6">
-            <Sparkles className="h-8 w-8 text-amber-600" />
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="font-display text-xl font-bold tracking-tight mb-4">{t("proService.notQualifiedTitle")}</h1>
+          <h1 className="font-display text-xl font-bold tracking-tight mb-4">{t("proService.catalogueMatchTitle")}</h1>
           <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">
-            {t("proService.notQualifiedDesc", { covers: MIN_COVERS, budget: MIN_BUDGET.toLocaleString() })}
+            {t("proService.catalogueMatchDesc")}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button onClick={() => navigate("/projects/new")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90">
-              Launch Project Builder <ArrowRight className="h-4 w-4" />
+            <button onClick={() => navigate("/products")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90">
+              {t("proService.exploreCatalogue")} <ArrowRight className="h-4 w-4" />
             </button>
-            <button onClick={() => setPhase("form")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all">
-              {t("proService.updateDetails")}
+            <button onClick={() => navigate("/projects/new")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm border border-border text-foreground rounded-full hover:border-foreground transition-all">
+              {t("proService.launchGuidedProject")} <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </motion.div>
@@ -420,7 +420,7 @@ export default function ProServiceLanding() {
                         className={`${inputClass} ${coversNum && coversNum >= MIN_COVERS ? "border-green-500" : coversNum && coversNum < MIN_COVERS ? "border-amber-400" : ""}`} />
                       {coversNum !== null && (
                         <p className={`text-[10px] font-body mt-1.5 ${coversNum >= MIN_COVERS ? "text-green-600" : "text-amber-600"}`}>
-                          {coversNum >= MIN_COVERS ? "✓ Qualifies (100+ covers)" : `Min. ${MIN_COVERS} covers for Pro Service`}
+                          {coversNum >= MIN_COVERS ? `✓ Qualifies (${MIN_COVERS}+ covers)` : `Min. ${MIN_COVERS} covers for Pro Service`}
                         </p>
                       )}
                     </div>
@@ -433,7 +433,7 @@ export default function ProServiceLanding() {
                         className={`${inputClass} ${parseBudget(form.budget) && parseBudget(form.budget)! >= MIN_BUDGET ? "border-green-500" : parseBudget(form.budget) && parseBudget(form.budget)! < MIN_BUDGET ? "border-amber-400" : ""}`} />
                       {parseBudget(form.budget) !== null && (
                         <p className={`text-[10px] font-body mt-1.5 ${parseBudget(form.budget)! >= MIN_BUDGET ? "text-green-600" : "text-amber-600"}`}>
-                          {parseBudget(form.budget)! >= MIN_BUDGET ? "✓ Qualifies (€35k+)" : `Min. €${MIN_BUDGET.toLocaleString()} for Pro Service`}
+                          {parseBudget(form.budget)! >= MIN_BUDGET ? `✓ Qualifies (€${(MIN_BUDGET/1000).toFixed(0)}k+)` : `Min. €${MIN_BUDGET.toLocaleString()} for Pro Service`}
                         </p>
                       )}
                     </div>

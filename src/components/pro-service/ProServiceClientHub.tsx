@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Search, MapPin, Star, ArrowRight, ArrowLeft,
   FileText, Users, CheckCircle2, Clock, ChevronRight,
-  Pencil, Send, Heart, MessageSquare, Shield, ExternalLink,
+  Pencil, Send, Heart, MessageSquare, Shield, ExternalLink, Calendar,
 } from "lucide-react";
 import {
   ARCHITECT_REQUEST_STATUS_CONFIG,
@@ -17,11 +18,14 @@ import { type ProServiceStore } from "./useProServiceStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavouritePartners, useFavouriteArchitects } from "@/hooks/useFavouritesDB";
 import { useClientProjects } from "@/hooks/useClientDashboard";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type Tab = "requests" | "find_architect" | "find_pro" | "completed";
 
 type View =
   | { type: "list" }
+  | { type: "new-request" }
   | { type: "request-architect" }
   | { type: "architect-request-detail"; requestId: string }
   | { type: "pro-detail"; proId: string }
@@ -49,7 +53,24 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
   const [proTypeFilter, setProTypeFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Client projects (simulate: first 5 projects belong to this client)
+  const { profile, user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Real pro service requests from DB
+  const { data: myProRequests = [] } = useQuery({
+    queryKey: ["my-pro-requests", profile?.email],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pro_service_requests")
+        .select("*")
+        .eq("client_email", profile!.email!)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!profile?.email,
+  });
+
+  // Also keep mock projects as fallback display
   const myProjects = store.projects.slice(0, 5);
   const completedProjects = myProjects.filter(p => p.status === "completed");
   const activeProjects = myProjects.filter(p => p.status !== "completed");
@@ -72,7 +93,7 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
   });
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
-    { id: "requests", label: t("proHub.client.tabRequests"), count: activeProjects.length },
+    { id: "requests", label: t("proHub.client.tabRequests"), count: myProRequests.length },
     { id: "find_architect", label: t("proHub.client.tabFindArchitect"), count: myArchitectRequests.filter(r => r.status === "searching" || r.status === "proposed").length },
     { id: "find_pro", label: t("proHub.client.tabFindPro") },
     { id: "completed", label: t("proHub.client.tabCompleted"), count: completedProjects.length },
@@ -141,6 +162,19 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
     );
   }
 
+  if (view.type === "new-request") {
+    return (
+      <NewProRequestForm
+        onCancel={() => setView({ type: "list" })}
+        onSubmitted={() => {
+          queryClient.invalidateQueries({ queryKey: ["my-pro-requests"] });
+          setView({ type: "list" });
+          setTab("requests");
+        }}
+      />
+    );
+  }
+
   // ── List view ──
 
   return (
@@ -159,7 +193,7 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
             <Pencil className="h-4 w-4" /> {t("proHub.client.requestArchitect")}
           </button>
           <button
-            onClick={() => navigate("/pro-service#brief")}
+            onClick={() => setView({ type: "new-request" })}
             className="flex items-center gap-2 px-4 py-2.5 font-display font-semibold text-sm border border-border text-foreground rounded-full hover:bg-muted transition-colors"
           >
             <Plus className="h-4 w-4" /> {t("proHub.client.newRequest")}
@@ -205,27 +239,31 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
         >
           {tab === "requests" && (
             <div className="space-y-4">
-              <div className="flex gap-2 flex-wrap">
-                {["all", "submitted", "in_review", "matched", "connected"].map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setStatusFilter(s)}
-                    className={`text-[10px] font-display font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full transition-colors ${
-                      statusFilter === s
-                        ? "bg-foreground text-primary-foreground"
-                        : "bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {s === "all" ? t("proHub.common.all") : STATUS_CONFIG[s as keyof typeof STATUS_CONFIG].label}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-body text-muted-foreground">{t("proHub.client.myProRequestsDesc")}</p>
+                <button
+                  onClick={() => setView({ type: "new-request" })}
+                  className="flex items-center gap-1.5 text-xs font-display font-semibold text-foreground hover:underline"
+                >
+                  <Plus className="h-3.5 w-3.5" /> {t("proHub.client.newRequest")}
+                </button>
               </div>
-              {filteredProjects.length === 0 ? (
-                <EmptyState message={t("proHub.client.noRequests")} />
+              {myProRequests.length === 0 ? (
+                <div className="border border-dashed border-border rounded-xl p-8 text-center">
+                  <FileText className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-sm font-display font-semibold text-foreground mb-1">{t("proHub.client.noRequests")}</p>
+                  <p className="text-xs font-body text-muted-foreground mb-4">{t("proHub.client.noRequestsSubtitle")}</p>
+                  <button
+                    onClick={() => setView({ type: "new-request" })}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                  >
+                    <Plus className="h-4 w-4" /> {t("proHub.client.newRequest")}
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredProjects.map(project => (
-                    <ProjectCard key={project.id} project={project} />
+                  {myProRequests.map((req: any) => (
+                    <ProRequestCard key={req.id} request={req} />
                   ))}
                 </div>
               )}
@@ -1221,6 +1259,627 @@ function RequestIntroForm({
         >
           Annuler
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PRO REQUEST CARD (real DB data)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const PRO_REQUEST_STATUS_MAP: Record<string, { label: string; style: string }> = {
+  pending: { label: "En cours d'analyse", style: "bg-blue-50 text-blue-700" },
+  matched: { label: "Architecte propos\u00e9", style: "bg-amber-50 text-amber-700" },
+  in_progress: { label: "En relation", style: "bg-emerald-50 text-emerald-700" },
+  completed: { label: "Termin\u00e9", style: "bg-muted text-muted-foreground" },
+};
+
+function ProRequestCard({ request }: { request: any }) {
+  const sc = PRO_REQUEST_STATUS_MAP[request.status] || PRO_REQUEST_STATUS_MAP.pending;
+  const createdDate = request.created_at ? new Date(request.created_at).toLocaleDateString("fr-FR") : "";
+
+  return (
+    <div className="border border-border rounded-xl p-4 hover:border-foreground/20 transition-colors">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-sm font-display font-semibold text-foreground truncate">
+              {request.project_title || request.establishment_name || request.client_company}
+            </h3>
+            <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${sc.style}`}>
+              {sc.label}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 text-[10px] font-body text-muted-foreground">
+            {request.project_city && (
+              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {request.project_city}{request.project_country ? `, ${request.project_country}` : ""}</span>
+            )}
+            {request.budget_range && <span>{request.budget_range}</span>}
+            {request.quantity_estimate && <span>{request.quantity_estimate} couverts</span>}
+            {createdDate && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {createdDate}</span>}
+          </div>
+          {request.categories_needed && request.categories_needed.length > 0 && (
+            <div className="flex gap-1.5 mt-2 flex-wrap">
+              {request.categories_needed.slice(0, 5).map((cat: string, i: number) => (
+                <span key={i} className="text-[9px] font-body bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{cat}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NEW PRO REQUEST FORM (comprehensive qualification form)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const MIN_COVERS_QUAL = 80;
+const MIN_BUDGET_QUAL = 30000;
+
+const BUDGET_OPTIONS = [
+  { value: "<10000", label: "< 10 000 \u20ac" },
+  { value: "10000-20000", label: "10 000 - 20 000 \u20ac" },
+  { value: "20000-30000", label: "20 000 - 30 000 \u20ac" },
+  { value: "30000-50000", label: "30 000 - 50 000 \u20ac" },
+  { value: "50000-80000", label: "50 000 - 80 000 \u20ac" },
+  { value: "80000-100000", label: "80 000 - 100 000 \u20ac" },
+  { value: ">100000", label: "> 100 000 \u20ac" },
+];
+
+const TIMELINE_OPTIONS = [
+  { value: "urgent", label: "Urgent (< 1 mois)" },
+  { value: "1-2months", label: "1-2 mois" },
+  { value: "2-3months", label: "2-3 mois" },
+  { value: "3-6months", label: "3-6 mois" },
+  { value: "no_rush", label: "Pas de rush" },
+];
+
+const STYLE_OPTIONS = [
+  "M\u00e9diterran\u00e9en", "Contemporain", "Industriel", "Scandinave", "Tropical",
+  "Classique/\u00c9l\u00e9gant", "Rustique/Naturel", "Minimaliste", "Je ne sais pas encore",
+];
+
+const CATEGORY_OPTIONS = [
+  "Chaises", "Tables", "Parasols", "Bains de soleil",
+  "Mobilier lounge", "Tabourets de bar", "Accessoires (coussins, pots, etc.)",
+];
+
+const MATERIAL_OPTIONS = [
+  "Aluminium", "Teck/Bois", "R\u00e9sine tress\u00e9e", "Polypropyl\u00e8ne", "Inox/Acier", "Pas de pr\u00e9f\u00e9rence",
+];
+
+const ESTABLISHMENT_TYPE_OPTIONS = [
+  { value: "hotel", label: "H\u00f4tel" },
+  { value: "resort", label: "Resort" },
+  { value: "restaurant", label: "Restaurant" },
+  { value: "beach_club", label: "Beach Club" },
+  { value: "rooftop", label: "Rooftop Bar" },
+  { value: "bar", label: "Bar / Lounge" },
+  { value: "camping", label: "Camping / Glamping" },
+  { value: "spa", label: "Spa / Wellness" },
+  { value: "event_venue", label: "Espace \u00e9v\u00e9nementiel" },
+  { value: "other", label: "Autre" },
+];
+
+const FUNCTION_OPTIONS = [
+  { value: "director", label: "Directeur / G\u00e9rant" },
+  { value: "purchasing", label: "Responsable achats" },
+  { value: "interior_architect", label: "Architecte d'int\u00e9rieur" },
+  { value: "project_manager", label: "Chef de projet" },
+  { value: "other", label: "Autre" },
+];
+
+const REFERRAL_OPTIONS = [
+  { value: "google", label: "Google" },
+  { value: "social", label: "R\u00e9seaux sociaux" },
+  { value: "referral", label: "Recommandation" },
+  { value: "trade_show", label: "Salon professionnel" },
+  { value: "other", label: "Autre" },
+];
+
+function parseBudgetRange(val: string): number | null {
+  if (val.startsWith(">")) return 100001;
+  const match = val.replace(/[<>€\s,]/g, "").match(/(\d+)/);
+  if (!match) return null;
+  return parseInt(match[1]);
+}
+
+function NewProRequestForm({
+  onCancel,
+  onSubmitted,
+}: {
+  onCancel: () => void;
+  onSubmitted: () => void;
+}) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { profile, user: authUser } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const [phase, setPhase] = useState<"form" | "not_qualified" | "submitted">("form");
+
+  const [form, setForm] = useState({
+    // Section 1: Establishment
+    establishmentType: "",
+    establishmentName: "",
+    location: "",
+    covers: "",
+    surfaceArea: "",
+    projectNature: "new",
+    // Section 2: Need
+    categories: [] as string[],
+    style: "",
+    colors: "",
+    materials: [] as string[],
+    constraints: "",
+    // Section 3: Budget & Planning
+    budget: "",
+    timeline: "",
+    desiredDate: "",
+    // Section 4: Accompaniment
+    accompanimentType: "",
+    notes: "",
+    referralSource: "",
+    // Section 5: Contact
+    fullName: profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "",
+    email: profile?.email || "",
+    phone: "",
+    company: "",
+    siren: "",
+    clientFunction: "",
+  });
+
+  const handle = (field: string) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      setForm(p => ({ ...p, [field]: e.target.value }));
+
+  const toggleCategory = (cat: string) => {
+    setForm(p => ({
+      ...p,
+      categories: p.categories.includes(cat)
+        ? p.categories.filter(c => c !== cat)
+        : [...p.categories, cat],
+    }));
+  };
+
+  const toggleMaterial = (mat: string) => {
+    setForm(p => ({
+      ...p,
+      materials: p.materials.includes(mat)
+        ? p.materials.filter(m => m !== mat)
+        : [...p.materials, mat],
+    }));
+  };
+
+  const coversNum = parseInt(form.covers);
+  const budgetNum = parseBudgetRange(form.budget);
+
+  const isQualified = (coversNum >= MIN_COVERS_QUAL) || (budgetNum !== null && budgetNum >= MIN_BUDGET_QUAL);
+
+  const inputClass = "w-full text-sm font-body bg-white border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
+  const labelClass = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5";
+  const sectionClass = "border border-border rounded-2xl p-5 bg-card space-y-4";
+
+  const handleSubmit = async () => {
+    // Validate required fields
+    if (!form.fullName || !form.email || !form.phone || !form.company || !form.siren || !form.establishmentType || !form.establishmentName || !form.location || !form.accompanimentType) {
+      toast.error(t("proHub.client.formFillRequired"));
+      return;
+    }
+    if (form.siren.length !== 9) {
+      toast.error(t("proHub.client.formSirenInvalid"));
+      return;
+    }
+
+    // Qualification check
+    if (!isQualified) {
+      setPhase("not_qualified");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Insert into pro_service_requests
+      const { error } = await supabase.from("pro_service_requests").insert({
+        client_name: form.fullName,
+        client_email: form.email,
+        client_phone: form.phone,
+        client_company: form.company,
+        project_title: `Pro Service — ${form.establishmentName}`,
+        project_type: form.establishmentType,
+        project_city: form.location.split(",")[0]?.trim() || form.location,
+        project_country: form.location.split(",")[1]?.trim() || "France",
+        categories_needed: form.categories,
+        style_preferences: form.style ? [form.style] : [],
+        budget_range: form.budget,
+        quantity_estimate: coversNum || null,
+        timeline: form.timeline,
+        description: form.notes,
+        special_requirements: form.constraints,
+        status: "pending",
+        establishment_name: form.establishmentName,
+        surface_area: form.surfaceArea ? parseFloat(form.surfaceArea) : null,
+        project_nature: form.projectNature,
+        materials_preferred: form.materials,
+        colors_preferred: form.colors,
+        constraints_text: form.constraints,
+        desired_date: form.desiredDate || null,
+        accompaniment_type: form.accompanimentType,
+        referral_source: form.referralSource,
+        client_function: form.clientFunction,
+        siren: form.siren,
+        client_user_id: authUser?.id || null,
+      } as any);
+
+      if (error) throw error;
+
+      // Notify all admins
+      const { data: admins } = await supabase
+        .from("user_profiles")
+        .select("id")
+        .eq("user_type", "admin");
+
+      if (admins && admins.length > 0) {
+        const notifications = admins.map(admin => ({
+          user_id: admin.id,
+          type: "pro_service",
+          title: "Nouvelle demande Pro Service",
+          body: `${form.fullName} (${form.company}) a soumis une demande Pro Service pour ${form.establishmentName}.`,
+          link: "/admin",
+        }));
+        await supabase.from("notifications").insert(notifications);
+      }
+
+      // Send confirmation email
+      try {
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            to: form.email,
+            subject: "Votre demande Pro Service Terrassea",
+            html: `<p>Bonjour ${form.fullName},</p><p>Votre demande Pro Service pour <strong>${form.establishmentName}</strong> a bien \u00e9t\u00e9 enregistr\u00e9e.</p><p>Notre \u00e9quipe vous contactera sous 24h pour vous mettre en relation avec le meilleur interlocuteur.</p><p>L'\u00e9quipe Terrassea</p>`,
+          },
+        });
+      } catch {
+        // Email is best-effort
+      }
+
+      setPhase("submitted");
+    } catch (err) {
+      console.error(err);
+      toast.error(t("proHub.client.formSubmitError"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ── Submitted ──
+  if (phase === "submitted") {
+    return (
+      <div className="max-w-xl mx-auto text-center py-16">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          </div>
+          <h2 className="font-display text-xl font-bold tracking-tight mb-2">{t("proHub.client.formSuccessTitle")}</h2>
+          <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">
+            {t("proHub.client.formSuccessDesc")}
+          </p>
+          <button
+            onClick={onSubmitted}
+            className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90"
+          >
+            {t("proHub.client.formSuccessBack")} <ArrowRight className="h-4 w-4" />
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── Not qualified — positive redirect ──
+  if (phase === "not_qualified") {
+    return (
+      <div className="max-w-xl mx-auto text-center py-16">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          </div>
+          <h2 className="font-display text-xl font-bold tracking-tight mb-4">{t("proService.catalogueMatchTitle")}</h2>
+          <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">
+            {t("proService.catalogueMatchDesc")}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button onClick={() => navigate("/products")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90">
+              {t("proService.exploreCatalogue")} <ArrowRight className="h-4 w-4" />
+            </button>
+            <button onClick={() => navigate("/projects/new")} className="flex items-center justify-center gap-2 px-6 py-3 font-display font-semibold text-sm border border-border text-foreground rounded-full hover:border-foreground transition-all">
+              {t("proService.launchGuidedProject")} <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── Form ──
+  return (
+    <div className="space-y-6">
+      <button
+        onClick={onCancel}
+        className="flex items-center gap-1.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" /> {t("proHub.client.backToHub")}
+      </button>
+
+      <div className="max-w-2xl">
+        <h2 className="font-display text-lg font-bold tracking-tight mb-1">{t("proHub.client.newRequestFormTitle")}</h2>
+        <p className="text-sm font-body text-muted-foreground mb-6">{t("proHub.client.newRequestFormSubtitle")}</p>
+
+        <div className="space-y-6">
+          {/* Section 1: Votre etablissement */}
+          <div className={sectionClass}>
+            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section1Title")}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>{t("proHub.client.formEstablishment")} *</label>
+                <select value={form.establishmentType} onChange={handle("establishmentType")} className={inputClass}>
+                  <option value="">{t("proHub.client.formSelect")}</option>
+                  {ESTABLISHMENT_TYPE_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>{t("proHub.client.formEstablishmentName")} *</label>
+                <input type="text" value={form.establishmentName} onChange={handle("establishmentName")} placeholder="H\u00f4tel Les Pins" className={inputClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>{t("proHub.client.formLocation")} *</label>
+                <input type="text" value={form.location} onChange={handle("location")} placeholder="Nice, France" className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{t("proHub.client.formCoversSeats")} *</label>
+                <input type="number" value={form.covers} onChange={handle("covers")} placeholder="150" className={inputClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>{t("proHub.client.formSurface")}</label>
+                <input type="number" value={form.surfaceArea} onChange={handle("surfaceArea")} placeholder="200" className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{t("proHub.client.formProjectNature")} *</label>
+                <div className="flex gap-2 flex-wrap pt-1">
+                  {[
+                    { value: "renovation", label: t("proHub.client.natureRenovation") },
+                    { value: "new", label: t("proHub.client.natureNew") },
+                    { value: "extension", label: t("proHub.client.natureExtension") },
+                  ].map(o => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => setForm(p => ({ ...p, projectNature: o.value }))}
+                      className={`text-xs font-body px-3 py-1.5 rounded-full border transition-colors ${
+                        form.projectNature === o.value
+                          ? "bg-foreground text-primary-foreground border-foreground"
+                          : "bg-white text-muted-foreground border-border hover:border-foreground"
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Votre besoin */}
+          <div className={sectionClass}>
+            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section2Title")}</p>
+            <div>
+              <label className={labelClass}>{t("proHub.client.formCategories")}</label>
+              <div className="flex gap-2 flex-wrap">
+                {CATEGORY_OPTIONS.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => toggleCategory(cat)}
+                    className={`text-xs font-body px-3 py-1.5 rounded-full border transition-colors ${
+                      form.categories.includes(cat)
+                        ? "bg-foreground text-primary-foreground border-foreground"
+                        : "bg-white text-muted-foreground border-border hover:border-foreground"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>{t("proHub.client.formStyleWanted")}</label>
+                <select value={form.style} onChange={handle("style")} className={inputClass}>
+                  <option value="">{t("proHub.client.formSelect")}</option>
+                  {STYLE_OPTIONS.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>{t("proHub.client.formColors")}</label>
+                <input type="text" value={form.colors} onChange={handle("colors")} placeholder="Beige, blanc, bois naturel..." className={inputClass} />
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>{t("proHub.client.formMaterials")}</label>
+              <div className="flex gap-2 flex-wrap">
+                {MATERIAL_OPTIONS.map(mat => (
+                  <button
+                    key={mat}
+                    type="button"
+                    onClick={() => toggleMaterial(mat)}
+                    className={`text-xs font-body px-3 py-1.5 rounded-full border transition-colors ${
+                      form.materials.includes(mat)
+                        ? "bg-foreground text-primary-foreground border-foreground"
+                        : "bg-white text-muted-foreground border-border hover:border-foreground"
+                    }`}
+                  >
+                    {mat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>{t("proHub.client.formConstraints")}</label>
+              <textarea value={form.constraints} onChange={handle("constraints")} placeholder="Vent, pluie, sol irr\u00e9gulier, empilage n\u00e9cessaire, normes feu..." rows={2} className={`${inputClass} resize-none`} />
+            </div>
+          </div>
+
+          {/* Section 3: Budget & Planning */}
+          <div className={sectionClass}>
+            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section3Title")}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>{t("proHub.client.formBudgetGlobal")} *</label>
+                <select value={form.budget} onChange={handle("budget")} className={inputClass}>
+                  <option value="">{t("proHub.client.formSelect")}</option>
+                  {BUDGET_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>{t("proHub.client.formTimelineWanted")}</label>
+                <select value={form.timeline} onChange={handle("timeline")} className={inputClass}>
+                  <option value="">{t("proHub.client.formSelect")}</option>
+                  {TIMELINE_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>{t("proHub.client.formDesiredDate")}</label>
+              <input type="date" value={form.desiredDate} onChange={handle("desiredDate")} className={inputClass} />
+            </div>
+          </div>
+
+          {/* Section 4: Accompaniment */}
+          <div className={sectionClass}>
+            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section4Title")}</p>
+            <div>
+              <label className={labelClass}>{t("proHub.client.formAccompaniment")} *</label>
+              <div className="space-y-2">
+                {[
+                  { value: "supplier_only", label: t("proHub.client.accompSupplier"), desc: t("proHub.client.accompSupplierDesc") },
+                  { value: "architect_only", label: t("proHub.client.accompArchitect"), desc: t("proHub.client.accompArchitectDesc") },
+                  { value: "both", label: t("proHub.client.accompBoth"), desc: t("proHub.client.accompBothDesc") },
+                ].map(o => (
+                  <label
+                    key={o.value}
+                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                      form.accompanimentType === o.value ? "border-foreground bg-muted/30" : "border-border hover:border-foreground/30"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="accompaniment"
+                      value={o.value}
+                      checked={form.accompanimentType === o.value}
+                      onChange={handle("accompanimentType")}
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <p className="text-sm font-display font-semibold">{o.label}</p>
+                      <p className="text-xs font-body text-muted-foreground">{o.desc}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>{t("proHub.client.formNotesCompl")}</label>
+              <textarea value={form.notes} onChange={handle("notes")} placeholder={t("proHub.client.formNotesPlaceholder")} rows={3} className={`${inputClass} resize-none`} />
+            </div>
+            <div>
+              <label className={labelClass}>{t("proHub.client.formReferral")}</label>
+              <select value={form.referralSource} onChange={handle("referralSource")} className={inputClass}>
+                <option value="">{t("proHub.client.formSelect")}</option>
+                {REFERRAL_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Section 5: Contact */}
+          <div className={sectionClass}>
+            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section5Title")}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>{t("proHub.client.formFullName")} *</label>
+                <input type="text" value={form.fullName} onChange={handle("fullName")} placeholder="Jean Dupont" className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{t("proHub.client.formEmailPro")} *</label>
+                <input type="email" value={form.email} onChange={handle("email")} placeholder="jean@hotel.fr" className={inputClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>{t("proHub.client.formPhone")} *</label>
+                <input type="tel" value={form.phone} onChange={handle("phone")} placeholder="+33 6 12 34 56 78" className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{t("proHub.client.formCompany")} *</label>
+                <input type="text" value={form.company} onChange={handle("company")} placeholder="SAS Les Pins" className={inputClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>{t("proHub.client.formSiren")} *</label>
+                <input
+                  type="text"
+                  value={form.siren}
+                  onChange={e => setForm(p => ({ ...p, siren: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+                  placeholder="123456789"
+                  className={inputClass}
+                />
+                <p className="text-[9px] font-body text-muted-foreground mt-1">9 chiffres</p>
+              </div>
+              <div>
+                <label className={labelClass}>{t("proHub.client.formFunction")}</label>
+                <select value={form.clientFunction} onChange={handle("clientFunction")} className={inputClass}>
+                  <option value="">{t("proHub.client.formSelect")}</option>
+                  {FUNCTION_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div className="pt-2">
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="w-full py-4 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
+            >
+              {submitting ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>{t("proHub.client.formSubmitPro")} <ArrowRight className="h-4 w-4" /></>
+              )}
+            </button>
+            <p className="text-[10px] text-muted-foreground font-body text-center mt-3 leading-relaxed">
+              {t("proHub.client.formDisclaimer")}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
