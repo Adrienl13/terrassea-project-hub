@@ -157,6 +157,13 @@ export function useAdminSubmissions() {
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ["admin-product-submissions"] });
 
+  const notifyPartner = async (partnerId: string, title: string, body: string) => {
+    const { data: profile } = await supabase.from("user_profiles").select("id").eq("id", partnerId).maybeSingle();
+    if (profile) {
+      await supabase.from("notifications").insert({ user_id: profile.id, title, body, type: "info", link: "/account?tab=products" });
+    }
+  };
+
   // Approve as a brand new product
   const approveAsNew = useCallback(
     async (id: string) => {
@@ -182,6 +189,10 @@ export function useAdminSubmissions() {
         .eq("id", id);
 
       if (updateError) throw updateError;
+
+      // Notify partner
+      const productName = (productData as Record<string, unknown>)?.name ?? "votre produit";
+      await notifyPartner(submission.partner_id, "Produit approuvé", `Votre produit ${productName} a été approuvé et publié`);
 
       await invalidate();
     },
@@ -225,6 +236,10 @@ export function useAdminSubmissions() {
 
       if (updateError) throw updateError;
 
+      // Notify partner
+      const productName = (submission.product_data as Record<string, unknown>)?.name ?? "votre produit";
+      await notifyPartner(submission.partner_id, "Produit fusionné", `Votre produit ${productName} a été approuvé et fusionné avec un produit existant`);
+
       await invalidate();
     },
     [submissions, queryClient]
@@ -243,9 +258,18 @@ export function useAdminSubmissions() {
         .eq("id", id);
 
       if (error) throw error;
+
+      // Notify partner with rejection reason
+      const submission = submissions.find((s) => s.id === id);
+      if (submission) {
+        const productName = (submission.product_data as Record<string, unknown>)?.name ?? "votre produit";
+        const reason = notes ? ` — Raison : ${notes}` : "";
+        await notifyPartner(submission.partner_id, "Produit rejeté", `Votre produit ${productName} a été rejeté${reason}`);
+      }
+
       await invalidate();
     },
-    [queryClient]
+    [submissions, queryClient]
   );
 
   // Re-generate merged description via edge function

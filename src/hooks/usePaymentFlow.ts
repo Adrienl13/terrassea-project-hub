@@ -258,7 +258,7 @@ export function usePaymentFlow() {
         .from("orders")
         .update({
           balance_paid_at: new Date().toISOString(),
-          status: "paid",
+          status: "completed",
         })
         .eq("id", orderId);
 

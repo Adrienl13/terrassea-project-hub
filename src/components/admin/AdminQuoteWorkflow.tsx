@@ -96,6 +96,13 @@ export default function AdminQuoteWorkflow() {
 
   const selected = selectedId ? quotes.find((q: any) => q.id === selectedId) : null;
 
+  const notifyUser = async (email: string, title: string, body: string, link: string) => {
+    const { data: profile } = await supabase.from("user_profiles").select("id").eq("email", email).maybeSingle();
+    if (profile) {
+      await supabase.from("notifications").insert({ user_id: profile.id, title, body, type: "info", link });
+    }
+  };
+
   const updateQuoteStatus = async (id: string, status: string) => {
     const { error } = await supabase
       .from("quote_requests")
@@ -104,6 +111,20 @@ export default function AdminQuoteWorkflow() {
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success(`Statut mis à jour : ${STATUS_CONFIG[status]?.label || status}`);
     queryClient.invalidateQueries({ queryKey: ["admin-quotes"] });
+
+    // Notify client of quote status change
+    const quote = quotes.find((q: any) => q.id === id);
+    if (quote?.email) {
+      const notifMap: Record<string, string> = {
+        replied: "Un fournisseur a répondu à votre demande de devis",
+        expired: "Votre devis a expiré",
+        cancelled: "Votre devis a été annulé",
+      };
+      const message = notifMap[status];
+      if (message) {
+        await notifyUser(quote.email, "Mise à jour devis", message, "/account?tab=quotes");
+      }
+    }
   };
 
   const assignPartner = async (quoteId: string, partnerId: string, partnerName: string) => {
@@ -114,6 +135,48 @@ export default function AdminQuoteWorkflow() {
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success(`Partenaire assigné : ${partnerName}`);
     queryClient.invalidateQueries({ queryKey: ["admin-quotes"] });
+
+    // Non-blocking: notify the partner
+    try {
+      // Find the partner's contact_email, then look up their user profile
+      const { data: partner } = await supabase
+        .from("partners")
+        .select("contact_email")
+        .eq("id", partnerId)
+        .single();
+
+      if (partner?.contact_email) {
+        // Find the user_profile by email
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("id")
+          .eq("email", partner.contact_email)
+          .maybeSingle();
+
+        // Insert in-app notification
+        if (profile?.id) {
+          await supabase.from("notifications").insert({
+            user_id: profile.id,
+            title: "Nouveau devis assigné",
+            body: "Un nouveau devis vous a été assigné",
+            type: "quote_assigned",
+            link: "/partner/quotes",
+          } as Record<string, unknown>);
+        }
+
+        // Send email notification
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            to: partner.contact_email,
+            subject: "Terrassea — Un nouveau devis vous a été assigné",
+            body_html: `<p>Bonjour ${partnerName},</p><p>Un nouveau devis vous a été assigné sur Terrassea. Connectez-vous à votre espace partenaire pour le consulter.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+            body_text: `Bonjour ${partnerName}, un nouveau devis vous a été assigné sur Terrassea. Connectez-vous à votre espace partenaire pour le consulter.`,
+          },
+        });
+      }
+    } catch (err) {
+      console.warn("Failed to notify partner about quote assignment:", err);
+    }
   };
 
   // ── Detail view ──

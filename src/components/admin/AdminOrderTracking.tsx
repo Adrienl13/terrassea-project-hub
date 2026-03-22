@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { isAutoTrackingEnabled, refreshOrderTracking, refreshAllShippedOrders } from "@/lib/trackingService";
 import AdminPaymentPanel from "@/components/admin/AdminPaymentPanel";
+import { usePaymentFlow } from "@/hooks/usePaymentFlow";
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -42,6 +43,8 @@ export default function AdminOrderTracking() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const { confirmDeposit, confirmBalance } = usePaymentFlow();
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["admin-orders"],
@@ -82,6 +85,13 @@ export default function AdminOrderTracking() {
 
   const selected = selectedId ? orders.find((o: any) => o.id === selectedId) : null;
 
+  const notifyUser = async (email: string, title: string, body: string, link: string) => {
+    const { data: profile } = await supabase.from("user_profiles").select("id").eq("email", email).maybeSingle();
+    if (profile) {
+      await supabase.from("notifications").insert({ user_id: profile.id, title, body, type: "info", link });
+    }
+  };
+
   const updateOrder = async (id: string, updates: Record<string, any>, eventType: string, eventDesc: string) => {
     const { error } = await supabase.from("orders").update({ ...updates, updated_at: new Date().toISOString() }).eq("id", id);
     if (error) { toast.error("Erreur : " + error.message); return; }
@@ -90,6 +100,22 @@ export default function AdminOrderTracking() {
     toast.success(eventDesc);
     queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     queryClient.invalidateQueries({ queryKey: ["admin-order-events", id] });
+
+    // Notify client of order status change
+    const order = orders.find((o: any) => o.id === id);
+    if (order?.client_email && updates.status) {
+      const notifMap: Record<string, string> = {
+        in_production: "Votre commande est entrée en production",
+        delivered: "Votre commande a été livrée",
+        completed: "Votre commande est terminée — merci !",
+        cancelled: "Votre commande a été annulée",
+        disputed: "Un litige a été ouvert sur votre commande",
+      };
+      const message = notifMap[updates.status];
+      if (message) {
+        await notifyUser(order.client_email, "Mise à jour commande", message, "/account?tab=orders");
+      }
+    }
   };
 
   // ── Detail ──
@@ -148,7 +174,7 @@ export default function AdminOrderTracking() {
           <div className="flex gap-2 flex-wrap">
             {selected.status === "pending_deposit" && (
               <ActionBtn label="Marquer acompte reçu" icon={CreditCard} color="#2563EB"
-                onClick={() => updateOrder(selected.id, { status: "deposit_paid", deposit_paid_at: new Date().toISOString() }, "deposit_paid", "Acompte reçu")} />
+                onClick={() => confirmDeposit(selected.id)} />
             )}
             {selected.status === "deposit_paid" && (
               <ActionBtn label="Production lancée" icon={Factory} color="#7C3AED"
@@ -196,14 +222,14 @@ export default function AdminOrderTracking() {
             )}
             {selected.status === "delivered" && (
               <ActionBtn label="Solde reçu — Clôturer" icon={ShieldCheck} color="#059669"
-                onClick={() => updateOrder(selected.id, { status: "completed", balance_paid_at: new Date().toISOString() }, "completed", "Solde reçu, commande clôturée")} />
+                onClick={() => confirmBalance(selected.id)} />
             )}
             {!["completed", "cancelled", "refunded"].includes(selected.status) && (
               <>
                 <ActionBtn label="Litige" icon={AlertTriangle} color="#DC2626"
                   onClick={() => { setShowDisputeDialog(true); setDisputeReason(""); }} />
                 <ActionBtn label="Annuler" icon={Ban} color="#6B7280"
-                  onClick={() => updateOrder(selected.id, { status: "cancelled" }, "cancelled", "Commande annulée par l'admin")} />
+                  onClick={() => setShowCancelDialog(true)} />
               </>
             )}
             {selected.status === "disputed" && (
@@ -242,6 +268,33 @@ export default function AdminOrderTracking() {
                   className="px-4 py-2 text-[10px] font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors"
                 >
                   Annuler
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Cancel confirmation dialog (inline) */}
+          {showCancelDialog && (
+            <div className="mt-3 border border-gray-200 bg-gray-50 rounded-xl p-4 space-y-3">
+              <p className="text-xs font-display font-semibold text-gray-700">Confirmer l'annulation</p>
+              <p className="text-xs font-body text-muted-foreground">
+                Êtes-vous sûr de vouloir annuler cette commande ? Cette action est irréversible.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    updateOrder(selected.id, { status: "cancelled" }, "cancelled", "Commande annulée par l'admin");
+                    setShowCancelDialog(false);
+                  }}
+                  className="px-4 py-2 text-[10px] font-display font-semibold bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Confirmer l'annulation
+                </button>
+                <button
+                  onClick={() => setShowCancelDialog(false)}
+                  className="px-4 py-2 text-[10px] font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors"
+                >
+                  Retour
                 </button>
               </div>
             </div>

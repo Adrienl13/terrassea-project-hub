@@ -872,6 +872,24 @@ function ProductsTab() {
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast.success(newStatus === "published" ? "Produit publie" : "Produit rejete");
+
+      // Notify the partner who owns this product
+      const product = products.find((p: any) => p.id === productId);
+      if (product?.partner_id) {
+        const { data: partnerProfile } = await supabase.from("user_profiles").select("id").eq("id", product.partner_id).maybeSingle();
+        if (partnerProfile) {
+          const body = newStatus === "published"
+            ? `Votre produit ${product.name} a été publié`
+            : `Votre produit ${product.name} a été rejeté`;
+          await supabase.from("notifications").insert({
+            user_id: partnerProfile.id,
+            title: newStatus === "published" ? "Produit publié" : "Produit rejeté",
+            body,
+            type: "info",
+            link: "/account?tab=products",
+          });
+        }
+      }
     } catch (err: any) {
       toast.error(err.message || "Echec de la mise a jour");
     }

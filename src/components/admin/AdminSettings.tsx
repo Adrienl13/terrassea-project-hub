@@ -11,12 +11,13 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: any; color: string 
   orders:     { label: "Commandes & Livraisons", icon: CreditCard, color: "#2563EB" },
   quotes:     { label: "Devis & Signatures", icon: FileText, color: "#7C3AED" },
   plans:      { label: "Plans partenaires", icon: Package, color: "#059669" },
+  payment:    { label: "Paiement", icon: CreditCard, color: "#059669" },
   email:      { label: "Emails", icon: Mail, color: "#D97706" },
   general:    { label: "Général", icon: Globe, color: "#6B7280" },
   shipping:   { label: "Livraison", icon: Clock, color: "#0891B2" },
 };
 
-const CATEGORY_ORDER = ["features", "commission", "orders", "quotes", "plans", "email", "general", "shipping"];
+const CATEGORY_ORDER = ["features", "commission", "orders", "quotes", "plans", "payment", "email", "general", "shipping"];
 
 export default function AdminSettings() {
   const queryClient = useQueryClient();
