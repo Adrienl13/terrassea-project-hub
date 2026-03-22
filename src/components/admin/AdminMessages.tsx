@@ -250,7 +250,7 @@ export default function AdminMessages() {
 
       {/* Notification form */}
       {showNotifForm && (
-        <div className="bg-card border border-border rounded-sm p-5 mb-5 space-y-3">
+        <div className="bg-card border border-border rounded-xl p-5 mb-5 space-y-3">
           <h3 className="font-display font-semibold text-sm text-foreground">Envoyer une notification</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -258,7 +258,7 @@ export default function AdminMessages() {
               <select
                 value={notifData.userId}
                 onChange={e => setNotifData(p => ({ ...p, userId: e.target.value }))}
-                className="w-full bg-background border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
               >
                 <option value="">Choisir...</option>
                 <option value="all">Tous les utilisateurs</option>
@@ -274,7 +274,7 @@ export default function AdminMessages() {
               <input
                 value={notifData.title}
                 onChange={e => setNotifData(p => ({ ...p, title: e.target.value }))}
-                className="w-full bg-background border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
               />
             </div>
           </div>
@@ -283,7 +283,7 @@ export default function AdminMessages() {
             <input
               value={notifData.body}
               onChange={e => setNotifData(p => ({ ...p, body: e.target.value }))}
-              className="w-full bg-background border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
             />
           </div>
           <div>
@@ -292,7 +292,7 @@ export default function AdminMessages() {
               value={notifData.link}
               onChange={e => setNotifData(p => ({ ...p, link: e.target.value }))}
               placeholder="/products, /messages, ..."
-              className="w-full bg-background border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
             />
           </div>
           <div className="flex gap-2">
@@ -310,12 +310,12 @@ export default function AdminMessages() {
 
       {/* New conversation modal */}
       {showNew && (
-        <div className="bg-card border border-border rounded-sm p-5 mb-5 space-y-3">
+        <div className="bg-card border border-border rounded-xl p-5 mb-5 space-y-3">
           <h3 className="font-display font-semibold text-sm text-foreground">Nouvelle conversation</h3>
           <div>
             <label className="text-xs font-body text-muted-foreground block mb-1">Destinataire</label>
             {selectedUser ? (
-              <div className="flex items-center gap-2 bg-background border border-border rounded-sm px-3 py-2">
+              <div className="flex items-center gap-2 bg-background border border-border rounded-xl px-3 py-2">
                 <span className="text-sm font-body flex-1">
                   {[selectedUser.first_name, selectedUser.last_name].filter(Boolean).join(" ") || selectedUser.email}
                 </span>
@@ -328,9 +328,9 @@ export default function AdminMessages() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <input value={newSearch} onChange={e => setNewSearch(e.target.value)} placeholder="Rechercher..."
-                  className="w-full bg-background border border-border rounded-sm pl-9 pr-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40" />
                 {searchUsers.length > 0 && newSearch.length >= 2 && (
-                  <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-sm shadow-md mt-1 max-h-48 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-lg shadow-md mt-1 max-h-48 overflow-y-auto">
                     {searchUsers.map(u => (
                       <button key={u.id} onClick={() => { setSelectedUser(u); setNewSearch(""); }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-card text-xs font-body">
@@ -348,12 +348,12 @@ export default function AdminMessages() {
           <div>
             <label className="text-xs font-body text-muted-foreground block mb-1">Sujet</label>
             <input value={newSubject} onChange={e => setNewSubject(e.target.value)}
-              className="w-full bg-background border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground" />
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40" />
           </div>
           <div>
             <label className="text-xs font-body text-muted-foreground block mb-1">Message</label>
             <textarea value={newMessage} onChange={e => setNewMessage(e.target.value)} rows={3}
-              className="w-full bg-background border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground resize-none" />
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none" />
           </div>
           <div className="flex gap-2">
             <button onClick={handleCreateConv} disabled={!selectedUser || !newMessage.trim()}
@@ -369,14 +369,14 @@ export default function AdminMessages() {
       )}
 
       {/* Conversation list + thread */}
-      <div className="flex border border-border rounded-sm overflow-hidden" style={{ minHeight: 500 }}>
+      <div className="flex border border-border rounded-xl overflow-hidden" style={{ minHeight: 500 }}>
         {/* Sidebar */}
         <div className={`w-72 border-r border-border shrink-0 flex flex-col ${activeConv ? "hidden md:flex" : "flex"}`}>
           <div className="p-2 border-b border-border">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher..."
-                className="w-full bg-card border border-border rounded-sm pl-8 pr-2 py-1.5 text-xs font-body outline-none focus:ring-1 focus:ring-foreground" />
+                className="w-full bg-card border border-border rounded-lg pl-8 pr-2 py-1.5 text-xs font-body focus:outline-none focus:border-foreground/40" />
             </div>
           </div>
           <div className="flex-1 overflow-y-auto">

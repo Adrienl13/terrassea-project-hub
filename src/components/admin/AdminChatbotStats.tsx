@@ -336,7 +336,7 @@ export default function AdminChatbotStats() {
               title={`${d.date}: ${d.messages} msgs`}
             >
               <div
-                className="w-full bg-foreground/20 hover:bg-foreground/40 rounded-sm transition-colors"
+                className="w-full bg-foreground/20 hover:bg-foreground/40 rounded-xl transition-colors"
                 style={{ height: `${Math.max(2, (d.messages / maxBar) * 100)}%` }}
               />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-foreground text-background text-[9px] font-mono px-1.5 py-0.5 rounded whitespace-nowrap z-10">
@@ -368,7 +368,7 @@ export default function AdminChatbotStats() {
               type="number"
               value={form.max_messages_per_user_per_day}
               onChange={(e) => setForm({ ...form, max_messages_per_user_per_day: parseInt(e.target.value) || 0 })}
-              className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body text-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body text-foreground focus:outline-none focus:border-foreground/40"
             />
           </div>
           <div>
@@ -379,7 +379,7 @@ export default function AdminChatbotStats() {
               type="number"
               value={form.monthly_budget_limit}
               onChange={(e) => setForm({ ...form, monthly_budget_limit: parseFloat(e.target.value) || 0 })}
-              className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body text-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body text-foreground focus:outline-none focus:border-foreground/40"
             />
           </div>
           <div>
@@ -390,7 +390,7 @@ export default function AdminChatbotStats() {
               type="number"
               value={form.alert_threshold_percent}
               onChange={(e) => setForm({ ...form, alert_threshold_percent: parseInt(e.target.value) || 0 })}
-              className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body text-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body text-foreground focus:outline-none focus:border-foreground/40"
             />
           </div>
         </div>
@@ -398,7 +398,7 @@ export default function AdminChatbotStats() {
           <button
             onClick={() => saveMutation.mutate(form)}
             disabled={saveMutation.isPending}
-            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-sm text-xs font-display font-semibold hover:bg-foreground/90 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-lg text-xs font-display font-semibold hover:bg-foreground/90 transition-colors disabled:opacity-50"
           >
             <Save className="h-3.5 w-3.5" />
             {t("adminChatbot.save")}

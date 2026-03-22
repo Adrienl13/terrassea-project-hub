@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { isAutoTrackingEnabled, refreshOrderTracking, refreshAllShippedOrders } from "@/lib/trackingService";
 import AdminPaymentPanel from "@/components/admin/AdminPaymentPanel";
-import { supabase } from "@/integrations/supabase/client";
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -41,6 +40,8 @@ export default function AdminOrderTracking() {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showDisputeDialog, setShowDisputeDialog] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["admin-orders"],
@@ -200,10 +201,7 @@ export default function AdminOrderTracking() {
             {!["completed", "cancelled", "refunded"].includes(selected.status) && (
               <>
                 <ActionBtn label="Litige" icon={AlertTriangle} color="#DC2626"
-                  onClick={() => {
-                    const reason = prompt("Raison du litige :");
-                    if (reason) updateOrder(selected.id, { status: "disputed", dispute_reason: reason }, "disputed", `Litige ouvert : ${reason}`);
-                  }} />
+                  onClick={() => { setShowDisputeDialog(true); setDisputeReason(""); }} />
                 <ActionBtn label="Annuler" icon={Ban} color="#6B7280"
                   onClick={() => updateOrder(selected.id, { status: "cancelled" }, "cancelled", "Commande annulée par l'admin")} />
               </>
@@ -213,6 +211,41 @@ export default function AdminOrderTracking() {
                 onClick={() => updateOrder(selected.id, { status: "delivered", dispute_resolved_at: new Date().toISOString(), dispute_reason: null }, "admin_action", "Litige résolu")} />
             )}
           </div>
+
+          {/* Dispute reason dialog (inline) */}
+          {showDisputeDialog && (
+            <div className="mt-3 border border-red-200 bg-red-50 rounded-xl p-4 space-y-3">
+              <p className="text-xs font-display font-semibold text-red-700">Raison du litige</p>
+              <textarea
+                value={disputeReason}
+                onChange={e => setDisputeReason(e.target.value)}
+                rows={2}
+                placeholder="Decrivez la raison du litige..."
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (disputeReason.trim()) {
+                      updateOrder(selected.id, { status: "disputed", dispute_reason: disputeReason.trim() }, "disputed", `Litige ouvert : ${disputeReason.trim()}`);
+                      setShowDisputeDialog(false);
+                      setDisputeReason("");
+                    }
+                  }}
+                  disabled={!disputeReason.trim()}
+                  className="px-4 py-2 text-[10px] font-display font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  Confirmer le litige
+                </button>
+                <button
+                  onClick={() => { setShowDisputeDialog(false); setDisputeReason(""); }}
+                  className="px-4 py-2 text-[10px] font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Financial summary */}

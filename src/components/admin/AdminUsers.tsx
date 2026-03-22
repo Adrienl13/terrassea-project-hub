@@ -126,7 +126,7 @@ export default function AdminUsers() {
                 <input
                   value={editForm.first_name || ""}
                   onChange={e => setEditForm(p => ({ ...p, first_name: e.target.value }))}
-                  className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
                 />
               </div>
               <div>
@@ -134,14 +134,14 @@ export default function AdminUsers() {
                 <input
                   value={editForm.last_name || ""}
                   onChange={e => setEditForm(p => ({ ...p, last_name: e.target.value }))}
-                  className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
                 />
               </div>
             </div>
             <div>
               <label className="text-xs font-body text-muted-foreground block mb-1">Email</label>
               <input value={selected.email} disabled
-                className="w-full bg-muted border border-border rounded-sm px-3 py-2 text-sm font-body text-muted-foreground"
+                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm font-body text-muted-foreground"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -150,7 +150,7 @@ export default function AdminUsers() {
                 <input
                   value={editForm.company || ""}
                   onChange={e => setEditForm(p => ({ ...p, company: e.target.value }))}
-                  className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
                 />
               </div>
               <div>
@@ -158,7 +158,7 @@ export default function AdminUsers() {
                 <input
                   value={editForm.phone || ""}
                   onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))}
-                  className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
                 />
               </div>
             </div>
@@ -168,7 +168,7 @@ export default function AdminUsers() {
                 <input
                   value={editForm.country || ""}
                   onChange={e => setEditForm(p => ({ ...p, country: e.target.value }))}
-                  className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
                 />
               </div>
               <div>
@@ -176,7 +176,7 @@ export default function AdminUsers() {
                 <select
                   value={editForm.user_type || "client"}
                   onChange={e => setEditForm(p => ({ ...p, user_type: e.target.value }))}
-                  className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
                 >
                   <option value="client">Client</option>
                   <option value="partner">Partenaire</option>
@@ -198,7 +198,7 @@ export default function AdminUsers() {
           </div>
         ) : (
           <div className="space-y-5">
-            <div className="border border-border rounded-sm p-5">
+            <div className="border border-border rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-display font-semibold text-sm text-foreground">Informations</h3>
                 <button onClick={() => handleEdit(selected)}
@@ -240,7 +240,7 @@ export default function AdminUsers() {
             type="text" value={filter}
             onChange={e => setFilter(e.target.value)}
             placeholder="Rechercher un utilisateur..."
-            className="w-full bg-card border border-border rounded-sm pl-9 pr-4 py-2.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+            className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2.5 text-sm font-body focus:outline-none focus:border-foreground/40"
           />
         </div>
       </div>

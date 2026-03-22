@@ -46,7 +46,7 @@ const TABS: FilterTab[] = ["all", "pending_review", "duplicates", "approved", "r
 
 function DescriptionCard({ title, text }: { title: string; text: string | null }) {
   return (
-    <div className="border border-border rounded-sm p-4">
+    <div className="border border-border rounded-xl p-4">
       <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-wider mb-2">{title}</p>
       <p className="text-sm font-body text-foreground whitespace-pre-wrap">{text || "—"}</p>
     </div>
@@ -165,7 +165,7 @@ export default function AdminProductReview() {
           const partnerName = (s as any).partner?.name ?? s.partner_id;
 
           return (
-            <div key={s.id} className="border border-border rounded-sm bg-card overflow-hidden">
+            <div key={s.id} className="border border-border rounded-xl bg-card overflow-hidden">
               {/* Card header */}
               <button
                 onClick={() => setExpandedId(isExpanded ? null : s.id)}
@@ -173,9 +173,9 @@ export default function AdminProductReview() {
               >
                 {/* Product image thumbnail */}
                 {pd.image_url ? (
-                  <img src={pd.image_url} alt="" className="w-12 h-12 rounded-sm object-cover border border-border" />
+                  <img src={pd.image_url} alt="" className="w-12 h-12 rounded-lg object-cover border border-border" />
                 ) : (
-                  <div className="w-12 h-12 rounded-sm bg-foreground/5 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-lg bg-foreground/5 flex items-center justify-center">
                     <Package className="h-5 w-5 text-muted-foreground" />
                   </div>
                 )}
@@ -210,7 +210,7 @@ export default function AdminProductReview() {
                         {t("adminReview.submittedProduct", "Submitted Product")}
                       </p>
                       {pd.image_url && (
-                        <img src={pd.image_url} alt="" className="w-full max-w-xs rounded-sm border border-border" />
+                        <img src={pd.image_url} alt="" className="w-full max-w-xs rounded-xl border border-border" />
                       )}
                       <div className="space-y-1 text-sm font-body">
                         <p><span className="text-muted-foreground">Name:</span> {pd.name}</p>
@@ -231,7 +231,7 @@ export default function AdminProductReview() {
                           {t("adminReview.existingProduct", "Existing Product (Duplicate)")}
                         </p>
                         {(s as any).duplicate_product?.image_url && (
-                          <img src={(s as any).duplicate_product.image_url} alt="" className="w-full max-w-xs rounded-sm border border-border" />
+                          <img src={(s as any).duplicate_product.image_url} alt="" className="w-full max-w-xs rounded-xl border border-border" />
                         )}
                         <div className="space-y-1 text-sm font-body">
                           <p><span className="text-muted-foreground">Name:</span> {(s as any).duplicate_product?.name ?? "—"}</p>
@@ -274,7 +274,7 @@ export default function AdminProductReview() {
                       value={adminNotes[s.id] ?? s.admin_notes ?? ""}
                       onChange={(e) => setAdminNotes((prev) => ({ ...prev, [s.id]: e.target.value }))}
                       rows={2}
-                      className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body focus:ring-1 focus:ring-foreground outline-none resize-none"
+                      className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none"
                       placeholder={t("adminReview.adminNotesPlaceholder", "Internal notes...")}
                     />
                   </div>
@@ -288,7 +288,7 @@ export default function AdminProductReview() {
                       value={rejectionNotes[s.id] ?? ""}
                       onChange={(e) => setRejectionNotes((prev) => ({ ...prev, [s.id]: e.target.value }))}
                       rows={2}
-                      className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body focus:ring-1 focus:ring-foreground outline-none resize-none"
+                      className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none"
                       placeholder={t("adminReview.rejectionNotesPlaceholder", "Reason for rejection (optional)...")}
                     />
                   </div>
@@ -303,7 +303,7 @@ export default function AdminProductReview() {
                           setActionLoading(s.id);
                           handleAction(() => approveAsNew(s.id), t("adminReview.approveNew", "Approve"));
                         }}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-sm bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                       >
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         {t("adminReview.approveNew", "Approuver comme nouveau produit")}
@@ -317,7 +317,7 @@ export default function AdminProductReview() {
                             setActionLoading(s.id);
                             handleAction(() => approveAsMerge(s.id), t("adminReview.mergeExisting", "Merge"));
                           }}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                         >
                           <Copy className="h-3.5 w-3.5" />
                           {t("adminReview.mergeExisting", "Fusionner avec l'existant")}
@@ -332,7 +332,7 @@ export default function AdminProductReview() {
                             setActionLoading(s.id);
                             handleAction(() => regenerateMerge(s.id), t("adminReview.regenerate", "Regenerate"));
                           }}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-sm bg-foreground/10 text-foreground hover:bg-foreground/20 disabled:opacity-50 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-lg bg-foreground/10 text-foreground hover:bg-foreground/20 disabled:opacity-50 transition-colors"
                         >
                           <RefreshCw className="h-3.5 w-3.5" />
                           {t("adminReview.regenerate", "Régénérer la fusion")}
@@ -349,7 +349,7 @@ export default function AdminProductReview() {
                             t("adminReview.reject", "Reject")
                           );
                         }}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
                       >
                         <XCircle className="h-3.5 w-3.5" />
                         {t("adminReview.reject", "Rejeter")}

@@ -8,7 +8,7 @@ import {
   XCircle, Clock, AlertTriangle, Star, TrendingUp,
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
-  CreditCard, Inbox,
+  CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -134,7 +134,7 @@ function TagInput({
     <div>
       <label className="text-xs font-body text-muted-foreground block mb-1">{label}</label>
       <div className="relative">
-        <div className="flex flex-wrap gap-1 min-h-[38px] bg-card border border-border rounded-sm px-2 py-1.5 focus-within:ring-1 focus-within:ring-foreground">
+        <div className="flex flex-wrap gap-1 min-h-[38px] bg-card border border-border rounded-lg px-3 py-2 focus-within:border-foreground/40">
           {value.map(tag => (
             <span key={tag} className="inline-flex items-center gap-1 text-[10px] bg-foreground/10 text-foreground px-2 py-0.5 rounded">
               {tag}
@@ -154,7 +154,7 @@ function TagInput({
           />
         </div>
         {showSuggestions && filtered.length > 0 && (
-          <div className="absolute top-full left-0 right-0 z-20 bg-background border border-border rounded-sm shadow-md mt-1 max-h-40 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 z-20 bg-background border border-border rounded-lg shadow-md mt-1 max-h-40 overflow-y-auto">
             {filtered.map(s => (
               <button
                 key={s} type="button"
@@ -195,7 +195,7 @@ function ProductTypeTagsForm({
         <select
           value={value[field] ?? ""}
           onChange={e => set(field, e.target.value || undefined)}
-          className="w-full bg-card border border-border rounded-sm px-2.5 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+          className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
         >
           <option value="">—</option>
           {options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -205,7 +205,7 @@ function ProductTypeTagsForm({
           type={type}
           value={value[field] ?? ""}
           onChange={e => set(field, type === "number" ? (e.target.value ? Number(e.target.value) : undefined) : e.target.value || undefined)}
-          className="w-full bg-card border border-border rounded-sm px-2.5 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+          className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
         />
       )}
     </div>
@@ -419,7 +419,7 @@ function ProductForm({
 
   const handleSave = async (overrides?: Partial<ProductFormData>) => {
     if (!form.name || !form.category) {
-      toast.error("Name and category are required");
+      toast.error("Le nom et la categorie sont requis");
       return;
     }
     setSaving(true);
@@ -435,12 +435,12 @@ function ProductForm({
   };
 
   const SECTIONS = [
-    { id: "basics",    label: "Basics" },
+    { id: "basics",    label: "Informations" },
     { id: "tags",      label: "Tags" },
-    { id: "typetags",  label: "Type-specific" },
-    { id: "pricing",   label: "Pricing & Stock" },
+    { id: "typetags",  label: "Tags specifiques" },
+    { id: "pricing",   label: "Prix & Stock" },
     { id: "dims",      label: "Dimensions" },
-    { id: "technical", label: "Technical" },
+    { id: "technical", label: "Technique" },
   ];
 
   const Input = ({ label, field, type = "text", required }: {
@@ -454,7 +454,7 @@ function ProductForm({
         type={type}
         value={String(form[field] ?? "")}
         onChange={e => set(field, type === "number" ? (e.target.value ? Number(e.target.value) : null) : e.target.value)}
-        className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+        className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
       />
     </div>
   );
@@ -469,7 +469,7 @@ function ProductForm({
       <select
         value={String(form[field] ?? "")}
         onChange={e => set(field, e.target.value)}
-        className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+        className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
       >
         <option value="">—</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -495,7 +495,7 @@ function ProductForm({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-display text-lg font-bold text-foreground">
-            {form.id ? "Edit Product" : "New Product"}
+            {form.id ? "Modifier le produit" : "Nouveau produit"}
           </h2>
           <div className="mt-1">
             <DataQualityBadge score={previewScore} />
@@ -545,7 +545,7 @@ function ProductForm({
                     set("supplier_internal", "");
                   }
                 }}
-                className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
               >
                 <option value="">— No partner —</option>
                 {partnersList.map(p => (
@@ -562,7 +562,7 @@ function ProductForm({
               value={form.short_description || ""}
               onChange={e => set("short_description", e.target.value)}
               rows={2}
-              className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground resize-none"
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none"
             />
           </div>
           <div>
@@ -571,7 +571,7 @@ function ProductForm({
               value={form.long_description || ""}
               onChange={e => set("long_description", e.target.value)}
               rows={4}
-              className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground resize-none"
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -584,7 +584,7 @@ function ProductForm({
               type="text"
               value={form.gallery_urls.join(", ")}
               onChange={e => set("gallery_urls", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-              className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
               placeholder="https://..., https://..."
             />
           </div>
@@ -594,7 +594,7 @@ function ProductForm({
             <select
               value={form.main_color || ""}
               onChange={e => set("main_color", e.target.value)}
-              className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
             >
               <option value="">—</option>
               {COLOR_SLUGS.map(c => <option key={c} value={c}>{c}</option>)}
@@ -606,7 +606,7 @@ function ProductForm({
               type="text"
               value={form.available_colors.join(", ")}
               onChange={e => set("available_colors", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-              className="w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
               placeholder="white, black, terracotta"
             />
             <p className="text-[9px] font-body text-muted-foreground mt-1">
@@ -623,7 +623,7 @@ function ProductForm({
       {/* ── Tags ── */}
       {section === "tags" && (
         <div className="space-y-4">
-          <div className="p-3 bg-card border border-border rounded-sm">
+          <div className="p-3 bg-card border border-border rounded-xl">
             <p className="text-[10px] font-body text-muted-foreground">
               All tags are <strong>English slugs</strong> (kebab-case). Type and press Enter, or select from suggestions.
               Translations are handled automatically by the UI layer.
@@ -658,13 +658,13 @@ function ProductForm({
       {section === "typetags" && (
         <div className="space-y-4">
           {!form.category ? (
-            <div className="flex items-center gap-2 p-4 bg-amber-500/10 border border-amber-500/20 rounded-sm">
+            <div className="flex items-center gap-2 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
               <p className="text-sm font-body text-amber-700">Select a category in Basics first.</p>
             </div>
           ) : (
             <>
-              <div className="p-3 bg-card border border-border rounded-sm">
+              <div className="p-3 bg-card border border-border rounded-xl">
                 <p className="text-[10px] font-body text-muted-foreground">
                   Fields marked <span className="text-red-500">*</span> are required for a good quality score.
                   These feed directly into the recommendation engine.
@@ -747,7 +747,7 @@ function ProductForm({
       {/* ── Technical booleans ── */}
       {section === "technical" && (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-card border border-border rounded-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-card border border-border rounded-xl">
             {([
               ["is_outdoor",        "Outdoor"],
               ["is_stackable",      "Stackable"],
@@ -770,14 +770,14 @@ function ProductForm({
       {/* Footer actions */}
       <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
         <div className="text-[10px] font-body text-muted-foreground">
-          Quality score will be auto-calculated on save.
+          Le score qualite sera calcule automatiquement.
         </div>
         <div className="flex gap-3">
           <button
             onClick={onCancel}
             className="px-5 py-2.5 font-display font-semibold text-sm border border-border rounded-full hover:border-foreground transition-colors"
           >
-            Cancel
+            Annuler
           </button>
           {(!form.id || form.publish_status === "draft") && previewScore >= 0.4 && (
             <button
@@ -786,7 +786,7 @@ function ProductForm({
               className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm border border-amber-300 text-amber-700 bg-amber-50 rounded-full hover:bg-amber-100 disabled:opacity-50 transition-colors"
             >
               <Eye className="h-4 w-4" />
-              {saving ? "Submitting..." : "Submit for review"}
+              {saving ? "Envoi..." : "Soumettre pour validation"}
             </button>
           )}
           <button
@@ -795,7 +795,7 @@ function ProductForm({
             className="flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving ? "Saving..." : form.id ? "Update product" : "Save draft"}
+            {saving ? "Enregistrement..." : form.id ? "Mettre a jour" : "Enregistrer brouillon"}
           </button>
         </div>
       </div>
@@ -852,16 +852,16 @@ function ProductsTab() {
       if (id) {
         const { error } = await supabase.from("products").update(dbData).eq("id", id);
         if (error) throw error;
-        toast.success("Product updated");
+        toast.success("Produit mis a jour");
       } else {
         const { error } = await supabase.from("products").insert(dbData);
         if (error) throw error;
-        toast.success("Product created");
+        toast.success("Produit cree");
       }
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setEditing(null);
     } catch (err: any) {
-      toast.error(err.message || "Failed to save");
+      toast.error(err.message || "Echec de l'enregistrement");
       throw err;
     }
   };
@@ -871,24 +871,26 @@ function ProductsTab() {
       const { error } = await supabase.from("products").update({ publish_status: newStatus }).eq("id", productId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast.success(newStatus === "published" ? "Product published" : "Product rejected");
+      toast.success(newStatus === "published" ? "Produit publie" : "Produit rejete");
     } catch (err: any) {
-      toast.error(err.message || "Failed to update status");
+      toast.error(err.message || "Echec de la mise a jour");
     }
   };
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this product? This cannot be undone.")) return;
     setDeleting(id);
     try {
       const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast.success("Product deleted");
+      toast.success("Produit supprime");
     } catch (err: any) {
-      toast.error(err.message || "Failed to delete");
+      toast.error(err.message || "Echec de la suppression");
     } finally {
       setDeleting(null);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -911,34 +913,34 @@ function ProductsTab() {
           <input
             type="text" value={filter}
             onChange={e => setFilter(e.target.value)}
-            placeholder="Search products..."
-            className="w-full bg-card border border-border rounded-sm pl-9 pr-4 py-2.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+            placeholder="Rechercher des produits..."
+            className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2.5 text-sm font-body focus:outline-none focus:border-foreground/40"
           />
         </div>
         <select
           value={catFilter}
           onChange={e => setCatFilter(e.target.value)}
-          className="bg-card border border-border rounded-sm px-3 py-2.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
+          className="bg-card border border-border rounded-lg px-3 py-2.5 text-sm font-body focus:outline-none focus:border-foreground/40"
         >
-          <option value="">All categories</option>
+          <option value="">Toutes les categories</option>
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <button
           onClick={() => setEditing(emptyProduct())}
           className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 ml-auto"
         >
-          <Plus className="h-4 w-4" /> Add product
+          <Plus className="h-4 w-4" /> Ajouter un produit
         </button>
       </div>
 
       {/* Publish status filter */}
       <div className="flex gap-1 mb-4 flex-wrap">
         {([
-          { id: "all",            label: "All" },
-          { id: "draft",          label: "Draft" },
-          { id: "pending_review", label: "Pending review" },
-          { id: "published",      label: "Published" },
-          { id: "rejected",       label: "Rejected" },
+          { id: "all",            label: "Tous" },
+          { id: "draft",          label: "Brouillon" },
+          { id: "pending_review", label: "En attente" },
+          { id: "published",      label: "Publie" },
+          { id: "rejected",       label: "Rejete" },
         ] as { id: PublishFilter; label: string }[]).map(f => (
           <button key={f.id} onClick={() => setStatusFilter(f.id)}
             className={`px-3 py-1.5 text-[10px] font-display font-semibold rounded-full transition-all ${
@@ -952,12 +954,12 @@ function ProductsTab() {
       </div>
 
       {isLoading ? (
-        <p className="text-muted-foreground font-body text-sm">Loading...</p>
+        <p className="text-muted-foreground font-body text-sm">Chargement...</p>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <Package className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm font-body text-muted-foreground">
-            {products.length === 0 ? "No products yet. Add your first product." : "No products match your search."}
+            {products.length === 0 ? "Aucun produit. Ajoutez votre premier produit." : "Aucun produit ne correspond a votre recherche."}
           </p>
         </div>
       ) : (
@@ -965,7 +967,7 @@ function ProductsTab() {
           <table className="w-full text-sm font-body">
             <thead>
               <tr className="border-b border-border">
-                {["Product", "Category", "Color", "Price", "Quality", "Status", ""].map(h => (
+                {["Produit", "Categorie", "Couleur", "Prix", "Qualite", "Statut", ""].map(h => (
                   <th key={h} className={`py-3 px-2 text-[10px] uppercase tracking-wider text-muted-foreground font-normal ${h === "" ? "text-right" : "text-left"}`}>
                     {h}
                   </th>
@@ -1018,14 +1020,14 @@ function ProductsTab() {
                           <button
                             onClick={() => handlePublishAction(product.id, "published")}
                             className="text-green-600 hover:text-green-800 transition-colors"
-                            title="Publish"
+                            title="Publier"
                           >
                             <CheckCircle2 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handlePublishAction(product.id, "rejected")}
                             className="text-red-500 hover:text-red-700 transition-colors"
-                            title="Reject"
+                            title="Rejeter"
                           >
                             <XCircle className="h-4 w-4" />
                           </button>
@@ -1038,7 +1040,7 @@ function ProductsTab() {
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => setConfirmDeleteId(product.id)}
                         disabled={deleting === product.id}
                         className="text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
                       >
@@ -1050,6 +1052,31 @@ function ProductsTab() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-background border border-border rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="font-display font-bold text-sm text-foreground mb-2">Supprimer ce produit ?</h3>
+            <p className="text-xs font-body text-muted-foreground mb-5">Cette action est irreversible.</p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-4 py-2 text-xs font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => handleDelete(confirmDeleteId)}
+                disabled={!!deleting}
+                className="px-4 py-2 text-xs font-display font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {deleting ? "Suppression..." : "Supprimer"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -1070,17 +1097,17 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const APP_STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string }> = {
-  pending:   { label: "Pending review", icon: Clock,        color: "#BA7517", bg: "#FAEEDA" },
-  approved:  { label: "Approved",       icon: CheckCircle2, color: "#085041", bg: "#E1F5EE" },
-  rejected:  { label: "Rejected",       icon: XCircle,      color: "#791F1F", bg: "#FCF0F0" },
-  suspended: { label: "Suspended",      icon: XCircle,      color: "#791F1F", bg: "#FCF0F0" },
+  pending:   { label: "En attente",  icon: Clock,        color: "#BA7517", bg: "#FAEEDA" },
+  approved:  { label: "Approuvee",   icon: CheckCircle2, color: "#085041", bg: "#E1F5EE" },
+  rejected:  { label: "Rejetee",     icon: XCircle,      color: "#791F1F", bg: "#FCF0F0" },
+  suspended: { label: "Suspendue",   icon: XCircle,      color: "#791F1F", bg: "#FCF0F0" },
 };
 
 const VOLUME_LABELS: Record<string, string> = {
-  under_50k:   "Under €50,000",
-  "50k_200k":  "€50k – €200k",
-  "200k_500k": "€200k – €500k",
-  over_500k:   "Over €500,000",
+  under_50k:   "Moins de 50 000 €",
+  "50k_200k":  "50k – 200k €",
+  "200k_500k": "200k – 500k €",
+  over_500k:   "Plus de 500 000 €",
 };
 
 function ApplicationsTab() {
@@ -1127,7 +1154,7 @@ function ApplicationsTab() {
     finally { setProcessing(false); }
   };
 
-  if (isLoading) return <p className="text-muted-foreground font-body text-sm">Loading...</p>;
+  if (isLoading) return <p className="text-muted-foreground font-body text-sm">Chargement...</p>;
 
   if (selected) {
     const cfg = APP_STATUS_CONFIG[selected.status] || APP_STATUS_CONFIG.pending;
@@ -1136,9 +1163,9 @@ function ApplicationsTab() {
       <div>
         <button onClick={() => { setSelected(null); setShowRejectForm(false); }}
           className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground mb-6 transition-colors">
-          <ArrowLeft className="h-3 w-3" /> Back
+          <ArrowLeft className="h-3 w-3" /> Retour
         </button>
-        <div className="flex items-center gap-3 px-4 py-3 rounded-sm mb-6" style={{ background: cfg.bg }}>
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl mb-6" style={{ background: cfg.bg }}>
           <StatusIcon className="h-4 w-4" style={{ color: cfg.color }} />
           <span className="font-display font-semibold text-sm" style={{ color: cfg.color }}>{cfg.label}</span>
           {selected.reviewed_at && (
@@ -1148,19 +1175,19 @@ function ApplicationsTab() {
           )}
         </div>
         <div className="space-y-5">
-          <div className="border border-border rounded-sm p-5">
-            <h3 className="font-display font-semibold text-sm text-foreground mb-4">Company</h3>
+          <div className="border border-border rounded-xl p-5">
+            <h3 className="font-display font-semibold text-sm text-foreground mb-4">Entreprise</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {[
-                { label: "Company", value: selected.company_name },
-                { label: "Contact", value: selected.contact_name },
-                { label: "Email",   value: selected.contact_email },
-                { label: "Phone",   value: selected.phone },
-                { label: "Website", value: selected.website },
-                { label: "VAT",     value: selected.vat_number },
-                { label: "Country", value: selected.country },
-                { label: "Type",    value: selected.partner_type },
-                { label: "Volume",  value: VOLUME_LABELS[selected.estimated_annual_volume] || selected.estimated_annual_volume },
+                { label: "Entreprise", value: selected.company_name },
+                { label: "Contact",    value: selected.contact_name },
+                { label: "Email",      value: selected.contact_email },
+                { label: "Telephone",  value: selected.phone },
+                { label: "Site web",   value: selected.website },
+                { label: "TVA",        value: selected.vat_number },
+                { label: "Pays",       value: selected.country },
+                { label: "Type",       value: selected.partner_type },
+                { label: "Volume",     value: VOLUME_LABELS[selected.estimated_annual_volume] || selected.estimated_annual_volume },
               ].filter(({ value }) => value).map(({ label, value }) => (
                 <div key={label}>
                   <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-body">{label}</span>
@@ -1171,8 +1198,9 @@ function ApplicationsTab() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {selected.product_categories?.length > 0 && (
-              <div className="border border-border rounded-sm p-4">
+              <div className="border border-border rounded-xl p-4">
                 <h3 className="font-display font-semibold text-xs text-foreground mb-2">Categories</h3>
+
                 <div className="flex flex-wrap gap-1">
                   {selected.product_categories.map((c: string) => (
                     <span key={c} className="text-[10px] bg-card border border-border text-muted-foreground px-2 py-0.5 rounded-full">{c}</span>
@@ -1181,8 +1209,8 @@ function ApplicationsTab() {
               </div>
             )}
             {selected.delivery_countries?.length > 0 && (
-              <div className="border border-border rounded-sm p-4">
-                <h3 className="font-display font-semibold text-xs text-foreground mb-2">Delivery countries</h3>
+              <div className="border border-border rounded-xl p-4">
+                <h3 className="font-display font-semibold text-xs text-foreground mb-2">Pays de livraison</h3>
                 <div className="flex flex-wrap gap-1">
                   {selected.delivery_countries.map((c: string) => (
                     <span key={c} className="text-[10px] bg-card border border-border text-muted-foreground px-2 py-0.5 rounded-full">{c}</span>
@@ -1192,14 +1220,14 @@ function ApplicationsTab() {
             )}
           </div>
           {selected.message && (
-            <div className="border border-border rounded-sm p-5">
+            <div className="border border-border rounded-xl p-5">
               <h3 className="font-display font-semibold text-sm text-foreground mb-2">Message</h3>
               <p className="text-sm font-body text-muted-foreground">{selected.message}</p>
             </div>
           )}
           {selected.rejection_reason && (
-            <div className="border border-red-200 bg-red-50 rounded-sm p-4">
-              <h3 className="font-display font-semibold text-xs text-red-700 mb-1">Rejection reason</h3>
+            <div className="border border-red-200 bg-red-50 rounded-xl p-4">
+              <h3 className="font-display font-semibold text-xs text-red-700 mb-1">Motif du rejet</h3>
               <p className="text-sm font-body text-red-600">{selected.rejection_reason}</p>
             </div>
           )}
@@ -1209,26 +1237,26 @@ function ApplicationsTab() {
             <div className="flex gap-3">
               <button onClick={() => updateStatus(selected.id, "approved")} disabled={processing}
                 className="flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50">
-                <CheckCircle2 className="h-4 w-4" /> {processing ? "Processing..." : "Approve"}
+                <CheckCircle2 className="h-4 w-4" /> {processing ? "Traitement..." : "Approuver"}
               </button>
               <button onClick={() => setShowRejectForm(!showRejectForm)} disabled={processing}
                 className="flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm border border-red-200 text-red-600 rounded-full hover:bg-red-50">
-                <XCircle className="h-4 w-4" /> Reject
+                <XCircle className="h-4 w-4" /> Rejeter
               </button>
             </div>
             {showRejectForm && (
-              <div className="space-y-3 border border-border rounded-sm p-4">
-                <label className="text-xs font-body text-muted-foreground">Rejection reason (optional)</label>
+              <div className="space-y-3 border border-border rounded-xl p-4">
+                <label className="text-xs font-body text-muted-foreground">Motif du rejet (optionnel)</label>
                 <textarea value={rejectionReason} onChange={e => setRejectionReason(e.target.value)}
-                  rows={3} className="w-full bg-background border border-border rounded-sm px-4 py-2.5 text-sm font-body outline-none focus:border-foreground resize-none" />
+                  rows={3} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-body outline-none focus:border-foreground resize-none" />
                 <div className="flex gap-2">
                   <button onClick={() => updateStatus(selected.id, "rejected", rejectionReason)} disabled={processing}
                     className="px-5 py-2 font-display font-semibold text-xs bg-red-600 text-white rounded-full hover:bg-red-700 disabled:opacity-50">
-                    Confirm rejection
+                    Confirmer le rejet
                   </button>
                   <button onClick={() => setShowRejectForm(false)}
                     className="px-5 py-2 font-display font-semibold text-xs border border-border text-muted-foreground rounded-full">
-                    Cancel
+                    Annuler
                   </button>
                 </div>
               </div>
@@ -1238,13 +1266,13 @@ function ApplicationsTab() {
         {selected.status === "approved" && (
           <button onClick={() => updateStatus(selected.id, "suspended")} disabled={processing}
             className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm border border-red-200 text-red-600 rounded-full hover:bg-red-50 mt-6">
-            Suspend partner
+            Suspendre le partenaire
           </button>
         )}
         {selected.status === "suspended" && (
           <button onClick={() => updateStatus(selected.id, "approved")} disabled={processing}
             className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm bg-green-600 text-white rounded-full mt-6">
-            Reactivate
+            Reactiver
           </button>
         )}
       </div>
@@ -1255,10 +1283,10 @@ function ApplicationsTab() {
     <div>
       <div className="flex gap-1 mb-6">
         {[
-          { id: "all", label: "All" },
-          { id: "pending", label: "Pending" },
-          { id: "approved", label: "Approved" },
-          { id: "rejected", label: "Rejected" },
+          { id: "all", label: "Toutes" },
+          { id: "pending", label: "En attente" },
+          { id: "approved", label: "Approuvees" },
+          { id: "rejected", label: "Rejetees" },
         ].map(f => (
           <button key={f.id} onClick={() => setFilter(f.id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-display font-semibold rounded-full transition-all ${
@@ -1275,7 +1303,7 @@ function ApplicationsTab() {
         <div className="text-center py-16">
           <ClipboardList className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm font-body text-muted-foreground">
-            {filter === "all" ? "No applications yet." : `No ${filter} applications.`}
+            {filter === "all" ? "Aucune candidature." : `Aucune candidature ${filter}.`}
           </p>
         </div>
       ) : (
@@ -1283,7 +1311,7 @@ function ApplicationsTab() {
           <table className="w-full text-sm font-body">
             <thead>
               <tr className="border-b border-border">
-                {["Date","Company","Contact","Country","Type","Volume","Status",""].map(h => (
+                {["Date","Entreprise","Contact","Pays","Type","Volume","Statut",""].map(h => (
                   <th key={h} className={`py-3 px-2 text-[10px] uppercase tracking-wider text-muted-foreground font-normal ${h === "" ? "text-right" : "text-left"}`}>{h}</th>
                 ))}
               </tr>
@@ -1346,25 +1374,25 @@ function QuoteRequestsTab({ type = "standard" }: { type?: "standard" | "pro" }) 
     },
   });
 
-  if (isLoading) return <p className="text-muted-foreground font-body text-sm">Loading...</p>;
+  if (isLoading) return <p className="text-muted-foreground font-body text-sm">Chargement...</p>;
 
   if (selected) return (
     <div>
       <button onClick={() => setSelected(null)}
         className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="h-3 w-3" /> Back
+        <ArrowLeft className="h-3 w-3" /> Retour
       </button>
       <div className="space-y-5">
-        <div className="border border-border rounded-sm p-5">
+        <div className="border border-border rounded-xl p-5">
           <h3 className="font-display font-semibold text-sm mb-4">Contact</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[
-              { label: "Name",     value: selected.contact_name },
-              { label: "Company",  value: selected.contact_company },
-              { label: "Email",    value: selected.contact_email },
-              { label: "Phone",    value: selected.contact_phone },
-              { label: "Budget",   value: selected.budget_range },
-              { label: "Timeline", value: selected.timeline },
+              { label: "Nom",        value: selected.contact_name },
+              { label: "Entreprise", value: selected.contact_company },
+              { label: "Email",      value: selected.contact_email },
+              { label: "Telephone",  value: selected.contact_phone },
+              { label: "Budget",     value: selected.budget_range },
+              { label: "Delai",      value: selected.timeline },
             ].filter(({ value }) => value).map(({ label, value }) => (
               <div key={label}>
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
@@ -1374,12 +1402,12 @@ function QuoteRequestsTab({ type = "standard" }: { type?: "standard" | "pro" }) 
           </div>
         </div>
         {cartItems.length > 0 && (
-          <div className="border border-border rounded-sm p-5">
-            <h3 className="font-display font-semibold text-sm mb-3">Products</h3>
+          <div className="border border-border rounded-xl p-5">
+            <h3 className="font-display font-semibold text-sm mb-3">Produits</h3>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {["Product","Qty","Concept"].map(h => (
+                  {["Produit","Qte","Concept"].map(h => (
                     <th key={h} className="py-2 px-2 text-[10px] uppercase text-muted-foreground font-normal text-left">{h}</th>
                   ))}
                 </tr>
@@ -1403,13 +1431,13 @@ function QuoteRequestsTab({ type = "standard" }: { type?: "standard" | "pro" }) 
   return (
     <div>
       {requests.length === 0 ? (
-        <p className="text-center py-12 text-muted-foreground font-body text-sm">No requests yet.</p>
+        <p className="text-center py-12 text-muted-foreground font-body text-sm">Aucune demande pour le moment.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm font-body">
             <thead>
               <tr className="border-b border-border">
-                {["Date","Project","Contact","Company","Budget","Status",""].map(h => (
+                {["Date","Projet","Contact","Entreprise","Budget","Statut",""].map(h => (
                   <th key={h} className={`py-3 px-2 text-[10px] uppercase tracking-wider text-muted-foreground font-normal ${h === "" ? "text-right" : "text-left"}`}>{h}</th>
                 ))}
               </tr>
@@ -1446,8 +1474,86 @@ function QuoteRequestsTab({ type = "standard" }: { type?: "standard" | "pro" }) 
 // MAIN ADMIN
 // ═══════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR SECTION DEFINITIONS
+// ═══════════════════════════════════════════════════════════
+
+type SidebarGroup = {
+  label: string;
+  items: { id: Tab; icon: any; label: string; badgeKey?: string }[];
+};
+
+const SIDEBAR_GROUPS: SidebarGroup[] = [
+  {
+    label: "",
+    items: [
+      { id: "dashboard", icon: BarChart3, label: "Vue d'ensemble" },
+    ],
+  },
+  {
+    label: "BUSINESS",
+    items: [
+      { id: "quotes",  icon: FileText,     label: "Devis",      badgeKey: "quotes" },
+      { id: "orders",  icon: ShoppingCart,  label: "Commandes",  badgeKey: "orders" },
+      { id: "applications", icon: CreditCard, label: "Paiements" },
+    ],
+  },
+  {
+    label: "CATALOGUE",
+    items: [
+      { id: "products",    icon: Package,      label: "Produits",      badgeKey: "products" },
+      { id: "partners",    icon: Building2,     label: "Partenaires" },
+      { id: "submissions", icon: Inbox,         label: "Soumissions",   badgeKey: "submissions" },
+      { id: "subscriptions", icon: Star,        label: "Abonnements" },
+    ],
+  },
+  {
+    label: "COMMUNICATION",
+    items: [
+      { id: "messages", icon: MessageSquare, label: "Messages",   badgeKey: "messages" },
+      { id: "ratings",  icon: Star,          label: "Avis" },
+      { id: "chatbot",  icon: Bot,           label: "Chatbot IA" },
+    ],
+  },
+  {
+    label: "SYSTEME",
+    items: [
+      { id: "users",    icon: Users,    label: "Utilisateurs" },
+      { id: "settings", icon: Settings, label: "Parametres" },
+      { id: "partner_visibility", icon: Eye, label: "Visibilite" },
+    ],
+  },
+  {
+    label: "INSIGHTS",
+    items: [
+      { id: "analytics",   icon: TrendingUp, label: "Analytics" },
+      { id: "pro_service",  icon: Users,      label: "Pro Service" },
+    ],
+  },
+];
+
+const TAB_TITLES: Record<Tab, string> = {
+  dashboard: "Vue d'ensemble",
+  quotes: "Gestion des devis",
+  orders: "Suivi des commandes",
+  applications: "Paiements & candidatures",
+  products: "Catalogue produits",
+  partners: "Partenaires & fournisseurs",
+  submissions: "Soumissions produits",
+  subscriptions: "Abonnements",
+  messages: "Messages",
+  ratings: "Avis & moderation",
+  chatbot: "Chatbot IA",
+  users: "Utilisateurs",
+  settings: "Parametres",
+  partner_visibility: "Visibilite partenaires",
+  analytics: "Analytics",
+  pro_service: "Pro Service",
+};
+
 const Admin = () => {
   const [tab, setTab] = useState<Tab>("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: products = [] } = useProducts();
 
   const { data: pendingApps = [] } = useQuery({
@@ -1458,93 +1564,175 @@ const Admin = () => {
     },
   });
 
+  const { data: pendingQuotes = [] } = useQuery({
+    queryKey: ["admin-quotes-pending-count"],
+    queryFn: async () => {
+      const { data } = await supabase.from("quote_requests").select("id").eq("status", "pending");
+      return data || [];
+    },
+  });
+
+  const { data: activeOrders = [] } = useQuery({
+    queryKey: ["admin-orders-active-count"],
+    queryFn: async () => {
+      const { data } = await supabase.from("orders").select("id").not("status", "in", '("completed","cancelled","refunded")');
+      return data || [];
+    },
+  });
+
+  const { data: unreadMessages = [] } = useQuery({
+    queryKey: ["admin-messages-unread-count"],
+    queryFn: async () => {
+      const { data } = await supabase.from("admin_messages").select("id").eq("read", false);
+      return data || [];
+    },
+  });
+
+  const { data: pendingSubmissions = [] } = useQuery({
+    queryKey: ["admin-submissions-pending-count"],
+    queryFn: async () => {
+      const { data } = await supabase.from("product_submissions").select("id").eq("review_status", "pending_review");
+      return data || [];
+    },
+  });
+
   const pendingReviewCount = products.filter(p => p.publish_status === "pending_review").length;
 
-  const tabs = [
-    { id: "dashboard",    icon: LayoutDashboard, label: "Dashboard",       badge: 0 },
-    { id: "users",        icon: UserCircle,      label: "Utilisateurs",    badge: 0 },
-    { id: "partners",     icon: Building2,       label: "Fournisseurs",    badge: 0 },
-    { id: "partner_visibility", icon: Eye,        label: "Visibilité",      badge: 0 },
-    { id: "subscriptions", icon: CreditCard,      label: "Abonnements",     badge: 0 },
-    { id: "ratings",       icon: Star,             label: "Avis",            badge: 0 },
-    { id: "messages",     icon: MessageSquare,   label: "Messages",        badge: 0 },
-    { id: "applications", icon: ClipboardList,   label: "Candidatures",    badge: pendingApps.length },
-    { id: "quotes",       icon: FileText,        label: "Workflow devis",  badge: 0 },
-    { id: "orders",       icon: Package,         label: "Commandes",       badge: 0 },
-    { id: "analytics",    icon: BarChart3,       label: "Analytics",       badge: 0 },
-    { id: "pro_service",  icon: Users,           label: "Pro Service",     badge: 0 },
-    { id: "products",     icon: Package,         label: "Produits",        badge: pendingReviewCount },
-    { id: "submissions",  icon: Inbox,           label: "Soumissions",     badge: 0 },
-    { id: "chatbot",      icon: MessageSquare,   label: "Chatbot IA",      badge: 0 },
-    { id: "settings",     icon: Settings,        label: "Configuration",   badge: 0 },
-  ];
+  const badges: Record<string, number> = {
+    quotes: pendingQuotes.length,
+    orders: activeOrders.length,
+    products: pendingReviewCount,
+    submissions: pendingSubmissions.length,
+    messages: unreadMessages.length,
+  };
+
+  const handleTabChange = (newTab: Tab) => {
+    setTab(newTab);
+    setSidebarOpen(false);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-6 py-10">
+    <div className="min-h-screen bg-background flex">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-        {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <Link to="/" className="inline-flex items-center gap-2 text-xs font-body text-muted-foreground hover:text-foreground mb-2">
-              <ArrowLeft className="h-3 w-3" /> Retour au site
-            </Link>
-            <h1 className="font-display text-2xl font-bold text-foreground">Centre de contrôle</h1>
-            <p className="text-sm text-muted-foreground font-body mt-0.5">
-              {products.length} produits · {pendingApps.length} candidature{pendingApps.length > 1 ? "s" : ""} en attente
+      {/* Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-60 bg-[#1A1A1A] flex flex-col transition-transform duration-200 lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Logo */}
+        <div className="px-5 py-5 flex items-center gap-2.5">
+          <span className="font-display text-base font-bold tracking-wide text-white">TERRASSEA</span>
+          <span className="text-[9px] font-display font-bold tracking-widest bg-[#D4603A] text-white px-2 py-0.5 rounded">ADMIN</span>
+        </div>
+
+        {/* Nav groups */}
+        <nav className="flex-1 overflow-y-auto px-3 pb-4">
+          {SIDEBAR_GROUPS.map((group, gi) => (
+            <div key={gi} className={gi > 0 ? "mt-5" : ""}>
+              {group.label && (
+                <p className="text-[9px] font-display font-bold tracking-[0.15em] text-white/30 uppercase px-2 mb-2">
+                  {group.label}
+                </p>
+              )}
+              {group.items.map(item => {
+                const isActive = tab === item.id;
+                const badge = item.badgeKey ? badges[item.badgeKey] || 0 : 0;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleTabChange(item.id)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-display font-semibold transition-all mb-0.5 ${
+                      isActive
+                        ? "text-white bg-white/10 border-l-[3px] border-[#D4603A] pl-[9px]"
+                        : "text-white/50 hover:text-white/80 hover:bg-white/5 border-l-[3px] border-transparent pl-[9px]"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {badge > 0 && (
+                      <span className="text-[9px] font-bold bg-[#D4603A] text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                        {badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+
+        {/* Bottom: back link */}
+        <div className="px-3 py-4 border-t border-white/10">
+          <Link
+            to="/"
+            className="flex items-center gap-2 px-3 py-2 text-[11px] font-display font-semibold text-white/40 hover:text-white/70 transition-colors rounded-lg hover:bg-white/5"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            Retour au site
+          </Link>
+        </div>
+      </aside>
+
+      {/* Content area */}
+      <main className="flex-1 lg:ml-60 min-h-screen">
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border px-6 py-3 flex items-center gap-4">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden p-1.5 rounded-lg hover:bg-card transition-colors"
+          >
+            <Menu className="h-5 w-5 text-foreground" />
+          </button>
+          <div className="flex-1">
+            <h1 className="font-display text-lg font-bold text-foreground">{TAB_TITLES[tab]}</h1>
+            <p className="text-[10px] font-body text-muted-foreground mt-0.5">
+              Administration Terrassea &middot; {products.length} produits
+              {pendingApps.length > 0 && ` · ${pendingApps.length} candidature${pendingApps.length > 1 ? "s" : ""} en attente`}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
               <span className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-[10px] font-display font-semibold text-green-700">Admin · accès complet</span>
+              <span className="text-[10px] font-display font-semibold text-green-700">Admin</span>
             </div>
             {pendingReviewCount > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
                 <span className="text-[10px] font-display font-semibold text-red-600">
-                  {pendingReviewCount} en attente de validation
+                  {pendingReviewCount} en attente
                 </span>
               </div>
             )}
           </div>
-        </div>
+        </header>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-8 border-b border-border overflow-x-auto">
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id as Tab)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-display font-semibold border-b-2 -mb-px whitespace-nowrap transition-colors ${
-                tab === t.id ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}>
-              <t.icon className="h-3.5 w-3.5" />
-              {t.label}
-              {t.badge > 0 && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 font-semibold border border-red-200">
-                  {t.badge}
-                </span>
-              )}
-            </button>
-          ))}
+        {/* Tab content */}
+        <div className="p-6 max-w-6xl">
+          {tab === "dashboard"    && <AdminDashboard />}
+          {tab === "users"        && <AdminUsers />}
+          {tab === "partners"     && <AdminPartners />}
+          {tab === "partner_visibility" && <AdminPartnerVisibility />}
+          {tab === "subscriptions"      && <AdminSubscriptions />}
+          {tab === "ratings"            && <AdminRatingsModeration />}
+          {tab === "messages"     && <AdminMessages />}
+          {tab === "applications" && <ApplicationsTab />}
+          {tab === "quotes"       && <AdminQuoteWorkflow />}
+          {tab === "orders"       && <AdminOrderTracking />}
+          {tab === "analytics"    && <AdminAnalyticsDashboard />}
+          {tab === "settings"     && <AdminSettings />}
+          {tab === "pro_service"  && <QuoteRequestsTab type="pro" />}
+          {tab === "products"     && <ProductsTab />}
+          {tab === "submissions"  && <AdminProductReview />}
+          {tab === "chatbot"      && <AdminChatbotStats />}
         </div>
-
-        {/* Content */}
-        {tab === "dashboard"    && <AdminDashboard />}
-        {tab === "users"        && <AdminUsers />}
-        {tab === "partners"     && <AdminPartners />}
-        {tab === "partner_visibility" && <AdminPartnerVisibility />}
-        {tab === "subscriptions"      && <AdminSubscriptions />}
-        {tab === "ratings"            && <AdminRatingsModeration />}
-        {tab === "messages"     && <AdminMessages />}
-        {tab === "applications" && <ApplicationsTab />}
-        {tab === "quotes"       && <AdminQuoteWorkflow />}
-        {tab === "orders"       && <AdminOrderTracking />}
-        {tab === "analytics"    && <AdminAnalyticsDashboard />}
-        {tab === "settings"     && <AdminSettings />}
-        {tab === "pro_service"  && <QuoteRequestsTab type="pro" />}
-        {tab === "products"     && <ProductsTab />}
-        {tab === "submissions"  && <AdminProductReview />}
-        {tab === "chatbot"      && <AdminChatbotStats />}
-      </div>
+      </main>
     </div>
   );
 };
