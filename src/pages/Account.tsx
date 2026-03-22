@@ -511,9 +511,14 @@ const Account = () => {
       <SEO title="My Account" noindex />
       <Header />
 
-      {/* ── Fixed Sidebar ────────────────────────────────────── */}
-      <aside className="hidden md:block fixed top-24 left-0 w-56 h-[calc(100vh-6rem)] overflow-y-auto px-6 py-4 bg-background z-30 border-r border-border">
-        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+      <div className="pt-24 pb-16 flex">
+      {/* ── Sticky Sidebar ────────────────────────────────────── */}
+      <aside className="hidden md:block w-56 flex-shrink-0">
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="sticky top-24 h-[calc(100vh-7rem)] overflow-y-auto px-6 py-4 border-r border-border"
+        >
                 {/* Profile header */}
                 <div className="mb-6">
                   <div
@@ -624,7 +629,6 @@ const Account = () => {
                     {t('account.signOut')}
                   </button>
                 </div>
-              </motion.div>
 
               {/* Quick actions */}
               <div className="mt-6 space-y-2">
@@ -705,10 +709,11 @@ const Account = () => {
                   </>
                 )}
               </div>
+        </motion.div>
       </aside>
 
       {/* ── Main content ────────────────────────────────────────── */}
-      <div className="pt-24 pb-16 md:ml-56 px-6">
+      <div className="flex-1 min-w-0 px-6">
         <div className="max-w-5xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
@@ -722,6 +727,7 @@ const Account = () => {
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
       </div>
       <Footer />
     </div>
