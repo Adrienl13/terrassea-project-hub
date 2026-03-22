@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { isAutoTrackingEnabled, refreshOrderTracking, refreshAllShippedOrders } from "@/lib/trackingService";
 import AdminPaymentPanel from "@/components/admin/AdminPaymentPanel";
+import { supabase } from "@/integrations/supabase/client";
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -154,16 +155,43 @@ export default function AdminOrderTracking() {
             )}
             {selected.status === "in_production" && (
               <ActionBtn label="Marquer expédié" icon={Truck} color="#0891B2"
-                onClick={() => updateOrder(selected.id, { status: "shipped", shipped_at: new Date().toISOString() }, "shipped", "Commande expédiée")} />
+                onClick={async () => {
+                  await updateOrder(selected.id, { status: "shipped", shipped_at: new Date().toISOString() }, "shipped", "Commande expédiée");
+                  // Trigger order shipped email via auto-workflow
+                  try {
+                    await supabase.functions.invoke("auto-workflow", {
+                      body: { action: "notify_order_shipped", orderId: selected.id },
+                    });
+                  } catch {
+                    console.warn("Failed to send order shipped notification");
+                  }
+                }} />
             )}
             {selected.status === "shipped" && (
               <ActionBtn label="Confirmer livraison" icon={CheckCircle2} color="#059669"
-                onClick={() => updateOrder(selected.id, {
-                  status: "delivered",
-                  delivered_at: new Date().toISOString(),
-                  delivery_confirmed_by: "admin",
-                  balance_due_date: new Date(Date.now() + 7 * 86400000).toISOString(),
-                }, "delivered", "Livraison confirmée — solde dû sous 7 jours")} />
+                onClick={async () => {
+                  await updateOrder(selected.id, {
+                    status: "delivered",
+                    delivered_at: new Date().toISOString(),
+                    delivery_confirmed_by: "admin",
+                    balance_due_date: new Date(Date.now() + 7 * 86400000).toISOString(),
+                  }, "delivered", "Livraison confirmée — solde dû sous 7 jours");
+                  // Send delivery confirmation email
+                  if (selected.client_email) {
+                    try {
+                      await supabase.functions.invoke("send-notification-email", {
+                        body: {
+                          to: selected.client_email,
+                          subject: "Terrassea — Votre commande a été livrée",
+                          body_html: `<p>Bonjour${selected.client_name ? ` ${selected.client_name}` : ""},</p><p>Votre commande pour <strong>${selected.product_name}</strong> a été livrée.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+                          body_text: `Bonjour, votre commande pour ${selected.product_name} a été livrée.`,
+                        },
+                      });
+                    } catch {
+                      console.warn("Failed to send delivery confirmation email");
+                    }
+                  }
+                }} />
             )}
             {selected.status === "delivered" && (
               <ActionBtn label="Solde reçu — Clôturer" icon={ShieldCheck} color="#059669"

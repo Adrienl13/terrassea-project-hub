@@ -101,6 +101,29 @@ export function usePartnerQuotes() {
       if (status === "replied") updates.replied_at = new Date().toISOString();
       const { error } = await supabase.from("quote_requests").update(updates).eq("id", quoteId);
       if (error) throw error;
+
+      // Send notification email to client when partner replies
+      if (status === "replied") {
+        try {
+          const { data: quote } = await supabase
+            .from("quote_requests")
+            .select("client_email, client_first_name, product_name")
+            .eq("id", quoteId)
+            .single();
+          if (quote?.client_email) {
+            await supabase.functions.invoke("send-notification-email", {
+              body: {
+                to: quote.client_email,
+                subject: "Terrassea — Un fournisseur a répondu à votre demande de devis",
+                body_html: `<p>Bonjour${quote.client_first_name ? ` ${quote.client_first_name}` : ""},</p><p>Un fournisseur a répondu à votre demande de devis pour <strong>${quote.product_name}</strong>. Connectez-vous à votre espace pour consulter l'offre.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+                body_text: `Bonjour, un fournisseur a répondu à votre demande de devis pour ${quote.product_name}. Connectez-vous à votre espace pour consulter l'offre.`,
+              },
+            });
+          }
+        } catch {
+          console.warn("Failed to send quote reply notification email");
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["partner-quotes", partnerId] });
