@@ -726,7 +726,37 @@
       "cancelled": "Ordine annullato",
       "payment": "Pagamento ricevuto",
       "tracking": "Tracciamento aggiornato"
-    }
+    },
+    "reorder": "Riordina",
+    "reorderSuccess": "{{count}} prodotto/i aggiunto/i al carrello dall'ordine #{{ref}}",
+    "reorderNoProduct": "Questo prodotto non e piu disponibile."
+  },
+  "adminChatbot": {
+    "title": "Chatbot IA — Consumo",
+    "enabled": "Attivato",
+    "disabled": "Disattivato",
+    "today": "Oggi",
+    "thisMonth": "Questo mese",
+    "messages": "messaggi",
+    "conversations": "conversazioni",
+    "estimatedCost": "Costo stimato",
+    "conversionRate": "Tasso di conversione",
+    "dailyChart": "Messaggi giornalieri (ultimi 30 giorni)",
+    "settings": "Impostazioni",
+    "maxMessagesPerDay": "Max messaggi per utente al giorno",
+    "monthlyBudgetLimit": "Limite budget mensile (EUR)",
+    "alertThreshold": "Soglia di allerta (%)",
+    "save": "Salva",
+    "settingsSaved": "Impostazioni chatbot salvate.",
+    "recentConversations": "Conversazioni recenti (ultime 10)",
+    "noConversations": "Nessuna conversazione al momento.",
+    "anonymous": "Anonimo",
+    "ongoing": "In corso",
+    "cart": "Carrello",
+    "quote": "Preventivo",
+    "project": "Progetto",
+    "noMessages": "Nessun messaggio in questa conversazione.",
+    "user": "Utente"
   },
   "cd": {
     "welcome": "Ciao {{name}}!",
@@ -3339,5 +3369,27 @@
     "productAdded": "Prodotto aggiunto",
     "product": "Prodotto",
     "add": "Aggiungi"
+  },
+  "chatbot": {
+    "title": "Terrassea IA",
+    "placeholder": "Chiedimi qualsiasi cosa sull'arredo outdoor...",
+    "send": "Invia",
+    "suggestedPrompts": [
+      "Quali prodotti per una terrazza ristorante?",
+      "Confronta alluminio e teak",
+      "Budget per 30 coperti",
+      "Mobili resistenti al mare"
+    ],
+    "disclaimer": "Alimentato dall'IA — Le risposte possono essere approssimative",
+    "limitReached": "Limite giornaliero di messaggi raggiunto. Riprova domani.",
+    "disabled": "Il chatbot non e al momento disponibile.",
+    "error": "Si e verificato un errore. Riprova.",
+    "resetConversation": "Nuova conversazione",
+    "actions": {
+      "viewProduct": "Vedi prodotto",
+      "addToCart": "Aggiungi al carrello",
+      "createProject": "Crea progetto",
+      "requestQuote": "Richiedi preventivo"
+    }
   }
 }

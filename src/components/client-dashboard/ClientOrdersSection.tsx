@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Package, Truck, CheckCircle2, Clock,
   Factory, XCircle, ExternalLink, MapPin, CreditCard,
-  CalendarDays, FileText, CircleDot,
+  CalendarDays, FileText, CircleDot, RefreshCw,
 } from "lucide-react";
 import { useClientOrders, useOrderDetail, type ClientOrder } from "@/hooks/useOrders";
 import { usePaymentFlow } from "@/hooks/usePaymentFlow";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProjectCart } from "@/contexts/ProjectCartContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import PaymentInstructions from "@/components/payments/PaymentInstructions";
 import PayNowButton from "@/components/payments/PayNowButton";
 
@@ -36,6 +40,48 @@ function OrderStatusBadge({ status }: { status: string }) {
   );
 }
 
+// ── Reorder helper ─────────────────────────────────────────────────────────────
+
+function useReorder() {
+  const { addItem } = useProjectCart();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [isReordering, setIsReordering] = useState(false);
+
+  const reorder = useCallback(async (order: ClientOrder) => {
+    setIsReordering(true);
+    try {
+      // Fetch the product from the database
+      if (!order.productId) {
+        toast.error(t("orders.reorderNoProduct"));
+        return;
+      }
+      const { data: product } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", order.productId)
+        .single();
+
+      if (!product) {
+        toast.error(t("orders.reorderNoProduct"));
+        return;
+      }
+
+      addItem(product as any, undefined, order.quantity);
+
+      const orderRef = order.id.slice(0, 8).toUpperCase();
+      toast.success(t("orders.reorderSuccess", { count: 1, ref: `TRS-${orderRef}` }));
+      navigate("/project-cart");
+    } finally {
+      setIsReordering(false);
+    }
+  }, [addItem, navigate, t]);
+
+  return { reorder, isReordering };
+}
+
+const REORDERABLE_STATUSES = ["delivered", "completed"];
+
 // ── Order list view ────────────────────────────────────────────────────────────
 
 function OrderListView({ orders, isLoading, onSelect }: {
@@ -44,6 +90,7 @@ function OrderListView({ orders, isLoading, onSelect }: {
   onSelect: (id: string) => void;
 }) {
   const { t } = useTranslation();
+  const { reorder, isReordering } = useReorder();
 
   if (isLoading) {
     return (
@@ -98,6 +145,16 @@ function OrderListView({ orders, isLoading, onSelect }: {
                 {order.totalPrice.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
               </span>
               <OrderStatusBadge status={order.status} />
+              {REORDERABLE_STATUSES.includes(order.status) && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); reorder(order); }}
+                  disabled={isReordering}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-display font-semibold uppercase tracking-wider bg-foreground text-background rounded-full hover:bg-foreground/90 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3 w-3 ${isReordering ? "animate-spin" : ""}`} />
+                  {t("orders.reorder")}
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -224,6 +281,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
   const { order, events, isLoading } = useOrderDetail(orderId);
   const { paymentSettings } = usePaymentFlow();
   const { profile } = useAuth();
+  const { reorder, isReordering } = useReorder();
 
   if (isLoading) {
     return (
@@ -256,19 +314,31 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
       </button>
 
       {/* Header */}
-      <div>
-        <h2 className="font-display font-bold text-lg text-foreground">{order.productName}</h2>
-        <div className="flex items-center gap-3 mt-1">
-          {order.partnerName && (
-            <span className="text-xs font-body text-muted-foreground">{order.partnerName}</span>
-          )}
-          <span className="text-[10px] font-body text-muted-foreground/60">
-            {t("orders.orderedOn")} {new Date(order.createdAt).toLocaleDateString()}
-          </span>
-          <span className="text-[10px] font-body text-muted-foreground/40">
-            {order.id.slice(0, 8)}...
-          </span>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="font-display font-bold text-lg text-foreground">{order.productName}</h2>
+          <div className="flex items-center gap-3 mt-1">
+            {order.partnerName && (
+              <span className="text-xs font-body text-muted-foreground">{order.partnerName}</span>
+            )}
+            <span className="text-[10px] font-body text-muted-foreground/60">
+              {t("orders.orderedOn")} {new Date(order.createdAt).toLocaleDateString()}
+            </span>
+            <span className="text-[10px] font-body text-muted-foreground/40">
+              {order.id.slice(0, 8)}...
+            </span>
+          </div>
         </div>
+        {REORDERABLE_STATUSES.includes(order.status) && (
+          <button
+            onClick={() => reorder(order)}
+            disabled={isReordering}
+            className="flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-sm text-xs font-display font-semibold hover:bg-foreground/90 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isReordering ? "animate-spin" : ""}`} />
+            {t("orders.reorder")}
+          </button>
+        )}
       </div>
 
       {/* Status progress */}

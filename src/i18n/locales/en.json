@@ -729,7 +729,37 @@
       "cancelled": "Order cancelled",
       "payment": "Payment received",
       "tracking": "Tracking updated"
-    }
+    },
+    "reorder": "Reorder",
+    "reorderSuccess": "{{count}} product(s) added to your cart from order #{{ref}}",
+    "reorderNoProduct": "This product is no longer available."
+  },
+  "adminChatbot": {
+    "title": "Chatbot AI — Consumption",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "today": "Today",
+    "thisMonth": "This month",
+    "messages": "messages",
+    "conversations": "conversations",
+    "estimatedCost": "Estimated cost",
+    "conversionRate": "Conversion rate",
+    "dailyChart": "Daily messages (last 30 days)",
+    "settings": "Settings",
+    "maxMessagesPerDay": "Max messages per user per day",
+    "monthlyBudgetLimit": "Monthly budget limit (EUR)",
+    "alertThreshold": "Alert threshold (%)",
+    "save": "Save",
+    "settingsSaved": "Chatbot settings saved.",
+    "recentConversations": "Recent conversations (last 10)",
+    "noConversations": "No conversations yet.",
+    "anonymous": "Anonymous",
+    "ongoing": "Ongoing",
+    "cart": "Cart",
+    "quote": "Quote",
+    "project": "Project",
+    "noMessages": "No messages in this conversation.",
+    "user": "User"
   },
   "cd": {
     "welcome": "Welcome back, {{name}}!",
@@ -3433,5 +3463,27 @@
     "productAdded": "Product added",
     "product": "Product",
     "add": "Add"
+  },
+  "chatbot": {
+    "title": "Terrassea AI",
+    "placeholder": "Ask me anything about outdoor furniture...",
+    "send": "Send",
+    "suggestedPrompts": [
+      "What products for a restaurant terrace?",
+      "Compare aluminium and teak",
+      "Budget for 30 covers",
+      "Seaside-resistant furniture"
+    ],
+    "disclaimer": "Powered by AI — Responses may be approximate",
+    "limitReached": "Daily message limit reached. Please try again tomorrow.",
+    "disabled": "The chatbot is currently unavailable.",
+    "error": "An error occurred. Please try again.",
+    "resetConversation": "New conversation",
+    "actions": {
+      "viewProduct": "View product",
+      "addToCart": "Add to cart",
+      "createProject": "Create project",
+      "requestQuote": "Request quote"
+    }
   }
 }

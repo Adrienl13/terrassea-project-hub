@@ -729,7 +729,37 @@
       "cancelled": "Commande annulee",
       "payment": "Paiement recu",
       "tracking": "Suivi mis a jour"
-    }
+    },
+    "reorder": "Commander a nouveau",
+    "reorderSuccess": "{{count}} produit(s) ajoute(s) au panier depuis la commande #{{ref}}",
+    "reorderNoProduct": "Ce produit n'est plus disponible."
+  },
+  "adminChatbot": {
+    "title": "Chatbot IA — Consommation",
+    "enabled": "Active",
+    "disabled": "Desactive",
+    "today": "Aujourd'hui",
+    "thisMonth": "Ce mois",
+    "messages": "messages",
+    "conversations": "conversations",
+    "estimatedCost": "Cout estime",
+    "conversionRate": "Taux de conversion",
+    "dailyChart": "Messages quotidiens (30 derniers jours)",
+    "settings": "Parametres",
+    "maxMessagesPerDay": "Max messages par utilisateur par jour",
+    "monthlyBudgetLimit": "Limite budget mensuel (EUR)",
+    "alertThreshold": "Seuil d'alerte (%)",
+    "save": "Enregistrer",
+    "settingsSaved": "Parametres du chatbot enregistres.",
+    "recentConversations": "Conversations recentes (10 dernieres)",
+    "noConversations": "Aucune conversation pour le moment.",
+    "anonymous": "Anonyme",
+    "ongoing": "En cours",
+    "cart": "Panier",
+    "quote": "Devis",
+    "project": "Projet",
+    "noMessages": "Aucun message dans cette conversation.",
+    "user": "Utilisateur"
   },
   "cd": {
     "welcome": "Bonjour {{name}} !",
@@ -3433,5 +3463,27 @@
     "productAdded": "Produit ajoute",
     "product": "Produit",
     "add": "Ajouter"
+  },
+  "chatbot": {
+    "title": "Terrassea IA",
+    "placeholder": "Posez-moi vos questions sur le mobilier outdoor...",
+    "send": "Envoyer",
+    "suggestedPrompts": [
+      "Quels produits pour une terrasse restaurant ?",
+      "Comparez aluminium et teck",
+      "Budget pour 30 couverts",
+      "Mobilier resistant bord de mer"
+    ],
+    "disclaimer": "Propulse par l'IA — Les reponses peuvent etre approximatives",
+    "limitReached": "Limite quotidienne de messages atteinte. Reessayez demain.",
+    "disabled": "Le chatbot est actuellement indisponible.",
+    "error": "Une erreur est survenue. Veuillez reessayer.",
+    "resetConversation": "Nouvelle conversation",
+    "actions": {
+      "viewProduct": "Voir le produit",
+      "addToCart": "Ajouter au panier",
+      "createProject": "Creer un projet",
+      "requestQuote": "Demander un devis"
+    }
   }
 }

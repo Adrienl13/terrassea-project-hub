@@ -26,12 +26,13 @@ import AdminSettings from "@/components/admin/AdminSettings";
 import AdminRatingsModeration from "@/components/admin/AdminRatingsModeration";
 import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
 import AdminProductReview from "@/components/admin/AdminProductReview";
+import AdminChatbotStats from "@/components/admin/AdminChatbotStats";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "settings";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "settings";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -1474,6 +1475,7 @@ const Admin = () => {
     { id: "pro_service",  icon: Users,           label: "Pro Service",     badge: 0 },
     { id: "products",     icon: Package,         label: "Produits",        badge: pendingReviewCount },
     { id: "submissions",  icon: Inbox,           label: "Soumissions",     badge: 0 },
+    { id: "chatbot",      icon: MessageSquare,   label: "Chatbot IA",      badge: 0 },
     { id: "settings",     icon: Settings,        label: "Configuration",   badge: 0 },
   ];
 
@@ -1541,6 +1543,7 @@ const Admin = () => {
         {tab === "pro_service"  && <QuoteRequestsTab type="pro" />}
         {tab === "products"     && <ProductsTab />}
         {tab === "submissions"  && <AdminProductReview />}
+        {tab === "chatbot"      && <AdminChatbotStats />}
       </div>
     </div>
   );

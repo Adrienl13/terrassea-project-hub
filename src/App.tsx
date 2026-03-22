@@ -16,6 +16,7 @@ import Messages from "./pages/Messages.tsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound.tsx";
 import CookieBanner from "@/components/CookieBanner";
+import ChatbotWidget from "@/components/ChatbotWidget";
 
 // Legal pages
 const Legal = lazy(() => import("./pages/Legal"));
@@ -81,6 +82,7 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <CookieBanner />
+                <ChatbotWidget />
                 </Suspense>
               </div>
             </BrowserRouter>
