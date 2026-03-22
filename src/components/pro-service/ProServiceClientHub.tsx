@@ -7,6 +7,7 @@ import {
   Plus, Search, MapPin, Star, ArrowRight, ArrowLeft,
   FileText, Users, CheckCircle2, Clock, ChevronRight,
   Pencil, Send, Heart, MessageSquare, Shield, ExternalLink, Calendar,
+  Building2, Package, Euro, Sparkles, Factory, Compass, Mail, Phone, User, Briefcase,
 } from "lucide-react";
 import {
   ARCHITECT_REQUEST_STATUS_CONFIG,
@@ -1387,6 +1388,7 @@ function parseBudgetRange(val: string): number | null {
   return parseInt(match[1]);
 }
 
+
 function NewProRequestForm({
   onCancel,
   onSubmitted,
@@ -1399,6 +1401,9 @@ function NewProRequestForm({
   const { profile, user: authUser } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [phase, setPhase] = useState<"form" | "not_qualified" | "submitted">("form");
+  const [step, setStep] = useState(0);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
 
   const [form, setForm] = useState({
     // Section 1: Establishment
@@ -1418,11 +1423,10 @@ function NewProRequestForm({
     budget: "",
     timeline: "",
     desiredDate: "",
-    // Section 4: Accompaniment
+    // Section 4: Accompaniment + Contact
     accompanimentType: "",
     notes: "",
     referralSource: "",
-    // Section 5: Contact
     fullName: profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "",
     email: profile?.email || "",
     phone: "",
@@ -1432,8 +1436,10 @@ function NewProRequestForm({
   });
 
   const handle = (field: string) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
       setForm(p => ({ ...p, [field]: e.target.value }));
+      if (errors[field]) setErrors(p => { const n = { ...p }; delete n[field]; return n; });
+    };
 
   const toggleCategory = (cat: string) => {
     setForm(p => ({
@@ -1442,6 +1448,7 @@ function NewProRequestForm({
         ? p.categories.filter(c => c !== cat)
         : [...p.categories, cat],
     }));
+    if (errors.categories) setErrors(p => { const n = { ...p }; delete n.categories; return n; });
   };
 
   const toggleMaterial = (mat: string) => {
@@ -1458,20 +1465,62 @@ function NewProRequestForm({
 
   const isQualified = (coversNum >= MIN_COVERS_QUAL) || (budgetNum !== null && budgetNum >= MIN_BUDGET_QUAL);
 
-  const inputClass = "w-full text-sm font-body bg-white border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
+  const inputClass = "w-full text-sm font-body bg-white border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all placeholder:text-muted-foreground/40";
+  const inputErrorClass = "w-full text-sm font-body bg-white border border-red-400 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition-all placeholder:text-muted-foreground/40";
+  const inputIconClass = "w-full text-sm font-body bg-white border border-border rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all placeholder:text-muted-foreground/40";
+  const inputIconErrorClass = "w-full text-sm font-body bg-white border border-red-400 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition-all placeholder:text-muted-foreground/40";
   const labelClass = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5";
-  const sectionClass = "border border-border rounded-2xl p-5 bg-card space-y-4";
+  const errorMsgClass = "text-[10px] font-body text-red-500 mt-1";
+
+  const STEPS = [
+    { icon: Building2, label: "\u00c9tablissement", subtitle: "D\u00e9crivez votre lieu" },
+    { icon: Package, label: "Besoin", subtitle: "Ce que vous recherchez" },
+    { icon: Calendar, label: "Budget & Planning", subtitle: "Votre enveloppe et d\u00e9lais" },
+    { icon: Users, label: "Accompagnement & Contact", subtitle: "Vos coordonn\u00e9es" },
+  ];
+
+  const TOTAL_STEPS = STEPS.length;
+  const progressPercent = ((step + 1) / TOTAL_STEPS) * 100;
+
+  // Step validation
+  const validateStep = (s: number): boolean => {
+    const errs: Record<string, string> = {};
+    if (s === 0) {
+      if (!form.establishmentType) errs.establishmentType = "Champ requis";
+      if (!form.establishmentName) errs.establishmentName = "Champ requis";
+      if (!form.location) errs.location = "Champ requis";
+      if (!form.covers) errs.covers = "Champ requis";
+    } else if (s === 1) {
+      if (form.categories.length === 0) errs.categories = "S\u00e9lectionnez au moins une cat\u00e9gorie";
+    } else if (s === 2) {
+      if (!form.budget) errs.budget = "Champ requis";
+    } else if (s === 3) {
+      if (!form.fullName) errs.fullName = "Champ requis";
+      if (!form.email) errs.email = "Champ requis";
+      if (!form.phone) errs.phone = "Champ requis";
+      if (!form.company) errs.company = "Champ requis";
+      if (!form.siren) errs.siren = "Champ requis";
+      else if (form.siren.length !== 9) errs.siren = "9 chiffres requis";
+      if (!form.accompanimentType) errs.accompanimentType = "Champ requis";
+    }
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const goNext = () => {
+    if (!validateStep(step)) return;
+    setDirection(1);
+    setStep(s => Math.min(s + 1, TOTAL_STEPS - 1));
+  };
+
+  const goPrev = () => {
+    setErrors({});
+    setDirection(-1);
+    setStep(s => Math.max(s - 1, 0));
+  };
 
   const handleSubmit = async () => {
-    // Validate required fields
-    if (!form.fullName || !form.email || !form.phone || !form.company || !form.siren || !form.establishmentType || !form.establishmentName || !form.location || !form.accompanimentType) {
-      toast.error(t("proHub.client.formFillRequired"));
-      return;
-    }
-    if (form.siren.length !== 9) {
-      toast.error(t("proHub.client.formSirenInvalid"));
-      return;
-    }
+    if (!validateStep(3)) return;
 
     // Qualification check
     if (!isQualified) {
@@ -1481,13 +1530,12 @@ function NewProRequestForm({
 
     setSubmitting(true);
     try {
-      // Insert into pro_service_requests
       const { error } = await supabase.from("pro_service_requests").insert({
         client_name: form.fullName,
         client_email: form.email,
         client_phone: form.phone,
         client_company: form.company,
-        project_title: `Pro Service — ${form.establishmentName}`,
+        project_title: `Pro Service \u2014 ${form.establishmentName}`,
         project_type: form.establishmentType,
         project_city: form.location.split(",")[0]?.trim() || form.location,
         project_country: form.location.split(",")[1]?.trim() || "France",
@@ -1515,7 +1563,6 @@ function NewProRequestForm({
 
       if (error) throw error;
 
-      // Notify all admins
       const { data: admins } = await supabase
         .from("user_profiles")
         .select("id")
@@ -1532,7 +1579,6 @@ function NewProRequestForm({
         await supabase.from("notifications").insert(notifications);
       }
 
-      // Send confirmation email
       try {
         await supabase.functions.invoke("send-notification-email", {
           body: {
@@ -1554,7 +1600,7 @@ function NewProRequestForm({
     }
   };
 
-  // ── Submitted ──
+  // -- Submitted --
   if (phase === "submitted") {
     return (
       <div className="max-w-xl mx-auto text-center py-16">
@@ -1577,7 +1623,7 @@ function NewProRequestForm({
     );
   }
 
-  // ── Not qualified — positive redirect ──
+  // -- Not qualified -- positive redirect --
   if (phase === "not_qualified") {
     return (
       <div className="max-w-xl mx-auto text-center py-16">
@@ -1602,7 +1648,321 @@ function NewProRequestForm({
     );
   }
 
-  // ── Form ──
+  // -- Slide animation variants --
+  const slideVariants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 80 : -80, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -80 : 80, opacity: 0 }),
+  };
+
+  // -- Accompaniment card options --
+  const accompanimentCards = [
+    { value: "supplier_only", icon: Factory, label: t("proHub.client.accompSupplier"), desc: t("proHub.client.accompSupplierDesc") },
+    { value: "architect_only", icon: Compass, label: t("proHub.client.accompArchitect"), desc: t("proHub.client.accompArchitectDesc") },
+    { value: "both", icon: Users, label: t("proHub.client.accompBoth"), desc: t("proHub.client.accompBothDesc") },
+  ];
+
+  // -- Step content renderers --
+  const renderStep0 = () => (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClass}>{t("proHub.client.formEstablishment")} *</label>
+          <select value={form.establishmentType} onChange={handle("establishmentType")} className={errors.establishmentType ? inputErrorClass : inputClass}>
+            <option value="">{t("proHub.client.formSelect")}</option>
+            {ESTABLISHMENT_TYPE_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          {errors.establishmentType && <p className={errorMsgClass}>{errors.establishmentType}</p>}
+        </div>
+        <div>
+          <label className={labelClass}>{t("proHub.client.formEstablishmentName")} *</label>
+          <input type="text" value={form.establishmentName} onChange={handle("establishmentName")} placeholder="H\u00f4tel Les Pins" className={errors.establishmentName ? inputErrorClass : inputClass} />
+          {errors.establishmentName && <p className={errorMsgClass}>{errors.establishmentName}</p>}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClass}>{t("proHub.client.formLocation")} *</label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+            <input type="text" value={form.location} onChange={handle("location")} placeholder="Nice, France" className={errors.location ? inputIconErrorClass : inputIconClass} />
+          </div>
+          {errors.location && <p className={errorMsgClass}>{errors.location}</p>}
+        </div>
+        <div>
+          <label className={labelClass}>{t("proHub.client.formCoversSeats")} *</label>
+          <input type="number" value={form.covers} onChange={handle("covers")} placeholder="150" className={errors.covers ? inputErrorClass : inputClass} />
+          {errors.covers && <p className={errorMsgClass}>{errors.covers}</p>}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClass}>{t("proHub.client.formSurface")}</label>
+          <input type="number" value={form.surfaceArea} onChange={handle("surfaceArea")} placeholder="200" className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>{t("proHub.client.formProjectNature")} *</label>
+          <div className="flex gap-2 flex-wrap pt-1">
+            {[
+              { value: "renovation", label: t("proHub.client.natureRenovation") },
+              { value: "new", label: t("proHub.client.natureNew") },
+              { value: "extension", label: t("proHub.client.natureExtension") },
+            ].map(o => (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => setForm(p => ({ ...p, projectNature: o.value }))}
+                className={`text-sm font-body px-4 py-2 rounded-full border transition-all ${
+                  form.projectNature === o.value
+                    ? "bg-foreground text-primary-foreground border-foreground shadow-sm"
+                    : "bg-white text-muted-foreground border-border hover:border-foreground/50"
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep1 = () => (
+    <div className="space-y-5">
+      <div>
+        <label className={labelClass}>{t("proHub.client.formCategories")} *</label>
+        <div className="flex gap-2.5 flex-wrap">
+          {CATEGORY_OPTIONS.map(cat => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => toggleCategory(cat)}
+              className={`text-sm font-body px-4 py-2 rounded-full border transition-all ${
+                form.categories.includes(cat)
+                  ? "bg-foreground text-primary-foreground border-foreground shadow-sm"
+                  : "bg-white text-muted-foreground border-border hover:border-foreground/50"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+        {errors.categories && <p className={errorMsgClass}>{errors.categories}</p>}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClass}>{t("proHub.client.formStyleWanted")}</label>
+          <select value={form.style} onChange={handle("style")} className={inputClass}>
+            <option value="">{t("proHub.client.formSelect")}</option>
+            {STYLE_OPTIONS.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelClass}>{t("proHub.client.formColors")}</label>
+          <input type="text" value={form.colors} onChange={handle("colors")} placeholder="Beige, blanc, bois naturel..." className={inputClass} />
+        </div>
+      </div>
+      <div>
+        <label className={labelClass}>{t("proHub.client.formMaterials")}</label>
+        <div className="flex gap-2.5 flex-wrap">
+          {MATERIAL_OPTIONS.map(mat => (
+            <button
+              key={mat}
+              type="button"
+              onClick={() => toggleMaterial(mat)}
+              className={`text-sm font-body px-4 py-2 rounded-full border transition-all ${
+                form.materials.includes(mat)
+                  ? "bg-foreground text-primary-foreground border-foreground shadow-sm"
+                  : "bg-white text-muted-foreground border-border hover:border-foreground/50"
+              }`}
+            >
+              {mat}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className={labelClass}>{t("proHub.client.formConstraints")}</label>
+        <textarea value={form.constraints} onChange={handle("constraints")} placeholder="Vent, pluie, sol irr\u00e9gulier, empilage n\u00e9cessaire, normes feu..." rows={2} className={`${inputClass} resize-none`} />
+      </div>
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClass}>{t("proHub.client.formBudgetGlobal")} *</label>
+          <div className="relative">
+            <Euro className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+            <select value={form.budget} onChange={handle("budget")} className={errors.budget ? inputIconErrorClass : inputIconClass}>
+              <option value="">{t("proHub.client.formSelect")}</option>
+              {BUDGET_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          {errors.budget && <p className={errorMsgClass}>{errors.budget}</p>}
+        </div>
+        <div>
+          <label className={labelClass}>{t("proHub.client.formTimelineWanted")}</label>
+          <select value={form.timeline} onChange={handle("timeline")} className={inputClass}>
+            <option value="">{t("proHub.client.formSelect")}</option>
+            {TIMELINE_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className={labelClass}>{t("proHub.client.formDesiredDate")}</label>
+        <div className="relative">
+          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+          <input type="date" value={form.desiredDate} onChange={handle("desiredDate")} className={inputIconClass} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep3 = () => (
+    <div className="space-y-6">
+      {/* Accompaniment type as cards */}
+      <div>
+        <label className={labelClass}>{t("proHub.client.formAccompaniment")} *</label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
+          {accompanimentCards.map(o => {
+            const Icon = o.icon;
+            const selected = form.accompanimentType === o.value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => {
+                  setForm(p => ({ ...p, accompanimentType: o.value }));
+                  if (errors.accompanimentType) setErrors(p => { const n = { ...p }; delete n.accompanimentType; return n; });
+                }}
+                className={`relative flex flex-col items-start p-5 rounded-2xl border-2 text-left transition-all ${
+                  selected
+                    ? "border-terracotta bg-terracotta/5 shadow-md"
+                    : "border-border bg-white hover:border-foreground/30 hover:shadow-sm"
+                }`}
+              >
+                {selected && (
+                  <div className="absolute top-3 right-3">
+                    <CheckCircle2 className="h-5 w-5 text-terracotta" />
+                  </div>
+                )}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${
+                  selected ? "bg-terracotta/10" : "bg-muted/50"
+                }`}>
+                  <Icon className={`h-5 w-5 ${selected ? "text-terracotta" : "text-muted-foreground"}`} />
+                </div>
+                <p className="text-sm font-display font-semibold mb-1">{o.label}</p>
+                <p className="text-xs font-body text-muted-foreground leading-relaxed">{o.desc}</p>
+              </button>
+            );
+          })}
+        </div>
+        {errors.accompanimentType && <p className={errorMsgClass}>{errors.accompanimentType}</p>}
+      </div>
+
+      {/* Notes & referral */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={labelClass}>{t("proHub.client.formNotesCompl")}</label>
+          <textarea value={form.notes} onChange={handle("notes")} placeholder={t("proHub.client.formNotesPlaceholder")} rows={3} className={`${inputClass} resize-none`} />
+        </div>
+        <div>
+          <label className={labelClass}>{t("proHub.client.formReferral")}</label>
+          <select value={form.referralSource} onChange={handle("referralSource")} className={inputClass}>
+            <option value="">{t("proHub.client.formSelect")}</option>
+            {REFERRAL_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Separator */}
+      <div className="border-t border-border" />
+
+      {/* Contact info */}
+      <div>
+        <p className="text-xs font-display font-semibold uppercase tracking-wider text-muted-foreground mb-4">Vos coordonn\u00e9es</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>{t("proHub.client.formFullName")} *</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+              <input type="text" value={form.fullName} onChange={handle("fullName")} placeholder="Jean Dupont" className={errors.fullName ? inputIconErrorClass : inputIconClass} />
+            </div>
+            {errors.fullName && <p className={errorMsgClass}>{errors.fullName}</p>}
+          </div>
+          <div>
+            <label className={labelClass}>{t("proHub.client.formEmailPro")} *</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+              <input type="email" value={form.email} onChange={handle("email")} placeholder="jean@hotel.fr" className={errors.email ? inputIconErrorClass : inputIconClass} />
+            </div>
+            {errors.email && <p className={errorMsgClass}>{errors.email}</p>}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label className={labelClass}>{t("proHub.client.formPhone")} *</label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+              <input type="tel" value={form.phone} onChange={handle("phone")} placeholder="+33 6 12 34 56 78" className={errors.phone ? inputIconErrorClass : inputIconClass} />
+            </div>
+            {errors.phone && <p className={errorMsgClass}>{errors.phone}</p>}
+          </div>
+          <div>
+            <label className={labelClass}>{t("proHub.client.formCompany")} *</label>
+            <div className="relative">
+              <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+              <input type="text" value={form.company} onChange={handle("company")} placeholder="SAS Les Pins" className={errors.company ? inputIconErrorClass : inputIconClass} />
+            </div>
+            {errors.company && <p className={errorMsgClass}>{errors.company}</p>}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label className={labelClass}>{t("proHub.client.formSiren")} *</label>
+            <input
+              type="text"
+              value={form.siren}
+              onChange={e => {
+                const v = e.target.value.replace(/\D/g, "").slice(0, 9);
+                setForm(p => ({ ...p, siren: v }));
+                if (errors.siren) setErrors(p => { const n = { ...p }; delete n.siren; return n; });
+              }}
+              placeholder="123456789"
+              className={errors.siren ? inputErrorClass : inputClass}
+            />
+            {errors.siren ? <p className={errorMsgClass}>{errors.siren}</p> : <p className="text-[9px] font-body text-muted-foreground mt-1">9 chiffres</p>}
+          </div>
+          <div>
+            <label className={labelClass}>{t("proHub.client.formFunction")}</label>
+            <select value={form.clientFunction} onChange={handle("clientFunction")} className={inputClass}>
+              <option value="">{t("proHub.client.formSelect")}</option>
+              {FUNCTION_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const stepRenderers = [renderStep0, renderStep1, renderStep2, renderStep3];
+  const StepIcon = STEPS[step].icon;
+
+  // -- Form --
   return (
     <div className="space-y-6">
       <button
@@ -1612,274 +1972,138 @@ function NewProRequestForm({
         <ArrowLeft className="h-4 w-4" /> {t("proHub.client.backToHub")}
       </button>
 
-      <div className="max-w-2xl">
-        <h2 className="font-display text-lg font-bold tracking-tight mb-1">{t("proHub.client.newRequestFormTitle")}</h2>
-        <p className="text-sm font-body text-muted-foreground mb-6">{t("proHub.client.newRequestFormSubtitle")}</p>
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 mb-2">
+            <Sparkles className="h-5 w-5 text-terracotta" />
+            <h2 className="font-display text-xl font-bold tracking-tight">{t("proHub.client.newRequestFormTitle")}</h2>
+          </div>
+          <p className="text-sm font-body text-muted-foreground">{t("proHub.client.newRequestFormSubtitle")}</p>
+        </div>
 
-        <div className="space-y-6">
-          {/* Section 1: Votre etablissement */}
-          <div className={sectionClass}>
-            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section1Title")}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>{t("proHub.client.formEstablishment")} *</label>
-                <select value={form.establishmentType} onChange={handle("establishmentType")} className={inputClass}>
-                  <option value="">{t("proHub.client.formSelect")}</option>
-                  {ESTABLISHMENT_TYPE_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>{t("proHub.client.formEstablishmentName")} *</label>
-                <input type="text" value={form.establishmentName} onChange={handle("establishmentName")} placeholder="H\u00f4tel Les Pins" className={inputClass} />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>{t("proHub.client.formLocation")} *</label>
-                <input type="text" value={form.location} onChange={handle("location")} placeholder="Nice, France" className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t("proHub.client.formCoversSeats")} *</label>
-                <input type="number" value={form.covers} onChange={handle("covers")} placeholder="150" className={inputClass} />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>{t("proHub.client.formSurface")}</label>
-                <input type="number" value={form.surfaceArea} onChange={handle("surfaceArea")} placeholder="200" className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t("proHub.client.formProjectNature")} *</label>
-                <div className="flex gap-2 flex-wrap pt-1">
-                  {[
-                    { value: "renovation", label: t("proHub.client.natureRenovation") },
-                    { value: "new", label: t("proHub.client.natureNew") },
-                    { value: "extension", label: t("proHub.client.natureExtension") },
-                  ].map(o => (
-                    <button
-                      key={o.value}
-                      type="button"
-                      onClick={() => setForm(p => ({ ...p, projectNature: o.value }))}
-                      className={`text-xs font-body px-3 py-1.5 rounded-full border transition-colors ${
-                        form.projectNature === o.value
-                          ? "bg-foreground text-primary-foreground border-foreground"
-                          : "bg-white text-muted-foreground border-border hover:border-foreground"
+        {/* Step indicator */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            {STEPS.map((s, i) => {
+              const SIcon = s.icon;
+              const isActive = i === step;
+              const isDone = i < step;
+              return (
+                <div key={i} className="flex items-center gap-2 flex-1">
+                  <div className="flex flex-col items-center flex-shrink-0">
+                    <motion.div
+                      animate={{ scale: isActive ? 1 : 0.9, opacity: isActive || isDone ? 1 : 0.4 }}
+                      transition={{ duration: 0.2 }}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                        isActive
+                          ? "bg-terracotta text-white shadow-md"
+                          : isDone
+                            ? "bg-terracotta/15 text-terracotta"
+                            : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Votre besoin */}
-          <div className={sectionClass}>
-            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section2Title")}</p>
-            <div>
-              <label className={labelClass}>{t("proHub.client.formCategories")}</label>
-              <div className="flex gap-2 flex-wrap">
-                {CATEGORY_OPTIONS.map(cat => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => toggleCategory(cat)}
-                    className={`text-xs font-body px-3 py-1.5 rounded-full border transition-colors ${
-                      form.categories.includes(cat)
-                        ? "bg-foreground text-primary-foreground border-foreground"
-                        : "bg-white text-muted-foreground border-border hover:border-foreground"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>{t("proHub.client.formStyleWanted")}</label>
-                <select value={form.style} onChange={handle("style")} className={inputClass}>
-                  <option value="">{t("proHub.client.formSelect")}</option>
-                  {STYLE_OPTIONS.map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>{t("proHub.client.formColors")}</label>
-                <input type="text" value={form.colors} onChange={handle("colors")} placeholder="Beige, blanc, bois naturel..." className={inputClass} />
-              </div>
-            </div>
-            <div>
-              <label className={labelClass}>{t("proHub.client.formMaterials")}</label>
-              <div className="flex gap-2 flex-wrap">
-                {MATERIAL_OPTIONS.map(mat => (
-                  <button
-                    key={mat}
-                    type="button"
-                    onClick={() => toggleMaterial(mat)}
-                    className={`text-xs font-body px-3 py-1.5 rounded-full border transition-colors ${
-                      form.materials.includes(mat)
-                        ? "bg-foreground text-primary-foreground border-foreground"
-                        : "bg-white text-muted-foreground border-border hover:border-foreground"
-                    }`}
-                  >
-                    {mat}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className={labelClass}>{t("proHub.client.formConstraints")}</label>
-              <textarea value={form.constraints} onChange={handle("constraints")} placeholder="Vent, pluie, sol irr\u00e9gulier, empilage n\u00e9cessaire, normes feu..." rows={2} className={`${inputClass} resize-none`} />
-            </div>
-          </div>
-
-          {/* Section 3: Budget & Planning */}
-          <div className={sectionClass}>
-            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section3Title")}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>{t("proHub.client.formBudgetGlobal")} *</label>
-                <select value={form.budget} onChange={handle("budget")} className={inputClass}>
-                  <option value="">{t("proHub.client.formSelect")}</option>
-                  {BUDGET_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>{t("proHub.client.formTimelineWanted")}</label>
-                <select value={form.timeline} onChange={handle("timeline")} className={inputClass}>
-                  <option value="">{t("proHub.client.formSelect")}</option>
-                  {TIMELINE_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className={labelClass}>{t("proHub.client.formDesiredDate")}</label>
-              <input type="date" value={form.desiredDate} onChange={handle("desiredDate")} className={inputClass} />
-            </div>
-          </div>
-
-          {/* Section 4: Accompaniment */}
-          <div className={sectionClass}>
-            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section4Title")}</p>
-            <div>
-              <label className={labelClass}>{t("proHub.client.formAccompaniment")} *</label>
-              <div className="space-y-2">
-                {[
-                  { value: "supplier_only", label: t("proHub.client.accompSupplier"), desc: t("proHub.client.accompSupplierDesc") },
-                  { value: "architect_only", label: t("proHub.client.accompArchitect"), desc: t("proHub.client.accompArchitectDesc") },
-                  { value: "both", label: t("proHub.client.accompBoth"), desc: t("proHub.client.accompBothDesc") },
-                ].map(o => (
-                  <label
-                    key={o.value}
-                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                      form.accompanimentType === o.value ? "border-foreground bg-muted/30" : "border-border hover:border-foreground/30"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="accompaniment"
-                      value={o.value}
-                      checked={form.accompanimentType === o.value}
-                      onChange={handle("accompanimentType")}
-                      className="mt-0.5"
-                    />
-                    <div>
-                      <p className="text-sm font-display font-semibold">{o.label}</p>
-                      <p className="text-xs font-body text-muted-foreground">{o.desc}</p>
+                      {isDone ? <CheckCircle2 className="h-5 w-5" /> : <SIcon className="h-4 w-4" />}
+                    </motion.div>
+                    <span className={`text-[9px] font-display font-semibold mt-1.5 text-center leading-tight hidden sm:block ${
+                      isActive ? "text-foreground" : "text-muted-foreground"
+                    }`}>{s.label}</span>
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div className="flex-1 h-px mx-1 mt-[-14px] sm:mt-[-20px]">
+                      <div className={`h-full ${isDone ? "bg-terracotta/40" : "bg-border"}`} />
                     </div>
-                  </label>
-                ))}
-              </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {/* Progress bar */}
+          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{ background: "linear-gradient(90deg, #D4603A, #e8845c)" }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            />
+          </div>
+          <p className="text-[10px] font-body text-muted-foreground text-right mt-1">{Math.round(progressPercent)}%</p>
+        </div>
+
+        {/* Step card */}
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
+          {/* Step visual header */}
+          <div className="flex items-center gap-4 mb-6 pb-5 border-b border-border">
+            <div className="w-12 h-12 rounded-2xl bg-terracotta/10 flex items-center justify-center flex-shrink-0">
+              <StepIcon className="h-6 w-6 text-terracotta" />
             </div>
             <div>
-              <label className={labelClass}>{t("proHub.client.formNotesCompl")}</label>
-              <textarea value={form.notes} onChange={handle("notes")} placeholder={t("proHub.client.formNotesPlaceholder")} rows={3} className={`${inputClass} resize-none`} />
-            </div>
-            <div>
-              <label className={labelClass}>{t("proHub.client.formReferral")}</label>
-              <select value={form.referralSource} onChange={handle("referralSource")} className={inputClass}>
-                <option value="">{t("proHub.client.formSelect")}</option>
-                {REFERRAL_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
+              <h3 className="font-display text-base font-bold tracking-tight">{STEPS[step].label}</h3>
+              <p className="text-xs font-body text-muted-foreground">{STEPS[step].subtitle}</p>
             </div>
           </div>
 
-          {/* Section 5: Contact */}
-          <div className={sectionClass}>
-            <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proHub.client.section5Title")}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>{t("proHub.client.formFullName")} *</label>
-                <input type="text" value={form.fullName} onChange={handle("fullName")} placeholder="Jean Dupont" className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t("proHub.client.formEmailPro")} *</label>
-                <input type="email" value={form.email} onChange={handle("email")} placeholder="jean@hotel.fr" className={inputClass} />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>{t("proHub.client.formPhone")} *</label>
-                <input type="tel" value={form.phone} onChange={handle("phone")} placeholder="+33 6 12 34 56 78" className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t("proHub.client.formCompany")} *</label>
-                <input type="text" value={form.company} onChange={handle("company")} placeholder="SAS Les Pins" className={inputClass} />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>{t("proHub.client.formSiren")} *</label>
-                <input
-                  type="text"
-                  value={form.siren}
-                  onChange={e => setForm(p => ({ ...p, siren: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
-                  placeholder="123456789"
-                  className={inputClass}
-                />
-                <p className="text-[9px] font-body text-muted-foreground mt-1">9 chiffres</p>
-              </div>
-              <div>
-                <label className={labelClass}>{t("proHub.client.formFunction")}</label>
-                <select value={form.clientFunction} onChange={handle("clientFunction")} className={inputClass}>
-                  <option value="">{t("proHub.client.formSelect")}</option>
-                  {FUNCTION_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Submit */}
-          <div className="pt-2">
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="w-full py-4 font-display font-semibold text-sm bg-terracotta text-white rounded-full hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
+          {/* Step content with animation */}
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={step}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: "easeInOut" }}
             >
-              {submitting ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>{t("proHub.client.formSubmitPro")} <ArrowRight className="h-4 w-4" /></>
-              )}
-            </button>
-            <p className="text-[10px] text-muted-foreground font-body text-center mt-3 leading-relaxed">
-              {t("proHub.client.formDisclaimer")}
-            </p>
+              {stepRenderers[step]()}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation buttons */}
+          <div className="flex items-center justify-between mt-8 pt-5 border-t border-border">
+            {step > 0 ? (
+              <button
+                type="button"
+                onClick={goPrev}
+                className="flex items-center gap-2 px-5 py-2.5 text-sm font-display font-semibold text-muted-foreground hover:text-foreground border border-border rounded-full hover:border-foreground/30 transition-all"
+              >
+                <ArrowLeft className="h-4 w-4" /> Pr\u00e9c\u00e9dent
+              </button>
+            ) : (
+              <div />
+            )}
+
+            {step < TOTAL_STEPS - 1 ? (
+              <button
+                type="button"
+                onClick={goNext}
+                className="flex items-center gap-2 px-6 py-2.5 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+              >
+                Suivant <ArrowRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 text-sm font-display font-semibold text-white rounded-full hover:opacity-90 transition-opacity disabled:opacity-40"
+                style={{ background: "linear-gradient(135deg, #D4603A, #c4502a)" }}
+              >
+                {submitting ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>{t("proHub.client.formSubmitPro")} <ArrowRight className="h-4 w-4" /></>
+                )}
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Disclaimer on last step */}
+        {step === TOTAL_STEPS - 1 && (
+          <p className="text-[10px] text-muted-foreground font-body text-center mt-4 leading-relaxed">
+            {t("proHub.client.formDisclaimer")}
+          </p>
+        )}
       </div>
     </div>
   );
