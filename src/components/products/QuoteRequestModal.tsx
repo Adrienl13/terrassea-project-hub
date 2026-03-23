@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Shield, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { DBProduct } from "@/lib/products";
 import type { ProductOffer } from "@/lib/productOffers";
@@ -43,6 +44,7 @@ async function lookupSiren(siren: string): Promise<SirenResult | null> {
 const QuoteRequestModal = ({
   open, onClose, product, offers = [], defaultQuantity = 1,
 }: QuoteRequestModalProps) => {
+  const { user } = useAuth();
   const [step, setStep] = useState<"form" | "success">("form");
   const [submitting, setSubmitting] = useState(false);
 
@@ -128,7 +130,8 @@ const QuoteRequestModal = ({
         quantity: form.quantity,
         first_name: form.firstName,
         client_first_name: form.firstName,
-        client_city: null,
+        client_city: sirenResult?.address || null,
+        client_user_id: user?.id || null,
         last_name: form.lastName || null,
         email: form.email,
         company: form.company || sirenResult?.companyName || null,

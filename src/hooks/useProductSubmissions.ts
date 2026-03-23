@@ -203,6 +203,7 @@ export function useAdminSubmissions() {
         // Media
         image_url: pd.image_url ?? null,
         gallery_urls: pd.gallery_urls ?? [],
+        environment_urls: pd.environment_urls ?? [],
         // Pricing
         indicative_price: pd.indicative_price ?? null,
         price_min: pd.price_min ?? null,
@@ -257,6 +258,10 @@ export function useAdminSubmissions() {
         warranty: pd.warranty ?? null,
         maintenance_info: pd.maintenance_info ?? null,
         documents: pd.documents ?? [],
+        // Scores — initialize with defaults
+        data_quality_score: 0,
+        popularity_score: 0.5,
+        priority_score: 0.5,
         // Owner & status
         partner_id: submission.partner_id,
         publish_status: "published",

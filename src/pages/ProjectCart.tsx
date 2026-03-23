@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler, Truck, X, Save, FileDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -90,6 +91,7 @@ async function lookupSiren(siren: string): Promise<SirenResult | null> {
 
 const ProjectCart = () => {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus, markCartSubmitted, clearCart } =
   useProjectCart();
 
@@ -205,6 +207,8 @@ const ProjectCart = () => {
         budget_range: formData.budget,
         timeline: formData.timeline,
         free_text_request: notes || formData.notes,
+        user_id: user?.id || null,
+        status: "pending",
         detected_attributes: {
           siren: formData.siren,
           delivery_address: sirenResult?.address || ""
@@ -219,7 +223,7 @@ const ProjectCart = () => {
         product_id: item.product.id,
         quantity: item.quantity,
         concept_name: item.conceptName || null,
-        notes: null,
+        notes: item.layoutRequirementLabel || null,
         selected_offer_id: item.selectedSupplier?.offerId || null,
         selected_partner_id: item.selectedSupplier?.partnerId || null,
         selected_partner_name: item.selectedSupplier?.partnerName || null,

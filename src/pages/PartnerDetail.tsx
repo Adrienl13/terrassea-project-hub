@@ -334,50 +334,51 @@ export default function PartnerDetail() {
                 </div>
               )}
 
-              {/* Meta stats */}
+              {/* Meta stats — use real partner table fields */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {partner.production_capacity && (
+                {partner.partner_type && (
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <p className="font-display font-bold text-foreground">{partner.production_capacity}</p>
-                    <p className="text-xs font-body text-muted-foreground mt-1">{t("partnerDetail.productionCapacity")}</p>
+                    <p className="font-display font-bold text-foreground capitalize">{partner.partner_type}</p>
+                    <p className="text-xs font-body text-muted-foreground mt-1">{t("partnerDetail.type", "Type")}</p>
                   </div>
                 )}
-                {partner.coverage_zone && (
+                {partner.country && (
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <p className="font-display font-bold text-foreground">{partner.coverage_zone}</p>
-                    <p className="text-xs font-body text-muted-foreground mt-1">{t("partnerDetail.coverageZone")}</p>
+                    <p className="font-display font-bold text-foreground">{partner.country}</p>
+                    <p className="text-xs font-body text-muted-foreground mt-1">{t("partnerDetail.country", "Pays")}</p>
                   </div>
                 )}
-                {partner.partner_subtype && (
+                {partner.city && (
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <p className="font-display font-bold text-foreground">{partner.partner_subtype}</p>
-                    <p className="text-xs font-body text-muted-foreground mt-1">{t("partnerDetail.subtype")}</p>
+                    <p className="font-display font-bold text-foreground">{partner.city}</p>
+                    <p className="text-xs font-body text-muted-foreground mt-1">{t("partnerDetail.city", "Ville")}</p>
                   </div>
                 )}
               </div>
 
-              {/* Info blocks */}
+              {/* Info blocks — use real partner table fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoBlock
-                  icon={<Layers className="h-4 w-4" />}
-                  title={t("partnerDetail.specialties")}
-                  items={partner.specialties || []}
-                />
-                <InfoBlock
-                  icon={<Award className="h-4 w-4" />}
-                  title={t("partnerDetail.certifications")}
-                  items={partner.certifications || []}
-                />
-                <InfoBlock
-                  icon={<Factory className="h-4 w-4" />}
-                  title={t("partnerDetail.materials")}
-                  items={partner.materials || []}
-                />
-                <InfoBlock
-                  icon={<Globe className="h-4 w-4" />}
-                  title={t("partnerDetail.projectTypes")}
-                  items={partner.project_types || []}
-                />
+                {partner.product_categories && partner.product_categories.length > 0 && (
+                  <InfoBlock
+                    icon={<Layers className="h-4 w-4" />}
+                    title={t("partnerDetail.categories", "Catégories")}
+                    items={partner.product_categories}
+                  />
+                )}
+                {partner.specialty_tags && partner.specialty_tags.length > 0 && (
+                  <InfoBlock
+                    icon={<Award className="h-4 w-4" />}
+                    title={t("partnerDetail.specialties", "Spécialités")}
+                    items={partner.specialty_tags}
+                  />
+                )}
+                {partner.delivery_countries && partner.delivery_countries.length > 0 && (
+                  <InfoBlock
+                    icon={<Globe className="h-4 w-4" />}
+                    title={t("partnerDetail.deliveryCountries", "Pays de livraison")}
+                    items={partner.delivery_countries}
+                  />
+                )}
               </div>
 
               {/* Anonymity notice */}
