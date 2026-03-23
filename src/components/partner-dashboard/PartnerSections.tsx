@@ -995,6 +995,21 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
     enabled: !!partnerId,
   });
 
+  // Pending product submissions for this partner
+  const { data: pendingSubmissions = [] } = useQuery({
+    queryKey: ["partner-pending-submissions", partnerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("product_submissions")
+        .select("id, product_data, status, created_at, admin_feedback, similarity_score")
+        .eq("partner_id", partnerId!)
+        .in("status", ["pending_review", "feedback_sent"])
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!partnerId,
+  });
+
   const allProducts = dbProducts;
 
   const products = searchTerm
@@ -1064,6 +1079,46 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
           className="w-full bg-card border border-border rounded-sm pl-9 pr-3 py-2.5 text-sm font-body outline-none focus:ring-1 focus:ring-foreground"
         />
       </div>
+
+      {/* Pending submissions */}
+      {pendingSubmissions.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+            <Clock className="h-3 w-3" />
+            {pendingSubmissions.length} produit{pendingSubmissions.length > 1 ? "s" : ""} en attente de validation
+          </p>
+          {pendingSubmissions.map((sub: any) => {
+            const pd = sub.product_data as Record<string, any> || {};
+            const statusLabel = sub.status === "feedback_sent" ? "Retour admin" : "En attente";
+            const statusColor = sub.status === "feedback_sent" ? "text-blue-700 bg-blue-50 border-blue-200" : "text-amber-700 bg-amber-50 border-amber-200";
+            return (
+              <div key={sub.id} className="flex items-center gap-3 px-4 py-3 border border-border rounded-xl bg-card">
+                {pd.image_url ? (
+                  <img src={pd.image_url as string} alt="" className="w-10 h-10 rounded-lg object-cover bg-muted" />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                    <Package className="h-4 w-4 text-muted-foreground/40" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-display font-semibold text-foreground truncate">
+                    {(pd.name as string) || "Produit sans nom"}
+                  </p>
+                  <p className="text-[10px] font-body text-muted-foreground">
+                    Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR")}
+                    {sub.similarity_score && sub.similarity_score > 70 && (
+                      <span className="ml-2 text-amber-600">• Doublon potentiel ({sub.similarity_score}%)</span>
+                    )}
+                  </p>
+                </div>
+                <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full border ${statusColor}`}>
+                  {statusLabel}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Commission info box */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-sm border" style={{ background: config.bg, borderColor: config.border }}>
