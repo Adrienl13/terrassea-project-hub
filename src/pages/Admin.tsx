@@ -1116,10 +1116,11 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const APP_STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string }> = {
-  pending:   { label: "En attente",  icon: Clock,        color: "#BA7517", bg: "#FAEEDA" },
-  approved:  { label: "Approuvee",   icon: CheckCircle2, color: "#085041", bg: "#E1F5EE" },
-  rejected:  { label: "Rejetee",     icon: XCircle,      color: "#791F1F", bg: "#FCF0F0" },
-  suspended: { label: "Suspendue",   icon: XCircle,      color: "#791F1F", bg: "#FCF0F0" },
+  pending:        { label: "En attente",           icon: Clock,           color: "#BA7517", bg: "#FAEEDA" },
+  info_requested: { label: "Infos demandées",      icon: AlertTriangle,   color: "#B45309", bg: "#FEF3C7" },
+  approved:       { label: "Approuvée",            icon: CheckCircle2,    color: "#085041", bg: "#E1F5EE" },
+  rejected:       { label: "Rejetée",              icon: XCircle,         color: "#791F1F", bg: "#FCF0F0" },
+  suspended:      { label: "Suspendue",            icon: XCircle,         color: "#791F1F", bg: "#FCF0F0" },
 };
 
 const VOLUME_LABELS: Record<string, string> = {
@@ -1150,9 +1151,13 @@ function ApplicationsTab() {
   const counts = {
     all: applications.length,
     pending: applications.filter((a: any) => a.status === "pending").length,
+    info_requested: applications.filter((a: any) => a.status === "info_requested").length,
     approved: applications.filter((a: any) => a.status === "approved").length,
     rejected: applications.filter((a: any) => a.status === "rejected").length,
   };
+
+  const [infoRequestMessage, setInfoRequestMessage] = useState("");
+  const [showInfoForm, setShowInfoForm] = useState(false);
 
   const updateStatus = async (id: string, status: string, reason?: string) => {
     setProcessing(true);
@@ -1166,10 +1171,43 @@ function ApplicationsTab() {
       queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
       if (status === "approved") toast.success("Candidature approuvée — le profil partenaire a été créé automatiquement.");
       else if (status === "rejected") toast.success("Candidature rejetée.");
+      else if (status === "info_requested") toast.success("Demande d'informations envoyée.");
       setSelected((prev: any) => prev ? { ...prev, status, rejection_reason: reason } : null);
       setShowRejectForm(false);
+      setShowInfoForm(false);
       setRejectionReason("");
-    } catch { toast.error("Failed to update status."); }
+      setInfoRequestMessage("");
+    } catch { toast.error("Erreur lors de la mise à jour."); }
+    finally { setProcessing(false); }
+  };
+
+  const sendInfoRequest = async (appId: string, message: string) => {
+    setProcessing(true);
+    try {
+      await supabase.from("partner_applications").update({
+        status: "info_requested",
+        admin_notes: message,
+        reviewed_at: new Date().toISOString(),
+      }).eq("id", appId);
+
+      // Send email to the applicant
+      if (selected?.contact_email) {
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            to: selected.contact_email,
+            subject: "Terrassea — Informations complémentaires requises",
+            body_html: `<p>Bonjour ${selected.contact_name || ""},</p><p>Merci pour votre candidature sur Terrassea. Nous avons besoin d'informations complémentaires :</p><p style="background:#f5f5f5;padding:16px;border-radius:8px;font-style:italic;">${message}</p><p>Merci de répondre à <a href="mailto:contact@terrassea.com">contact@terrassea.com</a></p><p>L'équipe Terrassea</p>`,
+            body_text: `Bonjour, nous avons besoin d'informations complémentaires : ${message}. Répondez à contact@terrassea.com`,
+          },
+        }).catch(() => {});
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["partner_applications"] });
+      toast.success("Demande d'informations envoyée par email.");
+      setSelected((prev: any) => prev ? { ...prev, status: "info_requested", admin_notes: message } : null);
+      setShowInfoForm(false);
+      setInfoRequestMessage("");
+    } catch { toast.error("Erreur lors de l'envoi."); }
     finally { setProcessing(false); }
   };
 
@@ -1244,6 +1282,12 @@ function ApplicationsTab() {
               <p className="text-sm font-body text-muted-foreground">{selected.message}</p>
             </div>
           )}
+          {selected.admin_notes && selected.status === "info_requested" && (
+            <div className="border border-amber-200 bg-amber-50 rounded-xl p-4">
+              <h3 className="font-display font-semibold text-xs text-amber-800 mb-1">Informations demandées</h3>
+              <p className="text-sm font-body text-amber-700">{selected.admin_notes}</p>
+            </div>
+          )}
           {selected.rejection_reason && (
             <div className="border border-red-200 bg-red-50 rounded-xl p-4">
               <h3 className="font-display font-semibold text-xs text-red-700 mb-1">Motif du rejet</h3>
@@ -1251,18 +1295,40 @@ function ApplicationsTab() {
             </div>
           )}
         </div>
-        {selected.status === "pending" && (
+        {(selected.status === "pending" || selected.status === "info_requested") && (
           <div className="space-y-4 mt-6">
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               <button onClick={() => updateStatus(selected.id, "approved")} disabled={processing}
                 className="flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50">
                 <CheckCircle2 className="h-4 w-4" /> {processing ? "Traitement..." : "Approuver"}
               </button>
-              <button onClick={() => setShowRejectForm(!showRejectForm)} disabled={processing}
+              <button onClick={() => { setShowInfoForm(!showInfoForm); setShowRejectForm(false); }} disabled={processing}
+                className="flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm border border-amber-200 text-amber-700 rounded-full hover:bg-amber-50">
+                <AlertTriangle className="h-4 w-4" /> Demander des informations
+              </button>
+              <button onClick={() => { setShowRejectForm(!showRejectForm); setShowInfoForm(false); }} disabled={processing}
                 className="flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm border border-red-200 text-red-600 rounded-full hover:bg-red-50">
                 <XCircle className="h-4 w-4" /> Rejeter
               </button>
             </div>
+            {showInfoForm && (
+              <div className="space-y-3 border border-amber-200 bg-amber-50/30 rounded-xl p-4">
+                <label className="text-xs font-display font-semibold text-amber-800">Quelles informations souhaitez-vous ?</label>
+                <textarea value={infoRequestMessage} onChange={e => setInfoRequestMessage(e.target.value)}
+                  rows={3} placeholder="Ex: Pourriez-vous nous fournir votre catalogue produit et vos conditions de livraison ?"
+                  className="w-full bg-white border border-amber-200 rounded-lg px-3 py-2 text-sm font-body outline-none focus:border-amber-400 resize-none" />
+                <div className="flex gap-2">
+                  <button onClick={() => sendInfoRequest(selected.id, infoRequestMessage)} disabled={processing || !infoRequestMessage.trim()}
+                    className="px-5 py-2 font-display font-semibold text-xs bg-amber-600 text-white rounded-full hover:bg-amber-700 disabled:opacity-50">
+                    Envoyer la demande
+                  </button>
+                  <button onClick={() => setShowInfoForm(false)}
+                    className="px-5 py-2 font-display font-semibold text-xs border border-border text-muted-foreground rounded-full">
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            )}
             {showRejectForm && (
               <div className="space-y-3 border border-border rounded-xl p-4">
                 <label className="text-xs font-body text-muted-foreground">Motif du rejet (optionnel)</label>
