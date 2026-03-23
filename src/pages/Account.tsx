@@ -26,6 +26,7 @@ import {
   PartnerMessagesSection,
   PartnerFeaturedSection,
   PartnerProLeadsSection,
+  PartnerSubmissionFeedbackSection,
   type PartnerPlan,
   type PartnerSectionSetter,
 } from "@/components/partner-dashboard/PartnerSections";
@@ -58,6 +59,7 @@ import PartnerAnalyticsDashboard from "@/components/partner-dashboard/PartnerAna
 import PartnerLoyaltyProgram from "@/components/partner-dashboard/PartnerLoyaltyProgram";
 import PartnerArrivalsSection from "@/components/partner-dashboard/PartnerArrivalsSection";
 import UpgradeSuggestion from "@/components/partner-dashboard/UpgradeSuggestion";
+import PartnerProfileForm from "@/components/partner-dashboard/PartnerProfileForm";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -333,7 +335,7 @@ const Account = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("partners")
-        .select("id")
+        .select("id, profile_completed")
         .eq("contact_email", profile!.email)
         .maybeSingle();
       if (error || !data) return null;
@@ -346,12 +348,13 @@ const Account = () => {
         .eq("status", "active")
         .maybeSingle();
 
-      return { id: data.id, plan: sub?.plan ?? null };
+      return { id: data.id, plan: sub?.plan ?? null, profile_completed: !!(data as Record<string, unknown>).profile_completed };
     },
     enabled: !!profile?.email && profile?.user_type === "partner",
   });
 
   const partnerId = partnerData?.id ?? null;
+  const partnerProfileCompleted = partnerData?.profile_completed ?? false;
 
   const { data: pendingQuoteCount = 0 } = useQuery({
     queryKey: ["partner-pending-count", partnerId],
@@ -446,12 +449,24 @@ const Account = () => {
         );
       }
 
+      // Gate behind profile completion — show profile form if not completed
+      if (!partnerProfileCompleted && section !== "settings") {
+        return (
+          <PartnerProfileForm
+            partnerId={partnerId!}
+            onCompleted={() => {
+              queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
+            }}
+          />
+        );
+      }
+
       const partnerSectionContent = (() => {
         switch (section) {
           case "overview":    return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
           case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
           case "messages":    return <PartnerMessagesSection />;
-          case "catalogue":   return <PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />;
+          case "catalogue":   return <><PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />{partnerId && <PartnerSubmissionFeedbackSection partnerId={partnerId} />}</>;
           case "arrivals":    return <PartnerArrivalsSection partnerId={partnerId} />;
           case "featured":    return <PartnerFeaturedSection plan={partnerPlan} partnerId={partnerId} />;
           case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;

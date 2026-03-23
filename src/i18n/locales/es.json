@@ -1269,7 +1269,15 @@
       "excelImport": "Importar Excel / CSV",
       "apiSync": "Sync API en tiempo real",
       "added": "¡Producto añadido!",
-      "imported": "{{count}} producto(s) importado(s)"
+      "imported": "{{count}} producto(s) importado(s)",
+      "profileRequired": "Complete su perfil de socio para agregar productos"
+    },
+    "feedback": {
+      "title": "Comentarios del admin sobre envios",
+      "needsWork": "A mejorar",
+      "missing": "Faltante",
+      "feedbackReceived": "Comentarios recibidos",
+      "editAndResubmit": "Editar y reenviar"
     },
     "perf": {
       "title": "Rendimiento",
@@ -3335,7 +3343,28 @@
     "noSubmissions": "No se encontraron envíos.",
     "notificationTitle": "Nuevo producto enviado",
     "notificationDuplicate": "envió un producto — posible duplicado detectado",
-    "notificationNew": "envió un nuevo producto para revisión"
+    "notificationNew": "envió un nuevo producto para revisión",
+    "qualityScore": "Puntuacion de calidad",
+    "strengths": "Puntos fuertes",
+    "toImprove": "A mejorar",
+    "missingFields": "Campos faltantes",
+    "sendFeedback": "Enviar comentarios",
+    "feedback": {
+      "title": "Comentarios al socio",
+      "photos": "Fotos",
+      "description": "Descripcion",
+      "specs": "Especificaciones",
+      "pricing": "Precios",
+      "needsWork": "A mejorar",
+      "missing": "Faltante",
+      "commentPlaceholder": "Comentario (opcional)...",
+      "generalComment": "Comentario general",
+      "generalPlaceholder": "Comentarios generales para el socio...",
+      "send": "Enviar comentarios",
+      "sent": "Comentarios enviados al socio",
+      "notifTitle": "Comentarios sobre su envio de producto",
+      "notifBody": "Un administrador ha revisado su envio. Consulte los comentarios."
+    }
   },
   "payment": {
     "instructions": "Instrucciones de pago",
@@ -3479,5 +3508,41 @@
     "maxEnvironmentPhotos": "Hasta 3 fotos de ambiente (in situ)",
     "uploadProduct": "Fotos de producto",
     "uploadEnvironment": "Fotos de ambiente (in situ)"
+  },
+  "partnerProfile": {
+    "title": "Complete su perfil de socio",
+    "subtitle": "Complete su perfil para empezar a agregar productos al catalogo.",
+    "progress": "{{completed}}/{{total}} campos completados",
+    "identity": "Identidad de la empresa",
+    "companyName": "Nombre de la empresa",
+    "partnerType": "Tipo de socio",
+    "type": {
+      "manufacturer": "Fabricante",
+      "brand": "Marca",
+      "reseller": "Revendedor",
+      "distributor": "Distribuidor"
+    },
+    "siren": "SIREN / Numero de empresa",
+    "vat": "Numero de IVA",
+    "location": "Ubicacion",
+    "country": "Pais",
+    "selectCountry": "-- Seleccionar --",
+    "city": "Ciudad",
+    "website": "Sitio web",
+    "productCategories": "Categorias de productos",
+    "deliveryCountries": "Paises de entrega",
+    "descriptionTitle": "Descripcion de la empresa",
+    "descriptionPlaceholder": "Describa su empresa, su experiencia, los productos que fabrica o distribuye... (minimo 50 caracteres)",
+    "minChars": "caracteres minimos",
+    "logo": "Logo de la empresa",
+    "chooseLogo": "Elegir un archivo",
+    "uploading": "Subiendo...",
+    "logoUploaded": "Logo subido",
+    "uploadError": "Error al subir. Puede agregar el logo mas tarde.",
+    "submit": "Completar mi perfil",
+    "nameRequired": "El nombre de la empresa es obligatorio",
+    "descriptionTooShort": "La descripcion debe tener al menos 50 caracteres",
+    "saveError": "Error al guardar el perfil: ",
+    "saved": "Perfil completado con exito!"
   }
 }

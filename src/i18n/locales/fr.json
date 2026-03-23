@@ -1276,7 +1276,15 @@
       "excelImport": "Import Excel / CSV",
       "apiSync": "Sync API temps réel",
       "added": "Produit ajouté !",
-      "imported": "{{count}} produit(s) importé(s) avec succès !"
+      "imported": "{{count}} produit(s) importé(s) avec succès !",
+      "profileRequired": "Completez votre fiche partenaire pour ajouter des produits"
+    },
+    "feedback": {
+      "title": "Retours admin sur les soumissions",
+      "needsWork": "A ameliorer",
+      "missing": "Manquant",
+      "feedbackReceived": "Retour recu",
+      "editAndResubmit": "Modifier et resoumettre"
     },
     "perf": {
       "title": "Performance",
@@ -3429,7 +3437,28 @@
     "noSubmissions": "Aucune soumission trouvée.",
     "notificationTitle": "Nouveau produit soumis",
     "notificationDuplicate": "a soumis un produit — doublon potentiel détecté",
-    "notificationNew": "a soumis un nouveau produit à valider"
+    "notificationNew": "a soumis un nouveau produit à valider",
+    "qualityScore": "Score qualite",
+    "strengths": "Points forts",
+    "toImprove": "A ameliorer",
+    "missingFields": "Champs manquants",
+    "sendFeedback": "Envoyer un retour",
+    "feedback": {
+      "title": "Retour au partenaire",
+      "photos": "Photos",
+      "description": "Description",
+      "specs": "Specifications",
+      "pricing": "Tarification",
+      "needsWork": "A ameliorer",
+      "missing": "Manquant",
+      "commentPlaceholder": "Commentaire (optionnel)...",
+      "generalComment": "Commentaire general",
+      "generalPlaceholder": "Retour general pour le partenaire...",
+      "send": "Envoyer le retour",
+      "sent": "Retour envoye au partenaire",
+      "notifTitle": "Retour sur votre soumission produit",
+      "notifBody": "Un administrateur a examine votre soumission. Consultez le retour."
+    }
   },
   "payment": {
     "instructions": "Instructions de paiement",
@@ -3573,5 +3602,41 @@
     "maxEnvironmentPhotos": "Jusqu'a 3 photos d'ambiance (in situ)",
     "uploadProduct": "Photos produit",
     "uploadEnvironment": "Photos d'ambiance (in situ)"
+  },
+  "partnerProfile": {
+    "title": "Completez votre fiche partenaire",
+    "subtitle": "Completez votre profil pour commencer a ajouter des produits au catalogue.",
+    "progress": "{{completed}}/{{total}} champs completes",
+    "identity": "Identite de l'entreprise",
+    "companyName": "Nom de l'entreprise",
+    "partnerType": "Type de partenaire",
+    "type": {
+      "manufacturer": "Fabricant",
+      "brand": "Marque",
+      "reseller": "Revendeur",
+      "distributor": "Distributeur"
+    },
+    "siren": "SIREN / Numero d'entreprise",
+    "vat": "Numero de TVA",
+    "location": "Localisation",
+    "country": "Pays",
+    "selectCountry": "-- Selectionner --",
+    "city": "Ville",
+    "website": "Site web",
+    "productCategories": "Categories de produits",
+    "deliveryCountries": "Pays de livraison",
+    "descriptionTitle": "Description de l'entreprise",
+    "descriptionPlaceholder": "Decrivez votre entreprise, votre expertise, les produits que vous fabriquez ou distribuez... (minimum 50 caracteres)",
+    "minChars": "caracteres minimum",
+    "logo": "Logo de l'entreprise",
+    "chooseLogo": "Choisir un fichier",
+    "uploading": "Envoi en cours...",
+    "logoUploaded": "Logo telecharge",
+    "uploadError": "Echec du telechargement. Vous pourrez ajouter le logo plus tard.",
+    "submit": "Completer mon profil",
+    "nameRequired": "Le nom de l'entreprise est obligatoire",
+    "descriptionTooShort": "La description doit contenir au moins 50 caracteres",
+    "saveError": "Erreur lors de la sauvegarde : ",
+    "saved": "Profil complete avec succes !"
   }
 }

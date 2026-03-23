@@ -939,7 +939,7 @@ export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
 // ── PARTNER CATALOGUE SECTION ────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function PartnerCatalogueSection({ plan, partnerId }: { plan: PartnerPlan; partnerId?: string | null }) {
+export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = true }: { plan: PartnerPlan; partnerId?: string | null; profileCompleted?: boolean }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const config = PLAN_CONFIG[plan];
@@ -1006,6 +1006,10 @@ export function PartnerCatalogueSection({ plan, partnerId }: { plan: PartnerPlan
   const usagePercent = maxProducts ? Math.round((productsCount / maxProducts) * 100) : 0;
 
   const handleAddProduct = () => {
+    if (!profileCompleted) {
+      toast.error(t('pd.catalogue.profileRequired', 'Complétez votre fiche partenaire pour ajouter des produits'));
+      return;
+    }
     if (maxProducts && productsCount >= maxProducts) {
       toast.error(t('pd.catalogue.limitReached', `Limite atteinte : ${productsCount}/${maxProducts} produits. Passez au plan supérieur pour ajouter plus de produits.`));
       return;
@@ -1165,6 +1169,99 @@ export function PartnerCatalogueSection({ plan, partnerId }: { plan: PartnerPlan
           />
         </Suspense>
       )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── PARTNER SUBMISSION FEEDBACK SECTION ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export function PartnerSubmissionFeedbackSection({ partnerId }: { partnerId: string }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const { data: submissions = [], isLoading } = useQuery({
+    queryKey: ["partner-submissions-feedback", partnerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_submissions")
+        .select("id, product_data, status, admin_feedback, feedback_sent_at, created_at")
+        .eq("partner_id", partnerId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!partnerId,
+  });
+
+  const feedbackStatuses: Record<string, { label: string; icon: typeof CheckCircle2; color: string }> = {
+    ok: { label: "OK", icon: CheckCircle2, color: "text-green-700" },
+    needs_work: { label: t("pd.feedback.needsWork", "A ameliorer"), icon: AlertTriangle, color: "text-amber-700" },
+    missing: { label: t("pd.feedback.missing", "Manquant"), icon: XCircle, color: "text-red-700" },
+  };
+
+  const withFeedback = submissions.filter((s: any) => s.admin_feedback);
+
+  if (isLoading) return <div className="py-8 text-center"><div className="w-5 h-5 border-2 border-foreground border-t-transparent rounded-full animate-spin mx-auto" /></div>;
+
+  if (withFeedback.length === 0) return null;
+
+  return (
+    <div className="space-y-4 border border-border rounded-xl p-5">
+      <p className="font-display font-bold text-sm text-foreground">
+        {t("pd.feedback.title", "Admin feedback on submissions")}
+      </p>
+      <div className="space-y-3">
+        {withFeedback.map((sub: any) => {
+          const fb = sub.admin_feedback as Record<string, any>;
+          const pd = sub.product_data as Record<string, any>;
+          const sections = ["photos", "description", "specs", "pricing"] as const;
+
+          return (
+            <div key={sub.id} className="border border-border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-display font-semibold text-foreground">{pd?.name || "Product"}</p>
+                <span className="text-[9px] font-display font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                  {t("pd.feedback.feedbackReceived", "Feedback received")}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {sections.map((section) => {
+                  const sectionFb = fb?.[section];
+                  if (!sectionFb) return null;
+                  const cfg = feedbackStatuses[sectionFb.status] || feedbackStatuses.ok;
+                  const Icon = cfg.icon;
+                  return (
+                    <div key={section} className="flex items-start gap-2 text-[11px] font-body">
+                      <Icon className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${cfg.color}`} />
+                      <div>
+                        <p className={`font-semibold capitalize ${cfg.color}`}>{section}</p>
+                        {sectionFb.comment && <p className="text-muted-foreground">{sectionFb.comment}</p>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {fb?.general_comment && (
+                <p className="text-[11px] font-body text-muted-foreground italic border-t border-border pt-2">
+                  {fb.general_comment}
+                </p>
+              )}
+
+              <button
+                onClick={() => navigate("/account?section=catalogue")}
+                className="text-[10px] font-display font-semibold text-foreground underline hover:opacity-70 transition-opacity"
+              >
+                {t("pd.feedback.editAndResubmit", "Modifier et resoumettre")}
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

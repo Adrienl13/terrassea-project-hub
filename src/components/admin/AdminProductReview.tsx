@@ -4,8 +4,234 @@ import { useAdminSubmissions, type ProductSubmission } from "@/hooks/useProductS
 import {
   Package, Clock, CheckCircle2, XCircle, AlertTriangle,
   Copy, ChevronDown, ChevronUp, RefreshCw, Loader2,
+  Send, MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
+import { computeProductQuality, type QualityReport } from "@/lib/productQualityScore";
+import type { DBProduct } from "@/lib/products";
+import { supabase } from "@/integrations/supabase/client";
+
+// ── Feedback types ──
+
+type FeedbackStatus = "ok" | "needs_work" | "missing";
+
+interface FeedbackSection {
+  status: FeedbackStatus;
+  comment: string;
+}
+
+interface AdminFeedback {
+  photos: FeedbackSection;
+  description: FeedbackSection;
+  specs: FeedbackSection;
+  pricing: FeedbackSection;
+  general_comment: string;
+}
+
+const EMPTY_FEEDBACK: AdminFeedback = {
+  photos: { status: "ok", comment: "" },
+  description: { status: "ok", comment: "" },
+  specs: { status: "ok", comment: "" },
+  pricing: { status: "ok", comment: "" },
+  general_comment: "",
+};
+
+// ── Quality Score Ring ──
+
+function QualityScoreRing({ score }: { score: number }) {
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (score / 100) * circumference;
+  const color = score >= 80 ? "#16a34a" : score >= 50 ? "#d97706" : "#ef4444";
+
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      <svg width="68" height="68" className="-rotate-90">
+        <circle cx="34" cy="34" r={radius} fill="none" stroke="currentColor" strokeWidth="5" className="text-muted/30" />
+        <circle cx="34" cy="34" r={radius} fill="none" stroke={color} strokeWidth="5" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-700" />
+      </svg>
+      <span className="absolute text-sm font-display font-bold" style={{ color }}>{score}</span>
+    </div>
+  );
+}
+
+// ── Quality Report Panel ──
+
+function QualityReportPanel({ report }: { report: QualityReport }) {
+  const { t } = useTranslation();
+  return (
+    <div className="border border-border rounded-xl p-4 space-y-4">
+      <div className="flex items-start gap-4">
+        <QualityScoreRing score={report.score} />
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            {t("adminReview.qualityScore", "Quality Score")}
+          </p>
+          {report.strengths.length > 0 && (
+            <div className="mb-2">
+              <p className="text-[10px] font-display font-semibold text-green-700 uppercase tracking-wider mb-1">
+                {t("adminReview.strengths", "Points forts")}
+              </p>
+              <ul className="space-y-0.5">
+                {report.strengths.map((s, i) => (
+                  <li key={i} className="flex items-center gap-1.5 text-[11px] font-body text-green-700">
+                    <CheckCircle2 className="h-3 w-3 shrink-0" /> {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {report.suggestions.length > 0 && (
+            <div className="mb-2">
+              <p className="text-[10px] font-display font-semibold text-amber-700 uppercase tracking-wider mb-1">
+                {t("adminReview.toImprove", "A ameliorer")}
+              </p>
+              <ul className="space-y-0.5">
+                {report.suggestions.map((s, i) => (
+                  <li key={i} className="flex items-center gap-1.5 text-[11px] font-body text-amber-700">
+                    <AlertTriangle className="h-3 w-3 shrink-0" /> {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {report.missingFields.length > 0 && (
+            <div>
+              <p className="text-[10px] font-display font-semibold text-red-700 uppercase tracking-wider mb-1">
+                {t("adminReview.missingFields", "Champs manquants")}
+              </p>
+              <ul className="space-y-0.5">
+                {report.missingFields.map((s, i) => (
+                  <li key={i} className="flex items-center gap-1.5 text-[11px] font-body text-red-700">
+                    <XCircle className="h-3 w-3 shrink-0" /> {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Feedback Form ──
+
+function FeedbackForm({ submissionId, partnerId, onSent }: { submissionId: string; partnerId: string; onSent: () => void }) {
+  const { t } = useTranslation();
+  const [feedback, setFeedback] = useState<AdminFeedback>(EMPTY_FEEDBACK);
+  const [sending, setSending] = useState(false);
+
+  const sections: { key: keyof Omit<AdminFeedback, "general_comment">; label: string }[] = [
+    { key: "photos", label: t("adminReview.feedback.photos", "Photos") },
+    { key: "description", label: t("adminReview.feedback.description", "Description") },
+    { key: "specs", label: t("adminReview.feedback.specs", "Specifications") },
+    { key: "pricing", label: t("adminReview.feedback.pricing", "Pricing") },
+  ];
+
+  const statusOptions: { value: FeedbackStatus; label: string; color: string }[] = [
+    { value: "ok", label: "OK", color: "text-green-700 bg-green-50 border-green-200" },
+    { value: "needs_work", label: t("adminReview.feedback.needsWork", "A ameliorer"), color: "text-amber-700 bg-amber-50 border-amber-200" },
+    { value: "missing", label: t("adminReview.feedback.missing", "Manquant"), color: "text-red-700 bg-red-50 border-red-200" },
+  ];
+
+  const updateSection = (key: keyof Omit<AdminFeedback, "general_comment">, field: keyof FeedbackSection, value: string) => {
+    setFeedback((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], [field]: value },
+    }));
+  };
+
+  const handleSend = async () => {
+    setSending(true);
+    try {
+      const { error } = await supabase
+        .from("product_submissions")
+        .update({
+          admin_feedback: feedback as unknown as Record<string, unknown>,
+          feedback_sent_at: new Date().toISOString(),
+          status: "feedback_sent",
+          updated_at: new Date().toISOString(),
+        } as Record<string, unknown>)
+        .eq("id", submissionId);
+
+      if (error) throw error;
+
+      // Notify partner
+      await supabase.from("notifications").insert({
+        user_id: partnerId,
+        title: t("adminReview.feedback.notifTitle", "Feedback on your product submission"),
+        body: feedback.general_comment || t("adminReview.feedback.notifBody", "An admin has reviewed your submission. Please check the feedback."),
+        type: "product_feedback",
+        link: "/account?section=catalogue",
+      } as Record<string, unknown>);
+
+      toast.success(t("adminReview.feedback.sent", "Feedback sent to partner"));
+      onSent();
+    } catch (err: unknown) {
+      toast.error(`Error: ${err instanceof Error ? err.message : "Unknown"}`);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="border border-border rounded-xl p-4 space-y-4">
+      <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-wider">
+        {t("adminReview.feedback.title", "Feedback to partner")}
+      </p>
+
+      {sections.map(({ key, label }) => (
+        <div key={key} className="space-y-2">
+          <p className="text-xs font-display font-semibold text-foreground">{label}</p>
+          <div className="flex gap-2">
+            {statusOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => updateSection(key, "status", opt.value)}
+                className={`px-3 py-1 text-[10px] font-display font-semibold rounded-full border transition-all ${
+                  feedback[key].status === opt.value ? opt.color : "border-border text-muted-foreground"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={feedback[key].comment}
+            onChange={(e) => updateSection(key, "comment", e.target.value)}
+            rows={1}
+            placeholder={t("adminReview.feedback.commentPlaceholder", "Comment (optional)...")}
+            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none"
+          />
+        </div>
+      ))}
+
+      <div>
+        <p className="text-xs font-display font-semibold text-foreground mb-1">
+          {t("adminReview.feedback.generalComment", "General comment")}
+        </p>
+        <textarea
+          value={feedback.general_comment}
+          onChange={(e) => setFeedback((prev) => ({ ...prev, general_comment: e.target.value }))}
+          rows={2}
+          className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none"
+          placeholder={t("adminReview.feedback.generalPlaceholder", "General feedback for the partner...")}
+        />
+      </div>
+
+      <button
+        onClick={handleSend}
+        disabled={sending}
+        className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-lg bg-foreground text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-all"
+      >
+        {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+        {t("adminReview.feedback.send", "Envoyer le retour")}
+      </button>
+    </div>
+  );
+}
 
 // ── Status badge ──
 
@@ -14,6 +240,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
   approved:       { label: "approved", color: "bg-green-500/10 text-green-700 border-green-500/20", icon: CheckCircle2 },
   merged:         { label: "merged", color: "bg-blue-500/10 text-blue-700 border-blue-500/20", icon: Copy },
   rejected:       { label: "rejected", color: "bg-red-500/10 text-red-700 border-red-500/20", icon: XCircle },
+  feedback_sent:  { label: "feedback sent", color: "bg-purple-500/10 text-purple-700 border-purple-500/20", icon: MessageSquare },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -61,6 +288,7 @@ export default function AdminProductReview() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [rejectionNotes, setRejectionNotes] = useState<Record<string, string>>({});
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
+  const [showFeedbackForm, setShowFeedbackForm] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const {
@@ -263,6 +491,29 @@ export default function AdminProductReview() {
                         />
                       </div>
                     </div>
+                  )}
+
+                  {/* Quality Score */}
+                  <QualityReportPanel report={computeProductQuality(pd as Partial<DBProduct>)} />
+
+                  {/* Feedback form */}
+                  {showFeedbackForm === s.id ? (
+                    <FeedbackForm
+                      submissionId={s.id}
+                      partnerId={s.partner_id}
+                      onSent={() => {
+                        setShowFeedbackForm(null);
+                        // Refresh submissions
+                      }}
+                    />
+                  ) : (
+                    <button
+                      onClick={() => setShowFeedbackForm(s.id)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold rounded-lg border border-border text-foreground hover:bg-foreground/5 transition-colors"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      {t("adminReview.sendFeedback", "Envoyer un retour")}
+                    </button>
                   )}
 
                   {/* Admin notes */}

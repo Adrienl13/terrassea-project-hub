@@ -33,6 +33,7 @@ type Partner = {
   contact_name: string | null;
   contact_phone: string | null;
   vat_number: string | null;
+  profile_completed: boolean;
   created_at: string;
 };
 
@@ -442,6 +443,9 @@ export default function AdminPartners() {
                     <p className="text-xs font-display font-bold text-foreground group-hover:text-[#D4603A] truncate">{partner.name}</p>
                     <span className="text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 capitalize shrink-0">{partner.partner_type}</span>
                     <span className="text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: `${planCfg.color}12`, color: planCfg.color }}>{planCfg.label}</span>
+                    <span className={`text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${partner.profile_completed ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                      {partner.profile_completed ? "Profil complet" : "Profil incomplet"}
+                    </span>
                   </div>
                   <p className="text-[10px] font-body text-muted-foreground">
                     {[partner.city, partner.country].filter(Boolean).join(", ") || "—"}

@@ -1276,7 +1276,15 @@
       "excelImport": "Import Excel / CSV",
       "apiSync": "Real-time API sync",
       "added": "Product added!",
-      "imported": "{{count}} product(s) imported successfully!"
+      "imported": "{{count}} product(s) imported successfully!",
+      "profileRequired": "Complete your partner profile to add products"
+    },
+    "feedback": {
+      "title": "Admin feedback on submissions",
+      "needsWork": "Needs work",
+      "missing": "Missing",
+      "feedbackReceived": "Feedback received",
+      "editAndResubmit": "Edit and resubmit"
     },
     "perf": {
       "title": "Performance",
@@ -3429,7 +3437,28 @@
     "noSubmissions": "No submissions found.",
     "notificationTitle": "New product submitted",
     "notificationDuplicate": "submitted a product — potential duplicate detected",
-    "notificationNew": "submitted a new product for review"
+    "notificationNew": "submitted a new product for review",
+    "qualityScore": "Quality Score",
+    "strengths": "Strengths",
+    "toImprove": "To improve",
+    "missingFields": "Missing fields",
+    "sendFeedback": "Send feedback",
+    "feedback": {
+      "title": "Feedback to partner",
+      "photos": "Photos",
+      "description": "Description",
+      "specs": "Specifications",
+      "pricing": "Pricing",
+      "needsWork": "Needs work",
+      "missing": "Missing",
+      "commentPlaceholder": "Comment (optional)...",
+      "generalComment": "General comment",
+      "generalPlaceholder": "General feedback for the partner...",
+      "send": "Send feedback",
+      "sent": "Feedback sent to partner",
+      "notifTitle": "Feedback on your product submission",
+      "notifBody": "An admin has reviewed your submission. Please check the feedback."
+    }
   },
   "payment": {
     "instructions": "Payment instructions",
@@ -3573,5 +3602,41 @@
     "maxEnvironmentPhotos": "Up to 3 environment photos (in situ)",
     "uploadProduct": "Product photos",
     "uploadEnvironment": "Environment photos (in situ)"
+  },
+  "partnerProfile": {
+    "title": "Complete your partner profile",
+    "subtitle": "Complete your profile to start adding products to the catalog.",
+    "progress": "{{completed}}/{{total}} fields completed",
+    "identity": "Company identity",
+    "companyName": "Company name",
+    "partnerType": "Partner type",
+    "type": {
+      "manufacturer": "Manufacturer",
+      "brand": "Brand",
+      "reseller": "Reseller",
+      "distributor": "Distributor"
+    },
+    "siren": "SIREN / Company number",
+    "vat": "VAT number",
+    "location": "Location",
+    "country": "Country",
+    "selectCountry": "-- Select --",
+    "city": "City",
+    "website": "Website",
+    "productCategories": "Product categories",
+    "deliveryCountries": "Delivery countries",
+    "descriptionTitle": "Company description",
+    "descriptionPlaceholder": "Describe your company, your expertise, products you manufacture or distribute... (minimum 50 characters)",
+    "minChars": "minimum characters",
+    "logo": "Company logo",
+    "chooseLogo": "Choose a file",
+    "uploading": "Uploading...",
+    "logoUploaded": "Logo uploaded",
+    "uploadError": "Upload failed. You can add the logo later.",
+    "submit": "Complete my profile",
+    "nameRequired": "Company name is required",
+    "descriptionTooShort": "Description must be at least 50 characters",
+    "saveError": "Error saving profile: ",
+    "saved": "Profile completed successfully!"
   }
 }

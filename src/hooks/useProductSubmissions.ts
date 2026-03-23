@@ -11,11 +11,13 @@ export interface ProductSubmission {
   id: string;
   partner_id: string;
   product_data: Partial<DBProduct>;
-  status: "pending_review" | "approved" | "merged" | "rejected";
+  status: "pending_review" | "approved" | "merged" | "rejected" | "feedback_sent";
   similarity_score: number | null;
   detected_duplicate_id: string | null;
   merged_description: string | null;
   admin_notes: string | null;
+  admin_feedback: Record<string, unknown> | null;
+  feedback_sent_at: string | null;
   created_at: string;
   updated_at: string;
 }
