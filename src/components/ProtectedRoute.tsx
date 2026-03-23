@@ -19,8 +19,6 @@ const ProtectedRoute = ({
     return () => clearTimeout(timer);
   }, [isLoading]);
 
-  console.log("[ProtectedRoute]", { isLoading, hasUser: !!user, profile: profile?.user_type ?? "null", requireAdmin, timedOut });
-
   // Still loading auth session
   if (isLoading && !timedOut) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -34,7 +32,7 @@ const ProtectedRoute = ({
   );
 
   // User exists but profile not loaded yet — wait for it (don't redirect prematurely)
-  if (requireAdmin && profile === null && !timedOut) return (
+  if (profile === null && !timedOut) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
     </div>

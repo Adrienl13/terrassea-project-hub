@@ -1766,17 +1766,6 @@ export function ClientSettingsSection({ profile }: { profile: any }) {
 
   const editableKeys = new Set(["first_name", "last_name", "company", "phone"]);
 
-  const fields: { label: string; key: string; value: string }[] = [
-    { label: t("cd.settings.email"), key: "email", value: profile.email },
-    { label: t("cd.settings.firstName"), key: "first_name", value: profile.first_name },
-    { label: t("cd.settings.lastName"), key: "last_name", value: profile.last_name },
-    { label: t("cd.settings.company"), key: "company", value: profile.company },
-    { label: t("cd.settings.siren"), key: "siren", value: profile.siren },
-    { label: t("cd.settings.phone"), key: "phone", value: profile.phone },
-    { label: t("cd.settings.country"), key: "country", value: profile.country },
-    { label: t("cd.settings.accountType"), key: "accountType", value: profile.user_type },
-  ].filter(({ value }) => value || (editing && editableKeys.has(fields.find((f) => f.value === value)?.key ?? "")));
-
   const handleCancel = () => {
     setForm({
       first_name: profile.first_name || "",

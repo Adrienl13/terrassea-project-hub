@@ -352,6 +352,16 @@ const Account = () => {
   });
 
   const partnerId = partnerData?.id ?? null;
+
+  const { data: pendingQuoteCount = 0 } = useQuery({
+    queryKey: ["partner-pending-count", partnerId],
+    queryFn: async () => {
+      if (!partnerId) return 0;
+      const { count } = await supabase.from("quote_requests").select("id", { count: "exact", head: true }).eq("partner_id", partnerId).eq("status", "pending");
+      return count ?? 0;
+    },
+    enabled: !!partnerId && profile?.user_type === "partner",
+  });
   const partnerPlan: PartnerPlan =
     partnerData?.plan === "elite_pro" || partnerData?.plan === "elite" || partnerData?.plan === "growth" || partnerData?.plan === "starter"
       ? (partnerData.plan as PartnerPlan)
@@ -397,7 +407,11 @@ const Account = () => {
   }
 
   if (!profile) {
-    return <Navigate to="/auth" replace />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   // Admin users should use /admin, redirect them
@@ -578,7 +592,7 @@ const Account = () => {
                       onClick={() => setSection("rewards")}
                     >
                       <Award className="h-3 w-3 shrink-0" />
-                      <span>2 350 pts · <strong>{TIER_CONFIG[architectTier].label}</strong></span>
+                      <span><strong>{TIER_CONFIG[architectTier].label}</strong></span>
                     </div>
                   )}
                 </div>
@@ -602,8 +616,8 @@ const Account = () => {
                           {favourites.length}
                         </span>
                       )}
-                      {item.id === "quotes" && userType === "partner" && (
-                        <span className="ml-auto text-[9px] font-display font-semibold bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full">7</span>
+                      {item.id === "quotes" && userType === "partner" && pendingQuoteCount > 0 && (
+                        <span className="ml-auto text-[9px] font-display font-semibold bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full">{pendingQuoteCount}</span>
                       )}
                       {item.id === "messages" && totalUnread > 0 && (
                         <span className="ml-auto text-[9px] font-display font-bold bg-foreground text-primary-foreground px-1.5 py-0.5 rounded-full">

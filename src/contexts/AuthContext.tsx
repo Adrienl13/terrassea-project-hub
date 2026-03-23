@@ -43,7 +43,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log("[Auth] Fetching profile for userId:", userId);
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
@@ -54,7 +53,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setProfile(null);
         return;
       }
-      console.log("[Auth] Profile loaded:", data?.email, data?.user_type);
       setProfile(data ?? null);
     } catch (err) {
       console.error("[Auth] Unexpected error fetching profile:", err);
