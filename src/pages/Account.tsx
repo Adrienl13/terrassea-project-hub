@@ -328,7 +328,7 @@ const Account = () => {
   const [createdProjects, setCreatedProjects] = useState<any[]>([]);
 
   // Partner data — resolved from partner's contact_email matching the user's email
-  const { data: partnerData } = useQuery({
+  const { data: partnerData, isSuccess: partnerQueryDone } = useQuery({
     queryKey: ["partner-data-for-user", profile?.email],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -360,9 +360,10 @@ const Account = () => {
   // Auto-create partners row if partner user has none (runs once)
   const partnerAutoCreateRef = useRef(false);
   useEffect(() => {
+    // Only run when: user is partner, query has FINISHED (isSuccess), result is null, and we haven't tried yet
     if (
       profile?.user_type === "partner" &&
-      partnerId === null &&
+      partnerQueryDone &&
       partnerData === null &&
       !partnerAutoCreateRef.current &&
       profile?.email
@@ -380,13 +381,12 @@ const Account = () => {
         is_public: false,
         country: profile.country || "France",
       } as Record<string, unknown>).then(() => {
-        // Invalidate the partner query to refresh data without page reload
         queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
       }).catch((err) => {
         console.error("Failed to auto-create partner profile:", err);
       });
     }
-  }, [profile, partnerId, partnerData]);
+  }, [profile, partnerQueryDone, partnerData]);
 
   if (isLoading) {
     return (
