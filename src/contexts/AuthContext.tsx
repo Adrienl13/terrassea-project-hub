@@ -91,14 +91,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        if (_event === "PASSWORD_RECOVERY") setIsPasswordRecovery(true);
+        if (_event === "PASSWORD_RECOVERY") {
+          setIsPasswordRecovery(true);
+          // Force navigate to /auth for password reset — don't let other events override
+          if (window.location.pathname !== "/auth") {
+            window.location.href = "/auth";
+          }
+          return; // Don't set user/session yet — let the auth page handle it
+        }
         if (_event === "SIGNED_OUT") setIsPasswordRecovery(false);
         setSession(session);
         setUser(session?.user ?? null);
         if (!session?.user) {
           setProfile(null);
         } else {
-          // Fetch profile on auth change (sign-in, token refresh)
           fetchProfile(session.user.id);
         }
       }
