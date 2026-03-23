@@ -64,9 +64,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (user) await fetchProfile(user.id);
   };
 
+  // Detect password recovery from URL hash BEFORE any auth effects run
+  // This must be synchronous to win the race against getSession
+  const [detectedRecovery] = useState(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      if (hash.includes("type=recovery") || hash.includes("type=magiclink")) {
+        return true;
+      }
+    }
+    return false;
+  });
+
   // 1) Bootstrap: get initial session + fetch profile, THEN mark loading done
   useEffect(() => {
     let mounted = true;
+
+    // If this is a password recovery, skip the bootstrap entirely
+    // and let the onAuthStateChange handle it
+    if (detectedRecovery) {
+      setIsPasswordRecovery(true);
+      setIsLoading(false);
+      return () => { mounted = false; };
+    }
 
     (async () => {
       try {
@@ -85,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     })();
 
     return () => { mounted = false; };
-  }, []);
+  }, [detectedRecovery]);
 
   // 2) Listen for auth changes (sign-in, sign-out, token refresh)
   useEffect(() => {
@@ -93,13 +113,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (_event, session) => {
         if (_event === "PASSWORD_RECOVERY") {
           setIsPasswordRecovery(true);
-          // Force navigate to /auth for password reset — don't let other events override
-          if (window.location.pathname !== "/auth") {
-            window.location.href = "/auth";
-          }
-          return; // Don't set user/session yet — let the auth page handle it
+          // Set session so updateUser works, but DON'T set user (prevents redirect)
+          setSession(session);
+          return;
         }
-        if (_event === "SIGNED_OUT") setIsPasswordRecovery(false);
+        if (_event === "SIGNED_OUT") {
+          setIsPasswordRecovery(false);
+        }
         setSession(session);
         setUser(session?.user ?? null);
         if (!session?.user) {
