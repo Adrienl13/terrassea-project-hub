@@ -69,9 +69,17 @@ export function useProductSubmission() {
           }
         }
 
-        // 4. Insert into product_submissions
+        // 4. Resolve the actual partners.id (not the auth user id)
+        const { data: partnerRow } = await supabase
+          .from("partners")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const resolvedPartnerId = partnerRow?.id ?? user.id;
+
+        // 5. Insert into product_submissions
         const submissionPayload = {
-          partner_id: user.id,
+          partner_id: resolvedPartnerId,
           product_data: productData as Record<string, unknown>,
           status: "pending_review",
           similarity_score: bestMatch ? bestMatch.score : null,

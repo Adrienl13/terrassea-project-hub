@@ -424,11 +424,8 @@ export default function AddProductForm({
 
   // ── Render helpers ──
 
-  const InputField = ({ label, field, type = "text", required, placeholder, suffix }: {
-    label: string; field: keyof ProductFormData; type?: string; required?: boolean;
-    placeholder?: string; suffix?: string;
-  }) => (
-    <div>
+  const renderInput = (label: string, field: keyof ProductFormData, type = "text", required = false, placeholder?: string, suffix?: string) => (
+    <div key={field}>
       <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -445,11 +442,8 @@ export default function AddProductForm({
     </div>
   );
 
-  const SelectField = ({ label, field, options, required }: {
-    label: string; field: keyof ProductFormData;
-    options: { value: string; label: string }[]; required?: boolean;
-  }) => (
-    <div>
+  const renderSelect = (label: string, field: keyof ProductFormData, options: { value: string; label: string }[], required = false) => (
+    <div key={field}>
       <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -464,8 +458,8 @@ export default function AddProductForm({
     </div>
   );
 
-  const ToggleField = ({ label, field }: { label: string; field: keyof ProductFormData }) => (
-    <label className="flex items-center gap-2.5 cursor-pointer group">
+  const renderToggle = (label: string, field: keyof ProductFormData) => (
+    <label key={field} className="flex items-center gap-2.5 cursor-pointer group">
       <div
         onClick={() => set(field, !form[field])}
         className={`relative w-8 h-[18px] rounded-full transition-colors ${form[field] ? "bg-foreground" : "bg-border group-hover:bg-muted-foreground/30"}`}
@@ -779,12 +773,12 @@ export default function AddProductForm({
           {section === "basics" && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <InputField label="Nom du produit" field="name" required placeholder="Ex: Chaise empilable Riviera" />
-                <SelectField label="Catégorie" field="category" options={CATEGORIES} required />
+                {renderInput("Nom du produit", "name", "text", true, "Ex: Chaise empilable Riviera")}
+                {renderSelect("Catégorie", "category", CATEGORIES, true)}
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <InputField label="Sous-catégorie" field="subcategory" placeholder="Ex: dining-chair, bar-stool" />
-                <SelectField label="Couleur principale" field="main_color" options={COLOR_OPTIONS.map(c => ({ value: c, label: c }))} />
+                {renderInput("Sous-catégorie", "subcategory", "text", false, "Ex: dining-chair, bar-stool")}
+                {renderSelect("Couleur principale", "main_color", COLOR_OPTIONS.map(c => ({ value: c, label: c })))}
               </div>
               <div>
                 <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
@@ -811,8 +805,8 @@ export default function AddProductForm({
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <InputField label="Matériau structure" field="material_structure" placeholder="Ex: aluminium, teck" />
-                <InputField label="Matériau assise" field="material_seat" placeholder="Ex: textilène, coussin" />
+                {renderInput("Matériau structure", "material_structure", "text", false, "Ex: aluminium, teck")}
+                {renderInput("Matériau assise", "material_seat", "text", false, "Ex: textilène, coussin")}
               </div>
 
               {/* Tags */}
@@ -846,29 +840,29 @@ export default function AddProductForm({
             <div className="space-y-5">
               <p className="text-xs font-display font-semibold text-foreground">Dimensions</p>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <InputField label="Longueur" field="dimensions_length_cm" type="number" placeholder="—" suffix="cm" />
-                <InputField label="Largeur" field="dimensions_width_cm" type="number" placeholder="—" suffix="cm" />
-                <InputField label="Hauteur" field="dimensions_height_cm" type="number" placeholder="—" suffix="cm" />
-                <InputField label="Haut. assise" field="seat_height_cm" type="number" placeholder="—" suffix="cm" />
+                {renderInput("Longueur", "dimensions_length_cm", "number", false, "—", "cm")}
+                {renderInput("Largeur", "dimensions_width_cm", "number", false, "—", "cm")}
+                {renderInput("Hauteur", "dimensions_height_cm", "number", false, "—", "cm")}
+                {renderInput("Haut. assise", "seat_height_cm", "number", false, "—", "cm")}
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <InputField label="Poids" field="weight_kg" type="number" placeholder="—" suffix="kg" />
-                <InputField label="Pays de fabrication" field="country_of_manufacture" placeholder="Ex: Italie, Espagne" />
+                {renderInput("Poids", "weight_kg", "number", false, "—", "kg")}
+                {renderInput("Pays de fabrication", "country_of_manufacture", "text", false, "Ex: Italie, Espagne")}
               </div>
 
               <p className="text-xs font-display font-semibold text-foreground pt-2">Propriétés</p>
               <div className="grid grid-cols-2 gap-3">
-                <ToggleField label="Usage extérieur" field="is_outdoor" />
-                <ToggleField label="Empilable" field="is_stackable" />
-                <ToggleField label="Usage CHR intensif" field="is_chr_heavy_use" />
-                <ToggleField label="Résistant aux intempéries" field="weather_resistant" />
-                <ToggleField label="Résistant UV" field="uv_resistant" />
-                <ToggleField label="Léger" field="lightweight" />
-                <ToggleField label="Entretien facile" field="easy_maintenance" />
+                {renderToggle("Usage extérieur", "is_outdoor")}
+                {renderToggle("Empilable", "is_stackable")}
+                {renderToggle("Usage CHR intensif", "is_chr_heavy_use")}
+                {renderToggle("Résistant aux intempéries", "weather_resistant")}
+                {renderToggle("Résistant UV", "uv_resistant")}
+                {renderToggle("Léger", "lightweight")}
+                {renderToggle("Entretien facile", "easy_maintenance")}
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-2">
-                <InputField label="Garantie" field="warranty" placeholder="Ex: 3 ans" />
+                {renderInput("Garantie", "warranty", "text", false, "Ex: 3 ans")}
               </div>
             </div>
           )}
@@ -891,7 +885,7 @@ export default function AddProductForm({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <InputField label="Prix minimum HT" field="price_min" type="number" required placeholder="0" suffix="€" />
+                  {renderInput("Prix minimum HT", "price_min", "number", true, "0", "€")}
                   {form.price_min != null && form.price_min > 0 && (
                     <p className="text-[9px] font-body text-amber-600 mt-1">
                       +{config.commission}% comm. ≈ €{commissionAmount.toFixed(0)} → Client : <strong>€{clientPrice.toFixed(0)}</strong>
@@ -899,7 +893,7 @@ export default function AddProductForm({
                   )}
                 </div>
                 <div>
-                  <InputField label="Prix maximum HT" field="price_max" type="number" placeholder="Optionnel" suffix="€" />
+                  {renderInput("Prix maximum HT", "price_max", "number", false, "Optionnel", "€")}
                   {form.price_max != null && form.price_max > 0 && (
                     <p className="text-[9px] font-body text-amber-600 mt-1">
                       → Client : <strong>€{(form.price_max + form.price_max * config.commission / 100).toFixed(0)}</strong>
@@ -909,11 +903,11 @@ export default function AddProductForm({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <SelectField label="Statut du stock" field="stock_status" options={STOCK_OPTIONS} />
-                <InputField label="Quantité en stock" field="stock_quantity" type="number" placeholder="—" />
+                {renderSelect("Statut du stock", "stock_status", STOCK_OPTIONS)}
+                {renderInput("Quantité en stock", "stock_quantity", "number", false, "—")}
               </div>
 
-              <InputField label="Délai de livraison estimé" field="estimated_delivery_days" type="number" placeholder="—" suffix="jours" />
+              {renderInput("Délai de livraison estimé", "estimated_delivery_days", "number", false, "—", "jours")}
             </div>
           )}
         </div>
