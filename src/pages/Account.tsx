@@ -389,17 +389,31 @@ const Account = () => {
       if (section === "settings") return <SettingsSection profile={profile} />;
       if (section === "favourites") return <FavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
 
-      // If partner has no partners row, show "account being reviewed" message
+      // If partner has no partners row, auto-create one with Starter plan
       if (!partnerId && section !== "settings" && section !== "favourites") {
+        // Try to auto-create the partners row
+        const autoCreatePartner = async () => {
+          if (!profile?.email) return;
+          const name = profile.company || `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
+          const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          await supabase.from("partners").insert({
+            name,
+            slug: `${slug}-${Date.now().toString(36)}`,
+            contact_email: profile.email,
+            user_id: profile.id,
+            plan: "starter",
+            is_active: true,
+            is_public: false,
+            country: profile.country || "France",
+          } as Record<string, unknown>);
+          // Refresh the page to pick up the new partner
+          window.location.reload();
+        };
+        autoCreatePartner();
         return (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center">
-              <Clock className="h-6 w-6 text-amber-600" />
-            </div>
-            <h3 className="font-display font-bold text-lg text-foreground">{t('account.partnerReviewTitle', 'Your account is being reviewed')}</h3>
-            <p className="text-sm font-body text-muted-foreground max-w-md">
-              {t('account.partnerReviewDesc', 'Our team is reviewing your partner application. You will receive a notification once your account is activated. This usually takes 24-48 hours.')}
-            </p>
+            <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm font-body text-muted-foreground">{t('account.settingUpPartner', 'Setting up your partner space...')}</p>
           </div>
         );
       }
