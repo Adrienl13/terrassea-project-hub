@@ -90,7 +90,7 @@ async function lookupSiren(siren: string): Promise<SirenResult | null> {
 
 const ProjectCart = () => {
   const { t, i18n } = useTranslation();
-  const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus, markCartSubmitted } =
+  const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus, markCartSubmitted, clearCart } =
   useProjectCart();
 
   const [formData, setFormData] = useState({
@@ -236,8 +236,25 @@ const ProjectCart = () => {
       localStorage.removeItem("terrassea_cart_items");
       localStorage.removeItem("terrassea_cart_notes");
       await markCartSubmitted();
+      clearCart();
       setSubmitted(true);
       toast.success(t('projectCart.submitSuccess'));
+
+      // Notify all admins (non-blocking)
+      try {
+        const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
+        for (const admin of admins || []) {
+          await supabase.from("notifications").insert({
+            user_id: admin.id,
+            title: "Nouvelle demande de projet",
+            body: `${formData.name} a soumis une demande avec ${items.length} produit(s)`,
+            type: "info",
+            link: "/admin?tab=quotes",
+          });
+        }
+      } catch {
+        console.warn("Failed to create admin notifications for cart submission");
+      }
 
       // Send confirmation email (non-blocking)
       try {

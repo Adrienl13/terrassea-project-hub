@@ -52,6 +52,7 @@ interface ProjectCartContextType {
   setNotes: (notes: string) => void;
   quotationStatus: QuotationStatus;
   markCartSubmitted: () => Promise<void>;
+  clearCart: () => void;
 }
 
 /** Lightweight cart item stored server-side (no full product objects). */
@@ -331,12 +332,17 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
     setNotes(newNotes);
   }, []);
 
+  const clearCart = useCallback(() => {
+    setItems([]);
+    setNotes("");
+  }, []);
+
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const quotationStatus = computeQuotationStatus(items);
 
   const value = useMemo(() => ({
-    items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotes: setNotesCallback, quotationStatus, markCartSubmitted,
-  }), [items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotesCallback, quotationStatus, markCartSubmitted]);
+    items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotes: setNotesCallback, quotationStatus, markCartSubmitted, clearCart,
+  }), [items, addItem, removeItem, updateQuantity, selectSupplier, clearSupplier, itemCount, notes, setNotesCallback, quotationStatus, markCartSubmitted, clearCart]);
 
   return (
     <ProjectCartContext.Provider value={value}>
@@ -357,6 +363,7 @@ const FALLBACK_CONTEXT: ProjectCartContextType = {
   setNotes: () => {},
   quotationStatus: "draft",
   markCartSubmitted: async () => {},
+  clearCart: () => {},
 };
 
 export function useProjectCart() {

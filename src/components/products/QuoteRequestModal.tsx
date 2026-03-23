@@ -140,6 +140,27 @@ const QuoteRequestModal = ({
       });
       if (insertError) throw insertError;
 
+      // Trigger auto-assign (non-blocking)
+      supabase.functions.invoke("auto-workflow", {
+        body: { action: "auto_assign" },
+      }).catch(() => {});
+
+      // Notify all admins (non-blocking)
+      try {
+        const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
+        for (const admin of admins || []) {
+          await supabase.from("notifications").insert({
+            user_id: admin.id,
+            title: "Nouvelle demande de devis",
+            body: `${form.firstName} ${form.lastName || ""} a demandé un devis pour ${product.name} (x${form.quantity})`.trim(),
+            type: "info",
+            link: "/admin?tab=quotes",
+          });
+        }
+      } catch {
+        console.warn("Failed to create admin notifications for quote request");
+      }
+
       setStep("success");
     } catch (err) {
       console.error(err);

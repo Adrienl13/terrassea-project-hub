@@ -1629,7 +1629,9 @@ export function PartnerProLeadsSection({ plan }: { plan: PartnerPlan }) {
   const [expandedLead, setExpandedLead] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "new" | "interested" | "connected">("all");
 
-  const { leads: rawLeads, isLoading, expressInterest, declineLead } = usePartnerLeads();
+  const { leads: rawLeads, isLoading, expressInterest, declineLead, submitResponse, isSubmittingResponse } = usePartnerLeads();
+  const [respondingLead, setRespondingLead] = useState<string | null>(null);
+  const [responseForm, setResponseForm] = useState({ message: "", estimatedAmount: "", deliveryWeeks: "" });
 
   // Map DB leads to ProLead shape expected by the UI
   const leads: ProLead[] = rawLeads.map(l => ({
@@ -1833,16 +1835,79 @@ export function PartnerProLeadsSection({ plan }: { plan: PartnerPlan }) {
 
                     {/* Actions */}
                     {!isConnected && (
-                      <div className="flex items-center gap-2 pt-1">
+                      <div className="space-y-3 pt-1">
                         {!isInterested ? (
-                          <>
-                            <button onClick={() => handleInterest(lead.id)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
-                              <ThumbsUp className="h-3 w-3" /> Je suis intéressé
-                            </button>
-                            <button onClick={() => handleDecline(lead.id)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors">
-                              <ThumbsDown className="h-3 w-3" /> Pas pour moi
-                            </button>
-                          </>
+                          respondingLead === lead.id ? (
+                            <div className="space-y-2 border border-border rounded-sm p-3">
+                              <p className="text-[10px] font-display font-semibold text-foreground uppercase tracking-wider">Votre proposition</p>
+                              <textarea
+                                value={responseForm.message}
+                                onChange={(e) => setResponseForm(f => ({ ...f, message: e.target.value }))}
+                                placeholder="Message pour le client (votre expertise, disponibilit\u00e9...)"
+                                rows={2}
+                                className="w-full text-[11px] font-body bg-background border border-border rounded-sm px-3 py-2 focus:outline-none focus:border-foreground resize-none"
+                              />
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Montant estim\u00e9 (EUR)</label>
+                                  <input
+                                    type="number"
+                                    value={responseForm.estimatedAmount}
+                                    onChange={(e) => setResponseForm(f => ({ ...f, estimatedAmount: e.target.value }))}
+                                    placeholder="5000"
+                                    className="w-full text-[11px] font-body bg-background border border-border rounded-sm px-3 py-1.5 focus:outline-none focus:border-foreground mt-0.5"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">D\u00e9lai (semaines)</label>
+                                  <input
+                                    type="number"
+                                    value={responseForm.deliveryWeeks}
+                                    onChange={(e) => setResponseForm(f => ({ ...f, deliveryWeeks: e.target.value }))}
+                                    placeholder="4"
+                                    className="w-full text-[11px] font-body bg-background border border-border rounded-sm px-3 py-1.5 focus:outline-none focus:border-foreground mt-0.5"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  disabled={isSubmittingResponse || !responseForm.message || !responseForm.estimatedAmount || !responseForm.deliveryWeeks}
+                                  onClick={() => {
+                                    submitResponse(
+                                      { requestId: lead.id, data: { message: responseForm.message, estimatedAmount: Number(responseForm.estimatedAmount), deliveryWeeks: Number(responseForm.deliveryWeeks) } },
+                                      {
+                                        onSuccess: () => {
+                                          handleInterest(lead.id);
+                                          setRespondingLead(null);
+                                          setResponseForm({ message: "", estimatedAmount: "", deliveryWeeks: "" });
+                                          toast.success("Proposition envoy\u00e9e");
+                                        },
+                                        onError: () => toast.error("Erreur lors de l'envoi"),
+                                      }
+                                    );
+                                  }}
+                                  className="flex items-center gap-2 px-4 py-2 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-40"
+                                >
+                                  <Send className="h-3 w-3" /> {isSubmittingResponse ? "Envoi..." : "Envoyer ma proposition"}
+                                </button>
+                                <button
+                                  onClick={() => { setRespondingLead(null); setResponseForm({ message: "", estimatedAmount: "", deliveryWeeks: "" }); }}
+                                  className="text-[10px] font-display font-semibold text-muted-foreground hover:text-foreground"
+                                >
+                                  Annuler
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => setRespondingLead(lead.id)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
+                                <ThumbsUp className="h-3 w-3" /> Je suis int\u00e9ress\u00e9
+                              </button>
+                              <button onClick={() => handleDecline(lead.id)} className="flex items-center gap-2 px-4 py-2 text-[10px] font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors">
+                                <ThumbsDown className="h-3 w-3" /> Pas pour moi
+                              </button>
+                            </div>
+                          )
                         ) : (
                           <div className="flex items-center gap-2 text-[10px] font-body text-amber-600">
                             <Clock className="h-3 w-3" /> En attente de validation par l'administrateur Terrassea

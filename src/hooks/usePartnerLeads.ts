@@ -111,6 +111,24 @@ export function usePartnerLeads() {
     },
   });
 
+  // Submit a response to a supplier call
+  const submitResponseMutation = useMutation({
+    mutationFn: async ({ requestId, data }: { requestId: string; data: { message: string; estimatedAmount: number; deliveryWeeks: number } }) => {
+      if (!partnerId) throw new Error("No partner ID");
+      const { error } = await supabase.from("pro_service_responses").insert({
+        request_id: requestId,
+        partner_id: partnerId,
+        message: data.message,
+        estimated_amount: data.estimatedAmount,
+        delivery_weeks: data.deliveryWeeks,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["partner-leads", partnerId] });
+    },
+  });
+
   // Decline a lead
   const declineLeadMutation = useMutation({
     mutationFn: async (matchId: string) => {
@@ -137,5 +155,7 @@ export function usePartnerLeads() {
     isExpressing: expressInterestMutation.isPending,
     declineLead: declineLeadMutation.mutate,
     isDeclining: declineLeadMutation.isPending,
+    submitResponse: submitResponseMutation.mutate,
+    isSubmittingResponse: submitResponseMutation.isPending,
   };
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import { useConversations, useMessages, createConversation } from "@/hooks/useConversations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
@@ -24,6 +25,7 @@ import {
   Download, AlertTriangle, Upload, Check,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -887,12 +889,46 @@ export function ClientProjectDetail({
 export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSectionSetter }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
   const { data: allQuotes = [], isLoading } = useClientQuotes();
   const [filter, setFilter] = useState("all");
   const [selectedQuote, setSelectedQuote] = useState<string | null>(null);
   const [showSignModal, setShowSignModal] = useState(false);
   const [signingQuoteId, setSigningQuoteId] = useState<string | null>(null);
   const [hasSigned, setHasSigned] = useState(false);
+  const [accepting, setAccepting] = useState(false);
+
+  const handleAcceptQuote = async (quoteId: string, productName: string) => {
+    setAccepting(true);
+    try {
+      const { error } = await supabase.from("quote_requests").update({ status: "accepted" }).eq("id", quoteId);
+      if (error) throw error;
+      toast.success("Devis accept\u00e9");
+      queryClient.invalidateQueries({ queryKey: ["client-quotes"] });
+
+      // Notify admins
+      try {
+        const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
+        for (const admin of admins || []) {
+          await supabase.from("notifications").insert({
+            user_id: admin.id,
+            title: "Devis accept\u00e9",
+            body: `Le client ${profile?.first_name || profile?.email || "inconnu"} a accept\u00e9 le devis pour ${productName}`,
+            type: "info",
+            link: "/admin?tab=quotes",
+          });
+        }
+      } catch {
+        console.warn("Failed to notify admins of quote acceptance");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de l'acceptation du devis");
+    } finally {
+      setAccepting(false);
+    }
+  };
 
   const filters = [
     { id: "all", label: t("cd.quotes.all") },
@@ -1003,8 +1039,29 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
 
         {/* Actions */}
         <div className="space-y-3">
-          {/* Sign & accept */}
+          {/* Accept quote (no PDF needed) */}
+          {activeQuote.status === "replied" && (
+            <button
+              onClick={() => handleAcceptQuote(activeQuote.id, activeQuote.productName)}
+              disabled={accepting}
+              className="w-full flex items-center justify-center gap-2 py-3 text-sm font-display font-bold bg-foreground text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-40"
+            >
+              <Check className="h-4 w-4" /> {accepting ? "..." : "Accepter ce devis"}
+            </button>
+          )}
+
+          {/* Sign & accept (when PDF available) */}
           {activeQuote.status === "replied" && activeQuote.pdfPath && (
+            <button
+              onClick={() => { setSigningQuoteId(activeQuote.id); setShowSignModal(true); }}
+              className="w-full flex items-center justify-center gap-2 py-3 text-sm font-display font-bold bg-[#D4603A] text-white rounded-xl hover:opacity-90 transition-opacity"
+            >
+              <PenTool className="h-4 w-4" /> {t("cd.quotes.signAndAccept")}
+            </button>
+          )}
+
+          {/* Accept for accepted status (already accepted, show sign option if PDF) */}
+          {activeQuote.status === "accepted" && activeQuote.pdfPath && (
             <button
               onClick={() => { setSigningQuoteId(activeQuote.id); setShowSignModal(true); }}
               className="w-full flex items-center justify-center gap-2 py-3 text-sm font-display font-bold bg-[#D4603A] text-white rounded-xl hover:opacity-90 transition-opacity"
@@ -1153,7 +1210,32 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
         <SignatureModal
           quoteId={signingQuoteId}
           onClose={() => { setShowSignModal(false); setSigningQuoteId(null); }}
-          onSigned={() => { setShowSignModal(false); setSigningQuoteId(null); setHasSigned(true); }}
+          onSigned={async () => {
+            setShowSignModal(false);
+            const qId = signingQuoteId;
+            setSigningQuoteId(null);
+            setHasSigned(true);
+            if (qId) {
+              await supabase.from("quote_requests").update({ status: "signed", signed_at: new Date().toISOString() }).eq("id", qId);
+              queryClient.invalidateQueries({ queryKey: ["client-quotes"] });
+              toast.success("Devis sign\u00e9 avec succ\u00e8s");
+
+              // Notify admins
+              const activeQ = allQuotes.find((q) => q.id === qId);
+              try {
+                const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
+                for (const admin of admins || []) {
+                  await supabase.from("notifications").insert({
+                    user_id: admin.id,
+                    title: "Devis sign\u00e9",
+                    body: `Le client ${profile?.first_name || profile?.email || "inconnu"} a sign\u00e9 le devis pour ${activeQ?.productName || "un produit"}`,
+                    type: "info",
+                    link: "/admin?tab=quotes",
+                  });
+                }
+              } catch { /* non-blocking */ }
+            }
+          }}
         />
       )}
     </div>

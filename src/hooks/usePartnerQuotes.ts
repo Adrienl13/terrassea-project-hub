@@ -102,26 +102,46 @@ export function usePartnerQuotes() {
       const { error } = await supabase.from("quote_requests").update(updates).eq("id", quoteId);
       if (error) throw error;
 
-      // Send notification email to client when partner replies
+      // Send notification email + in-app notification to client when partner replies
       if (status === "replied") {
         try {
           const { data: quote } = await supabase
             .from("quote_requests")
-            .select("client_email, client_first_name, product_name")
+            .select("client_email, client_first_name, product_name, email")
             .eq("id", quoteId)
             .single();
-          if (quote?.client_email) {
+
+          const clientEmail = quote?.client_email || quote?.email;
+
+          if (clientEmail) {
+            // Send email notification
             await supabase.functions.invoke("send-notification-email", {
               body: {
-                to: quote.client_email,
+                to: clientEmail,
                 subject: "Terrassea — Un fournisseur a répondu à votre demande de devis",
                 body_html: `<p>Bonjour${quote.client_first_name ? ` ${quote.client_first_name}` : ""},</p><p>Un fournisseur a répondu à votre demande de devis pour <strong>${quote.product_name}</strong>. Connectez-vous à votre espace pour consulter l'offre.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
                 body_text: `Bonjour, un fournisseur a répondu à votre demande de devis pour ${quote.product_name}. Connectez-vous à votre espace pour consulter l'offre.`,
               },
             });
+
+            // In-app notification for client
+            const { data: clientProfile } = await supabase
+              .from("user_profiles")
+              .select("id")
+              .eq("email", clientEmail)
+              .maybeSingle();
+            if (clientProfile) {
+              await supabase.from("notifications").insert({
+                user_id: clientProfile.id,
+                title: "Devis re\u00e7u",
+                body: `Un fournisseur a r\u00e9pondu \u00e0 votre demande pour ${quote.product_name}`,
+                type: "info",
+                link: "/account?tab=quotes",
+              });
+            }
           }
         } catch {
-          console.warn("Failed to send quote reply notification email");
+          console.warn("Failed to send quote reply notification");
         }
       }
     },
