@@ -1587,7 +1587,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
     label: "CATALOGUE",
     items: [
       { id: "products",    icon: Package,      label: "Produits",      badgeKey: "products" },
-      { id: "partners",    icon: Building2,     label: "Partenaires" },
+      { id: "partners",    icon: Building2,     label: "Partenaires", badgeKey: "partners" },
       { id: "submissions", icon: Inbox,         label: "Soumissions",   badgeKey: "submissions" },
       { id: "subscriptions", icon: Star,        label: "Abonnements" },
     ],
@@ -1688,6 +1688,14 @@ const Admin = () => {
     },
   });
 
+  const { data: pendingPartnerProfiles = [] } = useQuery({
+    queryKey: ["admin-pending-partner-profiles"],
+    queryFn: async () => {
+      const { data } = await supabase.from("partners").select("id").eq("profile_status" as string, "pending_review" as string);
+      return data || [];
+    },
+  });
+
   const pendingReviewCount = products.filter(p => p.publish_status === "pending_review").length;
 
   const badges: Record<string, number> = {
@@ -1696,6 +1704,7 @@ const Admin = () => {
     products: pendingReviewCount,
     submissions: pendingSubmissions.length,
     messages: unreadMessages.length,
+    partners: pendingPartnerProfiles.length,
   };
 
   const handleTabChange = (newTab: Tab) => {

@@ -3539,10 +3539,27 @@
     "uploading": "Caricamento...",
     "logoUploaded": "Logo caricato",
     "uploadError": "Caricamento fallito. Puoi aggiungere il logo in seguito.",
-    "submit": "Completa il mio profilo",
+    "submit": "Invia il mio profilo",
+    "resubmit": "Invia di nuovo",
     "nameRequired": "Il nome dell'azienda e obbligatorio",
     "descriptionTooShort": "La descrizione deve essere di almeno 50 caratteri",
     "saveError": "Errore nel salvataggio del profilo: ",
-    "saved": "Profilo completato con successo!"
+    "saved": "Profilo completato con successo!",
+    "submitted": "Il tuo profilo e stato inviato per la revisione. Riceverai una notifica quando sara approvato.",
+    "pendingReview": "Profilo in fase di revisione",
+    "pendingMessage": "Il tuo profilo partner e stato inviato ed e in fase di revisione dal nostro team. Riceverai una notifica quando sara validato.",
+    "approved": "Profilo approvato",
+    "changesRequested": "L'amministratore ha richiesto delle modifiche:",
+    "rejected": "Profilo rifiutato",
+    "rejectedMessage": "Il tuo profilo partner e stato rifiutato.",
+    "adminNotes": "Note dell'amministratore:",
+    "submittedOn": "Inviato il:",
+    "whileWaiting": "Nel frattempo, puoi accedere a:"
+  },
+  "adminPartners": {
+    "validateProfile": "Valida il profilo partner",
+    "approve": "Approva",
+    "requestChanges": "Richiedi modifiche",
+    "reject": "Rifiuta"
   }
 }

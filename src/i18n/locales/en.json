@@ -3633,10 +3633,27 @@
     "uploading": "Uploading...",
     "logoUploaded": "Logo uploaded",
     "uploadError": "Upload failed. You can add the logo later.",
-    "submit": "Complete my profile",
+    "submit": "Submit my profile",
+    "resubmit": "Resubmit",
     "nameRequired": "Company name is required",
     "descriptionTooShort": "Description must be at least 50 characters",
     "saveError": "Error saving profile: ",
-    "saved": "Profile completed successfully!"
+    "saved": "Profile completed successfully!",
+    "submitted": "Your profile has been submitted for review. You will receive a notification once it is approved.",
+    "pendingReview": "Profile under review",
+    "pendingMessage": "Your partner profile has been submitted and is being reviewed by our team. You will receive a notification once it is validated.",
+    "approved": "Profile approved",
+    "changesRequested": "The admin has requested changes:",
+    "rejected": "Profile rejected",
+    "rejectedMessage": "Your partner profile has been rejected.",
+    "adminNotes": "Administrator notes:",
+    "submittedOn": "Submitted on:",
+    "whileWaiting": "In the meantime, you can access:"
+  },
+  "adminPartners": {
+    "validateProfile": "Validate partner profile",
+    "approve": "Approve",
+    "requestChanges": "Request changes",
+    "reject": "Reject"
   }
 }

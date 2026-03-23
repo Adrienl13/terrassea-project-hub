@@ -335,10 +335,12 @@ const Account = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("partners")
-        .select("id, profile_completed")
+        .select("id, profile_completed, profile_submitted, profile_status, profile_submitted_at, profile_review_notes")
         .eq("contact_email", profile!.email)
         .maybeSingle();
       if (error || !data) return null;
+
+      const rec = data as Record<string, unknown>;
 
       // Fetch the subscription plan for this partner
       const { data: sub } = await supabase
@@ -348,7 +350,15 @@ const Account = () => {
         .eq("status", "active")
         .maybeSingle();
 
-      return { id: data.id, plan: sub?.plan ?? null, profile_completed: !!(data as Record<string, unknown>).profile_completed };
+      return {
+        id: data.id,
+        plan: sub?.plan ?? null,
+        profile_completed: !!rec.profile_completed,
+        profile_submitted: !!rec.profile_submitted,
+        profile_status: (rec.profile_status as string) || null,
+        profile_submitted_at: (rec.profile_submitted_at as string) || null,
+        profile_review_notes: (rec.profile_review_notes as string) || null,
+      };
     },
     enabled: !!profile?.email && profile?.user_type === "partner",
   });
@@ -449,16 +459,79 @@ const Account = () => {
         );
       }
 
-      // Gate behind profile completion — show profile form if not completed
+      // Gate behind profile completion — 3 states:
+      // 1. Not submitted: show profile form
+      // 2. Submitted but pending review: show waiting message
+      // 3. Changes requested: show form again with notes
+      // 4. Completed/approved: show dashboard
+      const profileStatus = partnerData?.profile_status;
+      const profileSubmitted = partnerData?.profile_submitted ?? false;
+
       if (!partnerProfileCompleted && section !== "settings") {
-        return (
-          <PartnerProfileForm
-            partnerId={partnerId!}
-            onCompleted={() => {
-              queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
-            }}
-          />
-        );
+        // Show form if not yet submitted, or if changes were requested
+        if (!profileSubmitted || profileStatus === "changes_requested") {
+          return (
+            <PartnerProfileForm
+              partnerId={partnerId!}
+              onCompleted={() => {
+                queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
+              }}
+              reviewNotes={profileStatus === "changes_requested" ? (partnerData?.profile_review_notes || null) : null}
+            />
+          );
+        }
+
+        // Show pending review or rejected state
+        if (profileStatus === "pending_review" || profileStatus === "rejected") {
+          const submittedAt = partnerData?.profile_submitted_at
+            ? new Date(partnerData.profile_submitted_at).toLocaleDateString("fr-FR")
+            : null;
+          return (
+            <div className="max-w-xl mx-auto py-16 text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-amber-50 flex items-center justify-center">
+                <Clock className="h-7 w-7 text-amber-600" />
+              </div>
+              <h2 className="font-display text-lg font-bold text-foreground">
+                {profileStatus === "rejected"
+                  ? t("partnerProfile.rejected", "Fiche refusée")
+                  : t("partnerProfile.pendingReview", "Fiche en cours de validation")}
+              </h2>
+              <p className="text-sm font-body text-muted-foreground max-w-md mx-auto">
+                {profileStatus === "rejected"
+                  ? t("partnerProfile.rejectedMessage", "Votre fiche partenaire a été refusée.")
+                  : t("partnerProfile.pendingMessage", "Votre fiche partenaire a été soumise et est en cours d'examen par notre équipe. Vous recevrez une notification dès qu'elle sera validée.")}
+              </p>
+              {partnerData?.profile_review_notes && (
+                <div className="border border-amber-300 bg-amber-50 rounded-xl p-4 text-left max-w-md mx-auto">
+                  <p className="text-xs font-display font-semibold text-amber-800 mb-1">{t("partnerProfile.adminNotes", "Notes de l'administrateur :")}</p>
+                  <p className="text-sm font-body text-amber-700">{partnerData.profile_review_notes}</p>
+                </div>
+              )}
+              {submittedAt && (
+                <p className="text-xs font-body text-muted-foreground">
+                  {t("partnerProfile.submittedOn", "Soumis le :")} {submittedAt}
+                </p>
+              )}
+              <div className="pt-4 space-y-2">
+                <p className="text-xs font-body text-muted-foreground">{t("partnerProfile.whileWaiting", "En attendant, vous pouvez consulter :")}</p>
+                <div className="flex justify-center gap-3">
+                  <button
+                    onClick={() => setSection("settings")}
+                    className="text-xs font-display font-semibold text-foreground underline hover:no-underline"
+                  >
+                    {t("account.profileSettings", "Paramètres du compte")}
+                  </button>
+                  <button
+                    onClick={() => setSection("messages")}
+                    className="text-xs font-display font-semibold text-foreground underline hover:no-underline"
+                  >
+                    {t("account.messages", "Messages")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
       }
 
       const partnerSectionContent = (() => {

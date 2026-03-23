@@ -3633,10 +3633,27 @@
     "uploading": "Envoi en cours...",
     "logoUploaded": "Logo telecharge",
     "uploadError": "Echec du telechargement. Vous pourrez ajouter le logo plus tard.",
-    "submit": "Completer mon profil",
+    "submit": "Soumettre ma fiche",
+    "resubmit": "Soumettre a nouveau",
     "nameRequired": "Le nom de l'entreprise est obligatoire",
     "descriptionTooShort": "La description doit contenir au moins 50 caracteres",
     "saveError": "Erreur lors de la sauvegarde : ",
-    "saved": "Profil complete avec succes !"
+    "saved": "Profil complete avec succes !",
+    "submitted": "Votre fiche a ete soumise pour validation. Vous recevrez une notification des qu'elle sera approuvee.",
+    "pendingReview": "Fiche en cours de validation",
+    "pendingMessage": "Votre fiche partenaire a ete soumise et est en cours d'examen par notre equipe. Vous recevrez une notification des qu'elle sera validee.",
+    "approved": "Fiche approuvee",
+    "changesRequested": "L'admin a demande des modifications :",
+    "rejected": "Fiche refusee",
+    "rejectedMessage": "Votre fiche partenaire a ete refusee.",
+    "adminNotes": "Notes de l'administrateur :",
+    "submittedOn": "Soumis le :",
+    "whileWaiting": "En attendant, vous pouvez consulter :"
+  },
+  "adminPartners": {
+    "validateProfile": "Valider la fiche partenaire",
+    "approve": "Approuver",
+    "requestChanges": "Demander des modifications",
+    "reject": "Rejeter"
   }
 }

@@ -3539,10 +3539,27 @@
     "uploading": "Subiendo...",
     "logoUploaded": "Logo subido",
     "uploadError": "Error al subir. Puede agregar el logo mas tarde.",
-    "submit": "Completar mi perfil",
+    "submit": "Enviar mi perfil",
+    "resubmit": "Volver a enviar",
     "nameRequired": "El nombre de la empresa es obligatorio",
     "descriptionTooShort": "La descripcion debe tener al menos 50 caracteres",
     "saveError": "Error al guardar el perfil: ",
-    "saved": "Perfil completado con exito!"
+    "saved": "Perfil completado con exito!",
+    "submitted": "Su perfil ha sido enviado para validacion. Recibira una notificacion cuando sea aprobado.",
+    "pendingReview": "Perfil en revision",
+    "pendingMessage": "Su perfil de socio ha sido enviado y esta siendo revisado por nuestro equipo. Recibira una notificacion cuando sea validado.",
+    "approved": "Perfil aprobado",
+    "changesRequested": "El administrador ha solicitado cambios:",
+    "rejected": "Perfil rechazado",
+    "rejectedMessage": "Su perfil de socio ha sido rechazado.",
+    "adminNotes": "Notas del administrador:",
+    "submittedOn": "Enviado el:",
+    "whileWaiting": "Mientras tanto, puede acceder a:"
+  },
+  "adminPartners": {
+    "validateProfile": "Validar perfil de socio",
+    "approve": "Aprobar",
+    "requestChanges": "Solicitar cambios",
+    "reject": "Rechazar"
   }
 }

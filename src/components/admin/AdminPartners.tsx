@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Building2, Search, Eye, ArrowLeft, Globe, MapPin,
   Award, Package, Truck, Plus, Pencil, Trash2, Save,
-  X, Star, Shield, Crown, Check,
+  X, Star, Shield, Crown, Check, CheckCircle2, AlertTriangle, XCircle, Clock,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -34,6 +34,10 @@ type Partner = {
   contact_phone: string | null;
   vat_number: string | null;
   profile_completed: boolean;
+  profile_submitted: boolean;
+  profile_status: string | null;
+  profile_submitted_at: string | null;
+  profile_review_notes: string | null;
   created_at: string;
 };
 
@@ -93,6 +97,8 @@ export default function AdminPartners() {
   const [formData, setFormData] = useState<PartnerForm>(EMPTY_FORM);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewAction, setReviewAction] = useState(false);
 
   const { data: partners = [], isLoading } = useQuery<Partner[]>({
     queryKey: ["admin_partners"],
@@ -194,6 +200,94 @@ export default function AdminPartners() {
     toast.success("Partenaire supprimé");
     queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
     setView("list");
+  };
+
+  const handleApprove = async (partner: Partner) => {
+    setReviewAction(true);
+    const { error } = await supabase.from("partners").update({
+      profile_completed: true,
+      profile_status: "approved",
+      profile_reviewed_at: new Date().toISOString(),
+      is_public: true,
+    } as Record<string, unknown>).eq("id", partner.id);
+
+    if (error) { toast.error("Erreur : " + error.message); setReviewAction(false); return; }
+
+    // Notify partner
+    const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", partner.contact_email).maybeSingle();
+    if (partnerUser) {
+      await supabase.from("notifications").insert({
+        user_id: partnerUser.id,
+        title: "Fiche partenaire approuvée",
+        body: "Votre fiche a été approuvée ! Vous pouvez maintenant ajouter vos produits.",
+        type: "info",
+        link: "/account",
+      });
+    }
+
+    toast.success("Partenaire approuvé");
+    queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-pending-partner-profiles"] });
+    setReviewAction(false);
+  };
+
+  const handleRequestChanges = async (partner: Partner) => {
+    if (!reviewComment.trim()) { toast.error("Veuillez ajouter un commentaire"); return; }
+    setReviewAction(true);
+    const { error } = await supabase.from("partners").update({
+      profile_status: "changes_requested",
+      profile_review_notes: reviewComment.trim(),
+      profile_completed: false,
+      profile_submitted: false,
+    } as Record<string, unknown>).eq("id", partner.id);
+
+    if (error) { toast.error("Erreur : " + error.message); setReviewAction(false); return; }
+
+    const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", partner.contact_email).maybeSingle();
+    if (partnerUser) {
+      await supabase.from("notifications").insert({
+        user_id: partnerUser.id,
+        title: "Modifications demandées sur votre fiche",
+        body: `L'admin a demandé des modifications : ${reviewComment.trim()}`,
+        type: "info",
+        link: "/account",
+      });
+    }
+
+    toast.success("Demande de modifications envoyée");
+    setReviewComment("");
+    queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-pending-partner-profiles"] });
+    setReviewAction(false);
+  };
+
+  const handleReject = async (partner: Partner) => {
+    if (!reviewComment.trim()) { toast.error("Veuillez ajouter une raison"); return; }
+    setReviewAction(true);
+    const { error } = await supabase.from("partners").update({
+      profile_status: "rejected",
+      profile_review_notes: reviewComment.trim(),
+      profile_completed: false,
+    } as Record<string, unknown>).eq("id", partner.id);
+
+    if (error) { toast.error("Erreur : " + error.message); setReviewAction(false); return; }
+
+    const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", partner.contact_email).maybeSingle();
+    if (partnerUser) {
+      await supabase.from("notifications").insert({
+        user_id: partnerUser.id,
+        title: "Fiche partenaire refusée",
+        body: `Votre fiche partenaire a été refusée. Raison : ${reviewComment.trim()}`,
+        type: "info",
+        link: "/account",
+      });
+    }
+
+    toast.success("Partenaire rejeté");
+    setReviewComment("");
+    queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-pending-partner-profiles"] });
+    setReviewAction(false);
   };
 
   const set = (field: keyof PartnerForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -379,6 +473,70 @@ export default function AdminPartners() {
           </div>
         )}
 
+        {/* Profile validation section */}
+        {(selected as Record<string, unknown>).profile_status === "pending_review" && (
+          <div className="border-2 border-amber-300 bg-amber-50 rounded-xl p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <Search className="h-5 w-5 text-amber-700" />
+              <h3 className="font-display font-bold text-sm text-amber-800">Fiche partenaire à valider</h3>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs font-body">
+              <div><span className="text-muted-foreground">Nom :</span> <span className="font-semibold">{selected.name}</span></div>
+              <div><span className="text-muted-foreground">Type :</span> <span className="font-semibold capitalize">{selected.partner_type}</span></div>
+              <div><span className="text-muted-foreground">Pays :</span> <span className="font-semibold">{[selected.country, selected.city].filter(Boolean).join(", ") || "—"}</span></div>
+              <div><span className="text-muted-foreground">TVA/SIREN :</span> <span className="font-semibold">{selected.vat_number || "—"}</span></div>
+              <div className="col-span-2"><span className="text-muted-foreground">Catégories :</span> <span className="font-semibold">{(selected.product_categories || []).join(", ") || "—"}</span></div>
+            </div>
+            {selected.description && (
+              <div className="text-xs font-body text-muted-foreground italic">"{selected.description}"</div>
+            )}
+            {selected.logo_url && (
+              <div>
+                <span className="text-[10px] font-display font-semibold text-muted-foreground">Logo :</span>
+                <img src={selected.logo_url} alt="Logo" className="w-12 h-12 rounded-lg border border-border mt-1 object-cover" />
+              </div>
+            )}
+
+            <div>
+              <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                Commentaire (requis pour modifications/rejet)
+              </label>
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                rows={2}
+                className="w-full text-sm font-body bg-white border border-border rounded-lg px-3 py-2.5 focus:outline-none focus:border-foreground/40 resize-none"
+                placeholder="Commentaire pour le partenaire..."
+              />
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => handleApprove(selected)}
+                disabled={reviewAction}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-40"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" /> Approuver
+              </button>
+              <button
+                onClick={() => handleRequestChanges(selected)}
+                disabled={reviewAction}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-amber-500 text-white rounded-full hover:bg-amber-600 disabled:opacity-40"
+              >
+                <AlertTriangle className="h-3.5 w-3.5" /> Demander modifs
+              </button>
+              <button
+                onClick={() => handleReject(selected)}
+                disabled={reviewAction}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-red-600 text-white rounded-full hover:bg-red-700 disabled:opacity-40"
+              >
+                <XCircle className="h-3.5 w-3.5" /> Rejeter
+              </button>
+            </div>
+          </div>
+        )}
+
         {(selected.specialty_tags?.length || 0) > 0 && (
           <div>
             <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">Spécialités</p>
@@ -443,8 +601,18 @@ export default function AdminPartners() {
                     <p className="text-xs font-display font-bold text-foreground group-hover:text-[#D4603A] truncate">{partner.name}</p>
                     <span className="text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 capitalize shrink-0">{partner.partner_type}</span>
                     <span className="text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: `${planCfg.color}12`, color: planCfg.color }}>{planCfg.label}</span>
-                    <span className={`text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${partner.profile_completed ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-                      {partner.profile_completed ? "Profil complet" : "Profil incomplet"}
+                    <span className={`text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
+                      partner.profile_completed ? "bg-green-50 text-green-700"
+                        : (partner as Record<string, unknown>).profile_status === "pending_review" ? "bg-amber-50 text-amber-700"
+                        : (partner as Record<string, unknown>).profile_status === "changes_requested" ? "bg-orange-50 text-orange-700"
+                        : (partner as Record<string, unknown>).profile_status === "rejected" ? "bg-red-50 text-red-700"
+                        : "bg-gray-50 text-gray-700"
+                    }`}>
+                      {partner.profile_completed ? "Approuvé"
+                        : (partner as Record<string, unknown>).profile_status === "pending_review" ? "En attente"
+                        : (partner as Record<string, unknown>).profile_status === "changes_requested" ? "Modifs demandées"
+                        : (partner as Record<string, unknown>).profile_status === "rejected" ? "Rejeté"
+                        : "Profil incomplet"}
                     </span>
                   </div>
                   <p className="text-[10px] font-body text-muted-foreground">

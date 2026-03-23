@@ -28,6 +28,7 @@ const DELIVERY_COUNTRIES = COUNTRIES.map((c) => c.name);
 interface PartnerProfileFormProps {
   partnerId: string;
   onCompleted: () => void;
+  reviewNotes?: string | null;
 }
 
 interface FormData {
@@ -45,7 +46,7 @@ interface FormData {
   delivery_countries: string[];
 }
 
-export default function PartnerProfileForm({ partnerId, onCompleted }: PartnerProfileFormProps) {
+export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes }: PartnerProfileFormProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
   const queryClient = useQueryClient();
@@ -160,7 +161,10 @@ export default function PartnerProfileForm({ partnerId, onCompleted }: PartnerPr
       description: form.description.trim(),
       logo_url: form.logo_url || null,
       delivery_countries: form.delivery_countries,
-      profile_completed: true,
+      profile_completed: false,
+      profile_submitted: true,
+      profile_submitted_at: new Date().toISOString(),
+      profile_status: "pending_review",
     };
 
     const { error } = await supabase
@@ -175,10 +179,21 @@ export default function PartnerProfileForm({ partnerId, onCompleted }: PartnerPr
       return;
     }
 
-    toast.success(t("partnerProfile.saved", "Profile completed successfully!"));
+    // Notify all admins
+    const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
+    for (const admin of admins || []) {
+      await supabase.from("notifications").insert({
+        user_id: admin.id,
+        title: "Nouvelle fiche partenaire à valider",
+        body: `${form.name} (${form.partner_type}) a soumis sa fiche partenaire pour validation.`,
+        type: "info",
+        link: "/admin?tab=partners",
+      });
+    }
+
+    toast.success(t("partnerProfile.submitted", "Votre fiche a été soumise pour validation. Vous recevrez une notification dès qu'elle sera approuvée."));
     queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
     queryClient.invalidateQueries({ queryKey: ["partner-profile-status"] });
-    onCompleted();
   };
 
   const toggleCategory = (cat: string) => {
@@ -206,6 +221,16 @@ export default function PartnerProfileForm({ partnerId, onCompleted }: PartnerPr
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Admin review notes banner */}
+      {reviewNotes && (
+        <div className="border border-amber-300 bg-amber-50 rounded-xl p-4">
+          <p className="text-sm font-display font-bold text-amber-800 mb-1">
+            {t("partnerProfile.changesRequested", "L'admin a demandé des modifications :")}
+          </p>
+          <p className="text-sm font-body text-amber-700">{reviewNotes}</p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center">
         <Building2 className="h-8 w-8 mx-auto text-foreground mb-3" />
@@ -473,7 +498,9 @@ export default function PartnerProfileForm({ partnerId, onCompleted }: PartnerPr
           ) : (
             <Save className="h-4 w-4" />
           )}
-          {t("partnerProfile.submit", "Complete my profile")}
+          {reviewNotes
+            ? t("partnerProfile.resubmit", "Soumettre à nouveau")
+            : t("partnerProfile.submit", "Soumettre ma fiche")}
         </button>
       </div>
     </div>
