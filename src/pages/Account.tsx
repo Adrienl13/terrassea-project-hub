@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Navigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import {
   TrendingUp, Star, ChevronRight, Percent, Inbox, Clock,
   AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
 import { useConversations } from "@/hooks/useConversations";
@@ -301,6 +301,7 @@ const Account = () => {
   const { favourites, toggleFavourite } = useFavourites();
   const { totalUnread } = useConversations();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [section, setSection] = useState<Section>(() => {
     const sectionParam = searchParams.get("section");
@@ -356,6 +357,37 @@ const Account = () => {
       ? (partnerData.plan as PartnerPlan)
       : "starter"; // default to starter
 
+  // Auto-create partners row if partner user has none (runs once)
+  const partnerAutoCreateRef = useRef(false);
+  useEffect(() => {
+    if (
+      profile?.user_type === "partner" &&
+      partnerId === null &&
+      partnerData === null &&
+      !partnerAutoCreateRef.current &&
+      profile?.email
+    ) {
+      partnerAutoCreateRef.current = true;
+      const name = profile.company || `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      supabase.from("partners").insert({
+        name,
+        slug: `${slug}-${Date.now().toString(36)}`,
+        contact_email: profile.email,
+        user_id: profile.id,
+        plan: "starter",
+        is_active: true,
+        is_public: false,
+        country: profile.country || "France",
+      } as Record<string, unknown>).then(() => {
+        // Invalidate the partner query to refresh data without page reload
+        queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
+      }).catch((err) => {
+        console.error("Failed to auto-create partner profile:", err);
+      });
+    }
+  }, [profile, partnerId, partnerData]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -389,27 +421,9 @@ const Account = () => {
       if (section === "settings") return <SettingsSection profile={profile} />;
       if (section === "favourites") return <FavouritesSection favourites={favourites} onToggle={toggleFavourite} />;
 
-      // If partner has no partners row, auto-create one with Starter plan
+      // If partner has no partners row, show setup message
+      // The auto-creation is handled by the useEffect below
       if (!partnerId && section !== "settings" && section !== "favourites") {
-        // Try to auto-create the partners row
-        const autoCreatePartner = async () => {
-          if (!profile?.email) return;
-          const name = profile.company || `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
-          const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-          await supabase.from("partners").insert({
-            name,
-            slug: `${slug}-${Date.now().toString(36)}`,
-            contact_email: profile.email,
-            user_id: profile.id,
-            plan: "starter",
-            is_active: true,
-            is_public: false,
-            country: profile.country || "France",
-          } as Record<string, unknown>);
-          // Refresh the page to pick up the new partner
-          window.location.reload();
-        };
-        autoCreatePartner();
         return (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
             <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
