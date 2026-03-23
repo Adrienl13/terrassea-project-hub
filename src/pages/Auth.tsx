@@ -44,7 +44,7 @@ const Auth = () => {
 
   const [form, setForm] = useState({
     email: "", password: "", firstName: "", lastName: "",
-    company: "", siren: "", phone: "", userType: defaultType,
+    company: "", siren: "", phone: "", country: "France", userType: defaultType,
   });
 
   const handle = (field: string) =>
@@ -91,6 +91,7 @@ const Auth = () => {
             company: form.company,
             siren: form.siren,
             phone: form.phone || null,
+            country: form.country || null,
           },
         },
       });
@@ -271,6 +272,28 @@ const Auth = () => {
                 <div>
                   <span className={labelClass}>{t('auth.phone')}</span>
                   <input value={form.phone} onChange={handle("phone")} className={inputClass} />
+                </div>
+
+                <div>
+                  <span className={labelClass}>{t('auth.country', 'Pays')}</span>
+                  <select
+                    value={form.country}
+                    onChange={e => setForm(p => ({ ...p, country: e.target.value }))}
+                    className={inputClass}
+                  >
+                    <option value="France">France</option>
+                    <option value="Belgium">Belgique</option>
+                    <option value="Switzerland">Suisse</option>
+                    <option value="Luxembourg">Luxembourg</option>
+                    <option value="Monaco">Monaco</option>
+                    <option value="Italy">Italie</option>
+                    <option value="Spain">Espagne</option>
+                    <option value="Portugal">Portugal</option>
+                    <option value="Germany">Allemagne</option>
+                    <option value="Netherlands">Pays-Bas</option>
+                    <option value="United Kingdom">Royaume-Uni</option>
+                    <option value="Other">Autre</option>
+                  </select>
                 </div>
               </>
             )}

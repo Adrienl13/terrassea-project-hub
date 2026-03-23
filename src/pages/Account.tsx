@@ -398,6 +398,8 @@ const Account = () => {
         name,
         slug: `${slug}-${Date.now().toString(36)}`,
         contact_email: profile.email,
+        contact_name: `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || null,
+        contact_phone: profile.phone || null,
         user_id: profile.id,
         plan: "starter",
         is_active: true,
