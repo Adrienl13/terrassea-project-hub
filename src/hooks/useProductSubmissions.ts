@@ -180,15 +180,91 @@ export function useAdminSubmissions() {
       const submission = submissions.find((s) => s.id === id);
       if (!submission) throw new Error("Submission not found");
 
-      const productData = submission.product_data;
+      const pd = submission.product_data as Record<string, unknown>;
 
-      // Insert into products table
+      // Validate required fields
+      if (!pd.name || !pd.category) {
+        throw new Error("Le produit soumis n'a pas de nom ou de catégorie");
+      }
+
+      // Explicitly map fields to avoid unknown JSONB keys in products table
+      const productInsert: Record<string, unknown> = {
+        // Identity
+        name: pd.name,
+        category: pd.category,
+        subcategory: pd.subcategory ?? null,
+        product_family: pd.product_family ?? null,
+        collection: pd.collection ?? null,
+        brand_source: pd.brand_source ?? null,
+        supplier_internal: pd.supplier_internal ?? null,
+        // Descriptions
+        short_description: pd.short_description ?? null,
+        long_description: pd.long_description ?? null,
+        // Media
+        image_url: pd.image_url ?? null,
+        gallery_urls: pd.gallery_urls ?? [],
+        // Pricing
+        indicative_price: pd.indicative_price ?? null,
+        price_min: pd.price_min ?? null,
+        price_max: pd.price_max ?? null,
+        // Colors
+        main_color: pd.main_color ?? null,
+        secondary_color: pd.secondary_color ?? null,
+        available_colors: pd.available_colors ?? [],
+        color_variants: pd.color_variants ?? [],
+        // Materials
+        material_structure: pd.material_structure ?? null,
+        material_seat: pd.material_seat ?? null,
+        // Dimensions
+        dimensions_length_cm: pd.dimensions_length_cm ?? null,
+        dimensions_width_cm: pd.dimensions_width_cm ?? null,
+        dimensions_height_cm: pd.dimensions_height_cm ?? null,
+        seat_height_cm: pd.seat_height_cm ?? null,
+        weight_kg: pd.weight_kg ?? null,
+        table_shape: pd.table_shape ?? null,
+        default_seating_capacity: pd.default_seating_capacity ?? null,
+        recommended_seating_min: pd.recommended_seating_min ?? null,
+        recommended_seating_max: pd.recommended_seating_max ?? null,
+        combinable: pd.combinable ?? false,
+        combined_capacity_if_joined: pd.combined_capacity_if_joined ?? null,
+        // Tags
+        style_tags: pd.style_tags ?? [],
+        ambience_tags: pd.ambience_tags ?? [],
+        palette_tags: pd.palette_tags ?? [],
+        material_tags: pd.material_tags ?? [],
+        use_case_tags: pd.use_case_tags ?? [],
+        technical_tags: pd.technical_tags ?? [],
+        product_type_tags: pd.product_type_tags ?? {},
+        // Booleans
+        is_outdoor: pd.is_outdoor ?? true,
+        is_stackable: pd.is_stackable ?? false,
+        is_chr_heavy_use: pd.is_chr_heavy_use ?? false,
+        uv_resistant: pd.uv_resistant ?? false,
+        weather_resistant: pd.weather_resistant ?? false,
+        fire_retardant: pd.fire_retardant ?? false,
+        lightweight: pd.lightweight ?? false,
+        easy_maintenance: pd.easy_maintenance ?? false,
+        customizable: pd.customizable ?? false,
+        dismountable: pd.dismountable ?? false,
+        requires_assembly: pd.requires_assembly ?? false,
+        // Stock & delivery
+        stock_status: pd.stock_status ?? "available",
+        stock_quantity: pd.stock_quantity ?? null,
+        estimated_delivery_days: pd.estimated_delivery_days ?? null,
+        availability_type: pd.availability_type ?? "available",
+        // Other
+        country_of_manufacture: pd.country_of_manufacture ?? null,
+        warranty: pd.warranty ?? null,
+        maintenance_info: pd.maintenance_info ?? null,
+        documents: pd.documents ?? [],
+        // Owner & status
+        partner_id: submission.partner_id,
+        publish_status: "published",
+      };
+
       const { error: productError } = await supabase
         .from("products")
-        .insert({
-          ...productData,
-          publish_status: "published",
-        } as Record<string, unknown>);
+        .insert(productInsert);
 
       if (productError) throw productError;
 
@@ -201,7 +277,7 @@ export function useAdminSubmissions() {
       if (updateError) throw updateError;
 
       // Notify partner
-      const productName = (productData as Record<string, unknown>)?.name ?? "votre produit";
+      const productName = pd.name ?? "votre produit";
       await notifyPartner(submission.partner_id, "Produit approuvé", `Votre produit ${productName} a été approuvé et publié`);
 
       await invalidate();
@@ -216,6 +292,8 @@ export function useAdminSubmissions() {
       if (!submission || !submission.detected_duplicate_id)
         throw new Error("Submission not found or no duplicate detected");
 
+      const pd = submission.product_data as Record<string, unknown>;
+
       // Update existing product description if merged_description exists
       if (submission.merged_description) {
         await supabase
@@ -227,14 +305,30 @@ export function useAdminSubmissions() {
       }
 
       // Create a product offer linking the partner to the existing product
+      // Map all available fields from submission to offer
+      const offerInsert: Record<string, unknown> = {
+        product_id: submission.detected_duplicate_id,
+        partner_id: submission.partner_id,
+        price: pd.price_min ?? null,
+        currency: "EUR",
+        minimum_order: pd.minimum_order ?? null,
+        purchase_type: pd.stock_status === "production" || pd.stock_status === "on_order"
+          ? "production"
+          : "stock",
+        stock_status: pd.stock_status ?? "available",
+        stock_quantity: pd.stock_quantity ?? null,
+        delivery_delay_days: pd.estimated_delivery_days ?? null,
+        partner_ref: pd.supplier_internal ?? null,
+        partner_color_name: pd.main_color ?? null,
+        notes: pd.indicative_price
+          ? `Prix indicatif partenaire : ${pd.indicative_price}`
+          : null,
+        is_active: true,
+      };
+
       const { error: offerError } = await supabase
         .from("product_offers")
-        .insert({
-          product_id: submission.detected_duplicate_id,
-          partner_id: submission.partner_id,
-          price: (submission.product_data as Record<string, unknown>)?.price_min ?? null,
-          is_active: true,
-        } as Record<string, unknown>);
+        .insert(offerInsert);
 
       if (offerError) throw offerError;
 
@@ -247,7 +341,7 @@ export function useAdminSubmissions() {
       if (updateError) throw updateError;
 
       // Notify partner
-      const productName = (submission.product_data as Record<string, unknown>)?.name ?? "votre produit";
+      const productName = pd.name ?? "votre produit";
       await notifyPartner(submission.partner_id, "Produit fusionné", `Votre produit ${productName} a été approuvé et fusionné avec un produit existant`);
 
       await invalidate();
