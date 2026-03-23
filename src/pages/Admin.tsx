@@ -352,7 +352,7 @@ function ProductTypeTagsForm({
 }
 
 // ═══════════════════════════════════════════════════════════
-// FULL PRODUCT FORM
+// FULL PRODUCT FORM (redesigned)
 // ═══════════════════════════════════════════════════════════
 
 function ProductForm({
@@ -366,20 +366,15 @@ function ProductForm({
   const [saving, setSaving] = useState(false);
   const [section, setSection] = useState<string>("basics");
 
-  // Load partners list for select
   const { data: partnersList = [] } = useQuery({
     queryKey: ["partners-list"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("partners")
-        .select("id, name, slug")
-        .order("name");
+      const { data } = await supabase.from("partners").select("id, name, slug").order("name");
       return data || [];
     },
     staleTime: 1000 * 60 * 10,
   });
 
-  // Load tag suggestions from DB
   const { data: tagDefs = [] } = useQuery<TagDefinition[]>({
     queryKey: ["tag_definitions"],
     queryFn: async () => {
@@ -400,7 +395,6 @@ function ProductForm({
   const set = (key: keyof ProductFormData, val: unknown) =>
     setForm(prev => ({ ...prev, [key]: val }));
 
-  // Compute preview quality score locally
   const previewScore = (() => {
     let s = 0;
     if (form.archetype_id) s += 0.20;
@@ -420,300 +414,344 @@ function ProductForm({
 
   const handleSave = async (overrides?: Partial<ProductFormData>) => {
     if (!form.name || !form.category) {
-      toast.error("Le nom et la categorie sont requis");
+      toast.error("Le nom et la catégorie sont requis");
       return;
     }
     setSaving(true);
-    try {
-      await onSave({ ...form, ...overrides });
-    } finally {
-      setSaving(false);
-    }
+    try { await onSave({ ...form, ...overrides }); } finally { setSaving(false); }
   };
 
-  const handleSubmitForReview = () => {
-    handleSave({ publish_status: "pending_review" });
-  };
+  const handleSubmitForReview = () => { handleSave({ publish_status: "pending_review" }); };
 
   const SECTIONS = [
-    { id: "basics",    label: "Informations" },
-    { id: "tags",      label: "Tags" },
-    { id: "typetags",  label: "Tags specifiques" },
-    { id: "pricing",   label: "Prix & Stock" },
-    { id: "dims",      label: "Dimensions" },
-    { id: "technical", label: "Technique" },
+    { id: "basics",    label: "Informations",       icon: Package },
+    { id: "media",     label: "Médias",             icon: Eye },
+    { id: "tags",      label: "Tags",               icon: Star },
+    { id: "typetags",  label: "Tags spécifiques",   icon: ClipboardList },
+    { id: "pricing",   label: "Prix & Stock",       icon: CreditCard },
+    { id: "dims",      label: "Dimensions",         icon: FileText },
+    { id: "technical", label: "Technique",          icon: Settings },
   ];
 
-  const Input = ({ label, field, type = "text", required }: {
-    label: string; field: keyof ProductFormData; type?: string; required?: boolean;
-  }) => (
+  const inputClass = "w-full bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-body focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:border-foreground/40 transition-all";
+  const labelClass = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5";
+
+  const renderInput = (label: string, field: keyof ProductFormData, type = "text", required = false) => (
     <div>
-      <label className="text-xs font-body text-muted-foreground block mb-1">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
+      <label className={labelClass}>{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
       <input
         type={type}
         value={String(form[field] ?? "")}
         onChange={e => set(field, type === "number" ? (e.target.value ? Number(e.target.value) : null) : e.target.value)}
-        className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
+        className={inputClass}
       />
     </div>
   );
 
-  const Select = ({ label, field, options, required }: {
-    label: string; field: keyof ProductFormData; options: string[]; required?: boolean;
-  }) => (
+  const renderSelect = (label: string, field: keyof ProductFormData, options: string[], required = false) => (
     <div>
-      <label className="text-xs font-body text-muted-foreground block mb-1">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      <select
-        value={String(form[field] ?? "")}
-        onChange={e => set(field, e.target.value)}
-        className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
-      >
+      <label className={labelClass}>{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+      <select value={String(form[field] ?? "")} onChange={e => set(field, e.target.value)} className={inputClass}>
         <option value="">—</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
     </div>
   );
 
-  const Toggle = ({ label, field }: { label: string; field: keyof ProductFormData }) => (
-    <label className="flex items-center gap-2 cursor-pointer">
+  const renderToggle = (label: string, field: keyof ProductFormData) => (
+    <label className="flex items-center gap-3 cursor-pointer group">
       <div
         onClick={() => set(field, !form[field])}
-        className={`relative w-8 h-4 rounded-full transition-colors ${form[field] ? "bg-foreground" : "bg-border"}`}
+        className={`relative w-9 h-5 rounded-full transition-colors ${form[field] ? "bg-green-500" : "bg-border group-hover:bg-muted-foreground/30"}`}
       >
-        <div className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transition-transform ${form[field] ? "translate-x-4" : ""}`} />
+        <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form[field] ? "translate-x-4" : ""}`} />
       </div>
       <span className="text-xs font-body text-foreground">{label}</span>
     </label>
   );
 
+  const SectionHeader = ({ icon: Icon, title, description }: { icon: typeof Package; title: string; description: string }) => (
+    <div className="flex items-start gap-3 mb-5">
+      <div className="w-9 h-9 rounded-xl bg-foreground/5 flex items-center justify-center shrink-0">
+        <Icon className="h-4.5 w-4.5 text-foreground/60" />
+      </div>
+      <div>
+        <h3 className="font-display text-sm font-bold text-foreground">{title}</h3>
+        <p className="text-[11px] font-body text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="font-display text-lg font-bold text-foreground">
-            {form.id ? "Modifier le produit" : "Nouveau produit"}
-          </h2>
-          <div className="mt-1">
-            <DataQualityBadge score={previewScore} />
+        <div className="flex items-center gap-4">
+          <button onClick={onCancel} className="w-9 h-9 rounded-xl border border-border flex items-center justify-center hover:border-foreground/30 transition-colors">
+            <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+          </button>
+          <div>
+            <h2 className="font-display text-lg font-bold text-foreground">
+              {form.id ? "Modifier le produit" : "Nouveau produit"}
+            </h2>
+            <div className="flex items-center gap-3 mt-1">
+              <DataQualityBadge score={previewScore} />
+              {form.publish_status && (
+                <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full ${
+                  form.publish_status === "published" ? "bg-green-50 text-green-700" :
+                  form.publish_status === "pending_review" ? "bg-amber-50 text-amber-700" :
+                  form.publish_status === "rejected" ? "bg-red-50 text-red-700" :
+                  "bg-muted text-muted-foreground"
+                }`}>
+                  {form.publish_status === "published" ? "Publié" :
+                   form.publish_status === "pending_review" ? "En attente" :
+                   form.publish_status === "rejected" ? "Rejeté" : "Brouillon"}
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <button onClick={onCancel} className="text-muted-foreground hover:text-foreground">
-          <X className="h-5 w-5" />
-        </button>
+        {/* Live image preview */}
+        {form.image_url && (
+          <img src={form.image_url} alt="" className="w-16 h-16 rounded-xl object-cover border border-border" />
+        )}
       </div>
 
       {/* Section tabs */}
-      <div className="flex gap-0.5 mb-6 overflow-x-auto border-b border-border">
-        {SECTIONS.map(s => (
-          <button
-            key={s.id}
-            onClick={() => setSection(s.id)}
-            className={`px-4 py-2 text-[11px] font-display font-semibold border-b-2 -mb-px whitespace-nowrap transition-colors ${
-              section === s.id
-                ? "border-foreground text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
+      <div className="flex gap-1 mb-6 overflow-x-auto border-b border-border pb-px">
+        {SECTIONS.map(s => {
+          const Icon = s.icon;
+          return (
+            <button
+              key={s.id}
+              onClick={() => setSection(s.id)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-display font-semibold border-b-2 -mb-px whitespace-nowrap transition-colors ${
+                section === s.id
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {s.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Basics ── */}
       {section === "basics" && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Name" field="name" required />
-            <Select label="Category" field="category" options={CATEGORIES} required />
-            <Input label="Subcategory" field="subcategory" />
-            <Input label="Product family" field="product_family" />
-            <Input label="Brand / Source" field="brand_source" />
-            <Input label="Supplier (internal)" field="supplier_internal" />
-            <div>
-              <label className="text-xs font-body text-muted-foreground block mb-1">Partner</label>
-              <select
-                value={partnersList.find(p => p.slug === form.supplier_internal)?.id ?? ""}
-                onChange={e => {
-                  const partner = partnersList.find(p => p.id === e.target.value);
-                  if (partner) {
-                    set("supplier_internal", partner.slug);
-                  } else {
-                    set("supplier_internal", "");
-                  }
-                }}
-                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
-              >
-                <option value="">— No partner —</option>
-                {partnersList.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
+        <div className="space-y-6">
+          <SectionHeader icon={Package} title="Informations générales" description="Nom, catégorie, marque et descriptions du produit" />
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <div className="grid grid-cols-2 gap-4">
+              {renderInput("Nom du produit", "name", "text", true)}
+              {renderSelect("Catégorie", "category", CATEGORIES, true)}
+              {renderInput("Sous-catégorie", "subcategory")}
+              {renderInput("Famille produit", "product_family")}
+              {renderInput("Marque / Source", "brand_source")}
+              <div>
+                <label className={labelClass}>Partenaire</label>
+                <select
+                  value={partnersList.find(p => p.slug === form.supplier_internal)?.id ?? ""}
+                  onChange={e => {
+                    const partner = partnersList.find(p => p.id === e.target.value);
+                    set("supplier_internal", partner ? partner.slug : "");
+                  }}
+                  className={inputClass}
+                >
+                  <option value="">— Aucun partenaire —</option>
+                  {partnersList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              {renderInput("Collection", "collection")}
+              {renderInput("Pays de fabrication", "country_of_manufacture")}
             </div>
-            <Input label="Collection" field="collection" />
-            <Input label="Country of manufacture" field="country_of_manufacture" />
           </div>
-          <div>
-            <label className="text-xs font-body text-muted-foreground block mb-1">Short description</label>
-            <textarea
-              value={form.short_description || ""}
-              onChange={e => set("short_description", e.target.value)}
-              rows={2}
-              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none"
-            />
+
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Descriptions</p>
+            <div>
+              <label className={labelClass}>Description courte</label>
+              <textarea value={form.short_description || ""} onChange={e => set("short_description", e.target.value)} rows={2}
+                className={`${inputClass} resize-none rounded-xl`} placeholder="Résumé en 1-2 phrases..." />
+            </div>
+            <div>
+              <label className={labelClass}>Description longue</label>
+              <textarea value={form.long_description || ""} onChange={e => set("long_description", e.target.value)} rows={5}
+                className={`${inputClass} resize-none rounded-xl`} placeholder="Description détaillée du produit..." />
+            </div>
           </div>
-          <div>
-            <label className="text-xs font-body text-muted-foreground block mb-1">Long description</label>
-            <textarea
-              value={form.long_description || ""}
-              onChange={e => set("long_description", e.target.value)}
-              rows={4}
-              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40 resize-none"
-            />
+
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Informations complémentaires</p>
+            <div className="grid grid-cols-2 gap-4">
+              {renderInput("Prix indicatif (affichage)", "indicative_price")}
+              {renderInput("Garantie", "warranty")}
+              {renderInput("Infos entretien", "maintenance_info")}
+              {renderInput("Fournisseur (interne)", "supplier_internal")}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Image URL" field="image_url" />
-            <Input label="Indicative price (display)" field="indicative_price" />
+        </div>
+      )}
+
+      {/* ── Media ── */}
+      {section === "media" && (
+        <div className="space-y-6">
+          <SectionHeader icon={Eye} title="Photos & Médias" description="Image principale, galerie et couleurs" />
+
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <div>
+              <label className={labelClass}>URL image principale</label>
+              <input type="text" value={form.image_url || ""} onChange={e => set("image_url", e.target.value)}
+                className={inputClass} placeholder="https://..." />
+            </div>
+            {form.image_url && (
+              <div className="flex justify-center">
+                <img src={form.image_url} alt="Preview" className="max-w-xs max-h-48 rounded-xl border border-border object-cover" />
+              </div>
+            )}
+
+            <div>
+              <label className={labelClass}>Galerie photos (URLs séparées par des virgules)</label>
+              <textarea
+                value={form.gallery_urls.join(", ")}
+                onChange={e => set("gallery_urls", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+                rows={2} className={`${inputClass} resize-none rounded-xl`} placeholder="https://..., https://..." />
+            </div>
+            {form.gallery_urls.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {form.gallery_urls.map((url, i) => (
+                  <img key={i} src={url} alt="" className="w-20 h-20 rounded-lg border border-border object-cover shrink-0" />
+                ))}
+              </div>
+            )}
           </div>
-          <div>
-            <label className="text-xs font-body text-muted-foreground block mb-1">Gallery URLs (comma separated)</label>
-            <input
-              type="text"
-              value={form.gallery_urls.join(", ")}
-              onChange={e => set("gallery_urls", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
-              placeholder="https://..., https://..."
-            />
-          </div>
-          {/* Main color */}
-          <div>
-            <label className="text-xs font-body text-muted-foreground block mb-1">Main color (slug)</label>
-            <select
-              value={form.main_color || ""}
-              onChange={e => set("main_color", e.target.value)}
-              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
-            >
-              <option value="">—</option>
-              {COLOR_SLUGS.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-body text-muted-foreground block mb-1">Available colors (slugs, comma separated)</label>
-            <input
-              type="text"
-              value={form.available_colors.join(", ")}
-              onChange={e => set("available_colors", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
-              placeholder="white, black, terracotta"
-            />
-            <p className="text-[9px] font-body text-muted-foreground mt-1">
-              Use slugs: {COLOR_SLUGS.slice(0, 8).join(", ")}...
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Warranty" field="warranty" />
-            <Input label="Maintenance info" field="maintenance_info" />
+
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Couleurs</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Couleur principale</label>
+                <select value={form.main_color || ""} onChange={e => set("main_color", e.target.value)} className={inputClass}>
+                  <option value="">—</option>
+                  {COLOR_SLUGS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Couleur secondaire</label>
+                <select value={form.secondary_color || ""} onChange={e => set("secondary_color", e.target.value)} className={inputClass}>
+                  <option value="">—</option>
+                  {COLOR_SLUGS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>Couleurs disponibles (slugs, séparées par des virgules)</label>
+              <input type="text" value={form.available_colors.join(", ")}
+                onChange={e => set("available_colors", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+                className={inputClass} placeholder="white, black, terracotta" />
+              <p className="text-[9px] font-body text-muted-foreground mt-1">
+                Slugs : {COLOR_SLUGS.slice(0, 10).join(", ")}...
+              </p>
+            </div>
           </div>
         </div>
       )}
 
       {/* ── Tags ── */}
       {section === "tags" && (
-        <div className="space-y-4">
-          <div className="p-3 bg-card border border-border rounded-xl">
-            <p className="text-[10px] font-body text-muted-foreground">
-              All tags are <strong>English slugs</strong> (kebab-case). Type and press Enter, or select from suggestions.
-              Translations are handled automatically by the UI layer.
-            </p>
+        <div className="space-y-6">
+          <SectionHeader icon={Star} title="Tags & Étiquettes" description="Tapez et appuyez Entrée pour ajouter des tags. Les suggestions apparaissent automatiquement." />
+          <div className="border border-border rounded-2xl p-5 space-y-5 bg-card/30">
+            <TagInput label="Tags de style" value={form.style_tags}
+              onChange={v => set("style_tags", v)} suggestions={suggestions("style")}
+              placeholder="mediterranean, modern, bistro..." />
+            <TagInput label="Tags d'ambiance" value={form.ambience_tags}
+              onChange={v => set("ambience_tags", v)} suggestions={suggestions("ambience")}
+              placeholder="warm, convivial, elegant..." />
+            <TagInput label="Tags de palette" value={form.palette_tags}
+              onChange={v => set("palette_tags", v)} suggestions={suggestions("palette")}
+              placeholder="warm, natural, cool..." />
+            <TagInput label="Tags de matériau" value={form.material_tags}
+              onChange={v => set("material_tags", v)} suggestions={suggestions("material")}
+              placeholder="aluminium, teak, rope..." />
+            <TagInput label="Tags d'usage" value={form.use_case_tags}
+              onChange={v => set("use_case_tags", v)} suggestions={suggestions("use_case")}
+              placeholder="restaurant-terrace, rooftop, beach-club..." />
+            <TagInput label="Tags techniques" value={form.technical_tags}
+              onChange={v => set("technical_tags", v)} suggestions={suggestions("technical")}
+              placeholder="stackable, uv-resistant, chr-heavy-use..." />
           </div>
-          <TagInput label="Style tags" value={form.style_tags}
-            onChange={v => set("style_tags", v)} suggestions={suggestions("style")}
-            placeholder="mediterranean, modern, bistro..." />
-          <TagInput label="Ambience tags" value={form.ambience_tags}
-            onChange={v => set("ambience_tags", v)} suggestions={suggestions("ambience")}
-            placeholder="warm, convivial, elegant..." />
-          <TagInput label="Palette tags" value={form.palette_tags}
-            onChange={v => set("palette_tags", v)} suggestions={suggestions("palette")}
-            placeholder="warm, natural, cool..." />
-          <TagInput label="Material tags" value={form.material_tags}
-            onChange={v => set("material_tags", v)} suggestions={suggestions("material")}
-            placeholder="aluminium, teak, rope..." />
-          <TagInput label="Use case tags" value={form.use_case_tags}
-            onChange={v => set("use_case_tags", v)} suggestions={suggestions("use_case")}
-            placeholder="restaurant-terrace, rooftop, beach-club..." />
-          <TagInput label="Technical tags" value={form.technical_tags}
-            onChange={v => set("technical_tags", v)} suggestions={suggestions("technical")}
-            placeholder="stackable, uv-resistant, chr-heavy-use..." />
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Material structure (display)" field="material_structure" />
-            <Input label="Material seat (display)" field="material_seat" />
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Matériaux (affichage)</p>
+            <div className="grid grid-cols-2 gap-4">
+              {renderInput("Structure", "material_structure")}
+              {renderInput("Assise", "material_seat")}
+            </div>
           </div>
         </div>
       )}
 
       {/* ── Type-specific tags ── */}
       {section === "typetags" && (
-        <div className="space-y-4">
+        <div className="space-y-6">
+          <SectionHeader icon={ClipboardList} title="Tags spécifiques à la catégorie" description="Champs dynamiques selon la catégorie sélectionnée" />
           {!form.category ? (
-            <div className="flex items-center gap-2 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-              <AlertTriangle className="h-4 w-4 text-amber-600" />
-              <p className="text-sm font-body text-amber-700">Select a category in Basics first.</p>
+            <div className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+              <p className="text-sm font-body text-amber-700">Sélectionnez d'abord une catégorie dans l'onglet Informations.</p>
             </div>
           ) : (
-            <>
-              <div className="p-3 bg-card border border-border rounded-xl">
-                <p className="text-[10px] font-body text-muted-foreground">
-                  Fields marked <span className="text-red-500">*</span> are required for a good quality score.
-                  These feed directly into the recommendation engine.
-                </p>
-              </div>
+            <div className="border border-border rounded-2xl p-5 bg-card/30">
               <ProductTypeTagsForm
                 category={form.category}
                 value={form.product_type_tags}
                 onChange={v => set("product_type_tags", v)}
               />
-            </>
+            </div>
           )}
         </div>
       )}
 
       {/* ── Pricing & Stock ── */}
       {section === "pricing" && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Price min (€)" field="price_min" type="number" />
-            <Input label="Price max (€)" field="price_max" type="number" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Select label="Availability type" field="availability_type" options={AVAILABILITY_OPTIONS} />
-            <Select label="Stock status" field="stock_status" options={STOCK_STATUS_OPTIONS} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Stock quantity" field="stock_quantity" type="number" />
-            <Input label="Estimated delivery (days)" field="estimated_delivery_days" type="number" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-body text-muted-foreground block mb-1">Popularity score (0–1)</label>
-              <input type="range" min="0" max="1" step="0.05"
-                value={form.popularity_score}
-                onChange={e => set("popularity_score", Number(e.target.value))}
-                className="w-full"
-              />
-              <span className="text-xs font-body text-muted-foreground">{form.popularity_score}</span>
+        <div className="space-y-6">
+          <SectionHeader icon={CreditCard} title="Prix & Stock" description="Tarification, disponibilité et scores de visibilité" />
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Tarification</p>
+            <div className="grid grid-cols-2 gap-4">
+              {renderInput("Prix min (€)", "price_min", "number")}
+              {renderInput("Prix max (€)", "price_max", "number")}
             </div>
-            <div>
-              <label className="text-xs font-body text-muted-foreground block mb-1">Priority score (0–1)</label>
-              <input type="range" min="0" max="1" step="0.05"
-                value={form.priority_score}
-                onChange={e => set("priority_score", Number(e.target.value))}
-                className="w-full"
-              />
-              <span className="text-xs font-body text-muted-foreground">{form.priority_score}</span>
+          </div>
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Disponibilité</p>
+            <div className="grid grid-cols-2 gap-4">
+              {renderSelect("Type de disponibilité", "availability_type", AVAILABILITY_OPTIONS)}
+              {renderSelect("Statut stock", "stock_status", STOCK_STATUS_OPTIONS)}
+              {renderInput("Quantité en stock", "stock_quantity", "number")}
+              {renderInput("Délai de livraison (jours)", "estimated_delivery_days", "number")}
+            </div>
+          </div>
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Scores de visibilité</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Score de popularité</label>
+                <div className="flex items-center gap-3">
+                  <input type="range" min="0" max="1" step="0.05" value={form.popularity_score}
+                    onChange={e => set("popularity_score", Number(e.target.value))} className="flex-1 accent-foreground" />
+                  <span className="text-sm font-display font-bold text-foreground w-10 text-right">{Math.round(form.popularity_score * 100)}%</span>
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>Score de priorité</label>
+                <div className="flex items-center gap-3">
+                  <input type="range" min="0" max="1" step="0.05" value={form.priority_score}
+                    onChange={e => set("priority_score", Number(e.target.value))} className="flex-1 accent-foreground" />
+                  <span className="text-sm font-display font-bold text-foreground w-10 text-right">{Math.round(form.priority_score * 100)}%</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -721,82 +759,83 @@ function ProductForm({
 
       {/* ── Dimensions ── */}
       {section === "dims" && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <Input label="Length (cm)" field="dimensions_length_cm" type="number" />
-            <Input label="Width (cm)"  field="dimensions_width_cm"  type="number" />
-            <Input label="Height (cm)" field="dimensions_height_cm" type="number" />
-            <Input label="Seat height (cm)" field="seat_height_cm" type="number" />
-            <Input label="Weight (kg)" field="weight_kg" type="number" />
+        <div className="space-y-6">
+          <SectionHeader icon={FileText} title="Dimensions & Capacité" description="Mesures physiques du produit et capacité d'assise" />
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Mesures</p>
+            <div className="grid grid-cols-3 gap-4">
+              {renderInput("Longueur (cm)", "dimensions_length_cm", "number")}
+              {renderInput("Largeur (cm)", "dimensions_width_cm", "number")}
+              {renderInput("Hauteur (cm)", "dimensions_height_cm", "number")}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {renderInput("Hauteur assise (cm)", "seat_height_cm", "number")}
+              {renderInput("Poids (kg)", "weight_kg", "number")}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Select label="Table shape" field="table_shape"
-              options={["square","rectangular","round","oval"]} />
-            <Input label="Default seating" field="default_seating_capacity" type="number" />
-            <Input label="Seating min" field="recommended_seating_min" type="number" />
-            <Input label="Seating max" field="recommended_seating_max" type="number" />
+          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Capacité d'assise</p>
+            <div className="grid grid-cols-2 gap-4">
+              {renderSelect("Forme table", "table_shape", ["square","rectangular","round","oval"])}
+              {renderInput("Places par défaut", "default_seating_capacity", "number")}
+              {renderInput("Places min", "recommended_seating_min", "number")}
+              {renderInput("Places max", "recommended_seating_max", "number")}
+            </div>
+            <div className="flex gap-6 flex-wrap pt-2">
+              {renderToggle("Combinable", "combinable")}
+            </div>
+            {form.combinable && renderInput("Capacité si combiné", "combined_capacity_if_joined", "number")}
           </div>
-          <div className="flex gap-4 flex-wrap">
-            <Toggle label="Combinable" field="combinable" />
-          </div>
-          {form.combinable && (
-            <Input label="Combined capacity when joined" field="combined_capacity_if_joined" type="number" />
-          )}
         </div>
       )}
 
       {/* ── Technical booleans ── */}
       {section === "technical" && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-card border border-border rounded-xl">
-            {([
-              ["is_outdoor",        "Outdoor"],
-              ["is_stackable",      "Stackable"],
-              ["is_chr_heavy_use",  "CHR heavy use"],
-              ["uv_resistant",      "UV resistant"],
-              ["weather_resistant", "Weather resistant"],
-              ["fire_retardant",    "Fire retardant"],
-              ["lightweight",       "Lightweight"],
-              ["easy_maintenance",  "Easy maintenance"],
-              ["customizable",      "Customizable"],
-              ["dismountable",      "Dismountable"],
-              ["requires_assembly", "Requires assembly"],
-            ] as [keyof ProductFormData, string][]).map(([field, label]) => (
-              <Toggle key={field} label={label} field={field} />
-            ))}
+        <div className="space-y-6">
+          <SectionHeader icon={Settings} title="Caractéristiques techniques" description="Propriétés techniques et certifications du produit" />
+          <div className="border border-border rounded-2xl p-5 bg-card/30">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {([
+                ["is_outdoor",        "Extérieur"],
+                ["is_stackable",      "Empilable"],
+                ["is_chr_heavy_use",  "Usage CHR intensif"],
+                ["uv_resistant",      "Anti-UV"],
+                ["weather_resistant", "Résistant intempéries"],
+                ["fire_retardant",    "Anti-feu"],
+                ["lightweight",       "Léger"],
+                ["easy_maintenance",  "Entretien facile"],
+                ["customizable",      "Personnalisable"],
+                ["dismountable",      "Démontable"],
+                ["requires_assembly", "Assemblage requis"],
+              ] as [keyof ProductFormData, string][]).map(([field, label]) => (
+                <div key={field} className="py-1">{renderToggle(label, field)}</div>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Footer actions */}
-      <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
-        <div className="text-[10px] font-body text-muted-foreground">
-          Le score qualite sera calcule automatiquement.
+      {/* Footer actions — sticky */}
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border mt-8 -mx-1 px-1 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <DataQualityBadge score={previewScore} />
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="px-5 py-2.5 font-display font-semibold text-sm border border-border rounded-full hover:border-foreground transition-colors"
-          >
+          <button onClick={onCancel}
+            className="px-5 py-2.5 font-display font-semibold text-sm border border-border rounded-xl hover:border-foreground/30 transition-colors">
             Annuler
           </button>
           {(!form.id || form.publish_status === "draft") && previewScore >= 0.4 && (
-            <button
-              onClick={handleSubmitForReview}
-              disabled={saving || !form.name || !form.category}
-              className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm border border-amber-300 text-amber-700 bg-amber-50 rounded-full hover:bg-amber-100 disabled:opacity-50 transition-colors"
-            >
+            <button onClick={handleSubmitForReview} disabled={saving || !form.name || !form.category}
+              className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm border border-amber-300 text-amber-700 bg-amber-50 rounded-xl hover:bg-amber-100 disabled:opacity-50 transition-colors">
               <Eye className="h-4 w-4" />
               {saving ? "Envoi..." : "Soumettre pour validation"}
             </button>
           )}
-          <button
-            onClick={() => handleSave()}
-            disabled={saving || !form.name || !form.category}
-            className="flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-50"
-          >
+          <button onClick={() => handleSave()} disabled={saving || !form.name || !form.category}
+            className="flex items-center gap-2 px-6 py-2.5 font-display font-bold text-sm bg-foreground text-primary-foreground rounded-xl hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm">
             <Save className="h-4 w-4" />
-            {saving ? "Enregistrement..." : form.id ? "Mettre a jour" : "Enregistrer brouillon"}
+            {saving ? "Enregistrement..." : form.id ? "Mettre à jour" : "Enregistrer brouillon"}
           </button>
         </div>
       </div>
@@ -923,175 +962,216 @@ function ProductsTab() {
     );
   }
 
+  const statusLabels: Record<string, string> = {
+    published: "Publié", pending_review: "En attente", draft: "Brouillon", rejected: "Rejeté",
+  };
+
+  const statusCounts = {
+    all: products.length,
+    draft: products.filter(p => p.publish_status === "draft" || !p.publish_status).length,
+    pending_review: products.filter(p => p.publish_status === "pending_review").length,
+    published: products.filter(p => p.publish_status === "published").length,
+    rejected: products.filter(p => p.publish_status === "rejected").length,
+  };
+
   return (
-    <div>
-      {/* Toolbar */}
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <input
-            type="text" value={filter}
-            onChange={e => setFilter(e.target.value)}
-            placeholder="Rechercher des produits..."
-            className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2.5 text-sm font-body focus:outline-none focus:border-foreground/40"
-          />
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Catalogue produits
+          </h2>
+          <p className="text-xs font-body text-muted-foreground mt-0.5">
+            {products.length} produit{products.length > 1 ? "s" : ""} au total
+          </p>
         </div>
-        <select
-          value={catFilter}
-          onChange={e => setCatFilter(e.target.value)}
-          className="bg-card border border-border rounded-lg px-3 py-2.5 text-sm font-body focus:outline-none focus:border-foreground/40"
-        >
-          <option value="">Toutes les categories</option>
-          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
         <button
           onClick={() => setEditing(emptyProduct())}
-          className="flex items-center gap-2 px-5 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 ml-auto"
+          className="flex items-center gap-2 px-5 py-2.5 font-display font-bold text-sm bg-foreground text-primary-foreground rounded-xl hover:opacity-90 shadow-sm transition-all"
         >
           <Plus className="h-4 w-4" /> Ajouter un produit
         </button>
       </div>
 
-      {/* Publish status filter */}
-      <div className="flex gap-1 mb-4 flex-wrap">
+      {/* Search & filters */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            type="text" value={filter}
+            onChange={e => setFilter(e.target.value)}
+            placeholder="Rechercher par nom ou catégorie..."
+            className="w-full bg-white border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm font-body focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:border-foreground/40 transition-all"
+          />
+        </div>
+        <select
+          value={catFilter}
+          onChange={e => setCatFilter(e.target.value)}
+          className="bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-body focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:border-foreground/40 transition-all"
+        >
+          <option value="">Toutes les catégories</option>
+          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+
+      {/* Status filter tabs */}
+      <div className="flex gap-1.5 border-b border-border pb-px">
         {([
           { id: "all",            label: "Tous" },
-          { id: "draft",          label: "Brouillon" },
+          { id: "published",      label: "Publiés" },
           { id: "pending_review", label: "En attente" },
-          { id: "published",      label: "Publie" },
-          { id: "rejected",       label: "Rejete" },
+          { id: "draft",          label: "Brouillons" },
+          { id: "rejected",       label: "Rejetés" },
         ] as { id: PublishFilter; label: string }[]).map(f => (
           <button key={f.id} onClick={() => setStatusFilter(f.id)}
-            className={`px-3 py-1.5 text-[10px] font-display font-semibold rounded-full transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-display font-semibold border-b-2 -mb-px transition-colors ${
               statusFilter === f.id
-                ? "bg-foreground text-primary-foreground"
-                : "border border-border text-muted-foreground hover:border-foreground"
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}>
             {f.label}
+            <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${
+              statusFilter === f.id ? "bg-foreground text-primary-foreground" : "bg-foreground/10"
+            }`}>
+              {statusCounts[f.id]}
+            </span>
           </button>
         ))}
       </div>
 
       {isLoading ? (
-        <p className="text-muted-foreground font-body text-sm">Chargement...</p>
+        <div className="flex items-center justify-center py-16">
+          <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <Package className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+          <div className="w-14 h-14 mx-auto rounded-full bg-foreground/5 flex items-center justify-center mb-3">
+            <Package className="h-6 w-6 text-muted-foreground/50" />
+          </div>
           <p className="text-sm font-body text-muted-foreground">
-            {products.length === 0 ? "Aucun produit. Ajoutez votre premier produit." : "Aucun produit ne correspond a votre recherche."}
+            {products.length === 0 ? "Aucun produit. Ajoutez votre premier produit." : "Aucun produit ne correspond à votre recherche."}
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm font-body">
-            <thead>
-              <tr className="border-b border-border">
-                {["Produit", "Categorie", "Couleur", "Prix", "Qualite", "Statut", ""].map(h => (
-                  <th key={h} className={`py-3 px-2 text-[10px] uppercase tracking-wider text-muted-foreground font-normal ${h === "" ? "text-right" : "text-left"}`}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(product => (
-                <tr key={product.id} className="border-b border-border/50 hover:bg-card/50 transition-colors">
-                  <td className="py-3 px-2">
-                    <div className="flex items-center gap-2">
-                      {product.image_url && (
-                        <img src={product.image_url} alt="" className="w-8 h-8 rounded object-cover bg-card" />
-                      )}
-                      <div>
-                        <p className="font-display font-semibold text-xs text-foreground">{product.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{product.style_tags.slice(0, 2).join(", ")}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map(product => {
+            const price = product.price_min ? `${product.price_min.toLocaleString("fr-FR")}€` : product.indicative_price || null;
+            const qualityPct = Math.round(product.data_quality_score * 100);
+            const qualityColor = qualityPct >= 80 ? "text-green-600" : qualityPct >= 50 ? "text-amber-600" : "text-red-500";
+
+            return (
+              <div key={product.id} className="border border-border rounded-2xl bg-card overflow-hidden hover:border-foreground/15 hover:shadow-md transition-all group">
+                {/* Image */}
+                <div className="relative aspect-[4/3] bg-foreground/5 overflow-hidden">
+                  {product.image_url ? (
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="h-10 w-10 text-muted-foreground/20" />
+                    </div>
+                  )}
+                  {/* Status badge overlay */}
+                  <div className="absolute top-3 left-3">
+                    <span className={`text-[10px] font-display font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm ${
+                      product.publish_status === "published" ? "bg-green-500/90 text-white" :
+                      product.publish_status === "pending_review" ? "bg-amber-500/90 text-white" :
+                      product.publish_status === "rejected" ? "bg-red-500/90 text-white" :
+                      "bg-black/50 text-white"
+                    }`}>
+                      {statusLabels[product.publish_status] || "Brouillon"}
+                    </span>
+                  </div>
+                  {/* Quality score overlay */}
+                  <div className="absolute top-3 right-3">
+                    <span className={`text-[10px] font-display font-bold px-2 py-1 rounded-lg bg-white/90 backdrop-blur-sm ${qualityColor}`}>
+                      {qualityPct}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0">
+                      <h3 className="font-display text-sm font-bold text-foreground truncate">{product.name}</h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] font-display font-semibold text-muted-foreground bg-foreground/5 px-2 py-0.5 rounded-md">
+                          {product.category}
+                        </span>
+                        {product.main_color && (
+                          <span className="text-[10px] font-body text-muted-foreground">{product.main_color}</span>
+                        )}
                       </div>
                     </div>
-                  </td>
-                  <td className="py-3 px-2">
-                    <span className="text-[10px] bg-card border border-border rounded px-1.5 py-0.5 text-muted-foreground">
-                      {product.category}
-                    </span>
-                  </td>
-                  <td className="py-3 px-2">
-                    {product.main_color ? (
-                      <span className="text-[10px] font-body text-foreground">{product.main_color}</span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">—</span>
+                    {price && (
+                      <span className="text-sm font-display font-bold text-foreground shrink-0">{price}</span>
                     )}
-                  </td>
-                  <td className="py-3 px-2 text-muted-foreground text-xs">
-                    {product.price_min ? `€${product.price_min.toLocaleString("fr-FR")}` : product.indicative_price || "—"}
-                  </td>
-                  <td className="py-3 px-2">
-                    <DataQualityBadge score={product.data_quality_score} />
-                  </td>
-                  <td className="py-3 px-2">
-                    <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full ${
-                      PUBLISH_BADGE[product.publish_status] || PUBLISH_BADGE.draft
-                    }`}>
-                      {(product.publish_status || "draft").replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className="py-3 px-2 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      {product.publish_status === "pending_review" && (
-                        <>
-                          <button
-                            onClick={() => handlePublishAction(product.id, "published")}
-                            className="text-green-600 hover:text-green-800 transition-colors"
-                            title="Publier"
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handlePublishAction(product.id, "rejected")}
-                            className="text-red-500 hover:text-red-700 transition-colors"
-                            title="Rejeter"
-                          >
-                            <XCircle className="h-4 w-4" />
-                          </button>
-                        </>
+                  </div>
+
+                  {/* Tags preview */}
+                  {product.style_tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {product.style_tags.slice(0, 3).map(t => (
+                        <span key={t} className="text-[9px] font-body text-muted-foreground bg-foreground/5 px-1.5 py-0.5 rounded">{t}</span>
+                      ))}
+                      {product.style_tags.length > 3 && (
+                        <span className="text-[9px] font-body text-muted-foreground">+{product.style_tags.length - 3}</span>
                       )}
-                      <button
-                        onClick={() => setEditing({ ...product })}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <Pencil className="h-4 w-4" />
+                    </div>
+                  )}
+
+                  {/* Actions row */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-border">
+                    {product.publish_status === "pending_review" && (
+                      <>
+                        <button onClick={() => handlePublishAction(product.id, "published")}
+                          className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">
+                          <CheckCircle2 className="h-3 w-3" /> Publier
+                        </button>
+                        <button onClick={() => handlePublishAction(product.id, "rejected")}
+                          className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
+                          <XCircle className="h-3 w-3" /> Rejeter
+                        </button>
+                      </>
+                    )}
+                    <div className="flex items-center gap-1 ml-auto">
+                      <button onClick={() => setEditing({ ...product })}
+                        className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                        title="Modifier">
+                        <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(product.id)}
-                        disabled={deleting === product.id}
-                        className="text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
-                      >
-                        <X className="h-4 w-4" />
+                      <button onClick={() => setConfirmDeleteId(product.id)} disabled={deleting === product.id}
+                        className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-red-500 hover:border-red-300 transition-colors disabled:opacity-50"
+                        title="Supprimer">
+                        <X className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* Delete confirmation dialog */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-background border border-border rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
-            <h3 className="font-display font-bold text-sm text-foreground mb-2">Supprimer ce produit ?</h3>
-            <p className="text-xs font-body text-muted-foreground mb-5">Cette action est irreversible.</p>
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setConfirmDeleteId(null)}
-                className="px-4 py-2 text-xs font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors"
-              >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-background border border-border rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="h-6 w-6 text-red-500" />
+            </div>
+            <h3 className="font-display font-bold text-sm text-foreground text-center mb-1">Supprimer ce produit ?</h3>
+            <p className="text-xs font-body text-muted-foreground text-center mb-6">Cette action est irréversible.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 px-4 py-2.5 text-xs font-display font-semibold border border-border rounded-xl hover:border-foreground/30 transition-colors">
                 Annuler
               </button>
-              <button
-                onClick={() => handleDelete(confirmDeleteId)}
-                disabled={!!deleting}
-                className="px-4 py-2 text-xs font-display font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
+              <button onClick={() => handleDelete(confirmDeleteId)} disabled={!!deleting}
+                className="flex-1 px-4 py-2.5 text-xs font-display font-bold bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 transition-colors">
                 {deleting ? "Suppression..." : "Supprimer"}
               </button>
             </div>
