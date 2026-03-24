@@ -1,78 +1,63 @@
 import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   X, Upload, FileSpreadsheet, Check, Loader2, AlertTriangle,
-  Download, Eye, Trash2, Edit3, CheckCircle2, XCircle, Info,
+  Download, Trash2, CheckCircle2, XCircle, Info, Sparkles,
+  ImagePlus, Link2, Image as ImageIcon,
 } from "lucide-react";
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-interface ParsedProduct {
+interface AIProduct {
   id: string;
   name: string;
   category: string;
-  subcategory: string;
-  short_description: string;
-  material_structure: string;
-  material_seat: string;
-  main_color: string;
-  price_min: number | null;
-  price_max: number | null;
-  dimensions_length_cm: number | null;
-  dimensions_width_cm: number | null;
-  dimensions_height_cm: number | null;
-  weight_kg: number | null;
-  stock_status: string;
-  stock_quantity: number | null;
-  country_of_manufacture: string;
-  warranty: string;
-  is_outdoor: boolean;
-  is_stackable: boolean;
-  // Validation
+  subcategory?: string | null;
+  short_description?: string | null;
+  long_description?: string | null;
+  material_structure?: string | null;
+  material_seat?: string | null;
+  main_color?: string | null;
+  secondary_color?: string | null;
+  available_colors?: string[];
+  style_tags?: string[];
+  ambience_tags?: string[];
+  material_tags?: string[];
+  use_case_tags?: string[];
+  technical_tags?: string[];
+  price_min?: number | null;
+  price_max?: number | null;
+  dimensions_length_cm?: number | null;
+  dimensions_width_cm?: number | null;
+  dimensions_height_cm?: number | null;
+  seat_height_cm?: number | null;
+  weight_kg?: number | null;
+  is_outdoor?: boolean;
+  is_stackable?: boolean;
+  is_chr_heavy_use?: boolean;
+  uv_resistant?: boolean;
+  weather_resistant?: boolean;
+  fire_retardant?: boolean;
+  lightweight?: boolean;
+  easy_maintenance?: boolean;
+  country_of_manufacture?: string | null;
+  warranty?: string | null;
+  stock_status?: string | null;
+  stock_quantity?: number | null;
+  collection?: string | null;
+  brand_source?: string | null;
+  // UI state
+  image_url?: string | null;
+  gallery_urls?: string[];
   valid: boolean;
   errors: string[];
 }
 
-// Column mapping from Excel headers to our fields
-const COLUMN_MAP: Record<string, keyof ParsedProduct> = {
-  // French
-  "nom": "name", "nom du produit": "name", "produit": "name",
-  "catégorie": "category", "categorie": "category", "category": "category",
-  "sous-catégorie": "subcategory", "sous-categorie": "subcategory", "subcategory": "subcategory",
-  "description": "short_description", "description courte": "short_description",
-  "matériau": "material_structure", "materiau": "material_structure", "matériau structure": "material_structure",
-  "material": "material_structure", "structure": "material_structure",
-  "matériau assise": "material_seat", "assise": "material_seat", "seat material": "material_seat",
-  "couleur": "main_color", "couleur principale": "main_color", "color": "main_color",
-  "prix": "price_min", "prix ht": "price_min", "prix min": "price_min", "price": "price_min",
-  "prix max": "price_max", "price max": "price_max",
-  "longueur": "dimensions_length_cm", "longueur cm": "dimensions_length_cm", "length": "dimensions_length_cm",
-  "largeur": "dimensions_width_cm", "largeur cm": "dimensions_width_cm", "width": "dimensions_width_cm",
-  "hauteur": "dimensions_height_cm", "hauteur cm": "dimensions_height_cm", "height": "dimensions_height_cm",
-  "poids": "weight_kg", "poids kg": "weight_kg", "weight": "weight_kg",
-  "stock": "stock_status", "statut stock": "stock_status", "stock status": "stock_status",
-  "quantité": "stock_quantity", "quantite": "stock_quantity", "qty": "stock_quantity", "quantity": "stock_quantity",
-  "pays": "country_of_manufacture", "pays de fabrication": "country_of_manufacture", "country": "country_of_manufacture",
-  "garantie": "warranty", "warranty": "warranty",
-  "extérieur": "is_outdoor", "outdoor": "is_outdoor", "exterieur": "is_outdoor",
-  "empilable": "is_stackable", "stackable": "is_stackable",
-};
-
-const CATEGORY_ALIASES: Record<string, string> = {
-  "chaise": "seating", "chaises": "seating", "assise": "seating", "assises": "seating",
-  "fauteuil": "seating", "fauteuils": "seating", "tabouret": "seating", "banc": "seating",
-  "table": "tables", "tables": "tables",
-  "parasol": "parasols", "parasols": "parasols", "ombrage": "parasols",
-  "bain de soleil": "loungers", "transat": "loungers", "lounger": "loungers", "loungers": "loungers",
-  "canapé": "sofas", "canapés": "sofas", "banquette": "sofas", "sofa": "sofas", "sofas": "sofas",
-  "accessoire": "accessories", "accessoires": "accessories", "accessories": "accessories",
-  "seating": "seating",
-};
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// ── CSV Parser ────────────────────────────────────────────────────────────────
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
@@ -83,29 +68,18 @@ function parseCSV(text: string): string[][] {
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     if (inQuotes) {
-      if (ch === '"' && text[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else if (ch === '"') {
-        inQuotes = false;
-      } else {
-        current += ch;
-      }
+      if (ch === '"' && text[i + 1] === '"') { current += '"'; i++; }
+      else if (ch === '"') { inQuotes = false; }
+      else { current += ch; }
     } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === "," || ch === ";" || ch === "\t") {
-        row.push(current.trim());
-        current = "";
-      } else if (ch === "\n" || ch === "\r") {
+      if (ch === '"') { inQuotes = true; }
+      else if (ch === "," || ch === ";" || ch === "\t") { row.push(current.trim()); current = ""; }
+      else if (ch === "\n" || ch === "\r") {
         if (ch === "\r" && text[i + 1] === "\n") i++;
         row.push(current.trim());
         if (row.some(c => c !== "")) rows.push(row);
-        row = [];
-        current = "";
-      } else {
-        current += ch;
-      }
+        row = []; current = "";
+      } else { current += ch; }
     }
   }
   row.push(current.trim());
@@ -113,58 +87,39 @@ function parseCSV(text: string): string[][] {
   return rows;
 }
 
-function parseBool(val: string): boolean {
-  const v = val.toLowerCase().trim();
-  return v === "oui" || v === "yes" || v === "true" || v === "1" || v === "x" || v === "✓";
+// ── Photo matching ───────────────────────────────────────────────────────────
+
+function normalizeForMatch(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function mapRow(headers: string[], row: string[]): ParsedProduct {
-  const product: any = {
-    id: crypto.randomUUID(),
-    name: "", category: "", subcategory: "", short_description: "",
-    material_structure: "", material_seat: "", main_color: "",
-    price_min: null, price_max: null,
-    dimensions_length_cm: null, dimensions_width_cm: null, dimensions_height_cm: null,
-    weight_kg: null, stock_status: "in_stock", stock_quantity: null,
-    country_of_manufacture: "", warranty: "",
-    is_outdoor: true, is_stackable: false,
-    valid: true, errors: [],
-  };
+function matchScore(fileName: string, productName: string): number {
+  const normFile = normalizeForMatch(fileName.replace(/\.[^.]+$/, ""));
+  const normProduct = normalizeForMatch(productName);
+  if (!normFile || !normProduct) return 0;
 
-  headers.forEach((header, i) => {
-    const val = row[i] || "";
-    if (!val) return;
-    const key = COLUMN_MAP[header.toLowerCase().trim()];
-    if (!key) return;
+  const fileWords = normFile.split(" ").filter(w => w.length > 1);
+  const productWords = normProduct.split(" ").filter(w => w.length > 1);
+  if (fileWords.length === 0 || productWords.length === 0) return 0;
 
-    if (key === "price_min" || key === "price_max" || key === "dimensions_length_cm" ||
-        key === "dimensions_width_cm" || key === "dimensions_height_cm" ||
-        key === "weight_kg" || key === "stock_quantity") {
-      const num = parseFloat(val.replace(/[€$,\s]/g, "").replace(",", "."));
-      if (!isNaN(num)) product[key] = num;
-    } else if (key === "is_outdoor" || key === "is_stackable") {
-      product[key] = parseBool(val);
-    } else if (key === "category") {
-      product[key] = CATEGORY_ALIASES[val.toLowerCase().trim()] || val.toLowerCase().trim();
-    } else {
-      product[key] = val;
-    }
-  });
-
-  // Validate
-  if (!product.name) {
-    product.valid = false;
-    product.errors.push("Nom manquant");
-  }
-  if (!product.category || !["seating", "tables", "parasols", "loungers", "sofas", "accessories"].includes(product.category)) {
-    product.valid = false;
-    product.errors.push("Catégorie invalide ou manquante");
+  let matched = 0;
+  for (const fw of fileWords) {
+    if (productWords.some(pw => pw.includes(fw) || fw.includes(pw))) matched++;
   }
 
-  return product;
+  return matched / Math.max(fileWords.length, productWords.length);
 }
 
-// ── Component ──────────────────────────────────────────────────────────────────
+// ── Batch splitter (for large CSVs, send in chunks to avoid token limits) ────
+
+const MAX_ROWS_PER_BATCH = 20;
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 export default function ExcelImportModal({
   plan,
@@ -176,73 +131,35 @@ export default function ExcelImportModal({
   onSuccess: (count: number) => void;
 }) {
   const { t } = useTranslation();
+  const { user, profile } = useAuth();
   const config = PLAN_CONFIG[plan];
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
-  const [step, setStep] = useState<"upload" | "preview" | "importing">("upload");
+  const [step, setStep] = useState<"upload" | "analyzing" | "preview" | "photos" | "importing">("upload");
   const [fileName, setFileName] = useState("");
-  const [products, setProducts] = useState<ParsedProduct[]>([]);
+  const [products, setProducts] = useState<AIProduct[]>([]);
+  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [analyzeProgress, setAnalyzeProgress] = useState("");
+  // Photo matching
+  const [unmatchedPhotos, setUnmatchedPhotos] = useState<File[]>([]);
+  const [manualAssign, setManualAssign] = useState<string | null>(null);
 
   // ── File handling ──
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const ext = file.name.split(".").pop()?.toLowerCase();
-    if (!["csv", "tsv", "txt", "xlsx", "xls"].includes(ext || "")) {
-      toast.error("Format non supporté. Utilisez CSV, TSV ou Excel (.xlsx).");
+    if (!["csv", "tsv", "txt"].includes(ext || "")) {
+      toast.error("Format non supporté. Utilisez un fichier CSV ou TSV.");
       return;
     }
-
     setFileName(file.name);
-
-    if (ext === "xlsx" || ext === "xls") {
-      // For Excel files, we read as CSV-like using a simple approach
-      // In production, you'd use a library like SheetJS
-      toast.info("Pour les fichiers Excel, exportez d'abord en CSV depuis Excel (Fichier → Enregistrer sous → CSV).");
-      // Try to read as text anyway in case it's actually a CSV with wrong extension
-      try {
-        const text = await file.text();
-        processCSVText(text);
-      } catch {
-        toast.error("Impossible de lire ce fichier. Exportez-le en CSV depuis Excel.");
-      }
-      return;
-    }
-
     const text = await file.text();
-    processCSVText(text);
-  };
-
-  const processCSVText = (text: string) => {
-    const rows = parseCSV(text);
-    if (rows.length < 2) {
-      toast.error("Le fichier semble vide ou ne contient qu'un en-tête.");
-      return;
-    }
-
-    const headers = rows[0];
-    const dataRows = rows.slice(1);
-    const parsed = dataRows.map(row => mapRow(headers, row));
-
-    if (parsed.length === 0) {
-      toast.error("Aucun produit trouvé dans le fichier.");
-      return;
-    }
-
-    setProducts(parsed);
-    setStep("preview");
-
-    const validCount = parsed.filter(p => p.valid).length;
-    const invalidCount = parsed.length - validCount;
-    if (invalidCount > 0) {
-      toast.warning(`${validCount} produit${validCount > 1 ? "s" : ""} valide${validCount > 1 ? "s" : ""}, ${invalidCount} avec des erreurs.`);
-    } else {
-      toast.success(`${validCount} produit${validCount > 1 ? "s" : ""} détecté${validCount > 1 ? "s" : ""}.`);
-    }
+    await processCSVWithAI(text);
   };
 
   const handleDrop = async (e: React.DragEvent) => {
@@ -251,14 +168,185 @@ export default function ExcelImportModal({
     if (!file) return;
     setFileName(file.name);
     const text = await file.text();
-    processCSVText(text);
+    await processCSVWithAI(text);
+  };
+
+  const processCSVWithAI = async (text: string) => {
+    const rows = parseCSV(text);
+    if (rows.length < 2) {
+      toast.error("Le fichier semble vide ou ne contient qu'un en-tête.");
+      return;
+    }
+
+    const headers = rows[0];
+    const dataRows = rows.slice(1).filter(r => r.some(c => c !== ""));
+
+    if (dataRows.length === 0) {
+      toast.error("Aucune donnée trouvée dans le fichier.");
+      return;
+    }
+
+    setStep("analyzing");
+    setAnalyzeProgress(`Analyse de ${dataRows.length} produit${dataRows.length > 1 ? "s" : ""} par l'IA...`);
+
+    try {
+      const allProducts: AIProduct[] = [];
+      let mapping: Record<string, string> = {};
+
+      // Process in batches
+      for (let i = 0; i < dataRows.length; i += MAX_ROWS_PER_BATCH) {
+        const batch = dataRows.slice(i, i + MAX_ROWS_PER_BATCH);
+        const batchNum = Math.floor(i / MAX_ROWS_PER_BATCH) + 1;
+        const totalBatches = Math.ceil(dataRows.length / MAX_ROWS_PER_BATCH);
+
+        if (totalBatches > 1) {
+          setAnalyzeProgress(`Analyse lot ${batchNum}/${totalBatches} (${batch.length} produits)...`);
+        }
+
+        const { data, error } = await supabase.functions.invoke("analyze-csv-products", {
+          body: { headers, rows: batch },
+        });
+
+        if (error) throw error;
+        if (!data?.products) throw new Error("L'IA n'a pas retourné de produits");
+
+        // Keep the mapping from the first batch
+        if (data.column_mapping && i === 0) {
+          mapping = data.column_mapping;
+        }
+
+        const batchProducts: AIProduct[] = (data.products as any[]).map((p: any) => ({
+          id: crypto.randomUUID(),
+          name: p.name || "",
+          category: p.category || "",
+          subcategory: p.subcategory || null,
+          short_description: p.short_description || null,
+          long_description: p.long_description || null,
+          material_structure: p.material_structure || null,
+          material_seat: p.material_seat || null,
+          main_color: p.main_color || null,
+          secondary_color: p.secondary_color || null,
+          available_colors: p.available_colors || [],
+          style_tags: p.style_tags || [],
+          ambience_tags: p.ambience_tags || [],
+          material_tags: p.material_tags || [],
+          use_case_tags: p.use_case_tags || [],
+          technical_tags: p.technical_tags || [],
+          price_min: p.price_min ?? null,
+          price_max: p.price_max ?? null,
+          dimensions_length_cm: p.dimensions_length_cm ?? null,
+          dimensions_width_cm: p.dimensions_width_cm ?? null,
+          dimensions_height_cm: p.dimensions_height_cm ?? null,
+          seat_height_cm: p.seat_height_cm ?? null,
+          weight_kg: p.weight_kg ?? null,
+          is_outdoor: p.is_outdoor ?? true,
+          is_stackable: p.is_stackable ?? false,
+          is_chr_heavy_use: p.is_chr_heavy_use ?? false,
+          uv_resistant: p.uv_resistant ?? false,
+          weather_resistant: p.weather_resistant ?? false,
+          fire_retardant: p.fire_retardant ?? false,
+          lightweight: p.lightweight ?? false,
+          easy_maintenance: p.easy_maintenance ?? false,
+          country_of_manufacture: p.country_of_manufacture || null,
+          warranty: p.warranty || null,
+          stock_status: p.stock_status || null,
+          stock_quantity: p.stock_quantity ?? null,
+          collection: p.collection || null,
+          brand_source: p.brand_source || null,
+          image_url: null,
+          gallery_urls: [],
+          valid: !!p.name && !!p.category,
+          errors: [
+            ...(!p.name ? ["Nom non détecté"] : []),
+            ...(!p.category ? ["Catégorie non détectée"] : []),
+          ],
+        }));
+
+        allProducts.push(...batchProducts);
+      }
+
+      setColumnMapping(mapping);
+      setProducts(allProducts);
+      setStep("preview");
+
+      const validCount = allProducts.filter(p => p.valid).length;
+      const invalidCount = allProducts.length - validCount;
+      if (invalidCount > 0) {
+        toast.warning(`${validCount} produit${validCount > 1 ? "s" : ""} enrichi${validCount > 1 ? "s" : ""}, ${invalidCount} avec des erreurs.`);
+      } else {
+        toast.success(`${validCount} produit${validCount > 1 ? "s" : ""} analysé${validCount > 1 ? "s" : ""} et enrichi${validCount > 1 ? "s" : ""} par l'IA.`);
+      }
+    } catch (err: any) {
+      console.error("AI analysis error:", err);
+      toast.error(err.message || "Erreur lors de l'analyse IA");
+      setStep("upload");
+    }
+  };
+
+  // ── Photo handling ──
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const updatedProducts = [...products];
+    const unmatched: File[] = [];
+
+    for (const file of files) {
+      let bestMatch = -1;
+      let bestScore = 0;
+
+      for (let i = 0; i < updatedProducts.length; i++) {
+        const score = matchScore(file.name, updatedProducts[i].name);
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = i;
+        }
+      }
+
+      if (bestScore >= 0.4 && bestMatch >= 0) {
+        const url = URL.createObjectURL(file);
+        if (!updatedProducts[bestMatch].image_url) {
+          updatedProducts[bestMatch].image_url = url;
+        } else {
+          updatedProducts[bestMatch].gallery_urls = [
+            ...(updatedProducts[bestMatch].gallery_urls || []),
+            url,
+          ];
+        }
+      } else {
+        unmatched.push(file);
+      }
+    }
+
+    setProducts(updatedProducts);
+    setUnmatchedPhotos(prev => [...prev, ...unmatched]);
+
+    const matchedCount = files.length - unmatched.length;
+    if (matchedCount > 0) {
+      toast.success(`${matchedCount} photo${matchedCount > 1 ? "s" : ""} associée${matchedCount > 1 ? "s" : ""} automatiquement.`);
+    }
+    if (unmatched.length > 0) {
+      toast.info(`${unmatched.length} photo${unmatched.length > 1 ? "s" : ""} non matchée${unmatched.length > 1 ? "s" : ""} — association manuelle possible.`);
+    }
+  };
+
+  const assignPhotoManually = (photoIndex: number, productId: string) => {
+    const file = unmatchedPhotos[photoIndex];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setProducts(prev => prev.map(p => {
+      if (p.id !== productId) return p;
+      if (!p.image_url) return { ...p, image_url: url };
+      return { ...p, gallery_urls: [...(p.gallery_urls || []), url] };
+    }));
+    setUnmatchedPhotos(prev => prev.filter((_, i) => i !== photoIndex));
+    setManualAssign(null);
   };
 
   // ── Import ──
 
-  const removeProduct = (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
-  };
+  const removeProduct = (id: string) => setProducts(prev => prev.filter(p => p.id !== id));
 
   const handleImport = async () => {
     const validProducts = products.filter(p => p.valid);
@@ -267,40 +355,62 @@ export default function ExcelImportModal({
       return;
     }
 
+    // Resolve partner_id
+    let partnerId: string | null = null;
+    if (user) {
+      const { data } = await supabase.from("partners").select("id").eq("user_id", user.id).maybeSingle();
+      partnerId = data?.id || null;
+    }
+
     setImporting(true);
     setStep("importing");
     let imported = 0;
 
     for (const p of validProducts) {
       try {
+        // TODO: if image_url is a blob URL, upload to Supabase Storage first
         const { error } = await supabase.from("products").insert({
           name: p.name,
           category: p.category,
           subcategory: p.subcategory || null,
           short_description: p.short_description || null,
+          long_description: p.long_description || null,
           material_structure: p.material_structure || null,
           material_seat: p.material_seat || null,
           main_color: p.main_color || null,
+          secondary_color: p.secondary_color || null,
+          available_colors: p.available_colors || [],
+          style_tags: p.style_tags || [],
+          ambience_tags: p.ambience_tags || [],
+          material_tags: p.material_tags || [],
+          use_case_tags: p.use_case_tags || [],
+          technical_tags: p.technical_tags || [],
           price_min: p.price_min,
           price_max: p.price_max,
           dimensions_length_cm: p.dimensions_length_cm,
           dimensions_width_cm: p.dimensions_width_cm,
           dimensions_height_cm: p.dimensions_height_cm,
+          seat_height_cm: p.seat_height_cm,
           weight_kg: p.weight_kg,
-          stock_status: p.stock_status || null,
-          stock_quantity: p.stock_quantity,
+          is_outdoor: p.is_outdoor ?? true,
+          is_stackable: p.is_stackable ?? false,
+          is_chr_heavy_use: p.is_chr_heavy_use ?? false,
+          uv_resistant: p.uv_resistant ?? false,
+          weather_resistant: p.weather_resistant ?? false,
+          fire_retardant: p.fire_retardant ?? false,
+          lightweight: p.lightweight ?? false,
+          easy_maintenance: p.easy_maintenance ?? false,
           country_of_manufacture: p.country_of_manufacture || null,
           warranty: p.warranty || null,
-          is_outdoor: p.is_outdoor,
-          is_stackable: p.is_stackable,
+          stock_status: p.stock_status || null,
+          stock_quantity: p.stock_quantity,
+          collection: p.collection || null,
+          brand_source: p.brand_source || null,
           publish_status: "draft",
-          partner_id: null,
+          partner_id: partnerId,
         });
-
         if (!error) imported++;
-      } catch {
-        // Skip failed individual inserts
-      }
+      } catch { /* skip failed */ }
       setImportProgress(Math.round(((imported + 1) / validProducts.length) * 100));
     }
 
@@ -323,20 +433,17 @@ export default function ExcelImportModal({
       "Garantie", "Extérieur", "Empilable",
     ];
     const example = [
-      "Chaise Riviera", "seating", "dining-chair", "Chaise empilable en aluminium",
+      "Chaise Riviera", "Chairs", "dining-chair", "Chaise empilable en aluminium",
       "aluminium", "textilène", "white",
       "140", "160", "56", "58", "84",
-      "3.8", "in_stock", "200", "Italie",
+      "3.8", "available", "200", "Italie",
       "3 ans", "oui", "oui",
     ];
-
     const csv = [headers.join(";"), example.join(";")].join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = "terrassea_import_template.csv";
-    a.click();
+    a.href = url; a.download = "terrassea_import_template.csv"; a.click();
     URL.revokeObjectURL(url);
     toast.success("Template téléchargé !");
   };
@@ -346,16 +453,17 @@ export default function ExcelImportModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 overflow-y-auto py-8">
-      <div className="bg-background border border-border rounded-sm shadow-xl w-full max-w-3xl mx-4 my-auto">
+      <div className="bg-background border border-border rounded-sm shadow-xl w-full max-w-4xl mx-4 my-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
             <h2 className="font-display font-bold text-base text-foreground flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4" />
-              Import Excel / CSV
+              Import intelligent CSV
+              <span className="text-[9px] font-body text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">IA</span>
             </h2>
             <p className="text-[10px] font-body text-muted-foreground mt-0.5">
-              Importez vos produits en masse depuis un fichier Excel ou CSV
+              L'IA analyse votre fichier et enrichit automatiquement chaque produit
             </p>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -367,69 +475,37 @@ export default function ExcelImportModal({
           {/* ── Step: Upload ── */}
           {step === "upload" && (
             <div className="space-y-5">
-              {/* Template download */}
-              <div className="flex items-start gap-3 px-4 py-3 bg-card border border-border rounded-sm">
-                <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-sm">
+                <Sparkles className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-[10px] font-body text-muted-foreground leading-relaxed">
-                    Utilisez notre template pour structurer vos données correctement.
-                    Les colonnes reconnues : <strong>Nom, Catégorie, Description, Matériau, Couleur, Prix HT, Dimensions, Poids, Stock, Pays, Garantie...</strong>
+                  <p className="text-[10px] font-body text-emerald-800 leading-relaxed">
+                    <strong>Import intelligent :</strong> Votre fichier peut avoir n'importe quel format de colonnes.
+                    L'IA détecte automatiquement chaque champ, enrichit les données (tags, catégories, descriptions)
+                    et normalise les couleurs et matériaux.
                   </p>
-                  <button
-                    onClick={downloadTemplate}
-                    className="flex items-center gap-1.5 mt-2 text-[10px] font-display font-semibold text-foreground hover:underline"
-                  >
-                    <Download className="h-3 w-3" /> Télécharger le template CSV
+                  <button onClick={downloadTemplate}
+                    className="flex items-center gap-1.5 mt-2 text-[10px] font-display font-semibold text-emerald-700 hover:underline">
+                    <Download className="h-3 w-3" /> Télécharger le template (optionnel)
                   </button>
                 </div>
               </div>
 
-              {/* Upload zone */}
               <div
                 onDragOver={e => e.preventDefault()}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 className="border-2 border-dashed border-border rounded-sm p-10 text-center cursor-pointer hover:border-foreground/30 transition-colors"
               >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv,.tsv,.txt,.xlsx,.xls"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
+                <input ref={fileInputRef} type="file" accept=".csv,.tsv,.txt" onChange={handleFileSelect} className="hidden" />
                 <Upload className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm font-display font-semibold text-foreground mb-1">
                   Glissez votre fichier ou cliquez pour sélectionner
                 </p>
                 <p className="text-[10px] font-body text-muted-foreground">
-                  CSV, TSV ou Excel (.xlsx) · Séparateur : virgule, point-virgule ou tabulation
+                  CSV ou TSV · N'importe quel format de colonnes · L'IA s'adapte
                 </p>
               </div>
 
-              {/* Accepted columns info */}
-              <div className="border border-border rounded-sm p-4">
-                <p className="text-[10px] font-display font-semibold text-foreground mb-2">Colonnes reconnues automatiquement :</p>
-                <div className="grid grid-cols-3 gap-1.5 text-[9px] font-body text-muted-foreground">
-                  {[
-                    "Nom du produit *", "Catégorie *", "Sous-catégorie",
-                    "Description", "Matériau structure", "Matériau assise",
-                    "Couleur", "Prix HT *", "Prix max",
-                    "Longueur cm", "Largeur cm", "Hauteur cm",
-                    "Poids kg", "Stock", "Quantité",
-                    "Pays de fabrication", "Garantie", "Extérieur / Empilable",
-                  ].map(col => (
-                    <span key={col} className={col.includes("*") ? "text-foreground font-semibold" : ""}>
-                      {col}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-[9px] font-body text-muted-foreground mt-2">
-                  * Champs obligatoires. Les noms de colonnes sont reconnus en français et en anglais.
-                </p>
-              </div>
-
-              {/* Commission reminder */}
               <div
                 className="flex items-center gap-3 px-4 py-2.5 rounded-sm border text-[10px] font-body"
                 style={{ background: config.bg, borderColor: config.border, color: config.color }}
@@ -442,18 +518,50 @@ export default function ExcelImportModal({
             </div>
           )}
 
+          {/* ── Step: Analyzing ── */}
+          {step === "analyzing" && (
+            <div className="py-16 text-center space-y-4">
+              <div className="relative w-12 h-12 mx-auto">
+                <Sparkles className="h-12 w-12 text-emerald-500 animate-pulse" />
+              </div>
+              <div>
+                <p className="text-sm font-display font-semibold text-foreground">Analyse IA en cours</p>
+                <p className="text-[10px] font-body text-muted-foreground mt-1">{analyzeProgress}</p>
+              </div>
+              <p className="text-[9px] font-body text-muted-foreground max-w-xs mx-auto">
+                L'IA détecte les colonnes, normalise les données, génère les tags et enrichit chaque produit
+              </p>
+            </div>
+          )}
+
           {/* ── Step: Preview ── */}
           {step === "preview" && (
             <div className="space-y-4">
+              {/* Column mapping summary */}
+              {Object.keys(columnMapping).length > 0 && (
+                <div className="border border-emerald-200 bg-emerald-50/50 rounded-sm p-3">
+                  <p className="text-[9px] font-display font-semibold text-emerald-700 uppercase tracking-wider mb-2">
+                    Mapping détecté par l'IA
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Object.entries(columnMapping).filter(([, v]) => v).map(([csvCol, dbField]) => (
+                      <span key={csvCol} className="text-[9px] font-body bg-white border border-emerald-200 rounded px-2 py-0.5">
+                        <span className="text-muted-foreground">{csvCol}</span>
+                        <span className="text-emerald-600 mx-1">→</span>
+                        <span className="text-foreground font-semibold">{dbField}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Summary */}
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-display font-semibold text-foreground">
-                    {products.length} produit{products.length > 1 ? "s" : ""} détecté{products.length > 1 ? "s" : ""}
+                    {products.length} produit{products.length > 1 ? "s" : ""} enrichi{products.length > 1 ? "s" : ""}
                   </p>
-                  <p className="text-[10px] font-body text-muted-foreground">
-                    Fichier : {fileName}
-                  </p>
+                  <p className="text-[10px] font-body text-muted-foreground">Fichier : {fileName}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {validCount > 0 && (
@@ -469,89 +577,183 @@ export default function ExcelImportModal({
                 </div>
               </div>
 
-              {/* Product table */}
-              <div className="border border-border rounded-sm overflow-hidden max-h-[40vh] overflow-y-auto">
-                <table className="w-full text-[10px] font-body">
-                  <thead className="bg-card sticky top-0">
-                    <tr className="border-b border-border">
-                      <th className="text-left px-3 py-2 font-display font-semibold text-muted-foreground">Statut</th>
-                      <th className="text-left px-3 py-2 font-display font-semibold text-muted-foreground">Nom</th>
-                      <th className="text-left px-3 py-2 font-display font-semibold text-muted-foreground">Catégorie</th>
-                      <th className="text-left px-3 py-2 font-display font-semibold text-muted-foreground">Matériau</th>
-                      <th className="text-right px-3 py-2 font-display font-semibold text-muted-foreground">Prix HT</th>
-                      <th className="text-right px-3 py-2 font-display font-semibold text-muted-foreground">→ Client</th>
-                      <th className="text-center px-3 py-2 font-display font-semibold text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {products.map((p) => {
-                      const comm = p.price_min ? p.price_min * (config.commission / 100) : 0;
-                      const clientPrice = p.price_min ? p.price_min + comm : 0;
-                      return (
-                        <tr key={p.id} className={!p.valid ? "bg-red-50/50" : "hover:bg-card/50"}>
-                          <td className="px-3 py-2">
-                            {p.valid ? (
-                              <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
-                            ) : (
-                              <div>
-                                <XCircle className="h-3.5 w-3.5 text-red-500" />
-                                <p className="text-[8px] text-red-500 mt-0.5">{p.errors.join(", ")}</p>
-                              </div>
+              {/* Product cards */}
+              <div className="border border-border rounded-sm overflow-hidden max-h-[45vh] overflow-y-auto divide-y divide-border">
+                {products.map(p => {
+                  const comm = p.price_min ? p.price_min * (config.commission / 100) : 0;
+                  const clientPrice = p.price_min ? p.price_min + comm : null;
+                  return (
+                    <div key={p.id} className={`p-3 ${!p.valid ? "bg-red-50/50" : "hover:bg-card/50"}`}>
+                      <div className="flex items-start gap-3">
+                        {/* Image preview */}
+                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
+                          {p.image_url ? (
+                            <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <ImageIcon className="h-4 w-4 text-muted-foreground/30" />
+                          )}
+                        </div>
+
+                        {/* Product info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            {p.valid ? <CheckCircle2 className="h-3 w-3 text-green-600 shrink-0" /> : <XCircle className="h-3 w-3 text-red-500 shrink-0" />}
+                            <p className="text-xs font-display font-semibold text-foreground truncate">{p.name || "—"}</p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            <span className="text-[9px] font-display font-semibold bg-foreground/5 px-1.5 py-0.5 rounded text-muted-foreground">{p.category || "—"}</span>
+                            {p.material_structure && <span className="text-[9px] font-body text-muted-foreground">{p.material_structure}</span>}
+                            {p.main_color && <span className="text-[9px] font-body text-muted-foreground">· {p.main_color}</span>}
+                            {p.dimensions_length_cm && p.dimensions_width_cm && (
+                              <span className="text-[9px] font-body text-muted-foreground">
+                                · {p.dimensions_length_cm}×{p.dimensions_width_cm}{p.dimensions_height_cm ? `×${p.dimensions_height_cm}` : ""} cm
+                              </span>
                             )}
-                          </td>
-                          <td className="px-3 py-2 font-semibold text-foreground max-w-[160px] truncate">
-                            {p.name || <span className="text-red-400 italic">—</span>}
-                          </td>
-                          <td className="px-3 py-2 text-muted-foreground">{p.category || "—"}</td>
-                          <td className="px-3 py-2 text-muted-foreground">{p.material_structure || "—"}</td>
-                          <td className="px-3 py-2 text-right text-foreground">
-                            {p.price_min != null ? `€${p.price_min}` : "—"}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {p.price_min != null ? (
-                              <span className="text-amber-600">€{clientPrice.toFixed(0)}</span>
-                            ) : "—"}
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            <button
-                              onClick={() => removeProduct(p.id)}
-                              className="text-muted-foreground hover:text-red-500 transition-colors"
-                              title="Retirer"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                          </div>
+                          {/* Tags */}
+                          {(p.style_tags?.length || 0) > 0 && (
+                            <div className="flex flex-wrap gap-0.5 mt-1">
+                              {p.style_tags!.slice(0, 4).map(tag => (
+                                <span key={tag} className="text-[8px] font-body text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded">{tag}</span>
+                              ))}
+                              {(p.material_tags || []).slice(0, 2).map(tag => (
+                                <span key={tag} className="text-[8px] font-body text-blue-700 bg-blue-50 px-1 py-0.5 rounded">{tag}</span>
+                              ))}
+                            </div>
+                          )}
+                          {!p.valid && <p className="text-[8px] text-red-500 mt-0.5">{p.errors.join(", ")}</p>}
+                        </div>
+
+                        {/* Price + actions */}
+                        <div className="text-right shrink-0">
+                          {p.price_min != null ? (
+                            <>
+                              <p className="text-xs font-display font-bold text-foreground">€{p.price_min}</p>
+                              {clientPrice != null && (
+                                <p className="text-[9px] font-body text-amber-600">→ €{clientPrice.toFixed(0)}</p>
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-[9px] font-body text-muted-foreground">—</p>
+                          )}
+                          <button onClick={() => removeProduct(p.id)} className="text-muted-foreground hover:text-red-500 mt-1 transition-colors">
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Commission info */}
-              <div
-                className="flex items-center gap-3 px-4 py-2.5 rounded-sm border text-[10px] font-body"
-                style={{ background: config.bg, borderColor: config.border, color: config.color }}
-              >
-                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                <span>
-                  La colonne "→ Client" inclut la commission Terrassea de <strong>{config.commission}%</strong> (plan {config.label}).
-                </span>
-              </div>
-
-              {/* Back / Import buttons */}
+              {/* Actions */}
               <div className="flex items-center justify-between pt-2">
-                <button
-                  onClick={() => { setStep("upload"); setProducts([]); }}
-                  className="px-4 py-2 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors"
-                >
+                <button onClick={() => { setStep("upload"); setProducts([]); setColumnMapping({}); }}
+                  className="px-4 py-2 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors">
                   ← Changer de fichier
                 </button>
-                <button
-                  onClick={handleImport}
-                  disabled={validCount === 0}
-                  className="flex items-center gap-2 px-5 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity"
-                >
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setStep("photos")}
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors">
+                    <ImagePlus className="h-3 w-3" /> Ajouter des photos
+                  </button>
+                  <button onClick={handleImport} disabled={validCount === 0}
+                    className="flex items-center gap-2 px-5 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity">
+                    <Check className="h-3 w-3" />
+                    Importer {validCount} produit{validCount > 1 ? "s" : ""}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step: Photos ── */}
+          {step === "photos" && (
+            <div className="space-y-5">
+              <div className="flex items-start gap-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-sm">
+                <Info className="h-3.5 w-3.5 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-[10px] font-body text-blue-800">
+                  Uploadez vos photos en lot. Le système associe automatiquement chaque photo au bon produit
+                  en comparant le nom du fichier avec le nom du produit. Les photos non matchées pourront être
+                  associées manuellement.
+                </p>
+              </div>
+
+              <div
+                onClick={() => photoInputRef.current?.click()}
+                className="border-2 border-dashed border-border rounded-sm p-8 text-center cursor-pointer hover:border-foreground/30 transition-colors"
+              >
+                <input ref={photoInputRef} type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
+                <ImagePlus className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm font-display font-semibold text-foreground mb-1">Sélectionner les photos</p>
+                <p className="text-[10px] font-body text-muted-foreground">
+                  Nommez vos fichiers avec le nom du produit pour un matching automatique
+                </p>
+              </div>
+
+              {/* Photo matching summary */}
+              <div className="border border-border rounded-sm max-h-[30vh] overflow-y-auto divide-y divide-border">
+                {products.map(p => (
+                  <div key={p.id} className="flex items-center gap-3 p-2.5">
+                    <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-3.5 w-3.5 text-muted-foreground/30" />
+                      )}
+                    </div>
+                    <p className="text-[10px] font-display font-semibold text-foreground flex-1 truncate">{p.name}</p>
+                    {p.image_url ? (
+                      <span className="text-[9px] font-display font-semibold text-green-600 flex items-center gap-1">
+                        <Link2 className="h-3 w-3" /> Associée
+                        {(p.gallery_urls?.length || 0) > 0 && ` + ${p.gallery_urls!.length}`}
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-body text-muted-foreground">Pas de photo</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Unmatched photos */}
+              {unmatchedPhotos.length > 0 && (
+                <div className="border border-amber-200 bg-amber-50/50 rounded-sm p-3">
+                  <p className="text-[9px] font-display font-semibold text-amber-700 uppercase tracking-wider mb-2">
+                    Photos non matchées ({unmatchedPhotos.length})
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {unmatchedPhotos.map((file, i) => (
+                      <div key={i} className="relative group">
+                        <img src={URL.createObjectURL(file)} alt={file.name}
+                          className="w-14 h-14 rounded-lg object-cover border border-amber-200 cursor-pointer hover:ring-2 hover:ring-foreground transition-all"
+                          onClick={() => setManualAssign(manualAssign === String(i) ? null : String(i))}
+                        />
+                        <p className="text-[7px] font-body text-muted-foreground truncate max-w-[56px] mt-0.5">{file.name}</p>
+                        {manualAssign === String(i) && (
+                          <div className="absolute top-full left-0 z-10 mt-1 bg-background border border-border rounded-lg shadow-lg p-2 w-48 max-h-32 overflow-y-auto">
+                            <p className="text-[8px] font-display text-muted-foreground mb-1">Associer à :</p>
+                            {products.map(p => (
+                              <button key={p.id} onClick={() => assignPhotoManually(i, p.id)}
+                                className="w-full text-left text-[9px] font-body text-foreground hover:bg-foreground/5 rounded px-1.5 py-1 truncate">
+                                {p.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center justify-between pt-2">
+                <button onClick={() => setStep("preview")}
+                  className="px-4 py-2 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors">
+                  ← Retour au preview
+                </button>
+                <button onClick={handleImport} disabled={validCount === 0}
+                  className="flex items-center gap-2 px-5 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity">
                   <Check className="h-3 w-3" />
                   Importer {validCount} produit{validCount > 1 ? "s" : ""}
                 </button>
@@ -570,22 +772,16 @@ export default function ExcelImportModal({
                 </p>
               </div>
               <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden mx-auto">
-                <div
-                  className="h-full rounded-full bg-foreground transition-all"
-                  style={{ width: `${importProgress}%` }}
-                />
+                <div className="h-full rounded-full bg-foreground transition-all" style={{ width: `${importProgress}%` }} />
               </div>
             </div>
           )}
         </div>
 
-        {/* Footer (only for upload step) */}
         {step === "upload" && (
           <div className="flex items-center justify-end px-6 py-4 border-t border-border">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors"
-            >
+            <button onClick={onClose}
+              className="px-4 py-2 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors">
               Fermer
             </button>
           </div>
