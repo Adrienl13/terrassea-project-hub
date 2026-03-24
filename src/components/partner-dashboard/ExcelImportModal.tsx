@@ -203,15 +203,22 @@ export default function ExcelImportModal({
           setAnalyzeProgress(`Analyse lot ${batchNum}/${totalBatches} (${batch.length} produits)...`);
         }
 
-        const { data, error } = await supabase.functions.invoke("analyze-csv-products", {
-          body: { headers, rows: batch },
-        });
+        let data: any;
+        try {
+          const result = await supabase.functions.invoke("analyze-csv-products", {
+            body: { headers, rows: batch },
+          });
+          if (result.error) throw result.error;
+          if (!result.data?.products) throw new Error("Pas de produits retournés");
+          data = result.data;
+        } catch (batchErr: any) {
+          console.warn(`Batch ${batchNum} failed:`, batchErr);
+          toast.warning(`Lot ${batchNum}/${totalBatches} échoué — ${batch.length} produits ignorés.`);
+          continue; // Skip this batch, continue with the rest
+        }
 
-        if (error) throw error;
-        if (!data?.products) throw new Error("L'IA n'a pas retourné de produits");
-
-        // Keep the mapping from the first batch
-        if (data.column_mapping && i === 0) {
+        // Keep the mapping from the first successful batch
+        if (data.column_mapping && Object.keys(mapping).length === 0) {
           mapping = data.column_mapping;
         }
 
@@ -263,6 +270,12 @@ export default function ExcelImportModal({
         }));
 
         allProducts.push(...batchProducts);
+      }
+
+      if (allProducts.length === 0) {
+        toast.error("L'IA n'a pu analyser aucun produit. Vérifiez le format du fichier.");
+        setStep("upload");
+        return;
       }
 
       setColumnMapping(mapping);
@@ -348,6 +361,25 @@ export default function ExcelImportModal({
 
   const removeProduct = (id: string) => setProducts(prev => prev.filter(p => p.id !== id));
 
+  /** Upload a blob URL to Supabase Storage, returns the public URL or null. */
+  const uploadBlobToStorage = async (blobUrl: string, productName: string, index: number): Promise<string | null> => {
+    if (!blobUrl || !blobUrl.startsWith("blob:")) return null;
+    try {
+      const res = await fetch(blobUrl);
+      const blob = await res.blob();
+      const ext = blob.type.split("/")[1] || "jpg";
+      const slug = productName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").slice(0, 50);
+      const path = `product-imports/${Date.now()}-${slug}-${index}.${ext}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, blob, { contentType: blob.type, upsert: false });
+      if (error) { console.warn("Photo upload failed:", error.message); return null; }
+      const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+      return urlData?.publicUrl || null;
+    } catch (err) {
+      console.warn("Photo upload error:", err);
+      return null;
+    }
+  };
+
   const handleImport = async () => {
     const validProducts = products.filter(p => p.valid);
     if (validProducts.length === 0) {
@@ -361,14 +393,33 @@ export default function ExcelImportModal({
       const { data } = await supabase.from("partners").select("id").eq("user_id", user.id).maybeSingle();
       partnerId = data?.id || null;
     }
+    if (!partnerId) {
+      toast.warning("Aucun profil partenaire trouvé. Les produits seront importés sans propriétaire.");
+    }
 
     setImporting(true);
     setStep("importing");
     let imported = 0;
+    const failedNames: string[] = [];
 
-    for (const p of validProducts) {
+    for (let idx = 0; idx < validProducts.length; idx++) {
+      const p = validProducts[idx];
       try {
-        // TODO: if image_url is a blob URL, upload to Supabase Storage first
+        // Upload photos from blob URLs to Supabase Storage
+        let imageUrl: string | null = null;
+        const galleryUrls: string[] = [];
+
+        if (p.image_url?.startsWith("blob:")) {
+          imageUrl = await uploadBlobToStorage(p.image_url, p.name, 0);
+        }
+        for (let gi = 0; gi < (p.gallery_urls || []).length; gi++) {
+          const gUrl = p.gallery_urls![gi];
+          if (gUrl.startsWith("blob:")) {
+            const uploaded = await uploadBlobToStorage(gUrl, p.name, gi + 1);
+            if (uploaded) galleryUrls.push(uploaded);
+          }
+        }
+
         const { error } = await supabase.from("products").insert({
           name: p.name,
           category: p.category,
@@ -406,16 +457,37 @@ export default function ExcelImportModal({
           stock_quantity: p.stock_quantity,
           collection: p.collection || null,
           brand_source: p.brand_source || null,
+          image_url: imageUrl,
+          gallery_urls: galleryUrls.length > 0 ? galleryUrls : [],
           publish_status: "draft",
           partner_id: partnerId,
         });
-        if (!error) imported++;
-      } catch { /* skip failed */ }
-      setImportProgress(Math.round(((imported + 1) / validProducts.length) * 100));
+        if (error) {
+          console.warn(`Insert failed for "${p.name}":`, error.message);
+          failedNames.push(p.name);
+        } else {
+          imported++;
+        }
+      } catch (err: any) {
+        console.warn(`Insert exception for "${p.name}":`, err);
+        failedNames.push(p.name);
+      }
+      setImportProgress(Math.round(((idx + 1) / validProducts.length) * 100));
+    }
+
+    // Revoke blob URLs to free memory
+    for (const p of products) {
+      if (p.image_url?.startsWith("blob:")) URL.revokeObjectURL(p.image_url);
+      for (const g of p.gallery_urls || []) {
+        if (g.startsWith("blob:")) URL.revokeObjectURL(g);
+      }
     }
 
     setImporting(false);
     if (imported > 0) {
+      if (failedNames.length > 0) {
+        toast.warning(`${imported} importé${imported > 1 ? "s" : ""}, ${failedNames.length} échoué${failedNames.length > 1 ? "s" : ""} : ${failedNames.slice(0, 3).join(", ")}${failedNames.length > 3 ? "..." : ""}`);
+      }
       onSuccess(imported);
     } else {
       toast.error("Aucun produit n'a pu être importé.");
