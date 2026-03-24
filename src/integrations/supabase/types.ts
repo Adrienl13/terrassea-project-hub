@@ -305,6 +305,68 @@ export type Database = {
           },
         ]
       }
+      financing_requests: {
+        Row: {
+          admin_notes: string | null
+          company: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          desired_duration_months: number | null
+          estimated_amount: number | null
+          id: string
+          project_description: string | null
+          project_request_id: string | null
+          siren: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          company?: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string
+          desired_duration_months?: number | null
+          estimated_amount?: number | null
+          id?: string
+          project_description?: string | null
+          project_request_id?: string | null
+          siren?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          company?: string | null
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          desired_duration_months?: number | null
+          estimated_amount?: number | null
+          id?: string
+          project_description?: string | null
+          project_request_id?: string | null
+          siren?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_requests_project_request_id_fkey"
+            columns: ["project_request_id"]
+            isOneToOne: false
+            referencedRelation: "project_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       image_analyses: {
         Row: {
           analysis_result: Json | null
@@ -1372,6 +1434,14 @@ export type Database = {
           plan: string | null
           priority_order: number | null
           product_categories: string[] | null
+          profile_completed: boolean | null
+          profile_review_notes: string | null
+          profile_reviewed_at: string | null
+          profile_reviewed_by: string | null
+          profile_status: string | null
+          profile_submitted: boolean | null
+          profile_submitted_at: string | null
+          siren: string | null
           slug: string
           specialty_tags: string[] | null
           user_id: string | null
@@ -1407,6 +1477,14 @@ export type Database = {
           plan?: string | null
           priority_order?: number | null
           product_categories?: string[] | null
+          profile_completed?: boolean | null
+          profile_review_notes?: string | null
+          profile_reviewed_at?: string | null
+          profile_reviewed_by?: string | null
+          profile_status?: string | null
+          profile_submitted?: boolean | null
+          profile_submitted_at?: string | null
+          siren?: string | null
           slug: string
           specialty_tags?: string[] | null
           user_id?: string | null
@@ -1442,6 +1520,14 @@ export type Database = {
           plan?: string | null
           priority_order?: number | null
           product_categories?: string[] | null
+          profile_completed?: boolean | null
+          profile_review_notes?: string | null
+          profile_reviewed_at?: string | null
+          profile_reviewed_by?: string | null
+          profile_status?: string | null
+          profile_submitted?: boolean | null
+          profile_submitted_at?: string | null
+          siren?: string | null
           slug?: string
           specialty_tags?: string[] | null
           user_id?: string | null
@@ -1645,80 +1731,116 @@ export type Database = {
       }
       pro_service_requests: {
         Row: {
+          accompaniment_type: string | null
           admin_notes: string | null
           architect_id: string | null
           budget_range: string | null
           categories_needed: string[] | null
           client_company: string | null
           client_email: string
+          client_function: string | null
           client_name: string
           client_phone: string | null
+          client_user_id: string | null
+          colors_preferred: string | null
           completed_at: string | null
+          constraints_text: string | null
           created_at: string | null
           description: string | null
+          desired_date: string | null
+          establishment_name: string | null
           id: string
           matched_at: string | null
+          materials_preferred: string[] | null
           outdoor_required: boolean | null
           project_city: string | null
           project_country: string | null
+          project_nature: string | null
           project_title: string
           project_type: string
           quantity_estimate: number | null
+          referral_source: string | null
+          siren: string | null
           special_requirements: string | null
           status: string | null
           style_preferences: string[] | null
+          surface_area: number | null
           timeline: string | null
           updated_at: string | null
         }
         Insert: {
+          accompaniment_type?: string | null
           admin_notes?: string | null
           architect_id?: string | null
           budget_range?: string | null
           categories_needed?: string[] | null
           client_company?: string | null
           client_email: string
+          client_function?: string | null
           client_name: string
           client_phone?: string | null
+          client_user_id?: string | null
+          colors_preferred?: string | null
           completed_at?: string | null
+          constraints_text?: string | null
           created_at?: string | null
           description?: string | null
+          desired_date?: string | null
+          establishment_name?: string | null
           id?: string
           matched_at?: string | null
+          materials_preferred?: string[] | null
           outdoor_required?: boolean | null
           project_city?: string | null
           project_country?: string | null
+          project_nature?: string | null
           project_title: string
           project_type: string
           quantity_estimate?: number | null
+          referral_source?: string | null
+          siren?: string | null
           special_requirements?: string | null
           status?: string | null
           style_preferences?: string[] | null
+          surface_area?: number | null
           timeline?: string | null
           updated_at?: string | null
         }
         Update: {
+          accompaniment_type?: string | null
           admin_notes?: string | null
           architect_id?: string | null
           budget_range?: string | null
           categories_needed?: string[] | null
           client_company?: string | null
           client_email?: string
+          client_function?: string | null
           client_name?: string
           client_phone?: string | null
+          client_user_id?: string | null
+          colors_preferred?: string | null
           completed_at?: string | null
+          constraints_text?: string | null
           created_at?: string | null
           description?: string | null
+          desired_date?: string | null
+          establishment_name?: string | null
           id?: string
           matched_at?: string | null
+          materials_preferred?: string[] | null
           outdoor_required?: boolean | null
           project_city?: string | null
           project_country?: string | null
+          project_nature?: string | null
           project_title?: string
           project_type?: string
           quantity_estimate?: number | null
+          referral_source?: string | null
+          siren?: string | null
           special_requirements?: string | null
           status?: string | null
           style_preferences?: string[] | null
+          surface_area?: number | null
           timeline?: string | null
           updated_at?: string | null
         }
@@ -1936,10 +2058,12 @@ export type Database = {
       }
       product_submissions: {
         Row: {
+          admin_feedback: Json | null
           admin_notes: string | null
           created_at: string | null
           detected_duplicate_id: string | null
           existing_description: string | null
+          feedback_sent_at: string | null
           id: string
           merge_status: string | null
           merged_description: string | null
@@ -1950,12 +2074,15 @@ export type Database = {
           reviewed_by: string | null
           similarity_score: number | null
           status: string | null
+          updated_at: string | null
         }
         Insert: {
+          admin_feedback?: Json | null
           admin_notes?: string | null
           created_at?: string | null
           detected_duplicate_id?: string | null
           existing_description?: string | null
+          feedback_sent_at?: string | null
           id?: string
           merge_status?: string | null
           merged_description?: string | null
@@ -1966,12 +2093,15 @@ export type Database = {
           reviewed_by?: string | null
           similarity_score?: number | null
           status?: string | null
+          updated_at?: string | null
         }
         Update: {
+          admin_feedback?: Json | null
           admin_notes?: string | null
           created_at?: string | null
           detected_duplicate_id?: string | null
           existing_description?: string | null
+          feedback_sent_at?: string | null
           id?: string
           merge_status?: string | null
           merged_description?: string | null
@@ -1982,6 +2112,7 @@ export type Database = {
           reviewed_by?: string | null
           similarity_score?: number | null
           status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -2025,6 +2156,7 @@ export type Database = {
           documents: Json | null
           duplicate_of: string | null
           easy_maintenance: boolean | null
+          environment_urls: string[] | null
           estimated_delivery_days: number | null
           fire_retardant: boolean | null
           gallery_urls: string[] | null
@@ -2108,6 +2240,7 @@ export type Database = {
           documents?: Json | null
           duplicate_of?: string | null
           easy_maintenance?: boolean | null
+          environment_urls?: string[] | null
           estimated_delivery_days?: number | null
           fire_retardant?: boolean | null
           gallery_urls?: string[] | null
@@ -2191,6 +2324,7 @@ export type Database = {
           documents?: Json | null
           duplicate_of?: string | null
           easy_maintenance?: boolean | null
+          environment_urls?: string[] | null
           estimated_delivery_days?: number | null
           fire_retardant?: boolean | null
           gallery_urls?: string[] | null
@@ -2673,6 +2807,7 @@ export type Database = {
           client_anonymous_id: string | null
           client_city: string | null
           client_first_name: string | null
+          client_user_id: string | null
           company: string | null
           created_at: string | null
           delivery_conditions: string | null
@@ -2710,6 +2845,7 @@ export type Database = {
           client_anonymous_id?: string | null
           client_city?: string | null
           client_first_name?: string | null
+          client_user_id?: string | null
           company?: string | null
           created_at?: string | null
           delivery_conditions?: string | null
@@ -2747,6 +2883,7 @@ export type Database = {
           client_anonymous_id?: string | null
           client_city?: string | null
           client_first_name?: string | null
+          client_user_id?: string | null
           company?: string | null
           created_at?: string | null
           delivery_conditions?: string | null
@@ -3288,6 +3425,7 @@ export type Database = {
         }[]
       }
       generate_partner_slug: { Args: { company: string }; Returns: string }
+      is_admin: { Args: never; Returns: boolean }
       search_products_multilang: {
         Args: {
           category_filter?: string
