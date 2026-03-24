@@ -351,22 +351,8 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
   );
 }
 
-const FALLBACK_CONTEXT: ProjectCartContextType = {
-  items: [],
-  addItem: () => {},
-  removeItem: () => {},
-  updateQuantity: () => {},
-  selectSupplier: () => {},
-  clearSupplier: () => {},
-  itemCount: 0,
-  notes: "",
-  setNotes: () => {},
-  quotationStatus: "draft",
-  markCartSubmitted: async () => {},
-  clearCart: () => {},
-};
-
 export function useProjectCart() {
   const context = useContext(ProjectCartContext);
-  return context ?? FALLBACK_CONTEXT;
+  if (!context) throw new Error("useProjectCart must be used within ProjectCartProvider");
+  return context;
 }

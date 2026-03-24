@@ -314,6 +314,7 @@ export function normalizeProduct(raw: any): DBProduct {
     popularity_score:   raw.popularity_score   ?? 0,
     priority_score:     raw.priority_score     ?? 0,
     data_quality_score: raw.data_quality_score ?? 0,
+    publish_status:     raw.publish_status     ?? "draft",
   };
 }
 

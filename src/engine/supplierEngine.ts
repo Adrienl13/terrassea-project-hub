@@ -176,7 +176,7 @@ async function fetchPartnerReputations(partnerIds: string[]): Promise<Record<str
     if (count === 0) continue;
     const avg = sum / count; // 1-5 scale
     // Convert to 0-100: 1→0, 3→50, 5→100
-    result[partnerId] = Math.round(((avg - 1) / 4) * 100);
+    result[partnerId] = Math.max(0, Math.min(100, Math.round(((avg - 1) / 4) * 100)));
   }
   return result;
 }

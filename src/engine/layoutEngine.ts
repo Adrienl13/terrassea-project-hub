@@ -124,7 +124,7 @@ function generateLayout(
 ): LayoutRecommendation {
   const twoSeats = Math.round(totalSeats * distribution.twoSeatRatio);
   const sixSeats = Math.round(totalSeats * distribution.sixSeatRatio);
-  const fourSeats = totalSeats - twoSeats - sixSeats;
+  const fourSeats = Math.max(0, totalSeats - twoSeats - sixSeats);
 
   const groups: TableGroup[] = [];
 
@@ -256,7 +256,7 @@ function generateLockedLayout(
 }
 
 export function generateLayouts(params: ProjectParameters): LayoutRecommendation[] {
-  const totalSeats = params.seatingCapacity || 40;
+  const totalSeats = params.seatingCapacity ?? 40;
   const priority = params.layoutPriority || "balanced";
 
   const terraceArea = params.terraceSurfaceM2 ??

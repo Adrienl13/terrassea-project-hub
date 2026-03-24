@@ -8,7 +8,7 @@ import {
   XCircle, Clock, AlertTriangle, Star, TrendingUp,
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
-  CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut,
+  CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,9 @@ import AdminRatingsModeration from "@/components/admin/AdminRatingsModeration";
 import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
 import AdminProductReview from "@/components/admin/AdminProductReview";
 import AdminChatbotStats from "@/components/admin/AdminChatbotStats";
+import ColorVariantEditor from "@/components/admin/ColorVariantEditor";
+import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
+import type { ColorVariant } from "@/lib/products";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
@@ -645,15 +648,19 @@ function ProductForm({
                 </select>
               </div>
             </div>
-            <div>
-              <label className={labelClass}>Couleurs disponibles (slugs, séparées par des virgules)</label>
-              <input type="text" value={form.available_colors.join(", ")}
-                onChange={e => set("available_colors", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                className={inputClass} placeholder="white, black, terracotta" />
-              <p className="text-[9px] font-body text-muted-foreground mt-1">
-                Slugs : {COLOR_SLUGS.slice(0, 10).join(", ")}...
-              </p>
-            </div>
+
+            {/* Color Variant Editor */}
+            <ColorVariantEditor
+              value={form.color_variants as ColorVariant[]}
+              onChange={(variants: ColorVariant[]) => {
+                set("color_variants", variants);
+                const availableSlugs = variants.filter(v => v.available).map(v => v.color_slug).filter(Boolean);
+                set("available_colors", availableSlugs);
+                if (variants.length > 0 && variants[0].color_slug) {
+                  set("main_color", variants[0].color_slug);
+                }
+              }}
+            />
           </div>
         </div>
       )}
@@ -864,6 +871,8 @@ function ProductsTab() {
   const [catFilter, setCatFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<PublishFilter>("all");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [showMerge, setShowMerge] = useState(false);
+  const [mergeInitialSource, setMergeInitialSource] = useState<DBProduct | null>(null);
 
   const filtered = products.filter(p => {
     const matchText = p.name.toLowerCase().includes(filter.toLowerCase()) ||
@@ -987,12 +996,20 @@ function ProductsTab() {
             {products.length} produit{products.length > 1 ? "s" : ""} au total
           </p>
         </div>
-        <button
-          onClick={() => setEditing(emptyProduct())}
-          className="flex items-center gap-2 px-5 py-2.5 font-display font-bold text-sm bg-foreground text-primary-foreground rounded-xl hover:opacity-90 shadow-sm transition-all"
-        >
-          <Plus className="h-4 w-4" /> Ajouter un produit
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setMergeInitialSource(null); setShowMerge(true); }}
+            className="flex items-center gap-2 px-5 py-2.5 font-display font-bold text-sm border-2 border-blue-500 text-blue-600 rounded-xl hover:bg-blue-50 transition-all"
+          >
+            <Merge className="h-4 w-4" /> Fusionner des produits
+          </button>
+          <button
+            onClick={() => setEditing(emptyProduct())}
+            className="flex items-center gap-2 px-5 py-2.5 font-display font-bold text-sm bg-foreground text-primary-foreground rounded-xl hover:opacity-90 shadow-sm transition-all"
+          >
+            <Plus className="h-4 w-4" /> Ajouter un produit
+          </button>
+        </div>
       </div>
 
       {/* Search & filters */}
@@ -1104,6 +1121,17 @@ function ProductsTab() {
                           <span className="text-[10px] font-body text-muted-foreground">{product.main_color}</span>
                         )}
                       </div>
+                      {/* Color variant pastilles */}
+                      {(product.color_variants ?? []).length > 0 && (
+                        <div className="flex items-center gap-0.5 mt-1">
+                          {(product.color_variants as ColorVariant[]).slice(0, 6).map((v, i) => (
+                            <div key={i} className="w-3.5 h-3.5 rounded-full border border-border shadow-sm" style={{ backgroundColor: v.color_hex }} title={v.label_en} />
+                          ))}
+                          {(product.color_variants as ColorVariant[]).length > 6 && (
+                            <span className="text-[8px] font-body text-muted-foreground ml-0.5">+{(product.color_variants as ColorVariant[]).length - 6}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     {price && (
                       <span className="text-sm font-display font-bold text-foreground shrink-0">{price}</span>
@@ -1137,6 +1165,12 @@ function ProductsTab() {
                       </>
                     )}
                     <div className="flex items-center gap-1 ml-auto">
+                      <button onClick={() => { setMergeInitialSource(product); setShowMerge(true); }}
+                        className="flex items-center gap-1 px-2.5 h-8 rounded-lg border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:border-blue-300 transition-colors"
+                        title="Fusionner avec un autre produit">
+                        <Merge className="h-3 w-3" />
+                        <span className="text-[9px] font-display font-bold">Fusionner</span>
+                      </button>
                       <button onClick={() => setEditing({ ...product })}
                         className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                         title="Modifier">
@@ -1177,6 +1211,15 @@ function ProductsTab() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Product merge dialog */}
+      {showMerge && (
+        <ProductMergeDialog
+          initialSource={mergeInitialSource}
+          products={products}
+          onClose={() => { setShowMerge(false); setMergeInitialSource(null); }}
+        />
       )}
     </div>
   );

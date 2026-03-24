@@ -428,7 +428,7 @@ const ProjectCart = () => {
                                 {selectedSupplier ?
                             <div className="inline-flex items-center gap-1.5 mt-0.5 px-1.5 py-0.5 rounded-full bg-card border border-border text-[10px] font-body text-muted-foreground">
                                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
-                                    {selectedSupplier.partnerName} · €{selectedSupplier.price?.toFixed(2)}/u
+                                    {selectedSupplier.partnerName} · {selectedSupplier.price != null ? `€${selectedSupplier.price.toFixed(2)}/u` : t('projectCart.onRequest')}
                                     {selectedSupplier.deliveryDelayDays != null && ` · ${selectedSupplier.deliveryDelayDays}d`}
                                     <button onClick={() => clearSupplier(product.id)} className="hover:text-destructive ml-0.5">
                                       <X className="h-2.5 w-2.5" />

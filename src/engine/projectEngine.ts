@@ -381,7 +381,7 @@ function climateBonus(product: DBProduct, climate: ClimateProfile): number {
     if (product.weather_resistant) bonus += 2.5;
     if (product.uv_resistant)      bonus += 2.0;
     // Parasol: require Beaufort 6 on coastal — penalize if < 6
-    if (product.category === "Parasols" && ptt.wind_beaufort) {
+    if (product.category.toLowerCase() === "parasols" && ptt.wind_beaufort != null) {
       bonus += ptt.wind_beaufort >= 6 ? 3.0 : -8.0;
     }
     // Marine grade
@@ -393,7 +393,7 @@ function climateBonus(product: DBProduct, climate: ClimateProfile): number {
     if (product.weather_resistant) bonus += 1.5;
     if (product.lightweight)       bonus += 1.0;
     // Parasol: penalize low wind resistance on rooftop
-    if (product.category === "Parasols" && ptt.wind_beaufort) {
+    if (product.category.toLowerCase() === "parasols" && ptt.wind_beaufort != null) {
       bonus += ptt.wind_beaufort >= 5 ? 1.5 : -5.0;
     }
   }
@@ -1138,10 +1138,14 @@ function scoreProduct(
     if (params.colorPalette.includes(tag)) score += W.palette * 0.5;
   }
 
-  // Material
+  // Material — match full words only to avoid false positives (e.g. "al" matching "aluminum")
   for (const tag of product.material_tags) {
+    const tagLower = tag.toLowerCase();
     for (const pref of params.materialPreferences) {
-      if (tag.includes(pref) || pref.includes(tag)) score += W.material;
+      const prefLower = pref.toLowerCase();
+      if (tagLower === prefLower || tagLower.split(/[\s\-_]+/).includes(prefLower) || prefLower.split(/[\s\-_]+/).includes(tagLower)) {
+        score += W.material;
+      }
     }
   }
 

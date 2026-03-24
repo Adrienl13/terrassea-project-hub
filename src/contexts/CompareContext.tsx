@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import type { DBProduct } from "@/lib/products";
+import { toast } from "sonner";
 
 interface CompareContextType {
   items: DBProduct[];
@@ -32,8 +33,11 @@ export function CompareProvider({ children }: { children: ReactNode }) {
 
   const addToCompare = useCallback((product: DBProduct) => {
     setItems((prev) => {
-      if (prev.length >= 4) return prev;
       if (prev.some((p) => p.id === product.id)) return prev;
+      if (prev.length >= 4) {
+        toast.info("Compare list is full (max 4 products). Remove one first.");
+        return prev;
+      }
       return [...prev, product];
     });
   }, []);
