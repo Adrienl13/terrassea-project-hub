@@ -120,8 +120,14 @@ export default function AddProductForm({
   plan,
   onClose,
   onSuccess,
+  editMode = false,
+  editProductId,
+  editInitialData,
 }: {
   plan: PartnerPlan;
+  editMode?: boolean;
+  editProductId?: string;
+  editInitialData?: Record<string, any>;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -133,8 +139,50 @@ export default function AddProductForm({
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const envInputRef = useRef<HTMLInputElement>(null);
 
-  const [form, setForm] = useState<ProductFormData>(EMPTY_FORM);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [form, setForm] = useState<ProductFormData>(() => {
+    if (editMode && editInitialData) {
+      const d = editInitialData;
+      return {
+        name: d.name || "",
+        category: d.category || "",
+        subcategory: d.subcategory || "",
+        short_description: d.short_description || "",
+        long_description: d.long_description || "",
+        image_url: d.image_url || "",
+        gallery_urls: d.gallery_urls || [],
+        environment_urls: d.environment_urls || [],
+        price_min: d.price_min ?? null,
+        price_max: d.price_max ?? null,
+        main_color: d.main_color || "",
+        secondary_color: d.secondary_color || "",
+        material_structure: d.material_structure || "",
+        material_seat: d.material_seat || "",
+        style_tags: d.style_tags || [],
+        ambience_tags: d.ambience_tags || [],
+        material_tags: d.material_tags || [],
+        use_case_tags: d.use_case_tags || [],
+        dimensions_length_cm: d.dimensions_length_cm ?? null,
+        dimensions_width_cm: d.dimensions_width_cm ?? null,
+        dimensions_height_cm: d.dimensions_height_cm ?? null,
+        seat_height_cm: d.seat_height_cm ?? null,
+        weight_kg: d.weight_kg ?? null,
+        is_outdoor: d.is_outdoor ?? true,
+        is_stackable: d.is_stackable ?? false,
+        is_chr_heavy_use: d.is_chr_heavy_use ?? false,
+        weather_resistant: d.weather_resistant ?? false,
+        uv_resistant: d.uv_resistant ?? false,
+        lightweight: d.lightweight ?? false,
+        easy_maintenance: d.easy_maintenance ?? false,
+        stock_status: d.stock_status || "in_stock",
+        stock_quantity: d.stock_quantity ?? null,
+        estimated_delivery_days: d.estimated_delivery_days ?? null,
+        country_of_manufacture: d.country_of_manufacture || "",
+        warranty: d.warranty || "",
+      };
+    }
+    return EMPTY_FORM;
+  });
+  const [imagePreview, setImagePreview] = useState<string | null>(editMode && editInitialData?.image_url ? editInitialData.image_url : null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<{ file: File; preview: string }[]>([]);
   const [envFiles, setEnvFiles] = useState<{ file: File; preview: string }[]>([]);
@@ -370,7 +418,7 @@ export default function AddProductForm({
         ? await uploadExtraImages(envFiles, "env")
         : form.environment_urls;
 
-      const { duplicate } = await submitProduct({
+      const productPayload = {
         name: form.name,
         category: form.category,
         subcategory: form.subcategory || null,
@@ -406,13 +454,23 @@ export default function AddProductForm({
         estimated_delivery_days: form.estimated_delivery_days,
         country_of_manufacture: form.country_of_manufacture || null,
         warranty: form.warranty || null,
-      } as any);
+      } as any;
 
-      toast.success("Product submitted for review", {
-        description: duplicate
-          ? "A potential duplicate was detected — our team will review it."
-          : "Il sera visible après validation par l'équipe Terrassea.",
-      });
+      const { duplicate } = await submitProduct(productPayload, editMode && editProductId ? {
+        editMode: true,
+        targetProductId: editProductId,
+      } : undefined);
+
+      toast.success(
+        editMode ? "Modification soumise" : "Product submitted for review",
+        {
+          description: editMode
+            ? "Votre modification sera visible après validation par l'équipe Terrassea."
+            : duplicate
+            ? "A potential duplicate was detected — our team will review it."
+            : "Il sera visible après validation par l'équipe Terrassea.",
+        },
+      );
       onSuccess();
     } catch (err: any) {
       console.error("Save error:", err);
@@ -504,7 +562,7 @@ export default function AddProductForm({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
-            <h2 className="font-display font-bold text-base text-foreground">Ajouter un produit</h2>
+            <h2 className="font-display font-bold text-base text-foreground">{editMode ? "Modifier un produit" : "Ajouter un produit"}</h2>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1.5">
                 <div className="w-20 h-1 bg-muted rounded-full overflow-hidden">

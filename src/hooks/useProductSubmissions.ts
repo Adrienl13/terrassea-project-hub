@@ -12,6 +12,8 @@ export interface ProductSubmission {
   partner_id: string;
   product_data: Partial<DBProduct>;
   status: "pending_review" | "approved" | "merged" | "rejected" | "feedback_sent";
+  submission_type: "new" | "edit";
+  target_product_id: string | null;
   similarity_score: number | null;
   detected_duplicate_id: string | null;
   merged_description: string | null;
@@ -30,7 +32,10 @@ export function useProductSubmission() {
   const [error, setError] = useState<string | null>(null);
 
   const submitProduct = useCallback(
-    async (productData: Partial<DBProduct>): Promise<{
+    async (productData: Partial<DBProduct>, options?: {
+      editMode?: boolean;
+      targetProductId?: string;
+    }): Promise<{
       submissionId: string;
       duplicate: SimilarityResult | null;
     }> => {
@@ -80,6 +85,7 @@ export function useProductSubmission() {
         const resolvedPartnerId = partnerRow?.id ?? user.id;
 
         // 5. Insert into product_submissions
+        const isEdit = options?.editMode && options?.targetProductId;
         const submissionPayload = {
           partner_id: resolvedPartnerId,
           product_data: productData as Record<string, unknown>,
@@ -88,6 +94,8 @@ export function useProductSubmission() {
           detected_duplicate_id: bestMatch ? bestMatch.product.id : null,
           merged_description: mergedDescription,
           admin_notes: null,
+          submission_type: isEdit ? "edit" : "new",
+          target_product_id: isEdit ? options.targetProductId : null,
         };
 
         const { data: submission, error: insertError } = await supabase
@@ -100,7 +108,9 @@ export function useProductSubmission() {
 
         // 5. Create notification for admins
         const partnerName = profile?.company ?? profile?.email ?? "Un partenaire";
-        const dupLabel = bestMatch
+        const dupLabel = isEdit
+          ? `${partnerName} a soumis une modification de produit à valider`
+          : bestMatch
           ? `${partnerName} a soumis un produit — doublon potentiel détecté`
           : `${partnerName} a soumis un nouveau produit à valider`;
 
@@ -114,7 +124,7 @@ export function useProductSubmission() {
         if (admins && admins.length > 0) {
           const notifications = admins.map((admin) => ({
             user_id: admin.id,
-            title: "Nouveau produit soumis",
+            title: isEdit ? "Modification produit soumise" : "Nouveau produit soumis",
             body: dupLabel,
             type: "product_submission",
             link: `/admin?tab=submissions`,
@@ -290,6 +300,62 @@ export function useAdminSubmissions() {
     [submissions, queryClient]
   );
 
+  // Approve an edit — update the existing product with new data
+  const approveEdit = useCallback(
+    async (id: string) => {
+      const submission = submissions.find((s) => s.id === id);
+      if (!submission) throw new Error("Submission not found");
+
+      const targetProductId = (submission as any).target_product_id;
+      if (!targetProductId) throw new Error("Pas de produit cible pour cette modification");
+
+      const pd = submission.product_data as Record<string, unknown>;
+
+      // Build update payload (same fields as approveAsNew, minus scores/partner_id)
+      const productUpdate: Record<string, unknown> = {
+        name: pd.name, category: pd.category, subcategory: pd.subcategory ?? null,
+        short_description: pd.short_description ?? null, long_description: pd.long_description ?? null,
+        image_url: pd.image_url ?? null, gallery_urls: pd.gallery_urls ?? [],
+        environment_urls: pd.environment_urls ?? [],
+        price_min: pd.price_min ?? null, price_max: pd.price_max ?? null,
+        main_color: pd.main_color ?? null, secondary_color: pd.secondary_color ?? null,
+        available_colors: pd.available_colors ?? [], color_variants: pd.color_variants ?? [],
+        material_structure: pd.material_structure ?? null, material_seat: pd.material_seat ?? null,
+        dimensions_length_cm: pd.dimensions_length_cm ?? null, dimensions_width_cm: pd.dimensions_width_cm ?? null,
+        dimensions_height_cm: pd.dimensions_height_cm ?? null, seat_height_cm: pd.seat_height_cm ?? null,
+        weight_kg: pd.weight_kg ?? null,
+        style_tags: pd.style_tags ?? [], ambience_tags: pd.ambience_tags ?? [],
+        material_tags: pd.material_tags ?? [], use_case_tags: pd.use_case_tags ?? [],
+        technical_tags: pd.technical_tags ?? [], product_type_tags: pd.product_type_tags ?? {},
+        is_outdoor: pd.is_outdoor ?? true, is_stackable: pd.is_stackable ?? false,
+        is_chr_heavy_use: pd.is_chr_heavy_use ?? false, uv_resistant: pd.uv_resistant ?? false,
+        weather_resistant: pd.weather_resistant ?? false, fire_retardant: pd.fire_retardant ?? false,
+        lightweight: pd.lightweight ?? false, easy_maintenance: pd.easy_maintenance ?? false,
+        stock_status: pd.stock_status ?? null, stock_quantity: pd.stock_quantity ?? null,
+        estimated_delivery_days: pd.estimated_delivery_days ?? null,
+        country_of_manufacture: pd.country_of_manufacture ?? null, warranty: pd.warranty ?? null,
+      };
+
+      const { error: updateError } = await supabase
+        .from("products")
+        .update(productUpdate)
+        .eq("id", targetProductId);
+      if (updateError) throw updateError;
+
+      // Mark submission as approved
+      await supabase
+        .from("product_submissions")
+        .update({ status: "approved", updated_at: new Date().toISOString() } as Record<string, unknown>)
+        .eq("id", id);
+
+      const productName = (pd.name as string) ?? "votre produit";
+      await notifyPartner(submission.partner_id, "Modification approuvée", `Les modifications de ${productName} ont été publiées`);
+      await invalidate();
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    [submissions, queryClient]
+  );
+
   // Approve as merge — link offer to existing product
   const approveAsMerge = useCallback(
     async (id: string) => {
@@ -434,6 +500,7 @@ export function useAdminSubmissions() {
     submissions,
     isLoading,
     approveAsNew,
+    approveEdit,
     approveAsMerge,
     reject,
     regenerateMerge,

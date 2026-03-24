@@ -2074,6 +2074,8 @@ export type Database = {
           reviewed_by: string | null
           similarity_score: number | null
           status: string | null
+          submission_type: string
+          target_product_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2093,6 +2095,8 @@ export type Database = {
           reviewed_by?: string | null
           similarity_score?: number | null
           status?: string | null
+          submission_type?: string
+          target_product_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2112,6 +2116,8 @@ export type Database = {
           reviewed_by?: string | null
           similarity_score?: number | null
           status?: string | null
+          submission_type?: string
+          target_product_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2127,6 +2133,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_submissions_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]

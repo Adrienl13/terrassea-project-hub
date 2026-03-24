@@ -443,6 +443,7 @@ export default function AdminProductReview() {
     submissions,
     isLoading,
     approveAsNew,
+    approveEdit,
     approveAsMerge,
     reject,
     regenerateMerge,
@@ -587,6 +588,11 @@ export default function AdminProductReview() {
                   <QualityScoreRing score={qualityReport.score} size="sm" />
                   <div className="flex flex-col items-end gap-1">
                     <StatusBadge status={s.status} />
+                    {(s as any).submission_type === "edit" && (
+                      <span className="text-[9px] font-display font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                        Modification
+                      </span>
+                    )}
                     {s.similarity_score != null && s.similarity_score > 0 && (
                       <SimilarityBadge score={s.similarity_score} />
                     )}
@@ -691,17 +697,31 @@ export default function AdminProductReview() {
                     {/* Actions */}
                     {s.status === "pending_review" && (
                       <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-border">
-                        <button
-                          disabled={actionLoading === s.id}
-                          onClick={() => {
-                            setActionLoading(s.id);
-                            handleAction(() => approveAsNew(s.id), "Approbation");
-                          }}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-display font-bold rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors shadow-sm"
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                          Approuver comme nouveau produit
-                        </button>
+                        {(s as any).submission_type === "edit" && (s as any).target_product_id ? (
+                          <button
+                            disabled={actionLoading === s.id}
+                            onClick={() => {
+                              setActionLoading(s.id);
+                              handleAction(() => approveEdit(s.id), "Approbation modification");
+                            }}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-display font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-sm"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            Approuver la modification
+                          </button>
+                        ) : (
+                          <button
+                            disabled={actionLoading === s.id}
+                            onClick={() => {
+                              setActionLoading(s.id);
+                              handleAction(() => approveAsNew(s.id), "Approbation");
+                            }}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-display font-bold rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors shadow-sm"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            Approuver comme nouveau produit
+                          </button>
+                        )}
 
                         {s.detected_duplicate_id && (
                           <>

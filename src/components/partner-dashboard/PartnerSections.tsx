@@ -23,7 +23,7 @@ import {
   Plus, Upload, Image, Paperclip, Send, Search,
   Users, Sparkles, Award, FileSpreadsheet,
   Rocket, GripVertical, Briefcase, MapPin, Calendar,
-  Building2, EyeOff, Handshake, Target, ThumbsUp, ThumbsDown, Info,
+  Building2, EyeOff, Handshake, Target, ThumbsUp, ThumbsDown, Info, Pencil,
 } from "lucide-react";
 
 const ExcelImportModal = lazy(() => import("./ExcelImportModal"));
@@ -235,12 +235,29 @@ function QuoteRow({
 
 // ── Product Row with Commission ────────────────────────────────────────────────
 
+interface ProductRowData {
+  offerId: string;
+  productId: string;
+  name: string;
+  image?: string;
+  category?: string;
+  price: number;
+  commissionRate: number;
+  views: number;
+  quotes: number;
+  stock: string;
+  // Full product data for edit
+  productData?: Record<string, any>;
+  offerData?: Record<string, any>;
+}
+
 function ProductRow({
-  name, image, price, commissionRate, views, quotes, stock,
+  product, onEdit,
 }: {
-  name: string; image?: string; price: number; commissionRate: number;
-  views: number; quotes: number; stock: string;
+  product: ProductRowData;
+  onEdit: (p: ProductRowData) => void;
 }) {
+  const { name, image, price, commissionRate, views, quotes, stock } = product;
   const commissionAmount = price * (commissionRate / 100);
   const clientPrice = price + commissionAmount;
 
@@ -267,14 +284,23 @@ function ProductRow({
           </span>
         </div>
       </div>
-      <div className="flex items-center gap-4 shrink-0 text-[10px] font-body text-muted-foreground">
-        <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {views}</span>
-        <span className="flex items-center gap-1"><FileText className="h-3 w-3" /> {quotes}</span>
-        <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-display font-semibold ${
-          stock === "En stock" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
-        }`}>
-          {stock}
-        </span>
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-4 text-[10px] font-body text-muted-foreground">
+          <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {views}</span>
+          <span className="flex items-center gap-1"><FileText className="h-3 w-3" /> {quotes}</span>
+          <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-display font-semibold ${
+            stock === "En stock" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+          }`}>
+            {stock}
+          </span>
+        </div>
+        <button
+          onClick={() => onEdit(product)}
+          className="flex items-center gap-1 px-2.5 py-1.5 text-[9px] font-display font-semibold border border-border rounded-lg hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-colors"
+          title="Modifier ce produit"
+        >
+          <Pencil className="h-3 w-3" /> Modifier
+        </button>
       </div>
     </div>
   );
@@ -947,6 +973,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   const [showAddForm, setShowAddForm] = useState(false);
   const [showExcelImport, setShowExcelImport] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<ProductRowData | null>(null);
 
   // Read subscription overrides for this partner
   const { data: subOverrides } = useQuery({
@@ -962,34 +989,41 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   });
   const effectiveMaxProducts = subOverrides?.max_products ?? config.maxProducts;
 
-  // Real product offers from DB
-  const { data: dbProducts = [] } = useQuery({
+  // Real product offers from DB — fetch full product data for editing
+  const { data: dbProducts = [] } = useQuery<ProductRowData[]>({
     queryKey: ["partner-products", partnerId],
     queryFn: async () => {
       const { data } = await supabase
         .from("product_offers")
-        .select("id, price, stock_status, stock_quantity, product_id")
+        .select("id, price, stock_status, stock_quantity, product_id, delivery_delay_days, purchase_type")
         .eq("partner_id", partnerId!)
         .eq("is_active", true);
       if (!data || data.length === 0) return [];
 
-      // Fetch associated product details
+      // Fetch FULL product details for editing
       const productIds = data.map((d) => d.product_id);
       const { data: products } = await supabase
         .from("products")
-        .select("id, name, image_url, category")
+        .select("*")
         .in("id", productIds);
 
-      const productMap = new Map((products || []).map((p) => [p.id, p]));
+      const productMap = new Map((products || []).map((p: any) => [p.id, p]));
       return data.map((offer) => {
-        const prod = productMap.get(offer.product_id);
+        const prod = productMap.get(offer.product_id) || {};
         return {
-          name: prod?.name ?? "Unknown product",
+          offerId: offer.id,
+          productId: offer.product_id,
+          name: prod.name ?? "Unknown product",
+          image: prod.image_url ?? undefined,
+          category: prod.category ?? undefined,
           price: offer.price ?? 0,
-          views: 0, // TODO: connect to real analytics
-          quotes: 0, // TODO: connect to real quote_requests count
+          commissionRate: config.commission,
+          views: 0,
+          quotes: 0,
           stock: offer.stock_status === "in_stock" ? "En stock" : offer.stock_status === "low_stock" ? "Stock faible" : (offer.stock_status ?? "—"),
-        };
+          productData: prod,
+          offerData: offer,
+        } as ProductRowData;
       });
     },
     enabled: !!partnerId,
@@ -1148,15 +1182,11 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         </div>
       ) : (
         <div className="space-y-2">
-          {products.map((p, i) => (
+          {products.map((p) => (
             <ProductRow
-              key={i}
-              name={p.name}
-              price={p.price}
-              commissionRate={config.commission}
-              views={p.views}
-              quotes={p.quotes}
-              stock={p.stock}
+              key={p.offerId}
+              product={p}
+              onEdit={setEditingProduct}
             />
           ))}
         </div>
@@ -1195,6 +1225,23 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
             onSuccess={() => {
               setShowAddForm(false);
               toast.success("Produit ajouté !");
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <Suspense fallback={null}>
+          <AddProductForm
+            plan={plan}
+            editMode
+            editProductId={editingProduct.productId}
+            editInitialData={editingProduct.productData}
+            onClose={() => setEditingProduct(null)}
+            onSuccess={() => {
+              setEditingProduct(null);
+              toast.success("Modification soumise pour validation par l'équipe Terrassea.");
             }}
           />
         </Suspense>
