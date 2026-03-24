@@ -23,10 +23,12 @@ import {
   Plus, Upload, Image, Paperclip, Send, Search,
   Users, Sparkles, Award, FileSpreadsheet,
   Rocket, GripVertical, Briefcase, MapPin, Calendar,
-  Building2, EyeOff, Handshake, Target, ThumbsUp, ThumbsDown, Info, Pencil,
+  Building2, EyeOff, Handshake, Target, ThumbsUp, ThumbsDown, Info, Pencil, ImagePlus,
 } from "lucide-react";
 
 const ExcelImportModal = lazy(() => import("./ExcelImportModal"));
+const PhotoGalleryManager = lazy(() => import("./PhotoGalleryManager"));
+const ProductPhotoLinker = lazy(() => import("./ProductPhotoLinker"));
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -252,10 +254,11 @@ interface ProductRowData {
 }
 
 function ProductRow({
-  product, onEdit,
+  product, onEdit, onPhotos,
 }: {
   product: ProductRowData;
   onEdit: (p: ProductRowData) => void;
+  onPhotos: (p: ProductRowData) => void;
 }) {
   const { name, image, price, commissionRate, views, quotes, stock } = product;
   const commissionAmount = price * (commissionRate / 100);
@@ -294,6 +297,13 @@ function ProductRow({
             {stock}
           </span>
         </div>
+        <button
+          onClick={() => onPhotos(product)}
+          className="flex items-center gap-1 px-2.5 py-1.5 text-[9px] font-display font-semibold border border-blue-200 bg-blue-50 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors"
+          title="Associer des photos"
+        >
+          <ImagePlus className="h-3 w-3" /> Photos
+        </button>
         <button
           onClick={() => onEdit(product)}
           className="flex items-center gap-1 px-2.5 py-1.5 text-[9px] font-display font-semibold border border-border rounded-lg hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-colors"
@@ -974,6 +984,8 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   const [showExcelImport, setShowExcelImport] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductRowData | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
+  const [linkingPhotos, setLinkingPhotos] = useState<ProductRowData | null>(null);
 
   // Read subscription overrides for this partner
   const { data: subOverrides } = useQuery({
@@ -1187,6 +1199,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
               key={p.offerId}
               product={p}
               onEdit={setEditingProduct}
+              onPhotos={setLinkingPhotos}
             />
           ))}
         </div>
@@ -1199,6 +1212,12 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
           className="flex items-center gap-2 px-4 py-2 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors"
         >
           <FileSpreadsheet className="h-3 w-3" /> Import Excel / CSV
+        </button>
+        <button
+          onClick={() => setShowGallery(true)}
+          className="flex items-center gap-2 px-4 py-2 text-xs font-display font-semibold border border-blue-200 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+        >
+          <ImagePlus className="h-3 w-3" /> Galerie photos
         </button>
         <button
           onClick={() => setShowApiPanel(true)}
@@ -1226,6 +1245,27 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
               setShowAddForm(false);
               toast.success("Produit ajouté !");
             }}
+          />
+        </Suspense>
+      )}
+
+      {/* Photo Gallery Modal */}
+      {showGallery && partnerId && (
+        <Suspense fallback={null}>
+          <PhotoGalleryManager partnerId={partnerId} onClose={() => setShowGallery(false)} />
+        </Suspense>
+      )}
+
+      {/* Product Photo Linker Modal */}
+      {linkingPhotos && partnerId && (
+        <Suspense fallback={null}>
+          <ProductPhotoLinker
+            productId={linkingPhotos.productId}
+            productName={linkingPhotos.name}
+            currentImageUrl={linkingPhotos.productData?.image_url || null}
+            currentGalleryUrls={linkingPhotos.productData?.gallery_urls || []}
+            partnerId={partnerId}
+            onClose={() => setLinkingPhotos(null)}
           />
         </Suspense>
       )}
