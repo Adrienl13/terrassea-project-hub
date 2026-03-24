@@ -8,7 +8,7 @@ import {
   XCircle, Clock, AlertTriangle, Star, TrendingUp,
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
-  CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge,
+  CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge, Landmark,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,7 @@ import AdminRatingsModeration from "@/components/admin/AdminRatingsModeration";
 import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
 import AdminProductReview from "@/components/admin/AdminProductReview";
 import AdminChatbotStats from "@/components/admin/AdminChatbotStats";
+import AdminFinancing from "@/components/admin/AdminFinancing";
 import ColorVariantEditor from "@/components/admin/ColorVariantEditor";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
 import type { ColorVariant } from "@/lib/products";
@@ -36,7 +37,7 @@ import type { ColorVariant } from "@/lib/products";
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "settings";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "settings";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -1703,6 +1704,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       { id: "quotes",  icon: FileText,     label: "Devis",      badgeKey: "quotes" },
       { id: "orders",  icon: ShoppingCart,  label: "Commandes",  badgeKey: "orders" },
+      { id: "financing", icon: Landmark,    label: "Financement" },
       { id: "applications", icon: CreditCard, label: "Paiements" },
     ],
   },
@@ -1961,6 +1963,7 @@ const Admin = () => {
           {tab === "pro_service"  && <QuoteRequestsTab type="pro" />}
           {tab === "products"     && <ProductsTab />}
           {tab === "submissions"  && <AdminProductReview />}
+          {tab === "financing"    && <AdminFinancing />}
           {tab === "chatbot"      && <AdminChatbotStats />}
         </div>
       </main>

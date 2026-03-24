@@ -16,6 +16,7 @@ import SourcingAlerts from "@/components/project/SourcingAlerts";
 import type { DBProduct } from "@/lib/products";
 import type { CartItem } from "@/contexts/ProjectCartContext";
 import { exportCartAsPdf } from "@/lib/cartPdfExport";
+import FinancingCTA from "@/components/financing/FinancingCTA";
 
 // ── Progress steps ────────────────────────────────────────────────────────────
 
@@ -510,6 +511,18 @@ const ProjectCart = () => {
                       {t('projectCart.indicativeNotice')}
                     </p>
                 }
+
+                  {/* Financing CTA */}
+                  {hasBudget && (
+                    <FinancingCTA
+                      totalBudget={totalBudget}
+                      prefillName={formData.name}
+                      prefillEmail={formData.email}
+                      prefillPhone={formData.phone}
+                      prefillSiren={formData.siren}
+                      prefillCompany={formData.company || sirenResult?.companyName}
+                    />
+                  )}
 
                   {/* Notes */}
                   <div className="mt-6">

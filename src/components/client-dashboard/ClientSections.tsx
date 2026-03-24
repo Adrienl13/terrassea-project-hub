@@ -19,13 +19,14 @@ import {
   TrendingUp, ChevronRight, Heart, Plus, Search,
   FolderOpen, MessageSquare, Package, Users, HelpCircle,
   CheckCircle2, Clock, FileText, Send, ArrowRight,
-  Lightbulb, ShieldCheck, Star, Eye, MapPin, X,
+  Lightbulb, ShieldCheck, Star, Eye, MapPin, X, Landmark,
   ChevronDown, ChevronUp, Truck, ClipboardList,
   ExternalLink, Bookmark, Lock, Unlock, PenTool,
   Download, AlertTriangle, Upload, Check,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import FinancingRequestModal from "@/components/financing/FinancingRequestModal";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -154,6 +155,7 @@ export function ClientOverview({
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { activeProjects, pendingQuotes, totalEstimated, projectsByStatus, projects, quotes } = useClientStats();
+  const [showFinancingModal, setShowFinancingModal] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(() => {
     try { return localStorage.getItem("terrassea_hiw_seen") !== "1"; } catch { return true; }
   });
@@ -226,6 +228,30 @@ export function ClientOverview({
           color="#EC4899"
         />
       </div>
+
+      {/* ── Financing CTA ────────────────────────────────────────── */}
+      {projects.length > 0 && (
+        <div className="border border-emerald-200 bg-gradient-to-r from-emerald-50/80 to-emerald-50/30 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+              <Landmark className="h-4 w-4 text-emerald-700" />
+            </div>
+            <div className="flex-1">
+              <p className="font-display font-bold text-xs text-foreground">Financez votre terrasse</p>
+              <p className="text-[10px] font-body text-muted-foreground mt-0.5">
+                Étalez votre investissement sur 12 à 60 mois avec notre partenaire financier.
+              </p>
+            </div>
+            <button onClick={() => setShowFinancingModal(true)}
+              className="flex items-center gap-1.5 px-4 py-2 text-[10px] font-display font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 rounded-full hover:bg-emerald-200 transition-colors shrink-0">
+              <Landmark className="h-3 w-3" />
+              Demander
+            </button>
+          </div>
+        </div>
+      )}
+
+      <FinancingRequestModal open={showFinancingModal} onClose={() => setShowFinancingModal(false)} />
 
       {/* ── Project journey stepper ─────────────────────────────── */}
       <div>
