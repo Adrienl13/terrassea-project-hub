@@ -60,6 +60,9 @@ import PartnerLoyaltyProgram from "@/components/partner-dashboard/PartnerLoyalty
 import PartnerArrivalsSection from "@/components/partner-dashboard/PartnerArrivalsSection";
 import UpgradeSuggestion from "@/components/partner-dashboard/UpgradeSuggestion";
 import PartnerProfileForm from "@/components/partner-dashboard/PartnerProfileForm";
+import BrandBriefInbox from "@/components/partner-dashboard/BrandBriefInbox";
+import BrandCollectionManager from "@/components/partner-dashboard/BrandCollectionManager";
+import BrandNetworkDashboard from "@/components/partner-dashboard/BrandNetworkDashboard";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -106,6 +109,24 @@ const NAV_PARTNER_BASE = [
 
 const getPartnerNav = (plan: PartnerPlan) =>
   NAV_PARTNER_BASE.filter(item => !item.eliteOnly || plan === "elite" || plan === "elite_pro");
+
+const NAV_BRAND_MEMBER = [
+  { id: "overview",     icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "briefs",       icon: Inbox,           labelKey: "account.brandBriefs" },
+  { id: "collections",  icon: Package,         labelKey: "account.brandCollections" },
+  { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
+  { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
+  { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
+];
+
+const NAV_BRAND_NETWORK = [
+  { id: "overview",     icon: LayoutDashboard, labelKey: "account.overview" },
+  { id: "collections",  icon: Package,         labelKey: "account.brandCollections" },
+  { id: "network",      icon: Briefcase,       labelKey: "account.brandNetwork" },
+  { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
+  { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
+  { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
+];
 
 const NAV_ARCHITECT = [
   { id: "overview",   icon: LayoutDashboard, labelKey: "account.overview" },
@@ -335,7 +356,7 @@ const Account = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("partners")
-        .select("id, profile_completed, profile_submitted, profile_status, profile_submitted_at, profile_review_notes")
+        .select("id, profile_completed, profile_submitted, profile_status, profile_submitted_at, profile_review_notes, partner_mode")
         .eq("contact_email", profile!.email)
         .maybeSingle();
       if (error || !data) return null;
@@ -358,6 +379,7 @@ const Account = () => {
         profile_status: (rec.profile_status as string) || null,
         profile_submitted_at: (rec.profile_submitted_at as string) || null,
         profile_review_notes: (rec.profile_review_notes as string) || null,
+        partner_mode: (rec.partner_mode as string) || "standard",
       };
     },
     enabled: !!profile?.email && profile?.user_type === "partner",
@@ -436,7 +458,11 @@ const Account = () => {
 
   const userType = profile.user_type as keyof typeof PROFILE_CONFIG;
   const config = PROFILE_CONFIG[userType] ?? PROFILE_CONFIG.client;
-  const nav = userType === "partner" ? getPartnerNav(partnerPlan) : config.nav;
+  const nav = userType === "partner"
+    ? (partnerData?.partner_mode === "brand_network" ? NAV_BRAND_NETWORK
+       : partnerData?.partner_mode === "brand_member" ? NAV_BRAND_MEMBER
+       : getPartnerNav(partnerPlan))
+    : config.nav;
 
   const handleSignOut = async () => {
     await signOut();
@@ -536,7 +562,26 @@ const Account = () => {
         }
       }
 
+      const isBrand = partnerData?.partner_mode === "brand_member" || partnerData?.partner_mode === "brand_network";
+      const isBrandNetwork = partnerData?.partner_mode === "brand_network";
+
       const partnerSectionContent = (() => {
+        // Brand-specific sections
+        if (isBrand) {
+          switch (section) {
+            case "overview":      return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
+            case "briefs":        return isBrandNetwork
+              ? <BrandNetworkDashboard partnerId={partnerId!} />
+              : <BrandBriefInbox partnerId={partnerId!} />;
+            case "collections":   return <BrandCollectionManager partnerId={partnerId!} />;
+            case "messages":      return <PartnerMessagesSection />;
+            case "network":       return <BrandNetworkDashboard partnerId={partnerId!} />;
+            case "performance":   return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
+            case "settings":      return <SettingsSection profile={profile} />;
+            default:              return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
+          }
+        }
+        // Standard partner sections
         switch (section) {
           case "overview":    return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
           case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
@@ -553,7 +598,7 @@ const Account = () => {
 
       return (
         <div className="space-y-4">
-          {partnerId && <UpgradeSuggestion partnerId={partnerId} currentPlan={partnerPlan} />}
+          {!isBrand && partnerId && <UpgradeSuggestion partnerId={partnerId} currentPlan={partnerPlan} />}
           {partnerSectionContent}
         </div>
       );

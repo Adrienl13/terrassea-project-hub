@@ -12,6 +12,7 @@ import { useProjectCart, type SelectedSupplier } from "@/contexts/ProjectCartCon
 import { useAuth } from "@/contexts/AuthContext";
 import AddToProjectModal from "@/components/architect-dashboard/AddToProjectModal";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
+import ProjectBriefModal from "@/components/products/ProjectBriefModal";
 import RestockBadge from "@/components/products/RestockBadge";
 import { toast } from "sonner";
 
@@ -197,6 +198,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [pendingSupplier, setPendingSupplier] = useState<SelectedSupplier | null>(null);
   const [quoteModalOffer, setQuoteModalOffer] = useState<ProductOffer | null>(null);
+  const [projectBriefOffer, setProjectBriefOffer] = useState<ProductOffer | null>(null);
   const getPartnerTypeLabel = usePartnerTypeLabel();
 
   const getOfferArrivals = (partnerId: string) =>
@@ -414,14 +416,24 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
                   </td>
                   {/* Prices */}
                   <td className="py-4">
-                    <span className="font-display font-bold text-foreground">
-                      {offer.price ? `€${offer.price.toFixed(2)}` : t("vendorOffers.onRequest")}
-                    </span>
+                    {offer.pricing_mode === 'on_request' ? (
+                      <span className="font-display font-semibold italic text-[#D4603A] text-xs">
+                        {t("vendorOffers.onQualifiedBrief", "Sur brief qualifié")}
+                      </span>
+                    ) : (
+                      <span className="font-display font-bold text-foreground">
+                        {offer.price ? `€${offer.price.toFixed(2)}` : t("vendorOffers.onRequest")}
+                      </span>
+                    )}
                   </td>
                   <td className="py-4">
-                    <span className="font-display font-bold text-foreground">
-                      {total !== null ? `€${total.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}` : "—"}
-                    </span>
+                    {offer.pricing_mode === 'on_request' ? (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    ) : (
+                      <span className="font-display font-bold text-foreground">
+                        {total !== null ? `€${total.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}` : "—"}
+                      </span>
+                    )}
                   </td>
                   {/* Stock */}
                   <td className="py-4">
@@ -448,8 +460,19 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
                   {/* Action */}
                   <td className="py-4">
                     <div className="flex flex-col items-end gap-1">
-                      <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={(o) => handleAddToCart(o, index)} onRequestQuote={(o) => setQuoteModalOffer(o)} />
-                      <FitHelperText fit={fit} offer={offer} quantity={quantity} />
+                      {offer.pricing_mode === 'on_request' ? (
+                        <button
+                          onClick={() => setProjectBriefOffer(offer)}
+                          className="flex items-center gap-1.5 text-[10px] font-display font-semibold border border-[#D4603A] text-[#D4603A] rounded-full px-3 py-1.5 hover:bg-[#D4603A] hover:text-white transition-colors"
+                        >
+                          <FileText className="h-3 w-3" /> {t("vendorOffers.submitBrief", "Soumettre un brief →")}
+                        </button>
+                      ) : (
+                        <>
+                          <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={(o) => handleAddToCart(o, index)} onRequestQuote={(o) => setQuoteModalOffer(o)} />
+                          <FitHelperText fit={fit} offer={offer} quantity={quantity} />
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -493,13 +516,21 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="font-display font-bold text-foreground text-sm">
-                    {offer.price ? `€${offer.price.toFixed(2)}` : t("vendorOffers.onRequest")}
-                  </span>
-                  {total !== null && (
-                    <p className="text-[10px] text-muted-foreground">
-                      {t("vendorOffers.total")}: €{total.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
-                    </p>
+                  {offer.pricing_mode === 'on_request' ? (
+                    <span className="font-display font-semibold italic text-[#D4603A] text-xs">
+                      {t("vendorOffers.onQualifiedBrief", "Sur brief qualifié")}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="font-display font-bold text-foreground text-sm">
+                        {offer.price ? `€${offer.price.toFixed(2)}` : t("vendorOffers.onRequest")}
+                      </span>
+                      {total !== null && (
+                        <p className="text-[10px] text-muted-foreground">
+                          {t("vendorOffers.total")}: €{total.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -517,8 +548,19 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
               </div>
               <div className="flex items-start gap-2">
                 <div className="flex-1 flex flex-col gap-1">
-                  <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={(o) => handleAddToCart(o, index)} onRequestQuote={(o) => setQuoteModalOffer(o)} />
-                  <FitHelperText fit={fit} offer={offer} quantity={quantity} />
+                  {offer.pricing_mode === 'on_request' ? (
+                    <button
+                      onClick={() => setProjectBriefOffer(offer)}
+                      className="flex items-center gap-1.5 text-[10px] font-display font-semibold border border-[#D4603A] text-[#D4603A] rounded-full px-3 py-1.5 hover:bg-[#D4603A] hover:text-white transition-colors"
+                    >
+                      <FileText className="h-3 w-3" /> {t("vendorOffers.submitBrief", "Soumettre un brief →")}
+                    </button>
+                  ) : (
+                    <>
+                      <OfferAction fit={fit} offer={offer} quantity={quantity} onAddToCart={(o) => handleAddToCart(o, index)} onRequestQuote={(o) => setQuoteModalOffer(o)} />
+                      <FitHelperText fit={fit} offer={offer} quantity={quantity} />
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -552,6 +594,14 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
         offers={quoteModalOffer ? [quoteModalOffer] : []}
         defaultQuantity={quantity}
       />
+      {projectBriefOffer && (
+        <ProjectBriefModal
+          open={projectBriefOffer !== null}
+          onClose={() => setProjectBriefOffer(null)}
+          product={product}
+          offer={projectBriefOffer}
+        />
+      )}
     </section>
   );
 };

@@ -9,7 +9,8 @@
     "moodBoard": "Assistente Design IA",
     "myProject": "Il Mio Progetto",
     "myAccount": "Il Mio Account",
-    "launchProject": "Lancia il mio progetto"
+    "launchProject": "Lancia il mio progetto",
+    "collections": "Collezioni"
   },
   "search": {
     "placeholder1": "terrazza ristorante 80 posti stile mediterraneo",
@@ -685,7 +686,10 @@
     "designAssistant": "Design IA",
     "loyalty": "Fedeltà",
     "orders": "I miei ordini",
-    "arrivals": "Arrivi"
+    "arrivals": "Arrivi",
+    "brandBriefs": "Brief di progetto",
+    "brandCollections": "Collezioni",
+    "brandNetwork": "Rete di distribuzione"
   },
   "orders": {
     "title": "I miei ordini",

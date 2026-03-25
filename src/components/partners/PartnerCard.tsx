@@ -18,6 +18,7 @@ interface Partner {
   specialties: string[] | null;
   certifications: string[] | null;
   is_featured: boolean | null;
+  partner_mode?: string | null;
 }
 
 function countryFlag(code: string | null | undefined): string {
@@ -59,7 +60,11 @@ export default function PartnerCard({ partner }: { partner: Partner }) {
       )}
 
       <Link
-        to={`/partners/${partner.slug}`}
+        to={
+          partner.partner_mode === "brand_member" || partner.partner_mode === "brand_network"
+            ? `/brands/${partner.slug}`
+            : `/partners/${partner.slug}`
+        }
         className="block p-6"
       >
         <div className="flex items-start justify-between">

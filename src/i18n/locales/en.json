@@ -9,7 +9,8 @@
     "moodBoard": "AI Design Assistant",
     "myProject": "My Project",
     "myAccount": "My Account",
-    "launchProject": "Launch my project"
+    "launchProject": "Launch my project",
+    "collections": "Collections"
   },
   "search": {
     "placeholder1": "terrace restaurant 80 seats mediterranean style",
@@ -688,7 +689,10 @@
     "designAssistant": "AI Design",
     "loyalty": "Loyalty",
     "orders": "My orders",
-    "arrivals": "Arrivals"
+    "arrivals": "Arrivals",
+    "brandBriefs": "Project briefs",
+    "brandCollections": "Collections",
+    "brandNetwork": "Distribution network"
   },
   "orders": {
     "title": "My Orders",

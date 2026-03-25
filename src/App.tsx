@@ -37,6 +37,8 @@ const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const ProjectCart = lazy(() => import("./pages/ProjectCart"));
 const Partners = lazy(() => import("./pages/Partners"));
 const PartnerDetail = lazy(() => import("./pages/PartnerDetail"));
+const BrandPage = lazy(() => import("./pages/BrandPage"));
+const Collections = lazy(() => import("./pages/Collections"));
 const ProService = lazy(() => import("./pages/ProService"));
 
 const queryClient = new QueryClient();
@@ -66,6 +68,8 @@ const App = () => (
                   <Route path="/partners" element={<Partners />} />
                   <Route path="/become-partner" element={<BecomePartner />} />
                   <Route path="/partners/:slug" element={<PartnerDetail />} />
+                  <Route path="/brands/:slug" element={<BrandPage />} />
+                  <Route path="/collections" element={<Collections />} />
                   <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
                   <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                   <Route path="/messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />

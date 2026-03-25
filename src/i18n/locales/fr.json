@@ -9,7 +9,8 @@
     "moodBoard": "Assistant Design IA",
     "myProject": "Mon Projet",
     "myAccount": "Mon Compte",
-    "launchProject": "Lancer mon projet"
+    "launchProject": "Lancer mon projet",
+    "collections": "Collections"
   },
   "search": {
     "placeholder1": "terrasse restaurant 80 couverts style méditerranéen",
@@ -688,7 +689,10 @@
     "designAssistant": "Design IA",
     "loyalty": "Fidélité",
     "orders": "Mes commandes",
-    "arrivals": "Arrivages"
+    "arrivals": "Arrivages",
+    "brandBriefs": "Briefs projet",
+    "brandCollections": "Collections",
+    "brandNetwork": "R\u00e9seau de distribution"
   },
   "orders": {
     "title": "Mes commandes",

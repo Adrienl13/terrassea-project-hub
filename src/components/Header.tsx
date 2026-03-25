@@ -97,6 +97,7 @@ const NAV_LINKS = [
   { labelKey: "nav.explore", href: "/" },
   { labelKey: "nav.products", href: "/products" },
   { labelKey: "nav.inspirations", href: "/inspirations" },
+  { labelKey: "nav.collections", href: "/collections" },
   { labelKey: "nav.guide", href: "/resources" },
   { labelKey: "nav.partners", href: "/partners" },
   { labelKey: "nav.proService", href: "/pro-service" },
