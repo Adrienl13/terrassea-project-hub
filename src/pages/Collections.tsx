@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -43,63 +42,69 @@ function groupByCollection(offers: CollectionOffer[]): Record<string, Collection
 export default function Collections() {
   const { t } = useTranslation();
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
+  const [brands, setBrands] = useState<Array<{
+    id: string; slug: string; name: string; logo_url: string | null;
+    country: string | null; country_code: string | null; description: string | null;
+  }>>([]);
   const [brandCollections, setBrandCollections] = useState<Record<string, Record<string, CollectionOffer[]>>>({});
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ── Query 1: brand partners ──────────────────────────────────────────────
-  const { data: brands = [], isLoading, error: brandsError } = useQuery({
-    queryKey: ["collections-brands"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("partners")
-        .select("id, slug, name, logo_url, country, country_code, description, partner_mode")
-        .in("partner_mode", ["brand_member", "brand_network"])
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
+  // ── Load brands on mount ─────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error: err } = await supabase
+          .from("partners")
+          .select("id, slug, name, logo_url, country, country_code, description, partner_mode")
+          .in("partner_mode", ["brand_member", "brand_network"])
+          .eq("is_active", true)
+          .order("name");
+        if (cancelled) return;
+        if (err) { setError(err.message); setLoading(false); return; }
+        setBrands(data ?? []);
+        setLoading(false);
+      } catch (e) {
+        if (!cancelled) { setError(e instanceof Error ? e.message : "Erreur inconnue"); setLoading(false); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
-  const firstBrandId = brands.length > 0 ? brands[0].id : null;
-  const effectiveExpanded = expandedBrand ?? firstBrandId;
+  // ── Auto-expand first brand ──────────────────────────────────────────────
+  useEffect(() => {
+    if (brands.length > 0 && expandedBrand === null) {
+      setExpandedBrand(brands[0].id);
+    }
+  }, [brands.length]);
 
-  // ── Fetch collections for a brand ────────────────────────────────────────
+  // ── Fetch collections when a brand is expanded ───────────────────────────
   const fetchCollections = useCallback(async (brandId: string) => {
+    if (brandCollections[brandId]) return;
     try {
-      const { data, error } = await supabase
+      const { data, error: err } = await supabase
         .from("product_offers")
         .select("collection_name, product:product_id(image_url, name)")
         .eq("partner_id", brandId)
         .eq("is_active", true)
         .not("collection_name", "is", null);
-
-      if (error) {
-        console.error("[Collections] Supabase error:", error);
-        setFetchError(error.message);
-        return;
-      }
-
+      if (err) { console.error("[Collections] fetch error:", err); return; }
       const offers = (data ?? []) as CollectionOffer[];
-      const grouped = groupByCollection(offers);
-      setBrandCollections((prev) => ({ ...prev, [brandId]: grouped }));
-    } catch (err) {
-      console.error("[Collections] Fetch error:", err);
-      setFetchError(err instanceof Error ? err.message : "Unknown error");
+      setBrandCollections((prev) => ({ ...prev, [brandId]: groupByCollection(offers) }));
+    } catch (e) {
+      console.error("[Collections] fetch error:", e);
     }
-  }, []);
+  }, [brandCollections]);
 
-  // ── Toggle expand/collapse ───────────────────────────────────────────────
-  const handleExpand = useCallback((brandId: string) => {
-    setExpandedBrand((prev) => prev === brandId ? null : brandId);
-  }, []);
-
-  // Fetch collections when a brand is expanded (or first brand auto-expanded)
   useEffect(() => {
-    if (!effectiveExpanded) return;
-    if (brandCollections[effectiveExpanded]) return;
-    fetchCollections(effectiveExpanded);
-  }, [effectiveExpanded, fetchCollections]);
+    if (expandedBrand) fetchCollections(expandedBrand);
+  }, [expandedBrand]);
+
+  // ── Toggle ───────────────────────────────────────────────────────────────
+  const handleToggle = (brandId: string) => {
+    setExpandedBrand((prev) => (prev === brandId ? null : brandId));
+  };
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
@@ -107,51 +112,45 @@ export default function Collections() {
       <SEO title={`${t("nav.collections", "Collections")} | TerrasseaHUB`} />
       <Header />
 
-      {/* Hero */}
       <section className="bg-[#FAF7F4] pt-24 pb-16">
         <div className="container mx-auto px-6 max-w-4xl">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-3">
             {t("nav.collections", "Collections")}
           </h1>
           <p className="text-base font-body text-muted-foreground max-w-xl">
-            Univers de marque s&eacute;lectionn&eacute;s pour l'h&ocirc;tellerie et la restauration haut de gamme.
+            {"Univers de marque s\u00e9lectionn\u00e9s pour l\u2019h\u00f4tellerie et la restauration haut de gamme."}
           </p>
         </div>
       </section>
 
-      {/* Brands accordion */}
       <section className="py-12 bg-[#FAF7F4] min-h-[50vh]">
         <div className="container mx-auto px-6 max-w-5xl">
-          {/* Error states */}
-          {(brandsError || fetchError) && (
+          {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-              <p className="text-xs font-body text-red-800">
-                Erreur : {brandsError instanceof Error ? brandsError.message : fetchError || "Erreur inconnue"}
-              </p>
+              <p className="text-xs font-body text-red-800">{"Erreur : " + error}</p>
             </div>
           )}
 
-          {isLoading ? (
+          {loading ? (
             <div className="flex items-center justify-center py-16">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-foreground border-t-transparent" />
             </div>
           ) : brands.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-sm font-body text-muted-foreground">Aucune marque Brand disponible pour le moment.</p>
+              <p className="text-sm font-body text-muted-foreground">{"Aucune marque Brand disponible pour le moment."}</p>
             </div>
           ) : (
             <div className="space-y-4">
               {brands.map((brand) => {
-                const isExpanded = effectiveExpanded === brand.id;
+                const isExpanded = expandedBrand === brand.id;
                 const collections = brandCollections[brand.id] ?? {};
                 const collNames = Object.keys(collections);
                 const flag = countryFlag(brand.country_code);
 
                 return (
                   <div key={brand.id} className="bg-white rounded-2xl border border-border overflow-hidden">
-                    {/* Brand header row */}
                     <button
-                      onClick={() => handleExpand(brand.id)}
+                      onClick={() => handleToggle(brand.id)}
                       className="w-full flex items-center gap-4 p-5 text-left hover:bg-card/50 transition-colors"
                     >
                       {brand.logo_url ? (
@@ -164,11 +163,11 @@ export default function Collections() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="font-display text-lg font-bold text-foreground">{brand.name}</h3>
-                          {flag && <span className="text-base">{flag}</span>}
+                          {flag ? <span className="text-base">{flag}</span> : null}
                         </div>
-                        {brand.description && (
+                        {brand.description ? (
                           <p className="text-xs font-body text-muted-foreground line-clamp-1 mt-0.5">{brand.description}</p>
-                        )}
+                        ) : null}
                       </div>
                       {isExpanded ? (
                         <ChevronUp className="h-5 w-5 text-muted-foreground shrink-0" />
@@ -177,12 +176,11 @@ export default function Collections() {
                       )}
                     </button>
 
-                    {/* Collections grid — expanded */}
-                    {isExpanded && (
+                    {isExpanded ? (
                       <div className="border-t border-border p-5">
                         {collNames.length === 0 ? (
                           <p className="text-xs font-body text-muted-foreground text-center py-6">
-                            Chargement des collections...
+                            {"Chargement des collections\u2026"}
                           </p>
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -193,10 +191,8 @@ export default function Collections() {
                               return (
                                 <Link
                                   key={collName}
-                                  to={`/brands/${brand.slug}?collection=${encodeURIComponent(collName)}`}
-                                  className={`group relative overflow-hidden rounded-xl ${
-                                    idx < 2 ? "aspect-[4/3]" : "aspect-square"
-                                  }`}
+                                  to={"/brands/" + brand.slug + "?collection=" + encodeURIComponent(collName)}
+                                  className={"group relative overflow-hidden rounded-xl " + (idx < 2 ? "aspect-[4/3]" : "aspect-square")}
                                 >
                                   {heroImage ? (
                                     <img
@@ -207,14 +203,12 @@ export default function Collections() {
                                   ) : (
                                     <div className="absolute inset-0 bg-gradient-to-br from-stone-200 to-stone-300" />
                                   )}
-
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/80 transition-colors" />
-
                                   <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
                                     <div>
                                       <h4 className="font-display text-lg font-bold text-white tracking-tight">{collName}</h4>
                                       <p className="text-[10px] font-body text-white/60 mt-0.5">
-                                        {items.length} produit{items.length > 1 ? "s" : ""}
+                                        {String(items.length) + " produit" + (items.length > 1 ? "s" : "")}
                                       </p>
                                     </div>
                                     <ArrowRight className="h-5 w-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -226,13 +220,13 @@ export default function Collections() {
                         )}
 
                         <Link
-                          to={`/brands/${brand.slug}`}
+                          to={"/brands/" + brand.slug}
                           className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors mt-4"
                         >
-                          Voir la page {brand.name} <ArrowRight className="h-3.5 w-3.5" />
+                          {"Voir la page " + brand.name} <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 );
               })}
