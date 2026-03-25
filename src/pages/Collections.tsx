@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -68,7 +68,8 @@ export default function Collections() {
   const effectiveExpanded = expandedBrand ?? firstBrandId;
 
   const handleExpand = async (brandId: string) => {
-    if (expandedBrand === brandId) {
+    // Toggle: collapse if already explicitly expanded
+    if (expandedBrand !== null && expandedBrand === brandId) {
       setExpandedBrand(null);
       return;
     }
@@ -90,9 +91,13 @@ export default function Collections() {
   };
 
   // Pre-load first brand collections
-  if (firstBrandId && !brandCollections[firstBrandId] && brands.length > 0) {
-    handleExpand(firstBrandId);
-  }
+  const preloadedRef = useRef(false);
+  useEffect(() => {
+    if (firstBrandId && !preloadedRef.current && brands.length > 0) {
+      preloadedRef.current = true;
+      handleExpand(firstBrandId);
+    }
+  }, [firstBrandId, brands.length]);
 
   return (
     <>
