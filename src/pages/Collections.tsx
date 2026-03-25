@@ -47,6 +47,7 @@ export default function Collections() {
   const { t } = useTranslation();
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [brandCollections, setBrandCollections] = useState<Record<string, Record<string, CollectionOffer[]>>>({});
+  const preloadedRef = useRef(false);
 
   // Fetch all active brand partners
   const { data: brands = [], isLoading } = useQuery({
@@ -67,35 +68,34 @@ export default function Collections() {
   const firstBrandId = brands[0]?.id ?? null;
   const effectiveExpanded = expandedBrand ?? firstBrandId;
 
-  const handleExpand = async (brandId: string) => {
-    // Toggle: collapse if already explicitly expanded
-    if (expandedBrand !== null && expandedBrand === brandId) {
+  const fetchCollections = async (brandId: string) => {
+    if (brandCollections[brandId]) return;
+    const { data } = await supabase
+      .from("product_offers")
+      .select("collection_name, product:product_id(image_url, name)")
+      .eq("partner_id", brandId)
+      .eq("is_active", true)
+      .not("collection_name", "is", null);
+
+    const offers = (data ?? []) as CollectionOffer[];
+    const grouped = groupBy(offers.filter((o) => o.collection_name), "collection_name");
+    setBrandCollections((prev) => ({ ...prev, [brandId]: grouped }));
+  };
+
+  const handleExpand = (brandId: string) => {
+    if (expandedBrand === brandId) {
       setExpandedBrand(null);
       return;
     }
     setExpandedBrand(brandId);
-
-    // Fetch collections for this brand if not cached
-    if (!brandCollections[brandId]) {
-      const { data } = await supabase
-        .from("product_offers")
-        .select("collection_name, product:product_id(image_url, name)")
-        .eq("partner_id", brandId)
-        .eq("is_active", true)
-        .not("collection_name", "is", null);
-
-      const offers = (data ?? []) as CollectionOffer[];
-      const grouped = groupBy(offers.filter((o) => o.collection_name), "collection_name");
-      setBrandCollections((prev) => ({ ...prev, [brandId]: grouped }));
-    }
+    fetchCollections(brandId);
   };
 
   // Pre-load first brand collections
-  const preloadedRef = useRef(false);
   useEffect(() => {
     if (firstBrandId && !preloadedRef.current && brands.length > 0) {
       preloadedRef.current = true;
-      handleExpand(firstBrandId);
+      fetchCollections(firstBrandId);
     }
   }, [firstBrandId, brands.length]);
 
