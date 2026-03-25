@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -8,24 +8,17 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 
-interface BrandPartner {
-  id: string;
-  slug: string;
-  name: string;
-  logo_url: string | null;
-  country: string | null;
-  country_code: string | null;
-  description: string | null;
-  partner_mode: string;
-}
+// ── Types ────────────────────────────────────────────────────────────────────
 
 interface CollectionOffer {
-  collection_name: string;
+  collection_name: string | null;
   product: {
     image_url: string | null;
     name: string;
   } | null;
 }
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function countryFlag(code: string | null | undefined): string {
   if (!code || code.length !== 2) return "";
@@ -34,23 +27,27 @@ function countryFlag(code: string | null | undefined): string {
   );
 }
 
-function groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {
-  return arr.reduce((acc, item) => {
-    const k = String(item[key] ?? "");
-    if (!acc[k]) acc[k] = [];
-    acc[k].push(item);
-    return acc;
-  }, {} as Record<string, T[]>);
+function groupByCollection(offers: CollectionOffer[]): Record<string, CollectionOffer[]> {
+  const result: Record<string, CollectionOffer[]> = {};
+  for (const offer of offers) {
+    const key = offer.collection_name;
+    if (!key) continue;
+    if (!result[key]) result[key] = [];
+    result[key].push(offer);
+  }
+  return result;
 }
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 export default function Collections() {
   const { t } = useTranslation();
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [brandCollections, setBrandCollections] = useState<Record<string, Record<string, CollectionOffer[]>>>({});
-  const preloadedRef = useRef(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // Fetch all active brand partners
-  const { data: brands = [], isLoading } = useQuery({
+  // ── Query 1: brand partners ──────────────────────────────────────────────
+  const { data: brands = [], isLoading, error: brandsError } = useQuery({
     queryKey: ["collections-brands"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -60,45 +57,51 @@ export default function Collections() {
         .eq("is_active", true)
         .order("name");
       if (error) throw error;
-      return (data ?? []) as BrandPartner[];
+      return data ?? [];
     },
   });
 
-  // Auto-expand first brand
-  const firstBrandId = brands[0]?.id ?? null;
+  const firstBrandId = brands.length > 0 ? brands[0].id : null;
   const effectiveExpanded = expandedBrand ?? firstBrandId;
 
-  const fetchCollections = async (brandId: string) => {
-    if (brandCollections[brandId]) return;
-    const { data } = await supabase
-      .from("product_offers")
-      .select("collection_name, product:product_id(image_url, name)")
-      .eq("partner_id", brandId)
-      .eq("is_active", true)
-      .not("collection_name", "is", null);
+  // ── Fetch collections for a brand ────────────────────────────────────────
+  const fetchCollections = useCallback(async (brandId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("product_offers")
+        .select("collection_name, product:product_id(image_url, name)")
+        .eq("partner_id", brandId)
+        .eq("is_active", true)
+        .not("collection_name", "is", null);
 
-    const offers = (data ?? []) as CollectionOffer[];
-    const grouped = groupBy(offers.filter((o) => o.collection_name), "collection_name");
-    setBrandCollections((prev) => ({ ...prev, [brandId]: grouped }));
-  };
+      if (error) {
+        console.error("[Collections] Supabase error:", error);
+        setFetchError(error.message);
+        return;
+      }
 
-  const handleExpand = (brandId: string) => {
-    if (expandedBrand === brandId) {
-      setExpandedBrand(null);
-      return;
+      const offers = (data ?? []) as CollectionOffer[];
+      const grouped = groupByCollection(offers);
+      setBrandCollections((prev) => ({ ...prev, [brandId]: grouped }));
+    } catch (err) {
+      console.error("[Collections] Fetch error:", err);
+      setFetchError(err instanceof Error ? err.message : "Unknown error");
     }
-    setExpandedBrand(brandId);
-    fetchCollections(brandId);
-  };
+  }, []);
 
-  // Pre-load first brand collections
+  // ── Toggle expand/collapse ───────────────────────────────────────────────
+  const handleExpand = useCallback((brandId: string) => {
+    setExpandedBrand((prev) => prev === brandId ? null : brandId);
+  }, []);
+
+  // Fetch collections when a brand is expanded (or first brand auto-expanded)
   useEffect(() => {
-    if (firstBrandId && !preloadedRef.current && brands.length > 0) {
-      preloadedRef.current = true;
-      fetchCollections(firstBrandId);
-    }
-  }, [firstBrandId, brands.length]);
+    if (!effectiveExpanded) return;
+    if (brandCollections[effectiveExpanded]) return;
+    fetchCollections(effectiveExpanded);
+  }, [effectiveExpanded, fetchCollections]);
 
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <>
       <SEO title={`${t("nav.collections", "Collections")} | TerrasseaHUB`} />
@@ -111,7 +114,7 @@ export default function Collections() {
             {t("nav.collections", "Collections")}
           </h1>
           <p className="text-base font-body text-muted-foreground max-w-xl">
-            Univers de marque s\u00e9lectionn\u00e9s pour l'h\u00f4tellerie et la restauration haut de gamme.
+            Univers de marque s&eacute;lectionn&eacute;s pour l'h&ocirc;tellerie et la restauration haut de gamme.
           </p>
         </div>
       </section>
@@ -119,6 +122,15 @@ export default function Collections() {
       {/* Brands accordion */}
       <section className="py-12 bg-[#FAF7F4] min-h-[50vh]">
         <div className="container mx-auto px-6 max-w-5xl">
+          {/* Error states */}
+          {(brandsError || fetchError) && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+              <p className="text-xs font-body text-red-800">
+                Erreur : {brandsError instanceof Error ? brandsError.message : fetchError || "Erreur inconnue"}
+              </p>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-foreground border-t-transparent" />
@@ -131,7 +143,7 @@ export default function Collections() {
             <div className="space-y-4">
               {brands.map((brand) => {
                 const isExpanded = effectiveExpanded === brand.id;
-                const collections = brandCollections[brand.id] || {};
+                const collections = brandCollections[brand.id] ?? {};
                 const collNames = Object.keys(collections);
                 const flag = countryFlag(brand.country_code);
 
@@ -175,9 +187,8 @@ export default function Collections() {
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {collNames.map((collName, idx) => {
-                              const items = collections[collName];
-                              // Pick the best image for the collection
-                              const heroImage = items.find((i) => i.product?.image_url)?.product?.image_url;
+                              const items = collections[collName] ?? [];
+                              const heroImage = items.find((i) => i.product?.image_url)?.product?.image_url ?? null;
 
                               return (
                                 <Link
@@ -187,7 +198,6 @@ export default function Collections() {
                                     idx < 2 ? "aspect-[4/3]" : "aspect-square"
                                   }`}
                                 >
-                                  {/* Background image */}
                                   {heroImage ? (
                                     <img
                                       src={heroImage}
@@ -198,10 +208,8 @@ export default function Collections() {
                                     <div className="absolute inset-0 bg-gradient-to-br from-stone-200 to-stone-300" />
                                   )}
 
-                                  {/* Overlay */}
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/80 transition-colors" />
 
-                                  {/* Label */}
                                   <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
                                     <div>
                                       <h4 className="font-display text-lg font-bold text-white tracking-tight">{collName}</h4>
