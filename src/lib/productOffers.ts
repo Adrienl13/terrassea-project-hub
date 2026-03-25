@@ -13,8 +13,8 @@ export interface ProductOffer {
   purchase_type: string | null;
   notes: string | null;
   is_active: boolean | null;
-  pricing_mode?: 'public' | 'on_request';
-  collection_name?: string | null;
+  pricing_mode: string | null;
+  collection_name: string | null;
   partner?: {
     id: string;
     name: string;
@@ -23,7 +23,7 @@ export interface ProductOffer {
     country: string | null;
     city: string | null;
     logo_url: string | null;
-    partner_mode?: string;
+    partner_mode: string | null;
   };
 }
 
@@ -31,7 +31,7 @@ export async function fetchProductOffers(productId: string): Promise<ProductOffe
   const { data, error } = await supabase
     .from("product_offers")
     .select(`
-      *, pricing_mode, collection_name,
+      *,
       partner:partners (id, name, slug, partner_type, country, city, logo_url, partner_mode)
     `)
     .eq("product_id", productId)
@@ -39,5 +39,5 @@ export async function fetchProductOffers(productId: string): Promise<ProductOffe
     .order("price", { ascending: true, nullsFirst: false });
 
   if (error) throw error;
-  return (data ?? []) as unknown as ProductOffer[];
+  return (data ?? []) as ProductOffer[];
 }

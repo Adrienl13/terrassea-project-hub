@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, MapPin, Building2, Calendar, Briefcase } from "lucide-react";
+import { MapPin, Briefcase } from "lucide-react";
 
 interface BrandNetworkDashboardProps {
   partnerId: string;
@@ -28,18 +27,16 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
 };
 
 export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboardProps) {
-  const { t } = useTranslation();
-
   const { data: briefs = [], isLoading } = useQuery({
     queryKey: ["brand-network-briefs", partnerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_briefs")
-        .select("id, country, establishment_type, budget_range, status, created_at, distributor:routed_to_partner_id(name, country)")
+        .select("id, country, establishment_type, budget_range, status, created_at, distributor:partners!project_briefs_routed_to_partner_id_fkey(name, country)")
         .eq("brand_partner_id", partnerId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as unknown as RoutedBrief[];
+      return (data ?? []) as RoutedBrief[];
     },
   });
 

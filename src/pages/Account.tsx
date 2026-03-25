@@ -361,8 +361,6 @@ const Account = () => {
         .maybeSingle();
       if (error || !data) return null;
 
-      const rec = data as Record<string, unknown>;
-
       // Fetch the subscription plan for this partner
       const { data: sub } = await supabase
         .from("partner_subscriptions")
@@ -374,12 +372,12 @@ const Account = () => {
       return {
         id: data.id,
         plan: sub?.plan ?? null,
-        profile_completed: !!rec.profile_completed,
-        profile_submitted: !!rec.profile_submitted,
-        profile_status: (rec.profile_status as string) || null,
-        profile_submitted_at: (rec.profile_submitted_at as string) || null,
-        profile_review_notes: (rec.profile_review_notes as string) || null,
-        partner_mode: (rec.partner_mode as string) || "standard",
+        profile_completed: !!data.profile_completed,
+        profile_submitted: !!data.profile_submitted,
+        profile_status: data.profile_status || null,
+        profile_submitted_at: data.profile_submitted_at || null,
+        profile_review_notes: data.profile_review_notes || null,
+        partner_mode: data.partner_mode || "standard",
       };
     },
     enabled: !!profile?.email && profile?.user_type === "partner",
@@ -427,10 +425,8 @@ const Account = () => {
         is_active: true,
         is_public: false,
         country: profile.country || "France",
-      } as Record<string, unknown>).then(() => {
+      }).then(() => {
         queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
-      }).catch((err) => {
-        console.error("Failed to auto-create partner profile:", err);
       });
     }
   }, [profile, partnerQueryDone, partnerData]);

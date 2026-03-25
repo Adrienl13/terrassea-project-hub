@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import ProjectBriefModal from "@/components/products/ProjectBriefModal";
 import type { ProductOffer } from "@/lib/productOffers";
+import type { DBProduct } from "@/lib/products";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ export default function BrandPage() {
         .in("partner_mode", ["brand_member", "brand_network"])
         .single();
       if (error) throw error;
-      return data as unknown as BrandPartner;
+      return data as BrandPartner;
     },
     enabled: !!slug,
   });
@@ -94,7 +95,7 @@ export default function BrandPage() {
         .eq("is_active", true)
         .not("collection_name", "is", null);
       if (error) throw error;
-      return (data ?? []) as unknown as CollectionOffer[];
+      return (data ?? []) as CollectionOffer[];
     },
     enabled: !!brand?.id,
   });
@@ -113,7 +114,7 @@ export default function BrandPage() {
 
   // Dummy product for ProjectBriefModal
   const briefProduct = briefOffer?.product
-    ? { id: briefOffer.product.id, name: briefOffer.product.name, image_url: briefOffer.product.image_url, category: "", main_color: "" } as any
+    ? { id: briefOffer.product.id, name: briefOffer.product.name, image_url: briefOffer.product.image_url, category: "", main_color: "" } as DBProduct
     : null;
 
   const briefOfferForModal: ProductOffer | null = briefOffer
@@ -132,7 +133,7 @@ export default function BrandPage() {
         is_active: true,
         pricing_mode: "on_request",
         collection_name: briefOffer.collection_name,
-        partner: brand ? { id: brand.id, name: brand.name, slug: brand.slug, partner_type: "brand", country: brand.country, city: brand.city, logo_url: brand.logo_url } : undefined,
+        partner: brand ? { id: brand.id, name: brand.name, slug: brand.slug, partner_type: "brand", country: brand.country, city: brand.city, logo_url: brand.logo_url, partner_mode: brand.partner_mode } : undefined,
       }
     : null;
 

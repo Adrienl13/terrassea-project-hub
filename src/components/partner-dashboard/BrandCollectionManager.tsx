@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Image, Package, FolderOpen } from "lucide-react";
+import { Pencil, Image, Package, FolderOpen } from "lucide-react";
 
 interface BrandCollectionManagerProps {
   partnerId: string;
@@ -31,7 +30,6 @@ function groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {
 }
 
 export default function BrandCollectionManager({ partnerId }: BrandCollectionManagerProps) {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [editingOffer, setEditingOffer] = useState<string | null>(null);
   const [editCollection, setEditCollection] = useState("");
@@ -46,7 +44,7 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
         .eq("is_active", true)
         .order("collection_name", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as unknown as CollectionProduct[];
+      return (data ?? []) as CollectionProduct[];
     },
   });
 

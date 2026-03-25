@@ -59,7 +59,7 @@ export default function Collections() {
         .eq("is_active", true)
         .order("name");
       if (error) throw error;
-      return (data ?? []) as unknown as BrandPartner[];
+      return (data ?? []) as BrandPartner[];
     },
   });
 
@@ -83,7 +83,7 @@ export default function Collections() {
         .eq("is_active", true)
         .not("collection_name", "is", null);
 
-      const offers = (data ?? []) as unknown as CollectionOffer[];
+      const offers = (data ?? []) as CollectionOffer[];
       const grouped = groupBy(offers.filter((o) => o.collection_name), "collection_name");
       setBrandCollections((prev) => ({ ...prev, [brandId]: grouped }));
     }

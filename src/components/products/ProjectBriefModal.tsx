@@ -127,7 +127,7 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
       .eq("is_active", true)
       .not("collection_name", "is", null)
       .then(({ data }) => {
-        const names = [...new Set((data ?? []).map((d: any) => d.collection_name).filter(Boolean))] as string[];
+        const names = [...new Set((data ?? []).map((d) => d.collection_name).filter(Boolean))] as string[];
         setBrandCollections(names);
       });
   }, [open, offer.partner_id]);

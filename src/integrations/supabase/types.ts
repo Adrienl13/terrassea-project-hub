@@ -1423,13 +1423,16 @@ export type Database = {
           description_es: string | null
           description_fr: string | null
           description_it: string | null
+          certifications: string[] | null
           founded_year: number | null
           gallery_urls: string[] | null
+          hero_image_url: string | null
           id: string
           is_active: boolean | null
           is_public: boolean | null
           logo_url: string | null
           name: string
+          partner_mode: string | null
           partner_type: string | null
           plan: string | null
           priority_order: number | null
@@ -1443,6 +1446,7 @@ export type Database = {
           profile_submitted_at: string | null
           siren: string | null
           slug: string
+          specialties: string[] | null
           specialty_tags: string[] | null
           user_id: string | null
           vat_number: string | null
@@ -1466,13 +1470,16 @@ export type Database = {
           description_es?: string | null
           description_fr?: string | null
           description_it?: string | null
+          certifications?: string[] | null
           founded_year?: number | null
           gallery_urls?: string[] | null
+          hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name: string
+          partner_mode?: string | null
           partner_type?: string | null
           plan?: string | null
           priority_order?: number | null
@@ -1486,6 +1493,7 @@ export type Database = {
           profile_submitted_at?: string | null
           siren?: string | null
           slug: string
+          specialties?: string[] | null
           specialty_tags?: string[] | null
           user_id?: string | null
           vat_number?: string | null
@@ -1496,6 +1504,7 @@ export type Database = {
           admin_notes?: string | null
           admin_visibility_override?: boolean | null
           application_id?: string | null
+          certifications?: string[] | null
           city?: string | null
           contact_email?: string | null
           contact_name?: string | null
@@ -1511,11 +1520,13 @@ export type Database = {
           description_it?: string | null
           founded_year?: number | null
           gallery_urls?: string[] | null
+          hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name?: string
+          partner_mode?: string | null
           partner_type?: string | null
           plan?: string | null
           priority_order?: number | null
@@ -1529,6 +1540,7 @@ export type Database = {
           profile_submitted_at?: string | null
           siren?: string | null
           slug?: string
+          specialties?: string[] | null
           specialty_tags?: string[] | null
           user_id?: string | null
           vat_number?: string | null
@@ -1989,6 +2001,7 @@ export type Database = {
       }
       product_offers: {
         Row: {
+          collection_name: string | null
           created_at: string | null
           currency: string | null
           delivery_delay_days: number | null
@@ -2000,12 +2013,15 @@ export type Database = {
           partner_id: string
           partner_ref: string | null
           price: number | null
+          pricing_mode: string | null
           product_id: string
           purchase_type: string | null
           stock_quantity: number | null
           stock_status: string | null
+          updated_at: string | null
         }
         Insert: {
+          collection_name?: string | null
           created_at?: string | null
           currency?: string | null
           delivery_delay_days?: number | null
@@ -2017,12 +2033,15 @@ export type Database = {
           partner_id: string
           partner_ref?: string | null
           price?: number | null
+          pricing_mode?: string | null
           product_id: string
           purchase_type?: string | null
           stock_quantity?: number | null
           stock_status?: string | null
+          updated_at?: string | null
         }
         Update: {
+          collection_name?: string | null
           created_at?: string | null
           currency?: string | null
           delivery_delay_days?: number | null
@@ -2034,10 +2053,12 @@ export type Database = {
           partner_id?: string
           partner_ref?: string | null
           price?: number | null
+          pricing_mode?: string | null
           product_id?: string
           purchase_type?: string | null
           stock_quantity?: number | null
           stock_status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -2052,6 +2073,109 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_briefs: {
+        Row: {
+          id: string
+          brand_partner_id: string
+          product_id: string | null
+          client_user_id: string | null
+          routed_to_partner_id: string | null
+          establishment_type: string | null
+          stars_or_class: string | null
+          capacity: number | null
+          country: string | null
+          collections_interest: string[] | null
+          quantity_estimate: number | null
+          budget_range: string | null
+          timeline: string | null
+          project_type: string | null
+          first_name: string | null
+          last_name: string | null
+          email: string | null
+          company: string | null
+          siren: string | null
+          message: string | null
+          qualification_score: number | null
+          status: string | null
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          brand_partner_id: string
+          product_id?: string | null
+          client_user_id?: string | null
+          routed_to_partner_id?: string | null
+          establishment_type?: string | null
+          stars_or_class?: string | null
+          capacity?: number | null
+          country?: string | null
+          collections_interest?: string[] | null
+          quantity_estimate?: number | null
+          budget_range?: string | null
+          timeline?: string | null
+          project_type?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          email?: string | null
+          company?: string | null
+          siren?: string | null
+          message?: string | null
+          qualification_score?: number | null
+          status?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          brand_partner_id?: string
+          product_id?: string | null
+          client_user_id?: string | null
+          routed_to_partner_id?: string | null
+          establishment_type?: string | null
+          stars_or_class?: string | null
+          capacity?: number | null
+          country?: string | null
+          collections_interest?: string[] | null
+          quantity_estimate?: number | null
+          budget_range?: string | null
+          timeline?: string | null
+          project_type?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          email?: string | null
+          company?: string | null
+          siren?: string | null
+          message?: string | null
+          qualification_score?: number | null
+          status?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_briefs_brand_partner_id_fkey"
+            columns: ["brand_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_briefs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_briefs_routed_to_partner_id_fkey"
+            columns: ["routed_to_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]
