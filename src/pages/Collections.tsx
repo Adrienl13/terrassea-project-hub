@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, ChevronUp, ArrowRight } from "lucide-react";
+import { ArrowRight, MapPin, Sparkles, Package, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -17,6 +17,11 @@ interface BrandPartner {
   country: string | null;
   country_code: string | null;
   description: string | null;
+  hero_image_url: string | null;
+  cover_photo_url: string | null;
+  founded_year: number | null;
+  specialties: string[] | null;
+  certifications: string[] | null;
 }
 
 interface CollectionOffer {
@@ -24,7 +29,13 @@ interface CollectionOffer {
   product: {
     image_url: string | null;
     name: string;
+    category: string | null;
   } | null;
+}
+
+interface BrandCollections {
+  grouped: Record<string, CollectionOffer[]>;
+  totalProducts: number;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -51,9 +62,8 @@ function groupByCollection(offers: CollectionOffer[]): Record<string, Collection
 
 export default function Collections() {
   const { t } = useTranslation();
-  const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [brands, setBrands] = useState<BrandPartner[]>([]);
-  const [brandCollections, setBrandCollections] = useState<Record<string, Record<string, CollectionOffer[]>>>({});
+  const [brandData, setBrandData] = useState<Record<string, BrandCollections>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,204 +74,321 @@ export default function Collections() {
       try {
         const { data, error: err } = await supabase
           .from("partners")
-          .select("id, slug, name, logo_url, country, country_code, description, partner_mode")
+          .select("id, slug, name, logo_url, country, country_code, description, partner_mode, hero_image_url, cover_photo_url, founded_year, specialties, certifications")
           .in("partner_mode", ["brand_member", "brand_network"])
           .eq("is_active", true)
           .order("name");
 
         if (cancelled) return;
-        if (err) {
-          setError(err.message);
-          setLoading(false);
-          return;
-        }
+        if (err) { setError(err.message); setLoading(false); return; }
         setBrands(data ?? []);
         setLoading(false);
       } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Erreur inconnue");
-          setLoading(false);
-        }
+        if (!cancelled) { setError(e instanceof Error ? e.message : "Erreur inconnue"); setLoading(false); }
       }
     }
     load();
     return () => { cancelled = true; };
   }, []);
 
-  // ── Auto-expand first brand once loaded ──────────────────────────────────
-  useEffect(() => {
-    if (brands.length > 0 && expandedBrand === null) {
-      setExpandedBrand(brands[0].id);
-    }
-  }, [brands]);
-
-  // ── Fetch collections for a given brand ──────────────────────────────────
+  // ── Fetch all collections for all brands ─────────────────────────────────
   const fetchCollections = useCallback(async (brandId: string) => {
     try {
       const { data, error: err } = await supabase
         .from("product_offers")
-        .select("collection_name, product:product_id(image_url, name)")
+        .select("collection_name, product:product_id(image_url, name, category)")
         .eq("partner_id", brandId)
         .eq("is_active", true)
         .not("collection_name", "is", null);
 
-      if (err) {
-        console.error("[Collections] fetch error:", err.message);
-        return;
-      }
+      if (err) { console.error("[Collections] fetch error:", err.message); return; }
 
       const offers = (data ?? []) as CollectionOffer[];
-      setBrandCollections((prev) => ({ ...prev, [brandId]: groupByCollection(offers) }));
+      const grouped = groupByCollection(offers);
+      setBrandData((prev) => ({
+        ...prev,
+        [brandId]: { grouped, totalProducts: offers.length },
+      }));
     } catch (e) {
       console.error("[Collections] fetch error:", e);
     }
   }, []);
 
-  // ── Trigger fetch when expanded brand changes ────────────────────────────
+  // Fetch collections for all brands once loaded
   useEffect(() => {
-    if (!expandedBrand) return;
-    // Only fetch if not already cached
-    setBrandCollections((prev) => {
-      if (prev[expandedBrand]) return prev;
-      // Trigger fetch outside of setState
-      fetchCollections(expandedBrand);
-      return prev;
-    });
-  }, [expandedBrand, fetchCollections]);
-
-  // ── Toggle ───────────────────────────────────────────────────────────────
-  const handleToggle = (brandId: string) => {
-    setExpandedBrand((prev) => (prev === brandId ? null : brandId));
-  };
+    for (const brand of brands) {
+      if (!brandData[brand.id]) fetchCollections(brand.id);
+    }
+  }, [brands, fetchCollections]);
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <>
-      <SEO title={t("nav.collections", "Collections") + " | TerrasseaHUB"} />
+      <SEO
+        title={t("nav.collections", "Collections") + " | TerrasseaHUB"}
+        description={"D\u00e9couvrez les collections exclusives de nos marques partenaires pour l\u2019h\u00f4tellerie-restauration outdoor haut de gamme."}
+      />
       <Header />
 
-      <section className="bg-[#FAF7F4] pt-24 pb-16">
-        <div className="container mx-auto px-6 max-w-4xl">
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-3">
-            {t("nav.collections", "Collections")}
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <section className="relative bg-[#1C1A17] pt-24 pb-20 overflow-hidden">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+        <div className="container mx-auto px-6 max-w-5xl relative">
+          <div className="flex items-center gap-2 mb-6">
+            <Sparkles className="h-4 w-4 text-[#D4603A]" />
+            <span className="text-xs font-display font-semibold uppercase tracking-[0.2em] text-[#D4603A]">
+              {"Marques partenaires"}
+            </span>
+          </div>
+          <h1 className="font-display text-4xl md:text-6xl font-bold text-white tracking-tight mb-4 max-w-3xl">
+            {"Collections exclusives"}
           </h1>
-          <p className="text-base font-body text-muted-foreground max-w-xl">
-            {"Univers de marque s\u00e9lectionn\u00e9s pour l\u2019h\u00f4tellerie et la restauration haut de gamme."}
+          <p className="text-base md:text-lg font-body text-white/50 max-w-2xl leading-relaxed">
+            {"Des fabricants d\u2019exception s\u00e9lectionn\u00e9s pour leur savoir-faire, leurs mat\u00e9riaux et leur engagement envers l\u2019h\u00f4tellerie-restauration haut de gamme."}
           </p>
+          <div className="flex items-center gap-6 mt-8">
+            <div className="text-center">
+              <p className="font-display text-2xl font-bold text-white">{String(brands.length)}</p>
+              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{"Marques"}</p>
+            </div>
+            <div className="w-px h-8 bg-white/10" />
+            <div className="text-center">
+              <p className="font-display text-2xl font-bold text-white">
+                {String(Object.values(brandData).reduce((acc, d) => acc + Object.keys(d.grouped).length, 0))}
+              </p>
+              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{"Collections"}</p>
+            </div>
+            <div className="w-px h-8 bg-white/10" />
+            <div className="text-center">
+              <p className="font-display text-2xl font-bold text-white">
+                {String(Object.values(brandData).reduce((acc, d) => acc + d.totalProducts, 0))}
+              </p>
+              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{"Produits"}</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="py-12 bg-[#FAF7F4] min-h-[50vh]">
-        <div className="container mx-auto px-6 max-w-5xl">
-          {error ? (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+      {/* ── Brand showcases ───────────────────────────────────────────────── */}
+      {error ? (
+        <section className="py-12 bg-[#FAF7F4]">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
               <p className="text-xs font-body text-red-800">{"Erreur : " + error}</p>
             </div>
-          ) : null}
+          </div>
+        </section>
+      ) : null}
 
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-foreground border-t-transparent" />
-            </div>
-          ) : brands.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-sm font-body text-muted-foreground">{"Aucune marque Brand disponible pour le moment."}</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {brands.map((brand) => {
-                const isExpanded = expandedBrand === brand.id;
-                const collections = brandCollections[brand.id];
-                const collNames = collections ? Object.keys(collections) : [];
-                const flag = countryFlag(brand.country_code);
+      {loading ? (
+        <section className="py-24 bg-[#FAF7F4]">
+          <div className="flex items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-foreground border-t-transparent" />
+          </div>
+        </section>
+      ) : (
+        brands.map((brand, brandIdx) => {
+          const data = brandData[brand.id];
+          const collections = data ? data.grouped : {};
+          const collNames = Object.keys(collections);
+          const flag = countryFlag(brand.country_code);
+          const heroImg = brand.hero_image_url || brand.cover_photo_url;
+          const isEven = brandIdx % 2 === 0;
 
-                return (
-                  <div key={brand.id} className="bg-white rounded-2xl border border-border overflow-hidden">
-                    <button
-                      onClick={() => handleToggle(brand.id)}
-                      className="w-full flex items-center gap-4 p-5 text-left hover:bg-card/50 transition-colors"
-                    >
-                      {brand.logo_url ? (
-                        <img src={brand.logo_url} alt={brand.name} className="h-12 w-12 rounded-xl object-contain bg-muted p-1" />
-                      ) : (
-                        <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center font-display font-bold text-lg text-muted-foreground">
-                          {flag || brand.name.charAt(0)}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-display text-lg font-bold text-foreground">{brand.name}</h3>
-                          {flag ? <span className="text-base">{flag}</span> : null}
-                        </div>
-                        {brand.description ? (
-                          <p className="text-xs font-body text-muted-foreground line-clamp-1 mt-0.5">{brand.description}</p>
-                        ) : null}
+          return (
+            <section
+              key={brand.id}
+              className={isEven ? "bg-[#FAF7F4] py-16 md:py-24" : "bg-white py-16 md:py-24"}
+            >
+              <div className="container mx-auto px-6 max-w-6xl">
+                {/* ── Brand header ─────────────────────────────────────────── */}
+                <div className={"flex flex-col md:flex-row gap-8 md:gap-16 items-start " + (isEven ? "" : "md:flex-row-reverse")}>
+                  {/* Brand image / logo block */}
+                  <div className="w-full md:w-2/5 shrink-0">
+                    {heroImg ? (
+                      <div className="aspect-[4/3] rounded-2xl overflow-hidden">
+                        <img src={heroImg} alt={brand.name} className="w-full h-full object-cover" />
                       </div>
-                      {isExpanded ? (
-                        <ChevronUp className="h-5 w-5 text-muted-foreground shrink-0" />
-                      ) : (
-                        <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0" />
-                      )}
-                    </button>
-
-                    {isExpanded ? (
-                      <div className="border-t border-border p-5">
-                        {collNames.length === 0 ? (
-                          <p className="text-xs font-body text-muted-foreground text-center py-6">
-                            {"Chargement des collections\u2026"}
-                          </p>
+                    ) : (
+                      <div className="aspect-[4/3] rounded-2xl bg-[#1C1A17] flex items-center justify-center relative overflow-hidden">
+                        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M0 20L20 0l20 20-20 20z' fill-opacity='.05'/%3E%3C/g%3E%3C/svg%3E\")" }} />
+                        {brand.logo_url ? (
+                          <img src={brand.logo_url} alt={brand.name} className="h-20 w-20 object-contain opacity-80" />
                         ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {collNames.map((collName, idx) => {
-                              const items = collections[collName] ?? [];
-                              const heroImage = items.find((i) => i.product?.image_url)?.product?.image_url ?? null;
-
-                              return (
-                                <Link
-                                  key={collName}
-                                  to={"/brands/" + brand.slug + "?collection=" + encodeURIComponent(collName)}
-                                  className={"group relative overflow-hidden rounded-xl " + (idx < 2 ? "aspect-[4/3]" : "aspect-square")}
-                                >
-                                  {heroImage ? (
-                                    <img
-                                      src={heroImage}
-                                      alt={collName}
-                                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                  ) : (
-                                    <div className="absolute inset-0 bg-gradient-to-br from-stone-200 to-stone-300" />
-                                  )}
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/80 transition-colors" />
-                                  <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
-                                    <div>
-                                      <h4 className="font-display text-lg font-bold text-white tracking-tight">{collName}</h4>
-                                      <p className="text-[10px] font-body text-white/60 mt-0.5">
-                                        {String(items.length) + " produit" + (items.length > 1 ? "s" : "")}
-                                      </p>
-                                    </div>
-                                    <ArrowRight className="h-5 w-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                                  </div>
-                                </Link>
-                              );
-                            })}
-                          </div>
+                          <span className="font-display text-5xl font-bold text-white/20">{brand.name.charAt(0)}</span>
                         )}
-                        <Link
-                          to={"/brands/" + brand.slug}
-                          className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors mt-4"
-                        >
-                          {"Voir la page " + brand.name}
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Brand info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-4">
+                      {brand.logo_url && heroImg ? (
+                        <img src={brand.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-muted p-1" />
+                      ) : null}
+                      <div>
+                        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+                          {brand.name}
+                        </h2>
+                        <div className="flex items-center gap-2 mt-1">
+                          {flag ? <span className="text-sm">{flag}</span> : null}
+                          {brand.country ? (
+                            <span className="text-xs font-body text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {brand.country}
+                            </span>
+                          ) : null}
+                          {brand.founded_year ? (
+                            <span className="text-xs font-body text-muted-foreground">
+                              {"\u00b7 Depuis " + String(brand.founded_year)}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+
+                    {brand.description ? (
+                      <p className="text-sm font-body text-muted-foreground leading-relaxed mb-6 max-w-lg">
+                        {brand.description}
+                      </p>
+                    ) : null}
+
+                    {/* Tags: specialties + certifications */}
+                    {(brand.specialties?.length || brand.certifications?.length) ? (
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {(brand.specialties ?? []).map((s) => (
+                          <span key={s} className="text-[10px] font-body px-3 py-1 rounded-full bg-foreground/5 text-muted-foreground border border-border">
+                            {s}
+                          </span>
+                        ))}
+                        {(brand.certifications ?? []).map((c) => (
+                          <span key={c} className="text-[10px] font-body px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 flex items-center gap-1">
+                            <Award className="h-2.5 w-2.5" />{c}
+                          </span>
+                        ))}
                       </div>
                     ) : null}
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-4 text-xs font-body text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Package className="h-3.5 w-3.5" />
+                        {String(collNames.length) + " collection" + (collNames.length > 1 ? "s" : "")}
+                      </span>
+                      {data ? (
+                        <span>{String(data.totalProducts) + " produit" + (data.totalProducts > 1 ? "s" : "")}</span>
+                      ) : null}
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
+                </div>
+
+                {/* ── Collections grid ─────────────────────────────────────── */}
+                {collNames.length > 0 ? (
+                  <div className="mt-12">
+                    <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-6">
+                      {"Collections " + brand.name}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {collNames.map((collName) => {
+                        const items = collections[collName] ?? [];
+                        const heroImage = items.find((i) => i.product?.image_url)?.product?.image_url ?? null;
+                        const categories = [...new Set(items.map((i) => i.product?.category).filter(Boolean))];
+
+                        return (
+                          <Link
+                            key={collName}
+                            to={"/brands/" + brand.slug + "?collection=" + encodeURIComponent(collName)}
+                            className="group block"
+                          >
+                            {/* Collection image */}
+                            <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3 relative">
+                              {heroImage ? (
+                                <img
+                                  src={heroImage}
+                                  alt={collName}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300 flex items-center justify-center">
+                                  <span className="font-display text-3xl font-bold text-stone-400/50">{collName.charAt(0)}</span>
+                                </div>
+                              )}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                                <ArrowRight className="h-3.5 w-3.5 text-foreground" />
+                              </div>
+                            </div>
+
+                            {/* Collection info */}
+                            <h4 className="font-display text-base font-bold text-foreground group-hover:text-[#D4603A] transition-colors">
+                              {collName}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[10px] font-body text-muted-foreground">
+                                {String(items.length) + " produit" + (items.length > 1 ? "s" : "")}
+                              </span>
+                              {categories.length > 0 ? (
+                                <span className="text-[10px] font-body text-muted-foreground">
+                                  {"\u00b7 " + categories.slice(0, 2).join(", ")}
+                                </span>
+                              ) : null}
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : data ? (
+                  <div className="mt-12 text-center py-8">
+                    <p className="text-xs font-body text-muted-foreground">{"Collections bient\u00f4t disponibles."}</p>
+                  </div>
+                ) : (
+                  <div className="mt-12 flex justify-center py-8">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                  </div>
+                )}
+
+                {/* ── CTA ─────────────────────────────────────────────────── */}
+                <div className="mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <Link
+                    to={"/brands/" + brand.slug}
+                    className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                  >
+                    {"D\u00e9couvrir " + brand.name}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <span className="text-[10px] font-body text-muted-foreground">
+                    {"Acc\u00e8s sur brief qualifi\u00e9 \u00b7 R\u00e9ponse sous 72h"}
+                  </span>
+                </div>
+              </div>
+            </section>
+          );
+        })
+      )}
+
+      {/* ── Bottom CTA ────────────────────────────────────────────────────── */}
+      {!loading && brands.length > 0 ? (
+        <section className="bg-[#1C1A17] py-20">
+          <div className="container mx-auto px-6 max-w-3xl text-center">
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-white mb-3">
+              {"Vous \u00eates une marque\u00a0?"}
+            </h2>
+            <p className="text-sm font-body text-white/50 mb-8 max-w-lg mx-auto leading-relaxed">
+              {"Rejoignez notre s\u00e9lection de marques partenaires et pr\u00e9sentez vos collections \u00e0 un r\u00e9seau qualifi\u00e9 de professionnels CHR."}
+            </p>
+            <Link
+              to="/become-partner"
+              className="inline-flex items-center gap-2 px-8 py-3 font-display font-semibold text-sm bg-[#D4603A] text-white rounded-full hover:opacity-90 transition-opacity"
+            >
+              {"Devenir marque partenaire"}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       <Footer />
     </>
