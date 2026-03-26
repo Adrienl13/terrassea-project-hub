@@ -90,11 +90,18 @@ const Products = () => {
   useEffect(() => {
     const category = searchParams.get("category");
     const sub = searchParams.get("sub");
+    const style = searchParams.get("style");
     if (category) {
       const formatted = category.charAt(0).toUpperCase() + category.slice(1).replace("-", " ");
       setFilters(prev => ({
         ...prev,
         categories: [formatted],
+      }));
+    }
+    if (style) {
+      setFilters(prev => ({
+        ...prev,
+        styles: [style],
       }));
     }
     if (sub) {
