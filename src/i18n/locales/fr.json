@@ -1818,6 +1818,8 @@
     "onRequest": "Sur demande",
     "sellers": "fournisseurs",
     "fromDays": "Dès",
+    "deliveryDays": "Dès {{count}} jour",
+    "deliveryDays_other": "Dès {{count}} jours",
     "addToProject": "Ajouter au projet",
     "requestQuote": "Demander un devis",
     "compare": "Comparer",
@@ -3783,6 +3785,16 @@
     "countryPortugal": "Portugal",
     "countrySwitzerland": "Suisse",
     "countryAustria": "Autriche"
+  },
+  "sourcing": {
+    "overview": "Aper\u00e7u du sourcing",
+    "itemsSourced": "Produits sourc\u00e9s",
+    "suppliers": "Fournisseurs",
+    "consolidation": "Consolidation",
+    "maxLeadTime": "D\u00e9lai max",
+    "complexity": "Complexit\u00e9",
+    "indicative": "Indicatif",
+    "budgetDisclaimer": "Total indicatif bas\u00e9 sur les prix catalogue \u00b7 hors livraison & TVA \u00b7 les devis finaux peuvent varier"
   },
   "network": {
     "title": "R\u00e9seau de distribution",

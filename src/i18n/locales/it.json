@@ -1786,6 +1786,8 @@
     "onRequest": "Su richiesta",
     "sellers": "fornitori",
     "fromDays": "Da",
+    "deliveryDays": "Da {{count}} giorno",
+    "deliveryDays_other": "Da {{count}} giorni",
     "addToProject": "Aggiungi al progetto",
     "requestQuote": "Richiedi preventivo",
     "compare": "Confronta",
@@ -3689,6 +3691,16 @@
     "countryPortugal": "Portogallo",
     "countrySwitzerland": "Svizzera",
     "countryAustria": "Austria"
+  },
+  "sourcing": {
+    "overview": "Panoramica sourcing",
+    "itemsSourced": "Prodotti ottenuti",
+    "suppliers": "Fornitori",
+    "consolidation": "Consolidamento",
+    "maxLeadTime": "Tempo massimo",
+    "complexity": "Complessità",
+    "indicative": "Indicativo",
+    "budgetDisclaimer": "Totale indicativo basato sui prezzi di listino · esclusa consegna e IVA · i preventivi finali possono variare"
   },
   "network": {
     "title": "Rete di distribuzione",

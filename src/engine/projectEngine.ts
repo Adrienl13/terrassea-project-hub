@@ -108,7 +108,7 @@ const TIMELINE_KEYWORDS: Record<string, string[]> = {
 };
 
 // ═══════════════════════════════════════════════════════════
-// FIX A — HEX ↔ PALETTE/COLOR SLUG MAPPING
+// FIX 1 — HEX ↔ PALETTE/COLOR SLUG MAPPING
 // Used to derive palette swatches from real product colors
 // and to score concept-palette match
 // ═══════════════════════════════════════════════════════════

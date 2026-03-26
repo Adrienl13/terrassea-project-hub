@@ -131,7 +131,7 @@ export default function ExcelImportModal({
   onSuccess: (count: number) => void;
 }) {
   const { t } = useTranslation();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const config = PLAN_CONFIG[plan];
   const fileInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -140,7 +140,7 @@ export default function ExcelImportModal({
   const [fileName, setFileName] = useState("");
   const [products, setProducts] = useState<AIProduct[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
-  const [importing, setImporting] = useState(false);
+  const [, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [analyzeProgress, setAnalyzeProgress] = useState("");
   // Photo matching

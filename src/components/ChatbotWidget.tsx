@@ -289,6 +289,7 @@ export default function ChatbotWidget() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t("chatbot.placeholder")}
+            aria-label={t("chatbot.placeholder")}
             className="flex-1 rounded-full border bg-muted/50 px-4 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
             disabled={isLoading}
           />

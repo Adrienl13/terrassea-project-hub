@@ -1,4 +1,5 @@
 import { Package, Users, TrendingUp, Clock, BarChart3, DollarSign } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { CartItem, QuotationStatus } from "@/contexts/ProjectCartContext";
 
 interface SourcingSummaryProps {
@@ -13,7 +14,6 @@ const STATUS_CONFIG: Record<QuotationStatus, { label: string; className: string;
   ready_for_quotation:            { label: "Ready for quotation",          className: "bg-green-500/10 text-green-700 border border-green-500/20", step: 4 },
 };
 
-const STEPS = ["Draft", "Sourcing", "Confirmation", "Ready"];
 
 function computeStats(items: CartItem[]) {
   const withSupplier = items.filter((i) => i.selectedSupplier);
@@ -59,6 +59,7 @@ const COMPLEXITY_STYLE: Record<string, string> = {
 };
 
 const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
+  const { t } = useTranslation();
   if (items.length === 0) return null;
 
   const stats        = computeStats(items);
@@ -69,7 +70,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
       {/* Header — titre + badge statut */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[10px] font-body uppercase tracking-[0.2em] text-muted-foreground">
-          Sourcing Overview
+          {t("sourcing.overview", "Sourcing Overview")}
         </h3>
         <span className={`text-[10px] font-display font-semibold px-2.5 py-1 rounded-full ${statusConfig.className}`}>
           {statusConfig.label}
@@ -84,7 +85,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
             {stats.coveredCount}/{stats.totalCount}
           </span>
           <span className="text-[9px] font-body uppercase tracking-wider text-muted-foreground">
-            Items sourced
+            {t("sourcing.itemsSourced", "Items sourced")}
           </span>
         </div>
 
@@ -94,7 +95,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
             {stats.supplierCount}
           </span>
           <span className="text-[9px] font-body uppercase tracking-wider text-muted-foreground">
-            Supplier{stats.supplierCount !== 1 ? "s" : ""}
+            {t("sourcing.suppliers", "Suppliers")}
           </span>
         </div>
 
@@ -104,7 +105,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
             {stats.consolidationRatio}%
           </span>
           <span className="text-[9px] font-body uppercase tracking-wider text-muted-foreground">
-            Consolidation
+            {t("sourcing.consolidation", "Consolidation")}
           </span>
         </div>
 
@@ -114,7 +115,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
             {stats.maxLeadTime !== null ? `${stats.maxLeadTime}d` : "—"}
           </span>
           <span className="text-[9px] font-body uppercase tracking-wider text-muted-foreground">
-            Max lead time
+            {t("sourcing.maxLeadTime", "Max lead time")}
           </span>
         </div>
 
@@ -124,7 +125,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
             {stats.complexity}
           </span>
           <span className="text-[9px] font-body uppercase tracking-wider text-muted-foreground">
-            Complexity
+            {t("sourcing.complexity", "Complexity")}
           </span>
         </div>
 
@@ -136,7 +137,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
               : "—"}
           </span>
           <span className="text-[9px] font-body uppercase tracking-wider text-muted-foreground">
-            Indicative
+            {t("sourcing.indicative", "Indicative")}
           </span>
         </div>
       </div>
@@ -144,7 +145,7 @@ const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
       {/* Disclaimer budget si affiché */}
       {stats.hasBudget && (
         <p className="text-[9px] font-body text-muted-foreground italic mt-3 text-center">
-          Indicative total based on listed prices · excl. delivery &amp; VAT · final quotes may vary
+          {t("sourcing.budgetDisclaimer", "Indicative total based on listed prices \u00b7 excl. delivery & VAT \u00b7 final quotes may vary")}
         </p>
       )}
     </div>

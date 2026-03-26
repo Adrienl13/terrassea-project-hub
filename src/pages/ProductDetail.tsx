@@ -252,7 +252,7 @@ const ProductDetail = () => {
                     )}
                     {fastestDelivery !== null && (
                       <span className="flex items-center gap-1">
-                        <Truck className="h-3 w-3" /> {t('productDetail.fromDays')} {fastestDelivery} {t('productDetail.fromDays') === 'From' ? 'days' : t('productDetail.fromDays') === 'Dès' ? 'jours' : 'días'}
+                        <Truck className="h-3 w-3" /> {t('productDetail.deliveryDays', { count: fastestDelivery })}
                       </span>
                     )}
                   </div>

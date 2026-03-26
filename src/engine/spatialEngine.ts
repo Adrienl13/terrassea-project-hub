@@ -87,7 +87,8 @@ export function getFeasibility(totalSeats: number, terraceArea: number): { level
  */
 export function getEffectiveTableFootprint(tableFormat: string, density: DensityLevel): number {
   const dims = TABLE_PHYSICAL_DIMS[tableFormat];
-  if (!dims) return 2.5; // fallback ~1.5×1.5 with clearance
+  // Fallback footprint in m² for unknown table formats (~1.5m × 1.5m + clearance)
+  if (!dims) return 2.5;
   
   const clearance = DENSITY_FACTORS[density].circulationClearance;
   const effWidth = dims.width + clearance * 2;

@@ -1818,6 +1818,8 @@
     "onRequest": "On request",
     "sellers": "sellers",
     "fromDays": "From",
+    "deliveryDays": "From {{count}} day",
+    "deliveryDays_other": "From {{count}} days",
     "addToProject": "Add to project",
     "requestQuote": "Request a quote",
     "compare": "Compare",
@@ -3783,6 +3785,16 @@
     "countryPortugal": "Portugal",
     "countrySwitzerland": "Switzerland",
     "countryAustria": "Austria"
+  },
+  "sourcing": {
+    "overview": "Sourcing Overview",
+    "itemsSourced": "Items sourced",
+    "suppliers": "Suppliers",
+    "consolidation": "Consolidation",
+    "maxLeadTime": "Max lead time",
+    "complexity": "Complexity",
+    "indicative": "Indicative",
+    "budgetDisclaimer": "Indicative total based on listed prices \u00b7 excl. delivery & VAT \u00b7 final quotes may vary"
   },
   "network": {
     "title": "Distribution network",
