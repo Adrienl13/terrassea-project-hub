@@ -80,6 +80,54 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_distributors: {
+        Row: {
+          id: string
+          brand_id: string
+          distributor_id: string
+          country_code: string
+          is_exclusive: boolean | null
+          is_active: boolean | null
+          priority: number | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          brand_id: string
+          distributor_id: string
+          country_code: string
+          is_exclusive?: boolean | null
+          is_active?: boolean | null
+          priority?: number | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          brand_id?: string
+          distributor_id?: string
+          country_code?: string
+          is_exclusive?: boolean | null
+          is_active?: boolean | null
+          priority?: number | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_distributors_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_distributors_distributor_id_fkey"
+            columns: ["distributor_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       board_items: {
         Row: {
           board_id: string

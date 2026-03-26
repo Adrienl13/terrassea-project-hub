@@ -3682,5 +3682,32 @@
     "countryPortugal": "Portugal",
     "countrySwitzerland": "Suiza",
     "countryAustria": "Austria"
+  },
+  "network": {
+    "title": "Red de distribuci\u00f3n",
+    "subtitle": "Gestione sus distribuidores aprobados y siga los leads dirigidos por pa\u00eds.",
+    "modeInfo": "Modo Brand Network \u2014 Los briefs se dirigen autom\u00e1ticamente al distribuidor aprobado del pa\u00eds del comprador.",
+    "distributors": "Distribuidores aprobados",
+    "addDistributor": "A\u00f1adir un distribuidor",
+    "country": "Pa\u00eds",
+    "distributor": "Distribuidor",
+    "exclusive": "Exclusivo",
+    "active": "Activo",
+    "remove": "Eliminar",
+    "noDistributors": "Ning\u00fan distribuidor configurado.",
+    "addDistributorHint": "A\u00f1ada distribuidores por pa\u00eds para recibir autom\u00e1ticamente los leads.",
+    "selectPartner": "Seleccione un socio\u2026",
+    "selectCountry": "Pa\u00eds\u2026",
+    "added": "Distribuidor a\u00f1adido.",
+    "removed": "Distribuidor eliminado.",
+    "routedLeads": "Leads dirigidos",
+    "noLeads": "Ning\u00fan lead dirigido por el momento.",
+    "leadsWillAppear": "Los leads aparecer\u00e1n aqu\u00ed una vez se env\u00eden briefs.",
+    "notAssigned": "No asignado",
+    "establishment": "Establecimiento",
+    "budget": "Presupuesto",
+    "date": "Fecha",
+    "status": "Estado",
+    "acceptedByDistrib": "Aceptado por distrib."
   }
 }

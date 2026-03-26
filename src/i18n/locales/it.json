@@ -3682,5 +3682,32 @@
     "countryPortugal": "Portogallo",
     "countrySwitzerland": "Svizzera",
     "countryAustria": "Austria"
+  },
+  "network": {
+    "title": "Rete di distribuzione",
+    "subtitle": "Gestisci i tuoi distributori approvati e segui i lead instradati per paese.",
+    "modeInfo": "Modalit\u00e0 Brand Network \u2014 I brief vengono automaticamente instradati al distributore approvato del paese dell\u2019acquirente.",
+    "distributors": "Distributori approvati",
+    "addDistributor": "Aggiungi un distributore",
+    "country": "Paese",
+    "distributor": "Distributore",
+    "exclusive": "Esclusivo",
+    "active": "Attivo",
+    "remove": "Rimuovi",
+    "noDistributors": "Nessun distributore configurato.",
+    "addDistributorHint": "Aggiungi distributori per paese per ricevere automaticamente i lead.",
+    "selectPartner": "Seleziona un partner\u2026",
+    "selectCountry": "Paese\u2026",
+    "added": "Distributore aggiunto.",
+    "removed": "Distributore rimosso.",
+    "routedLeads": "Lead instradati",
+    "noLeads": "Nessun lead instradato per il momento.",
+    "leadsWillAppear": "I lead appariranno qui una volta inviati i brief.",
+    "notAssigned": "Non assegnato",
+    "establishment": "Stabilimento",
+    "budget": "Budget",
+    "date": "Data",
+    "status": "Stato",
+    "acceptedByDistrib": "Accettato dal distrib."
   }
 }

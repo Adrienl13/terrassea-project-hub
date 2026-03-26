@@ -3776,5 +3776,32 @@
     "countryPortugal": "Portugal",
     "countrySwitzerland": "Switzerland",
     "countryAustria": "Austria"
+  },
+  "network": {
+    "title": "Distribution network",
+    "subtitle": "Manage your approved distributors and track leads routed by country.",
+    "modeInfo": "Brand Network Mode \u2014 Briefs are automatically routed to the approved distributor for the buyer\u2019s country.",
+    "distributors": "Approved distributors",
+    "addDistributor": "Add a distributor",
+    "country": "Country",
+    "distributor": "Distributor",
+    "exclusive": "Exclusive",
+    "active": "Active",
+    "remove": "Remove",
+    "noDistributors": "No distributors configured.",
+    "addDistributorHint": "Add distributors by country to automatically receive leads.",
+    "selectPartner": "Select a partner\u2026",
+    "selectCountry": "Country\u2026",
+    "added": "Distributor added.",
+    "removed": "Distributor removed.",
+    "routedLeads": "Routed leads",
+    "noLeads": "No routed leads yet.",
+    "leadsWillAppear": "Leads will appear here once briefs are submitted.",
+    "notAssigned": "Not assigned",
+    "establishment": "Establishment",
+    "budget": "Budget",
+    "date": "Date",
+    "status": "Status",
+    "acceptedByDistrib": "Accepted by distrib."
   }
 }

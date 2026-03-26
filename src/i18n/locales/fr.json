@@ -3776,5 +3776,32 @@
     "countryPortugal": "Portugal",
     "countrySwitzerland": "Suisse",
     "countryAustria": "Autriche"
+  },
+  "network": {
+    "title": "R\u00e9seau de distribution",
+    "subtitle": "G\u00e9rez vos distributeurs agr\u00e9\u00e9s et suivez les leads rout\u00e9s par pays.",
+    "modeInfo": "Mode Brand Network \u2014 Les briefs sont automatiquement dirig\u00e9s vers le distributeur agr\u00e9\u00e9 du pays de l\u2019acheteur.",
+    "distributors": "Distributeurs agr\u00e9\u00e9s",
+    "addDistributor": "Ajouter un distributeur",
+    "country": "Pays",
+    "distributor": "Distributeur",
+    "exclusive": "Exclusif",
+    "active": "Actif",
+    "remove": "Retirer",
+    "noDistributors": "Aucun distributeur configur\u00e9.",
+    "addDistributorHint": "Ajoutez des distributeurs par pays pour recevoir automatiquement les leads.",
+    "selectPartner": "S\u00e9lectionnez un partenaire\u2026",
+    "selectCountry": "Pays\u2026",
+    "added": "Distributeur ajout\u00e9.",
+    "removed": "Distributeur retir\u00e9.",
+    "routedLeads": "Leads rout\u00e9s",
+    "noLeads": "Aucun lead rout\u00e9 pour le moment.",
+    "leadsWillAppear": "Les leads appara\u00eetront ici une fois des briefs soumis.",
+    "notAssigned": "Non assign\u00e9",
+    "establishment": "\u00c9tablissement",
+    "budget": "Budget",
+    "date": "Date",
+    "status": "Statut",
+    "acceptedByDistrib": "Accept\u00e9 par distrib."
   }
 }
