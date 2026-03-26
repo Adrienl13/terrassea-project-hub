@@ -179,15 +179,15 @@ const MOODBOARD_DEFS: MoodboardDef[] = [
   },
 ];
 
-// Style key → URL slug mapping
+// Style key → product style_tag mapping (must match style_tags in DB)
 const STYLE_URL_MAP: Record<string, string> = {
   bistro: "bistro",
-  mediterranean: "méditerranéen",
-  beachClub: "beach club",
-  urban: "urbain",
+  mediterranean: "mediterranean",
+  beachClub: "beach-club",
+  urban: "urban",
   lounge: "lounge",
-  nordic: "nordique",
-  natural: "naturel",
+  nordic: "nordic",
+  natural: "natural",
 };
 
 // ─── Visual gradient card ──────────────────────────────────────────────────────
