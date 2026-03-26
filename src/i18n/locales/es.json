@@ -215,8 +215,24 @@
       "apiSync": "Sincronización de stock en tiempo real vía API",
       "advancedAnalytics": "Analytics avanzados + exportación",
       "coMarketing": "Co-marketing con Terrassea",
-      "proLeads": "Acceso a leads Pro Service"
-    }
+      "proLeads": "Acceso a leads Pro Service",
+      "productsUnlimited": "Productos ilimitados",
+      "commission2": "2% de comisión en pedidos confirmados",
+      "commission15": "1.5% de comisión en pedidos confirmados",
+      "briefInbox": "Bandeja de briefs cualificados",
+      "collections": "Gestión de colecciones",
+      "onRequestPricing": "Precios bajo demanda (sin precios públicos)",
+      "distributorManagement": "Gestión de red de distribuidores",
+      "briefRouting": "Enrutamiento automático de briefs a distribuidores"
+    },
+    "brandMember": "Brand Member",
+    "brandNetwork": "Brand Network",
+    "brandMemberSub": "2% de comisión · venta directa a compradores CHR",
+    "brandNetworkSub": "1.5% de comisión · enrutamiento vía distribuidores",
+    "brandMemberNote": "Contrato de 12 meses. Ideal para marcas que venden directamente a profesionales de hostelería.",
+    "brandNetworkNote": "Contrato de 12 meses. Para marcas que distribuyen a través de una red de revendedores y mayoristas.",
+    "directSales": "Venta directa",
+    "distributorNetwork": "Red de distribuidores"
   },
   "products": {
     "title": "Catálogo de Productos",

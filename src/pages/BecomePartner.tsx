@@ -60,7 +60,7 @@ const BecomePartner = () => {
     setPhase("form");
   };
 
-  const PLANS = [
+  const CATALOGUE_PLANS = [
     {
       id: "starter",
       name: t('plans.starter'),
@@ -122,6 +122,54 @@ const BecomePartner = () => {
       note: t('plans.eliteNote'),
     },
   ];
+
+  const BRAND_PLANS = [
+    {
+      id: "brand_member",
+      name: t('plans.brandMember', 'Brand Member'),
+      price: "799€ HT",
+      sub: t('plans.brandMemberSub', '2% commission · direct sales to CHR buyers'),
+      commission: "2%",
+      badge: { label: t('plans.directSales', 'Direct sales'), bg: "#F5F3FF", color: "#7C3AED" },
+      features: [
+        { ok: true, label: t('plans.features.productsUnlimited', 'Unlimited products') },
+        { ok: true, label: t('plans.features.commission2', '2% commission on confirmed orders') },
+        { ok: true, label: t('plans.features.brandedPage') },
+        { ok: true, label: t('plans.features.briefInbox', 'Qualified brief inbox') },
+        { ok: true, label: t('plans.features.collections', 'Collection management') },
+        { ok: true, label: t('plans.features.onRequestPricing', 'On-request pricing (no public prices)') },
+        { ok: true, label: t('plans.features.accountManager') },
+        { ok: true, label: t('plans.features.advancedAnalytics') },
+        { ok: true, label: t('plans.features.apiSync') },
+        { ok: true, label: t('plans.features.coMarketing') },
+      ],
+      note: t('plans.brandMemberNote', '12-month contract. Ideal for brands selling directly to hospitality professionals.'),
+      featured: true,
+    },
+    {
+      id: "brand_network",
+      name: t('plans.brandNetwork', 'Brand Network'),
+      price: "1299€ HT",
+      sub: t('plans.brandNetworkSub', '1.5% commission · route via your distributors'),
+      commission: "1.5%",
+      badge: { label: t('plans.distributorNetwork', 'Distributor network'), bg: "#EDE9FE", color: "#6D28D9" },
+      features: [
+        { ok: true, label: t('plans.features.productsUnlimited', 'Unlimited products') },
+        { ok: true, label: t('plans.features.commission15', '1.5% commission on confirmed orders') },
+        { ok: true, label: t('plans.features.brandedPage') },
+        { ok: true, label: t('plans.features.distributorManagement', 'Distributor network management') },
+        { ok: true, label: t('plans.features.briefRouting', 'Automatic brief routing to distributors') },
+        { ok: true, label: t('plans.features.collections', 'Collection management') },
+        { ok: true, label: t('plans.features.onRequestPricing', 'On-request pricing (no public prices)') },
+        { ok: true, label: t('plans.features.accountManager') },
+        { ok: true, label: t('plans.features.advancedAnalytics') },
+        { ok: true, label: t('plans.features.apiSync') },
+      ],
+      note: t('plans.brandNetworkNote', '12-month contract. For brands distributing via a network of resellers and wholesalers.'),
+    },
+  ];
+
+  const PLANS = form.partnerType === "brand" ? BRAND_PLANS : CATALOGUE_PLANS;
 
   const WHY_ITEMS = [
     { icon: Zap, titleKey: "qualifiedLeads", descKey: "qualifiedLeadsDesc", color: "#D4603A", bg: "rgba(212,96,58,0.08)" },
@@ -423,7 +471,7 @@ const BecomePartner = () => {
               {t('becomePartnerPage.plansDesc')}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className={`grid grid-cols-1 ${form.partnerType === "brand" ? "md:grid-cols-2 max-w-3xl mx-auto" : "md:grid-cols-3"} gap-6`}>
             {PLANS.map((plan) => (
               <div
                 key={plan.id}
@@ -470,6 +518,9 @@ const BecomePartner = () => {
                 <button
                   onClick={() => {
                     setSelectedPlan(plan.id);
+                    if (plan.id === "brand_member" || plan.id === "brand_network") {
+                      setForm((p) => ({ ...p, partnerMode: plan.id as "brand_member" | "brand_network" }));
+                    }
                     document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" });
                   }}
                   className={`w-full py-2.5 mt-3 font-display font-semibold text-xs rounded-full transition-all ${

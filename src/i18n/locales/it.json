@@ -215,8 +215,24 @@
       "apiSync": "Sincronizzazione stock in tempo reale via API",
       "advancedAnalytics": "Analytics avanzati + esportazione",
       "coMarketing": "Co-marketing con Terrassea",
-      "proLeads": "Accesso ai lead Pro Service"
-    }
+      "proLeads": "Accesso ai lead Pro Service",
+      "productsUnlimited": "Prodotti illimitati",
+      "commission2": "2% di commissione sugli ordini confermati",
+      "commission15": "1.5% di commissione sugli ordini confermati",
+      "briefInbox": "Casella brief qualificati",
+      "collections": "Gestione collezioni",
+      "onRequestPricing": "Prezzi su richiesta (nessun prezzo pubblico)",
+      "distributorManagement": "Gestione rete distributori",
+      "briefRouting": "Instradamento automatico brief ai distributori"
+    },
+    "brandMember": "Brand Member",
+    "brandNetwork": "Brand Network",
+    "brandMemberSub": "2% di commissione · vendita diretta ai buyer CHR",
+    "brandNetworkSub": "1.5% di commissione · instradamento via distributori",
+    "brandMemberNote": "Contratto di 12 mesi. Ideale per marchi che vendono direttamente ai professionisti dell'ospitalità.",
+    "brandNetworkNote": "Contratto di 12 mesi. Per marchi che distribuiscono tramite una rete di rivenditori e grossisti.",
+    "directSales": "Vendita diretta",
+    "distributorNetwork": "Rete distributori"
   },
   "products": {
     "title": "Catalogo Prodotti",

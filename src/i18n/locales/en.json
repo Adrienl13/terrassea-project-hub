@@ -215,8 +215,24 @@
       "apiSync": "Real-time API stock sync",
       "advancedAnalytics": "Advanced analytics + export",
       "coMarketing": "Co-marketing with Terrassea",
-      "proLeads": "Access to Pro Service leads"
-    }
+      "proLeads": "Access to Pro Service leads",
+      "productsUnlimited": "Unlimited products",
+      "commission2": "2% commission on confirmed orders",
+      "commission15": "1.5% commission on confirmed orders",
+      "briefInbox": "Qualified brief inbox",
+      "collections": "Collection management",
+      "onRequestPricing": "On-request pricing (no public prices)",
+      "distributorManagement": "Distributor network management",
+      "briefRouting": "Automatic brief routing to distributors"
+    },
+    "brandMember": "Brand Member",
+    "brandNetwork": "Brand Network",
+    "brandMemberSub": "2% commission · direct sales to CHR buyers",
+    "brandNetworkSub": "1.5% commission · route via your distributors",
+    "brandMemberNote": "12-month contract. Ideal for brands selling directly to hospitality professionals.",
+    "brandNetworkNote": "12-month contract. For brands distributing via a network of resellers and wholesalers.",
+    "directSales": "Direct sales",
+    "distributorNetwork": "Distributor network"
   },
   "products": {
     "title": "Product Hub",
