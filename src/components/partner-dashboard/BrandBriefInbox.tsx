@@ -214,8 +214,8 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
                         <CheckCircle2 className="h-3.5 w-3.5" /> Coordonn\u00e9es de l'acheteur
                       </p>
                       <div className="grid grid-cols-2 gap-2 text-xs font-body text-green-800">
-                        <p className="flex items-center gap-1.5"><Users className="h-3 w-3" /> {brief.first_name} {brief.last_name}</p>
-                        <p className="flex items-center gap-1.5"><Mail className="h-3 w-3" /> {brief.email}</p>
+                        <p className="flex items-center gap-1.5"><Users className="h-3 w-3" /> {brief.first_name || "—"} {brief.last_name || ""}</p>
+                        <p className="flex items-center gap-1.5"><Mail className="h-3 w-3" /> {brief.email || "N/A"}</p>
                         <p className="flex items-center gap-1.5"><Building className="h-3 w-3" /> {brief.company || "N/A"}</p>
                         <p className="flex items-center gap-1.5">SIREN: {brief.siren || "N/A"}</p>
                       </div>

@@ -398,7 +398,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
                         {offer.partner?.partner_type && (
                           <p className="text-[10px] text-muted-foreground capitalize">
                             {isAdmin
-                              ? `${offer.partner.name} · ${getPartnerTypeLabel(offer.partner.partner_type)}`
+                              ? `${offer.partner?.name || "Unknown"} · ${getPartnerTypeLabel(offer.partner.partner_type)}`
                               : getPartnerTypeLabel(offer.partner.partner_type)}
                           </p>
                         )}
