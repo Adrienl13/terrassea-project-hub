@@ -589,7 +589,7 @@ function ProductGridCard({ product, onAdd, isBrandProduct }: { product: DBProduc
         <div className="flex items-center justify-between mt-2 gap-1">
           <p className="text-xs font-display font-semibold text-foreground">
             {isBrandProduct
-              ? <span className="font-semibold italic text-[#D4603A]">{t("vendorOffers.onQualifiedBrief", "Sur brief qualifié")}</span>
+              ? <span className="font-semibold italic text-[#D4603A]">{t("vendorOffers.onQualifiedBrief")}</span>
               : product.price_min != null
                 ? `From €${product.price_min.toFixed(2)}`
                 : product.indicative_price ?? <span className="font-normal text-muted-foreground">{t("vendorOffers.onRequest", "On request")}</span>}
@@ -657,7 +657,7 @@ function ProductListCard({ product, onAdd, isBrandProduct }: { product: DBProduc
         <div className="flex items-center gap-2 mt-2">
           <span className="text-sm font-display font-medium text-foreground">
             {isBrandProduct
-              ? <span className="font-semibold italic text-[#D4603A]">{t("vendorOffers.onQualifiedBrief", "Sur brief qualifié")}</span>
+              ? <span className="font-semibold italic text-[#D4603A]">{t("vendorOffers.onQualifiedBrief")}</span>
               : product.price_min != null
                 ? `From €${product.price_min.toFixed(2)}`
                 : product.indicative_price || t("vendorOffers.onRequest", "On request")}

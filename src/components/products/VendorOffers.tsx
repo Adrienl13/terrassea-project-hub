@@ -418,7 +418,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
                   <td className="py-4">
                     {offer.pricing_mode === 'on_request' ? (
                       <span className="font-display font-semibold italic text-[#D4603A] text-xs">
-                        {t("vendorOffers.onQualifiedBrief", "Sur brief qualifié")}
+                        {t("vendorOffers.onQualifiedBrief")}
                       </span>
                     ) : (
                       <span className="font-display font-bold text-foreground">
@@ -465,7 +465,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
                           onClick={() => setProjectBriefOffer(offer)}
                           className="flex items-center gap-1.5 text-[10px] font-display font-semibold border border-[#D4603A] text-[#D4603A] rounded-full px-3 py-1.5 hover:bg-[#D4603A] hover:text-white transition-colors"
                         >
-                          <FileText className="h-3 w-3" /> {t("vendorOffers.submitBrief", "Soumettre un brief →")}
+                          <FileText className="h-3 w-3" /> {t("vendorOffers.submitBrief")}
                         </button>
                       ) : (
                         <>
@@ -518,7 +518,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
                 <div className="text-right">
                   {offer.pricing_mode === 'on_request' ? (
                     <span className="font-display font-semibold italic text-[#D4603A] text-xs">
-                      {t("vendorOffers.onQualifiedBrief", "Sur brief qualifié")}
+                      {t("vendorOffers.onQualifiedBrief")}
                     </span>
                   ) : (
                     <>
@@ -553,7 +553,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
                       onClick={() => setProjectBriefOffer(offer)}
                       className="flex items-center gap-1.5 text-[10px] font-display font-semibold border border-[#D4603A] text-[#D4603A] rounded-full px-3 py-1.5 hover:bg-[#D4603A] hover:text-white transition-colors"
                     >
-                      <FileText className="h-3 w-3" /> {t("vendorOffers.submitBrief", "Soumettre un brief →")}
+                      <FileText className="h-3 w-3" /> {t("vendorOffers.submitBrief")}
                     </button>
                   ) : (
                     <>

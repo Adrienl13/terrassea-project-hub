@@ -3045,7 +3045,9 @@
     "onRequest": "Sur demande",
     "privacyNotice": "Les identités des fournisseurs sont divulguées après confirmation de commande via Terrassea. Cela vous garantit les meilleurs tarifs négociés et un accompagnement dédié.",
     "addedToProject": "{{count}}× {{name}} ajouté au projet",
-    "addedToProjectZone": "{{count}}× {{name}} → {{project}}{{zone}}"
+    "addedToProjectZone": "{{count}}\u00d7 {{name}} \u2192 {{project}}{{zone}}",
+    "onQualifiedBrief": "Prix sur demande de projet",
+    "submitBrief": "D\u00e9poser une demande \u2192"
   },
   "messages": {
     "userTypes": {
@@ -3701,7 +3703,7 @@
     "hideCollections": "Masquer les collections",
     "collectionsOf": "Collections {{name}}",
     "discover": "D\u00e9couvrir {{name}}",
-    "briefAccess": "Acc\u00e8s sur brief qualifi\u00e9 \u00b7 R\u00e9ponse sous 72h",
+    "briefAccess": "Tarifs sur demande de projet \u00b7 R\u00e9ponse sous 72h",
     "areYouBrand": "Vous \u00eates une marque\u00a0?",
     "joinDescription": "Rejoignez notre s\u00e9lection de marques partenaires et pr\u00e9sentez vos collections \u00e0 un r\u00e9seau qualifi\u00e9 de professionnels CHR.",
     "becomePartner": "Devenir marque partenaire",

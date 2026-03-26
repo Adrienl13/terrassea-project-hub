@@ -3045,7 +3045,9 @@
     "onRequest": "On request",
     "privacyNotice": "Supplier identities are disclosed after order confirmation through Terrassea. This ensures you get the best negotiated rates and dedicated sourcing support.",
     "addedToProject": "{{count}}× {{name}} added to project",
-    "addedToProjectZone": "{{count}}× {{name}} → {{project}}{{zone}}"
+    "addedToProjectZone": "{{count}}\u00d7 {{name}} \u2192 {{project}}{{zone}}",
+    "onQualifiedBrief": "Pricing on project request",
+    "submitBrief": "Submit a request \u2192"
   },
   "messages": {
     "userTypes": {
@@ -3701,7 +3703,7 @@
     "hideCollections": "Hide collections",
     "collectionsOf": "{{name}} collections",
     "discover": "Discover {{name}}",
-    "briefAccess": "Access via qualified brief \u00b7 Response within 72h",
+    "briefAccess": "Pricing on project request \u00b7 Response within 72h",
     "areYouBrand": "Are you a brand?",
     "joinDescription": "Join our selection of partner brands and showcase your collections to a qualified network of hospitality professionals.",
     "becomePartner": "Become a partner brand",

@@ -2951,7 +2951,9 @@
     "onRequest": "Bajo pedido",
     "privacyNotice": "Las identidades de los proveedores se revelan tras la confirmación del pedido a través de Terrassea. Esto le garantiza las mejores tarifas negociadas y un soporte de aprovisionamiento dedicado.",
     "addedToProject": "{{count}}× {{name}} añadido al proyecto",
-    "addedToProjectZone": "{{count}}× {{name}} → {{project}}{{zone}}"
+    "addedToProjectZone": "{{count}}\u00d7 {{name}} \u2192 {{project}}{{zone}}",
+    "onQualifiedBrief": "Precio bajo solicitud de proyecto",
+    "submitBrief": "Enviar una solicitud \u2192"
   },
   "messages": {
     "userTypes": {
@@ -3607,7 +3609,7 @@
     "hideCollections": "Ocultar colecciones",
     "collectionsOf": "Colecciones {{name}}",
     "discover": "Descubrir {{name}}",
-    "briefAccess": "Acceso mediante brief cualificado \u00b7 Respuesta en 72h",
+    "briefAccess": "Precios bajo solicitud de proyecto \u00b7 Respuesta en 72h",
     "areYouBrand": "\u00bfEres una marca?",
     "joinDescription": "\u00danete a nuestra selecci\u00f3n de marcas asociadas y presenta tus colecciones a una red cualificada de profesionales CHR.",
     "becomePartner": "Convertirse en marca asociada",
