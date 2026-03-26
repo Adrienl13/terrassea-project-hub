@@ -573,9 +573,9 @@ const BecomePartner = () => {
                       onChange={(e) => setForm((p) => ({ ...p, partnerMode: e.target.value as "brand_member" | "brand_network" | "" }))}
                       className={inputClass}
                     >
-                      <option value="">{t('becomePartnerPage.selectBrandMode', 'S\u00e9lectionnez votre mode')}</option>
-                      <option value="brand_member">{t('becomePartnerPage.brandMember')}</option>
-                      <option value="brand_network">{t('becomePartnerPage.brandNetwork')}</option>
+                      <option value="">{t('auth.howToSell', 'Comment souhaitez-vous vendre\u00a0?')}</option>
+                      <option value="brand_member">{t('auth.brandDirect', 'Je vends en direct \u2014 Je g\u00e8re moi-m\u00eame la relation commerciale')}</option>
+                      <option value="brand_network">{t('auth.brandNetwork', 'Via mes distributeurs \u2014 Les demandes sont redirig\u00e9es vers mes distributeurs')}</option>
                     </select>
                     <p className="text-[10px] font-body text-muted-foreground mt-1.5">
                       {form.partnerMode === "brand_member"

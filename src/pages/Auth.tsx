@@ -278,23 +278,23 @@ const Auth = () => {
                     {/* Brand mode — only if brand is selected */}
                     {form.partnerType === "brand" ? (
                       <div className="mt-3">
-                        <span className={labelClass}>{t('becomePartnerPage.brandMode', 'Mode')} *</span>
-                        <div className="grid grid-cols-2 gap-2">
+                        <span className={labelClass}>{t('auth.howToSell', 'Comment souhaitez-vous vendre\u00a0?')} *</span>
+                        <div className="grid grid-cols-1 gap-2">
                           {([
-                            { value: "brand_member" as const, label: t('auth.brandDirect', 'Direct'), desc: t('auth.brandDirectDesc', 'Vous g\u00e9rez les briefs') },
-                            { value: "brand_network" as const, label: t('auth.brandNetwork', 'R\u00e9seau'), desc: t('auth.brandNetworkDesc', 'Via vos distributeurs') },
+                            { value: "brand_member" as const, label: t('auth.brandDirect', 'Je vends en direct'), desc: t('auth.brandDirectDesc', 'Je re\u00e7ois les demandes des acheteurs CHR et je g\u00e8re moi-m\u00eame la relation commerciale.') },
+                            { value: "brand_network" as const, label: t('auth.brandNetwork', 'Je passe par mes distributeurs'), desc: t('auth.brandNetworkDesc', 'Les demandes sont automatiquement redirig\u00e9es vers mes distributeurs agr\u00e9\u00e9s selon le pays de l\u2019acheteur.') },
                           ]).map(({ value, label: lbl, desc }) => (
                             <button
                               key={value}
                               type="button"
                               onClick={() => setForm((p) => ({ ...p, partnerMode: value }))}
-                              className={`p-2.5 rounded-lg border text-left transition-all ${
+                              className={`p-3 rounded-lg border text-left transition-all ${
                                 form.partnerMode === value
                                   ? "border-[#D4603A] bg-[#D4603A]/5"
                                   : "border-border hover:border-muted-foreground"
                               }`}
                             >
-                              <p className="text-[10px] font-display font-bold text-foreground">{lbl}</p>
+                              <p className="text-xs font-display font-bold text-foreground">{lbl}</p>
                               <p className="text-[8px] font-body text-muted-foreground">{desc}</p>
                             </button>
                           ))}
