@@ -220,15 +220,6 @@ const Header = () => {
                         <Settings className="h-4 w-4 text-muted-foreground" />
                         {t("nav.myAccount")}
                       </Link>
-                      <div className="border-t border-border my-1" />
-                      <Link
-                        to="/projects/new"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-display font-semibold text-[#D4603A] hover:bg-muted/50 transition-colors"
-                      >
-                        <Plus className="h-4 w-4" />
-                        {t("nav.launchProject")}
-                      </Link>
                       {user ? (
                         <>
                           <div className="border-t border-border my-1" />
@@ -246,6 +237,13 @@ const Header = () => {
                 ) : null}
               </AnimatePresence>
             </div>
+
+            <Link
+              to="/projects/new"
+              className="hidden sm:inline-flex px-5 py-2.5 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+            >
+              {t("nav.launchProject")}
+            </Link>
 
             {/* Mobile: simple icon for project cart */}
             <Link
