@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import {
   CheckCircle2, ArrowRight, Shield, TrendingUp,
-  Package, BarChart3, ChevronDown, Zap, Factory, Palette,
+  BarChart3, ChevronDown, Zap, Factory, Palette,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -25,13 +25,20 @@ const COUNTRIES = [
   "China", "Vietnam", "Indonesia",
 ];
 
-type Phase = "form" | "submitted";
+type PartnerProfile = "brand" | "reseller" | "manufacturer";
+type Phase = "choose-profile" | "form" | "submitted";
+
+const PROFILE_CARDS: { value: PartnerProfile; icon: string; titleKey: string; descKey: string }[] = [
+  { value: "brand", icon: "\u2728", titleKey: "becomePartnerPage.profileBrandTitle", descKey: "becomePartnerPage.profileBrandDesc" },
+  { value: "reseller", icon: "\ud83c\udfea", titleKey: "becomePartnerPage.profileResellerTitle", descKey: "becomePartnerPage.profileResellerDesc" },
+  { value: "manufacturer", icon: "\ud83c\udfed", titleKey: "becomePartnerPage.profileManufacturerTitle", descKey: "becomePartnerPage.profileManufacturerDesc" },
+];
 
 const BecomePartner = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [path, setPath] = useState<'supplier' | null>(null);
-  const [phase, setPhase] = useState<Phase>("form");
+  const [phase, setPhase] = useState<Phase>("choose-profile");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
@@ -39,12 +46,19 @@ const BecomePartner = () => {
   const [form, setForm] = useState({
     companyName: "", contactName: "", email: "", phone: "",
     website: "", vatNumber: "", country: "",
-    partnerType: "" as "manufacturer" | "brand" | "reseller" | "",
+    partnerType: "" as PartnerProfile | "",
     partnerMode: "" as "brand_member" | "brand_network" | "",
     productCategories: [] as string[],
     estimatedVolume: "", deliveryCountries: [] as string[],
     message: "",
+    distributedBrands: "",
+    coverageZone: "",
   });
+
+  const selectProfile = (profile: PartnerProfile) => {
+    setForm((p) => ({ ...p, partnerType: profile, partnerMode: "" }));
+    setPhase("form");
+  };
 
   const PLANS = [
     {
@@ -207,7 +221,7 @@ const BecomePartner = () => {
         product_categories: form.productCategories,
         estimated_annual_volume: form.estimatedVolume || null,
         delivery_countries: form.deliveryCountries,
-        message: form.message || null,
+        message: [form.message, form.distributedBrands ? "Marques: " + form.distributedBrands : "", form.coverageZone ? "Zone: " + form.coverageZone : ""].filter(Boolean).join(" | ") || null,
         status: "pending",
         selected_plan: selectedPlan,
       });
@@ -353,7 +367,49 @@ const BecomePartner = () => {
         </div>
       </section>
 
-      {/* ── Plans ── */}
+      {/* ── Step 1: Profile selection ── */}
+      {phase === "choose-profile" ? (
+        <section className="py-20 px-6 bg-[#FAF7F4]" id="choose-profile">
+          <div className="container mx-auto max-w-3xl">
+            <div className="text-center mb-10">
+              <span className="text-xs font-display font-semibold uppercase tracking-widest text-[#D4603A]">
+                {t("becomePartnerPage.step1Label", "\u00c9tape 1")}
+              </span>
+              <h2 className="font-display text-3xl font-bold text-foreground mt-2">
+                {t("becomePartnerPage.profileQuestion", "Quel est votre profil\u00a0?")}
+              </h2>
+              <p className="text-sm font-body text-muted-foreground mt-2">
+                {t("becomePartnerPage.profileQuestionDesc", "Choisissez le profil qui correspond le mieux \u00e0 votre activit\u00e9.")}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {PROFILE_CARDS.map((card) => (
+                <motion.button
+                  key={card.value}
+                  whileHover={{ y: -4 }}
+                  onClick={() => selectProfile(card.value)}
+                  className="p-6 bg-white border border-border rounded-2xl text-left hover:border-foreground/30 hover:shadow-lg transition-all group"
+                >
+                  <span className="text-3xl block mb-4">{card.icon}</span>
+                  <h3 className="font-display text-base font-bold text-foreground mb-2 group-hover:text-[#D4603A] transition-colors">
+                    {t(card.titleKey, card.value)}
+                  </h3>
+                  <p className="text-xs font-body text-muted-foreground leading-relaxed">
+                    {t(card.descKey)}
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-xs font-display font-semibold text-[#D4603A] mt-4">
+                    {t("becomePartnerPage.selectProfile", "Choisir")} <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* ── Plans + Form (only when profile is chosen) ── */}
+      {phase === "form" ? (
+      <>
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
@@ -496,20 +552,19 @@ const BecomePartner = () => {
                   </select>
                 </div>
                 <div>
-                  <label className={labelClass}>{t('becomePartnerPage.type')} *</label>
-                  <select
-                    value={form.partnerType}
-                    onChange={(e) => setForm((p) => ({ ...p, partnerType: e.target.value as "manufacturer" | "brand" | "reseller" | "" }))}
-                    className={inputClass}
-                  >
-                    <option value="">{t('becomePartnerPage.selectType')}</option>
-                    <option value="manufacturer">{t('becomePartnerPage.manufacturer')}</option>
-                    <option value="brand">{t('becomePartnerPage.brand')}</option>
-                    <option value="reseller">{t('becomePartnerPage.resellerDistributor')}</option>
-                  </select>
+                  <label className={labelClass}>{t('becomePartnerPage.type')}</label>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-display font-semibold bg-foreground text-primary-foreground px-3 py-1.5 rounded-full capitalize">
+                      {form.partnerType === "brand" ? "\u2728" : form.partnerType === "reseller" ? "\ud83c\udfea" : "\ud83c\udfed"}
+                      {t("becomePartnerPage." + (form.partnerType === "reseller" ? "resellerDistributor" : form.partnerType || "manufacturer"))}
+                    </span>
+                    <button onClick={() => setPhase("choose-profile")} className="text-[10px] font-display font-semibold text-muted-foreground hover:text-foreground transition-colors underline">
+                      {t("becomePartnerPage.changeProfile", "Changer")}
+                    </button>
+                  </div>
                 </div>
 
-                {/* Brand mode selector — only visible when partner_type is "brand" */}
+                {/* Brand mode selector — only for brand profile */}
                 {form.partnerType === "brand" ? (
                   <div>
                     <label className={labelClass}>{t('becomePartnerPage.brandMode', 'Mode marque')} *</label>
@@ -518,18 +573,32 @@ const BecomePartner = () => {
                       onChange={(e) => setForm((p) => ({ ...p, partnerMode: e.target.value as "brand_member" | "brand_network" | "" }))}
                       className={inputClass}
                     >
-                      <option value="">{t('becomePartnerPage.selectBrandMode', 'Sélectionnez votre mode')}</option>
-                      <option value="brand_member">{t('becomePartnerPage.brandMember', 'Marque directe — Vous gérez les briefs et la relation client')}</option>
-                      <option value="brand_network">{t('becomePartnerPage.brandNetwork', 'Réseau de distribution — Les briefs sont routés vers vos distributeurs')}</option>
+                      <option value="">{t('becomePartnerPage.selectBrandMode', 'S\u00e9lectionnez votre mode')}</option>
+                      <option value="brand_member">{t('becomePartnerPage.brandMember')}</option>
+                      <option value="brand_network">{t('becomePartnerPage.brandNetwork')}</option>
                     </select>
                     <p className="text-[10px] font-body text-muted-foreground mt-1.5">
                       {form.partnerMode === "brand_member"
-                        ? t('becomePartnerPage.brandMemberHint', 'Vous recevez directement les briefs qualifiés et gérez la relation commerciale.')
+                        ? t('becomePartnerPage.brandMemberHint')
                         : form.partnerMode === "brand_network"
-                        ? t('becomePartnerPage.brandNetworkHint', 'Les briefs sont automatiquement dirigés vers vos distributeurs agréés par pays.')
-                        : t('becomePartnerPage.brandModeHint', 'Choisissez comment vous souhaitez interagir avec les acheteurs professionnels.')}
+                        ? t('becomePartnerPage.brandNetworkHint')
+                        : t('becomePartnerPage.brandModeHint')}
                     </p>
                   </div>
+                ) : null}
+
+                {/* Reseller-specific: distributed brands + coverage zone */}
+                {form.partnerType === "reseller" ? (
+                  <>
+                    <div>
+                      <label className={labelClass}>{t('becomePartnerPage.distributedBrands', 'Marques distribu\u00e9es')}</label>
+                      <input value={form.distributedBrands} onChange={handle("distributedBrands")} placeholder={t('becomePartnerPage.distributedBrandsPlaceholder', 'Ex : Fermob, Vondom, Emu...')} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>{t('becomePartnerPage.coverageZone', 'Zone g\u00e9ographique couverte')}</label>
+                      <input value={form.coverageZone} onChange={handle("coverageZone")} placeholder={t('becomePartnerPage.coverageZonePlaceholder', 'Ex : France m\u00e9tropolitaine, Espagne, Italie du Nord...')} className={inputClass} />
+                    </div>
+                  </>
                 ) : null}
               </div>
 
@@ -653,6 +722,9 @@ const BecomePartner = () => {
           </motion.div>
         </div>
       </section>
+
+      </>
+      ) : null}
 
       <Footer />
     </div>
