@@ -1,11 +1,42 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrassea.com";
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+async function requireAdmin(req: Request): Promise<string | Response> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Authentication required" }), {
+      status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+      status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+  const { data: profile } = await supabase
+    .from("user_profiles").select("user_type").eq("id", user.id).single();
+  if (profile?.user_type !== "admin") {
+    return new Response(JSON.stringify({ error: "Admin access required" }), {
+      status: 403, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+  return user.id;
+}
 
 const SYSTEM_PROMPT = `Tu es un expert en mobilier outdoor professionnel CHR (Cafés, Hôtels, Restaurants) et en traitement de données produit.
 
@@ -77,12 +108,16 @@ Format de réponse :
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: CORS });
+    return new Response(null, { headers: CORS_HEADERS });
   }
+
+  // Auth: admin only
+  const adminCheck = await requireAdmin(req);
+  if (adminCheck instanceof Response) return adminCheck;
 
   if (!ANTHROPIC_API_KEY) {
     return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
-      status: 500, headers: { ...CORS, "Content-Type": "application/json" },
+      status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 
@@ -91,7 +126,7 @@ Deno.serve(async (req: Request) => {
 
     if (!headers || !rows || rows.length === 0) {
       return new Response(JSON.stringify({ error: "Provide headers and rows arrays" }), {
-        status: 400, headers: { ...CORS, "Content-Type": "application/json" },
+        status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
@@ -124,7 +159,7 @@ Deno.serve(async (req: Request) => {
       const errText = await response.text();
       console.error("Anthropic error:", response.status, errText);
       return new Response(JSON.stringify({ error: `Anthropic API error: ${response.status}`, details: errText }), {
-        status: 502, headers: { ...CORS, "Content-Type": "application/json" },
+        status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
@@ -134,19 +169,19 @@ Deno.serve(async (req: Request) => {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return new Response(JSON.stringify({ error: "Could not parse AI response", raw: text }), {
-        status: 422, headers: { ...CORS, "Content-Type": "application/json" },
+        status: 422, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
     const analysis = JSON.parse(jsonMatch[0]);
 
     return new Response(JSON.stringify({ success: true, ...analysis }), {
-      headers: { ...CORS, "Content-Type": "application/json" },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("CSV analysis error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500, headers: { ...CORS, "Content-Type": "application/json" },
+      status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
 });

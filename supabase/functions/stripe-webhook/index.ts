@@ -62,22 +62,29 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: CORS_HEADERS });
   }
 
+  // STRIPE_WEBHOOK_SECRET is mandatory — fail if not configured
+  if (!STRIPE_WEBHOOK_SECRET) {
+    console.error("STRIPE_WEBHOOK_SECRET is not configured");
+    return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
+      status: 500,
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
     const body = await req.text();
 
-    // Verify Stripe signature if webhook secret is configured
-    if (STRIPE_WEBHOOK_SECRET) {
-      const sigHeader = req.headers.get("stripe-signature") || "";
-      const valid = await verifyStripeSignature(body, sigHeader, STRIPE_WEBHOOK_SECRET);
-      if (!valid) {
-        console.error("Invalid Stripe signature");
-        return new Response(JSON.stringify({ error: "Invalid signature" }), {
-          status: 401,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        });
-      }
+    // Verify Stripe signature (mandatory)
+    const sigHeader = req.headers.get("stripe-signature") || "";
+    const valid = await verifyStripeSignature(body, sigHeader, STRIPE_WEBHOOK_SECRET);
+    if (!valid) {
+      console.error("Invalid Stripe signature");
+      return new Response(JSON.stringify({ error: "Invalid signature" }), {
+        status: 401,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
     }
 
     const event = JSON.parse(body);

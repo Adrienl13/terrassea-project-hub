@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from "react";
 import type { DBProduct } from "@/lib/products";
 import { toast } from "sonner";
 
@@ -53,10 +53,13 @@ export function CompareProvider({ children }: { children: ReactNode }) {
 
   const clearCompare = useCallback(() => setItems([]), []);
 
+  const value = useMemo(
+    () => ({ items, addToCompare, removeFromCompare, isInCompare, clearCompare, count: items.length }),
+    [items, addToCompare, removeFromCompare, isInCompare, clearCompare]
+  );
+
   return (
-    <CompareContext.Provider
-      value={{ items, addToCompare, removeFromCompare, isInCompare, clearCompare, count: items.length }}
-    >
+    <CompareContext.Provider value={value}>
       {children}
     </CompareContext.Provider>
   );

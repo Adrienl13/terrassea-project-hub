@@ -1,8 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
 const ADMIN_EMAIL    = Deno.env.get("ADMIN_EMAIL")    || "";
 const FROM_EMAIL     = "Terrassea <noreply@terrassea.com>";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
 async function sendEmail(to: string, subject: string, html: string) {
   const res = await fetch("https://api.resend.com/emails", {
@@ -97,7 +98,15 @@ function partnerApprovedEmail(r: any): string {
   </div>`;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
+  // Auth: require service-role key (called by DB webhook)
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const payload = await req.json();
     const { type, table, record } = payload;

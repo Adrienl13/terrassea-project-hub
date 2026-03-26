@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { createConversation } from "@/hooks/useConversations";
+import { sanitizePostgrest as sanitize } from "@/lib/sanitizePostgrest";
 import {
   MessageSquare, Send, Search, Plus, ArrowLeft,
   User, Building2, Shield, Compass, X, Bell,
@@ -127,7 +128,7 @@ export default function AdminMessages() {
       const { data } = await supabase
         .from("user_profiles")
         .select("id, first_name, last_name, email, user_type, company")
-        .or(`email.ilike.%${newSearch}%,first_name.ilike.%${newSearch}%,last_name.ilike.%${newSearch}%,company.ilike.%${newSearch}%`)
+        .or(`email.ilike.%${sanitize(newSearch)}%,first_name.ilike.%${sanitize(newSearch)}%,last_name.ilike.%${sanitize(newSearch)}%,company.ilike.%${sanitize(newSearch)}%`)
         .limit(10);
       return data || [];
     },

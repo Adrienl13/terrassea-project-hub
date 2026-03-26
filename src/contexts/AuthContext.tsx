@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("user_profiles")
@@ -58,11 +58,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error("[Auth] Unexpected error fetching profile:", err);
       setProfile(null);
     }
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (user) await fetchProfile(user.id);
-  };
+  }, [user, fetchProfile]);
 
   // Detect password recovery from URL hash BEFORE any auth effects run
   // This must be synchronous to win the race against getSession
@@ -132,18 +132,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
     setIsPasswordRecovery(false);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, session, profile, isLoading, isPasswordRecovery, signOut, refreshProfile }),
+    [user, session, profile, isLoading, isPasswordRecovery, signOut, refreshProfile]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{ user, session, profile, isLoading, isPasswordRecovery, signOut, refreshProfile }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

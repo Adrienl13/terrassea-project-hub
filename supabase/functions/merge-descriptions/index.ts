@@ -1,19 +1,53 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrassea.com";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+async function requireAdmin(req: Request): Promise<string | Response> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Authentication required" }), {
+      status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+      status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+  const { data: profile } = await supabase
+    .from("user_profiles").select("user_type").eq("id", user.id).single();
+  if (profile?.user_type !== "admin") {
+    return new Response(JSON.stringify({ error: "Admin access required" }), {
+      status: 403, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+  return user.id;
+}
+
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: CORS_HEADERS });
   }
 
   try {
+    // Auth: admin only
+    const adminCheck = await requireAdmin(req);
+    if (adminCheck instanceof Response) return adminCheck;
+
     if (!ANTHROPIC_API_KEY) {
       throw new Error("ANTHROPIC_API_KEY is not set");
     }
@@ -23,7 +57,7 @@ Deno.serve(async (req) => {
     if (!description_a || !description_b) {
       return new Response(
         JSON.stringify({ error: "description_a and description_b are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
       );
     }
 
@@ -68,13 +102,13 @@ ${description_b}`;
 
     return new Response(
       JSON.stringify({ merged }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("merge-descriptions error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
     );
   }
 });

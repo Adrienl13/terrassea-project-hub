@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, ReactNode } from "react";
 import type { DBProduct } from "@/lib/products";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -101,10 +101,12 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const isFavourite = (productId: string) =>
-    favourites.some((p) => p.id === productId);
+  const isFavourite = useCallback(
+    (productId: string) => favourites.some((p) => p.id === productId),
+    [favourites]
+  );
 
-  const toggleFavourite = (product: DBProduct) => {
+  const toggleFavourite = useCallback((product: DBProduct) => {
     const isCurrentlyFav = favourites.some((p) => p.id === product.id);
     setFavourites((prev) =>
       isCurrentlyFav
@@ -112,12 +114,15 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
         : [...prev, product]
     );
     syncToggleToDB(product.id, !isCurrentlyFav);
-  };
+  }, [favourites]);
+
+  const value = useMemo(
+    () => ({ favourites, isFavourite, toggleFavourite, count: favourites.length }),
+    [favourites, isFavourite, toggleFavourite]
+  );
 
   return (
-    <FavouritesContext.Provider
-      value={{ favourites, isFavourite, toggleFavourite, count: favourites.length }}
-    >
+    <FavouritesContext.Provider value={value}>
       {children}
     </FavouritesContext.Provider>
   );

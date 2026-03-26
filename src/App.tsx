@@ -8,15 +8,17 @@ import { ProjectCartProvider } from "@/contexts/ProjectCartContext";
 import { CompareProvider } from "@/contexts/CompareContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FavouritesProvider } from "@/contexts/FavouritesContext";
-import Index from "./pages/Index.tsx";
-import Inspirations from "./pages/Inspirations.tsx";
-import Resources from "./pages/Resources.tsx";
-import Auth from "./pages/Auth.tsx";
-import Messages from "./pages/Messages.tsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import NotFound from "./pages/NotFound.tsx";
-import CookieBanner from "@/components/CookieBanner";
-import ChatbotWidget from "@/components/ChatbotWidget";
+
+// Lazy-loaded page components
+const Index = lazy(() => import("./pages/Index"));
+const Inspirations = lazy(() => import("./pages/Inspirations"));
+const Resources = lazy(() => import("./pages/Resources"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Messages = lazy(() => import("./pages/Messages"));
+const CookieBanner = lazy(() => import("@/components/CookieBanner"));
+const ChatbotWidget = lazy(() => import("@/components/ChatbotWidget"));
 
 // Legal pages
 const Legal = lazy(() => import("./pages/Legal"));
@@ -41,7 +43,14 @@ const BrandPage = lazy(() => import("./pages/BrandPage"));
 const Collections = lazy(() => import("./pages/Collections"));
 const ProService = lazy(() => import("./pages/ProService"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 120_000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

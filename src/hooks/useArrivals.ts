@@ -307,30 +307,14 @@ export function usePreorder() {
     }) => {
       if (!profile?.id) throw new Error("Not authenticated");
 
-      // Insert the preorder
-      const { error: insertError } = await supabase.from("preorders").insert({
-        user_id: profile.id,
-        arrival_item_id: params.arrivalItemId,
-        product_id: params.productId,
-        quantity: params.quantity,
-        status: "pending",
+      // Atomic preorder: check availability + increment reserved + insert record
+      const { error: rpcError } = await supabase.rpc("reserve_preorder", {
+        p_arrival_item_id: params.arrivalItemId,
+        p_user_id: profile.id,
+        p_product_id: params.productId,
+        p_quantity: params.quantity,
       });
-      if (insertError) throw insertError;
-
-      // Increment preorder_reserved on the arrival item
-      const { data: item, error: fetchError } = await supabase
-        .from("partner_arrival_items")
-        .select("preorder_reserved")
-        .eq("id", params.arrivalItemId)
-        .single();
-      if (fetchError) throw fetchError;
-
-      const newReserved = (item.preorder_reserved ?? 0) + params.quantity;
-      const { error: updateError } = await supabase
-        .from("partner_arrival_items")
-        .update({ preorder_reserved: newReserved })
-        .eq("id", params.arrivalItemId);
-      if (updateError) throw updateError;
+      if (rpcError) throw rpcError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-preorders", profile?.id] });

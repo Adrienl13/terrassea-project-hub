@@ -81,45 +81,52 @@ export function useSearchAutocomplete(query: string) {
     setIsLoading(true);
 
     const fetchSuggestions = async () => {
-      const pattern = `%${debouncedQuery}%`;
+      try {
+        const pattern = `%${debouncedQuery}%`;
 
-      const [productsRes, partnersRes] = await Promise.all([
-        supabase
-          .from("products")
-          .select("id, name, category, image_url")
-          .ilike("name", pattern)
-          .neq("availability_type", "discontinued")
-          .limit(5),
-        supabase
-          .from("partners")
-          .select("id, name, country, slug")
-          .ilike("name", pattern)
-          .eq("is_public", true)
-          .limit(3),
-      ]);
+        const [productsRes, partnersRes] = await Promise.all([
+          supabase
+            .from("products")
+            .select("id, name, category, image_url")
+            .ilike("name", pattern)
+            .neq("availability_type", "discontinued")
+            .limit(5),
+          supabase
+            .from("partners")
+            .select("id, name, country, slug")
+            .ilike("name", pattern)
+            .eq("is_public", true)
+            .limit(3),
+        ]);
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      const products: SearchSuggestion[] = (productsRes.data ?? []).map((p) => ({
-        type: "product" as const,
-        id: p.id,
-        label: p.name,
-        sublabel: p.category,
-        imageUrl: p.image_url ?? undefined,
-        url: `/products/${p.id}`,
-      }));
+        const products: SearchSuggestion[] = (productsRes.data ?? []).map((p) => ({
+          type: "product" as const,
+          id: p.id,
+          label: p.name,
+          sublabel: p.category,
+          imageUrl: p.image_url ?? undefined,
+          url: `/products/${p.id}`,
+        }));
 
-      const partners: SearchSuggestion[] = (partnersRes.data ?? []).map((p) => ({
-        type: "partner" as const,
-        id: p.id,
-        label: p.name,
-        sublabel: p.country ?? undefined,
-        url: `/products?supplier=${p.slug ?? p.id}`,
-      }));
+        const partners: SearchSuggestion[] = (partnersRes.data ?? []).map((p) => ({
+          type: "partner" as const,
+          id: p.id,
+          label: p.name,
+          sublabel: p.country ?? undefined,
+          url: `/products?supplier=${p.slug ?? p.id}`,
+        }));
 
-      setProductSuggestions(products);
-      setPartnerSuggestions(partners);
-      setIsLoading(false);
+        setProductSuggestions(products);
+        setPartnerSuggestions(partners);
+      } catch (err) {
+        console.error("Search autocomplete error:", err);
+        setProductSuggestions([]);
+        setPartnerSuggestions([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     };
 
     fetchSuggestions();

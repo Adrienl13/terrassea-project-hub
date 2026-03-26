@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { normalizeProduct, type DBProduct } from "@/lib/products";
+import { sanitizePostgrest } from "@/lib/sanitizePostgrest";
 
 // ── Types ────────────────────────────────────────────────
 
@@ -81,7 +82,10 @@ export function useChatbot() {
 
       // Use or filter: name ilike any keyword OR category ilike any keyword
       const orClauses = pattern
-        .flatMap((p) => [`name.ilike.${p}`, `category.ilike.${p}`, `material_tags.cs.{${p.replace(/%/g, "")}}`])
+        .flatMap((p) => {
+          const safe = sanitizePostgrest(p);
+          return [`name.ilike.${safe}`, `category.ilike.${safe}`, `material_tags.cs.{${safe.replace(/%/g, "")}}`];
+        })
         .join(",");
       query = query.or(orClauses);
 

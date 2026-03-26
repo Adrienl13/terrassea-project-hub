@@ -309,7 +309,7 @@ const Products = () => {
                   <span className="font-display font-semibold">
                     Verified Supplier
                     {supplierPartner && (
-                      <> · {supplierPartner.partner_type.charAt(0).toUpperCase() + supplierPartner.partner_type.slice(1)}{supplierPartner.country ? ` · ${supplierPartner.country}` : ""}</>
+                      <> · {supplierPartner.partner_type ? supplierPartner.partner_type.charAt(0).toUpperCase() + supplierPartner.partner_type.slice(1) : "Partner"}{supplierPartner.country ? ` · ${supplierPartner.country}` : ""}</>
                     )}
                   </span>
                 </p>

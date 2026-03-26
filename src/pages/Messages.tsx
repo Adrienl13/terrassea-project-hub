@@ -5,6 +5,7 @@ import { useConversations, useMessages, createConversation, type ConversationSum
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizePostgrest as sanitize } from "@/lib/sanitizePostgrest";
 import {
   MessageSquare, Send, ArrowLeft, Plus, Search,
   User, Building2, Shield, Compass, X,
@@ -76,7 +77,7 @@ function NewConversationModal({ onClose, onCreate }: {
         .from("user_profiles")
         .select("id, first_name, last_name, email, user_type, company")
         .neq("id", user!.id)
-        .or(`email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,company.ilike.%${search}%`)
+        .or(`email.ilike.%${sanitize(search)}%,first_name.ilike.%${sanitize(search)}%,last_name.ilike.%${sanitize(search)}%,company.ilike.%${sanitize(search)}%`)
         .limit(10);
       return data || [];
     },
