@@ -1248,7 +1248,8 @@
       "pendingRequests": "Richieste in attesa",
       "productsListed": "Prodotti inseriti",
       "monthlyRevenue": "Fatturato questo mese",
-      "commissionsPaid": "Commissioni pagate"
+      "commissionsPaid": "Commissioni pagate",
+      "pageViews": "Visualizzazioni"
     },
     "overview": {
       "latestRequests": "Ultime richieste ricevute",
@@ -3659,7 +3660,8 @@
     "editCollection": "Modifica collezione",
     "collectionUpdated": "Collezione aggiornata.",
     "updateError": "Errore durante l\u2019aggiornamento.",
-    "collectionPlaceholder": "Nome collezione"
+    "collectionPlaceholder": "Nome collezione",
+    "noCollection": "Senza collezione"
   },
   "brief": {
     "submitTitle": "Invia un brief di progetto",

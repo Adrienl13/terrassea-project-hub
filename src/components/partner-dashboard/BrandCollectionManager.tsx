@@ -23,7 +23,7 @@ interface CollectionProduct {
 
 function groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {
   return arr.reduce((acc, item) => {
-    const k = String(item[key] ?? "Sans collection");
+    const k = String(item[key] ?? "__uncategorized__");
     if (!acc[k]) acc[k] = [];
     acc[k].push(item);
     return acc;
@@ -118,7 +118,7 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
                   <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center">
                     <Package className="h-3.5 w-3.5 text-purple-600" />
                   </div>
-                  <h3 className="font-display text-sm font-bold text-foreground">{collName}</h3>
+                  <h3 className="font-display text-sm font-bold text-foreground">{collName === "__uncategorized__" ? t("brand.noCollection", "No collection") : collName}</h3>
                   <span className="text-[10px] text-muted-foreground font-body bg-purple-50 px-2 py-0.5 rounded-full">{items.length} {t("brand.productsCount", "produit")}{items.length > 1 ? "s" : ""}</span>
                 </div>
 

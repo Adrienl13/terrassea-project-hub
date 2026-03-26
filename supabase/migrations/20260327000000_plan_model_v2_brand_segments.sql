@@ -131,3 +131,10 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+-- Attach the trigger (BEFORE UPDATE so it can set NEW.visibility_level)
+DROP TRIGGER IF EXISTS trg_sync_partner_subscription_on_plan_change ON public.partners;
+CREATE TRIGGER trg_sync_partner_subscription_on_plan_change
+  BEFORE UPDATE ON public.partners
+  FOR EACH ROW
+  EXECUTE FUNCTION public.sync_partner_subscription_on_plan_change();

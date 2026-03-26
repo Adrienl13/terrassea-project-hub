@@ -53,12 +53,12 @@ export default function BrandMemberOverview({ partnerId, onNavigate }: BrandMemb
     queryFn: async () => {
       const { data } = await supabase
         .from("partner_analytics")
-        .select("page_views")
+        .select("views")
         .eq("partner_id", partnerId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      return data?.page_views ?? 0;
+      return data?.views ?? 0;
     },
   });
 

@@ -1255,7 +1255,8 @@
       "pendingRequests": "Demandes en attente",
       "productsListed": "Produits référencés",
       "monthlyRevenue": "CA ce mois",
-      "commissionsPaid": "Commissions payées"
+      "commissionsPaid": "Commissions payées",
+      "pageViews": "Vues page"
     },
     "overview": {
       "latestRequests": "Dernières demandes reçues",
@@ -3753,7 +3754,8 @@
     "editCollection": "Modifier collection",
     "collectionUpdated": "Collection mise \u00e0 jour.",
     "updateError": "Erreur lors de la mise \u00e0 jour.",
-    "collectionPlaceholder": "Nom collection"
+    "collectionPlaceholder": "Nom collection",
+    "noCollection": "Sans collection"
   },
   "brief": {
     "submitTitle": "Soumettre un brief projet",

@@ -1255,7 +1255,8 @@
       "pendingRequests": "Pending requests",
       "productsListed": "Products listed",
       "monthlyRevenue": "Revenue this month",
-      "commissionsPaid": "Commissions paid"
+      "commissionsPaid": "Commissions paid",
+      "pageViews": "Page views"
     },
     "overview": {
       "latestRequests": "Latest requests received",
@@ -3753,7 +3754,8 @@
     "editCollection": "Edit collection",
     "collectionUpdated": "Collection updated.",
     "updateError": "Error updating.",
-    "collectionPlaceholder": "Collection name"
+    "collectionPlaceholder": "Collection name",
+    "noCollection": "No collection"
   },
   "brief": {
     "submitTitle": "Submit a project brief",
