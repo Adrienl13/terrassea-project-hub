@@ -52,11 +52,21 @@ const STOCK_DOT: Record<string, string> = {
   out_of_stock: "bg-destructive",
 };
 
-function offerToSelectedSupplier(offer: ScoredOffer): SelectedSupplier {
+// Brand offers (pricing_mode = on_request) show real name, others are masked
+function getSupplierDisplayName(offer: ScoredOffer, index: number, t: (k: string, o?: Record<string, unknown>) => string): string {
+  if (offer.pricing_mode === "on_request" && offer.partner?.name) return offer.partner.name;
+  return t("vendorOffers.verifiedSupplier", { index: index + 1 });
+}
+
+function isBrandOffer(offer: ScoredOffer): boolean {
+  return offer.pricing_mode === "on_request";
+}
+
+function offerToSelectedSupplier(offer: ScoredOffer, index: number, t: (k: string, o?: Record<string, unknown>) => string): SelectedSupplier {
   return {
     offerId: offer.id,
     partnerId: offer.partner_id,
-    partnerName: offer.partner?.name || "Unknown",
+    partnerName: getSupplierDisplayName(offer, index, t),
     partnerCountry: offer.partner?.country,
     price: offer.price,
     stockStatus: offer.stock_status,
@@ -98,9 +108,10 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId, items.length]);
 
-  const handleSelectSupplier = (offer: ScoredOffer) => {
-    selectSupplier(productId, offerToSelectedSupplier(offer));
-    toast.success(t("supplierRecs.selectedFor", { supplier: offer.partner?.name, product: productName }));
+  const handleSelectSupplier = (offer: ScoredOffer, index: number) => {
+    selectSupplier(productId, offerToSelectedSupplier(offer, index, t));
+    const name = getSupplierDisplayName(offer, index, t);
+    toast.success(t("supplierRecs.selectedFor", { supplier: name, product: productName }));
   };
 
   if (loading) {
@@ -125,11 +136,11 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
   const visibleOthers = expanded ? others : others.slice(0, 1);
   const isSelected = (offerId: string) => currentItem?.selectedSupplier?.offerId === offerId;
 
-  const renderSelectButton = (offer: ScoredOffer) => {
+  const renderSelectButton = (offer: ScoredOffer, offerIndex: number) => {
     const selected = isSelected(offer.id);
     return (
       <button
-        onClick={() => handleSelectSupplier(offer)}
+        onClick={() => handleSelectSupplier(offer, offerIndex)}
         className={`flex items-center gap-1.5 text-[10px] font-display font-semibold rounded-full px-3 py-1.5 transition-all ${
           selected
             ? "bg-primary text-primary-foreground"
@@ -160,21 +171,27 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
       {recommended && (
         <div className={`border rounded-sm p-3 mb-2 ${isSelected(recommended.id) ? "border-primary bg-primary/5" : "border-primary/20 bg-primary/5"}`}>
           <div className="flex items-start gap-3">
-            {recommended.partner?.logo_url ? (
-              <img src={recommended.partner.logo_url} alt={recommended.partner.name ?? "Supplier logo"} className="w-8 h-8 rounded-full object-cover bg-card flex-shrink-0" />
+            {isBrandOffer(recommended) && recommended.partner?.logo_url ? (
+              <img src={recommended.partner.logo_url} alt={getSupplierDisplayName(recommended, 0, t)} className="w-8 h-8 rounded-full object-cover bg-card flex-shrink-0" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-card flex items-center justify-center text-xs font-display font-bold text-muted-foreground flex-shrink-0">
-                {recommended.partner?.name?.charAt(0) || "?"}
+                {isBrandOffer(recommended) ? (recommended.partner?.name?.charAt(0) || "?") : "1"}
               </div>
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <Link
-                  to={`/partners/${recommended.partner?.slug}`}
-                  className="font-display font-semibold text-xs text-foreground hover:underline"
-                >
-                  {recommended.partner?.name}
-                </Link>
+                {isBrandOffer(recommended) ? (
+                  <Link
+                    to={`/partners/${recommended.partner?.slug}`}
+                    className="font-display font-semibold text-xs text-foreground hover:underline"
+                  >
+                    {getSupplierDisplayName(recommended, 0, t)}
+                  </Link>
+                ) : (
+                  <span className="font-display font-semibold text-xs text-foreground">
+                    {getSupplierDisplayName(recommended, 0, t)}
+                  </span>
+                )}
                 {recommended.badges.map((badge) => {
                   const config = BADGE_CONFIG[badge];
                   if (!config) return null;
@@ -229,7 +246,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
               </div>
 
               <div className="flex gap-2 mt-2.5">
-                {renderSelectButton(recommended)}
+                {renderSelectButton(recommended, 0)}
                 <Link to="/messages" className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title={t("supplierRecs.contactSupplier")}>
                   <MessageSquare className="h-3 w-3 text-muted-foreground" />
                 </Link>
@@ -240,20 +257,30 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
       )}
 
       {/* Other suppliers */}
-      {visibleOthers.map((offer) => (
+      {visibleOthers.map((offer, idx) => {
+        const offerIndex = idx + 1; // +1 because recommended is index 0
+        const displayName = getSupplierDisplayName(offer, offerIndex, t);
+        const showReal = isBrandOffer(offer);
+        return (
         <div key={offer.id} className={`border rounded-sm p-3 mb-2 ${isSelected(offer.id) ? "border-primary bg-primary/5" : "border-border"}`}>
           <div className="flex items-start gap-3">
             <div className="w-7 h-7 rounded-full bg-card flex items-center justify-center text-[10px] font-display font-bold text-muted-foreground flex-shrink-0">
-              {offer.partner?.name?.charAt(0) || "?"}
+              {showReal ? (offer.partner?.name?.charAt(0) || "?") : offerIndex + 1}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <Link
-                  to={`/partners/${offer.partner?.slug}`}
-                  className="font-display font-semibold text-xs text-foreground hover:underline"
-                >
-                  {offer.partner?.name}
-                </Link>
+                {showReal ? (
+                  <Link
+                    to={`/partners/${offer.partner?.slug}`}
+                    className="font-display font-semibold text-xs text-foreground hover:underline"
+                  >
+                    {displayName}
+                  </Link>
+                ) : (
+                  <span className="font-display font-semibold text-xs text-foreground">
+                    {displayName}
+                  </span>
+                )}
                 {offer.badges.map((badge) => {
                   const config = BADGE_CONFIG[badge];
                   if (!config) return null;
@@ -288,12 +315,13 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                 </span>
               </div>
               <div className="flex gap-2 mt-2">
-                {renderSelectButton(offer)}
+                {renderSelectButton(offer, offerIndex)}
               </div>
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
 
       {/* Expand/collapse */}
       {others.length > 1 && (
