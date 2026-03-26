@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -226,6 +227,7 @@ export default function ProServiceArchitectHub({ store }: { store: ProServiceSto
                     matchScore={computeMatchScore(project, myPro)}
                     accepted={accepted.has(project.id)}
                     onAccept={() => setView({ type: "accept-mission", projectId: project.id })}
+                    onDecline={() => store.declineProject(project.id, myId)}
                   />
                 ))
               )}
@@ -375,10 +377,10 @@ function getMatchReasons(project: ProProject, architect: ProProfessional, t: (k:
 }
 
 function MissionCard({
-  project, architect, matchScore, accepted, onAccept,
+  project, architect, matchScore, accepted, onAccept, onDecline,
 }: {
   project: ProProject; architect: ProProfessional;
-  matchScore: number; accepted: boolean; onAccept: () => void;
+  matchScore: number; accepted: boolean; onAccept: () => void; onDecline?: () => void;
 }) {
   const { t } = useTranslation();
   const matchReasons = getMatchReasons(project, architect, t);
@@ -456,7 +458,10 @@ function MissionCard({
             >
               {t("proHub.architect.imAvailable")} <ArrowRight className="h-3.5 w-3.5" />
             </button>
-            <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold text-muted-foreground border border-border rounded-full hover:text-foreground hover:border-foreground transition-colors">
+            <button
+              onClick={onDecline}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold text-muted-foreground border border-border rounded-full hover:text-foreground hover:border-foreground transition-colors"
+            >
               {t("proHub.architect.notForMe")}
             </button>
           </>
@@ -999,9 +1004,12 @@ function CallDetailView({
                       {t("proHub.architect.deselectSupplier")}
                     </button>
                   )}
-                  <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold text-muted-foreground border border-border rounded-full hover:text-foreground transition-colors">
+                  <Link
+                    to={"/messages"}
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold text-muted-foreground border border-border rounded-full hover:text-foreground transition-colors"
+                  >
                     <MessageSquare className="h-3.5 w-3.5" /> {t("proHub.architect.messageSupplier")}
-                  </button>
+                  </Link>
                 </div>
               </div>
             );

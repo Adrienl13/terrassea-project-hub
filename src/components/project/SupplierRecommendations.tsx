@@ -224,9 +224,9 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
 
               <div className="flex gap-2 mt-2.5">
                 {renderSelectButton(recommended)}
-                <button className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title={t("supplierRecs.contactSupplier")}>
+                <Link to="/messages" className="p-1.5 border border-border rounded-full hover:border-foreground transition-colors" title={t("supplierRecs.contactSupplier")}>
                   <MessageSquare className="h-3 w-3 text-muted-foreground" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>

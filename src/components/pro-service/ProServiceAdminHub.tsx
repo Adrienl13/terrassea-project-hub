@@ -159,10 +159,16 @@ export default function ProServiceAdminHub({ store }: { store: ProServiceStore }
                           )}
                         </div>
                         <div className="flex gap-2 shrink-0">
-                          <button className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-display font-semibold bg-green-600 text-white rounded-full hover:opacity-90">
+                          <button
+                            onClick={() => store.updateConnectionStatus(conn.id, "accepted")}
+                            className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-display font-semibold bg-green-600 text-white rounded-full hover:opacity-90"
+                          >
                             <ThumbsUp className="h-3 w-3" /> {t("proHub.admin.approve")}
                           </button>
-                          <button className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-display font-semibold text-muted-foreground border border-border rounded-full hover:text-foreground">
+                          <button
+                            onClick={() => store.updateConnectionStatus(conn.id, "rejected")}
+                            className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-display font-semibold text-muted-foreground border border-border rounded-full hover:text-foreground"
+                          >
                             <XCircle className="h-3 w-3" /> {t("proHub.admin.reject")}
                           </button>
                         </div>
