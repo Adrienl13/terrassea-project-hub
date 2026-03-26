@@ -64,8 +64,8 @@ function computeScore(form: {
 
 const ESTABLISHMENT_TYPES = ["hotel", "restaurant", "resort", "bar", "cafe", "other"] as const;
 const STAR_OPTIONS = ["5\u2605", "4\u2605", "3\u2605", "sans_classement"] as const;
-const COUNTRY_CODES = ["FR", "ES", "IT", "DE", "BE", "NL", "PT", "CH", "AT"] as const;
-const COUNTRY_KEYS: Record<string, string> = { FR: "countryFrance", ES: "countrySpain", IT: "countryItaly", DE: "countryGermany", BE: "countryBelgium", NL: "countryNetherlands", PT: "countryPortugal", CH: "countrySwitzerland", AT: "countryAustria" };
+const COUNTRY_CODES = ["FR", "ES", "IT", "DE", "BE", "NL", "PT", "CH", "AT", "GB", "DK", "SE", "PL", "GR"] as const;
+const COUNTRY_KEYS: Record<string, string> = { FR: "countryFrance", ES: "countrySpain", IT: "countryItaly", DE: "countryGermany", BE: "countryBelgium", NL: "countryNetherlands", PT: "countryPortugal", CH: "countrySwitzerland", AT: "countryAustria", GB: "countryUK", DK: "countryDenmark", SE: "countrySweden", PL: "countryPoland", GR: "countryGreece" };
 const BUDGET_RANGES = ["< 5K\u20AC", "5-15K\u20AC", "15-50K\u20AC", "50-100K\u20AC", "> 100K\u20AC"];
 const TIMELINE_KEYS = [
   { value: "urgent", key: "timelineUrgent" },

@@ -3706,7 +3706,12 @@
     "countryNetherlands": "Pa\u00edses Bajos",
     "countryPortugal": "Portugal",
     "countrySwitzerland": "Suiza",
-    "countryAustria": "Austria"
+    "countryAustria": "Austria",
+    "countryUK": "Reino Unido",
+    "countryDenmark": "Dinamarca",
+    "countrySweden": "Suecia",
+    "countryPoland": "Polonia",
+    "countryGreece": "Grecia"
   },
   "sourcing": {
     "overview": "Resumen de sourcing",

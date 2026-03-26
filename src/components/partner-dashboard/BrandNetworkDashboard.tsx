@@ -109,7 +109,8 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
     },
   });
 
-  const routedBriefs = briefs.filter((b) => b.status === "routed" || b.distributor);
+  // Show all briefs — routed ones have a distributor, others are pending routing
+  const routedBriefs = briefs;
 
   // ── Add distributor ────────────────────────────────────────────────────
   const handleAddDistributor = async () => {

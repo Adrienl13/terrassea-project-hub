@@ -429,7 +429,11 @@ const Account = () => {
         country: profile.country || "France",
         partner_type: meta.partner_type || "manufacturer",
         partner_mode: meta.partner_mode || "standard",
-      }).then(() => {
+      }).then(({ error: insertErr }) => {
+        if (insertErr) {
+          console.error("Failed to auto-create partner:", insertErr.message);
+          return;
+        }
         queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
       });
     }

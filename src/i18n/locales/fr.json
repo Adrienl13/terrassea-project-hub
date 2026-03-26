@@ -3800,7 +3800,12 @@
     "countryNetherlands": "Pays-Bas",
     "countryPortugal": "Portugal",
     "countrySwitzerland": "Suisse",
-    "countryAustria": "Autriche"
+    "countryAustria": "Autriche",
+    "countryUK": "Royaume-Uni",
+    "countryDenmark": "Danemark",
+    "countrySweden": "Su\u00e8de",
+    "countryPoland": "Pologne",
+    "countryGreece": "Gr\u00e8ce"
   },
   "sourcing": {
     "overview": "Aper\u00e7u du sourcing",
