@@ -45,6 +45,8 @@ const Auth = () => {
   const [form, setForm] = useState({
     email: "", password: "", firstName: "", lastName: "",
     company: "", siren: "", phone: "", country: "France", userType: defaultType,
+    partnerType: "" as "brand" | "reseller" | "manufacturer" | "",
+    partnerMode: "" as "brand_member" | "brand_network" | "",
   });
 
   const handle = (field: string) =>
@@ -78,6 +80,14 @@ const Auth = () => {
       toast.error(t('auth.fillRequired'));
       return;
     }
+    if (form.userType === "partner" && !form.partnerType) {
+      toast.error(t('auth.selectPartnerType', 'Veuillez choisir votre type de partenaire.'));
+      return;
+    }
+    if (form.userType === "partner" && form.partnerType === "brand" && !form.partnerMode) {
+      toast.error(t('becomePartnerPage.selectBrandMode', 'Veuillez choisir votre mode marque.'));
+      return;
+    }
     if (form.siren && form.siren.length !== 9) {
       toast.error(t('auth.sirenDigits'));
       return;
@@ -97,6 +107,8 @@ const Auth = () => {
             siren: form.siren,
             phone: form.phone || null,
             country: form.country || null,
+            partner_type: form.userType === "partner" ? (form.partnerType || "manufacturer") : null,
+            partner_mode: form.userType === "partner" && form.partnerType === "brand" ? (form.partnerMode || "standard") : null,
           },
         },
       });
@@ -237,6 +249,60 @@ const Auth = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Partner sub-type selector */}
+                {form.userType === "partner" ? (
+                  <div>
+                    <span className={labelClass}>{t('auth.partnerSubtype', 'Type de partenaire')} *</span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        { value: "brand" as const, icon: "\u2728", label: t('becomePartnerPage.profileBrandTitle', 'Marque') },
+                        { value: "reseller" as const, icon: "\ud83c\udfea", label: t('becomePartnerPage.profileResellerTitle', 'Revendeur') },
+                        { value: "manufacturer" as const, icon: "\ud83c\udfed", label: t('becomePartnerPage.profileManufacturerTitle', 'Fabricant') },
+                      ]).map(({ value, icon, label: lbl }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setForm((p) => ({ ...p, partnerType: value, partnerMode: "" }))}
+                          className={`p-2.5 rounded-lg border text-center transition-all ${
+                            form.partnerType === value
+                              ? "border-[#D4603A] bg-[#D4603A]/5"
+                              : "border-border hover:border-muted-foreground"
+                          }`}
+                        >
+                          <span className="text-base">{icon}</span>
+                          <p className="text-[10px] font-display font-bold text-foreground mt-0.5">{lbl}</p>
+                        </button>
+                      ))}
+                    </div>
+                    {/* Brand mode — only if brand is selected */}
+                    {form.partnerType === "brand" ? (
+                      <div className="mt-3">
+                        <span className={labelClass}>{t('becomePartnerPage.brandMode', 'Mode')} *</span>
+                        <div className="grid grid-cols-2 gap-2">
+                          {([
+                            { value: "brand_member" as const, label: t('auth.brandDirect', 'Direct'), desc: t('auth.brandDirectDesc', 'Vous g\u00e9rez les briefs') },
+                            { value: "brand_network" as const, label: t('auth.brandNetwork', 'R\u00e9seau'), desc: t('auth.brandNetworkDesc', 'Via vos distributeurs') },
+                          ]).map(({ value, label: lbl, desc }) => (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() => setForm((p) => ({ ...p, partnerMode: value }))}
+                              className={`p-2.5 rounded-lg border text-left transition-all ${
+                                form.partnerMode === value
+                                  ? "border-[#D4603A] bg-[#D4603A]/5"
+                                  : "border-border hover:border-muted-foreground"
+                              }`}
+                            >
+                              <p className="text-[10px] font-display font-bold text-foreground">{lbl}</p>
+                              <p className="text-[8px] font-body text-muted-foreground">{desc}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>

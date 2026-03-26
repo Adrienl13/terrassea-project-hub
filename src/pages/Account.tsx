@@ -320,7 +320,7 @@ function SettingsSection({ profile }: { profile: any }) {
 
 const Account = () => {
   const { t } = useTranslation();
-  const { profile, isLoading, signOut } = useAuth();
+  const { user, profile, isLoading, signOut } = useAuth();
   const { favourites, toggleFavourite } = useFavourites();
   const { totalUnread } = useConversations();
   const navigate = useNavigate();
@@ -414,6 +414,7 @@ const Account = () => {
       partnerAutoCreateRef.current = true;
       const name = profile.company || `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const meta = user?.user_metadata ?? {};
       supabase.from("partners").insert({
         name,
         slug: `${slug}-${Date.now().toString(36)}`,
@@ -425,6 +426,8 @@ const Account = () => {
         is_active: true,
         is_public: false,
         country: profile.country || "France",
+        partner_type: meta.partner_type || "manufacturer",
+        partner_mode: meta.partner_mode || "standard",
       }).then(() => {
         queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
       });
