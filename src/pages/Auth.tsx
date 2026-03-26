@@ -69,11 +69,16 @@ const Auth = () => {
   };
 
   const handleRegister = async () => {
-    if (!form.email || !form.password || !form.firstName || !form.company || !form.siren) {
+    if (!form.email || !form.password || !form.firstName) {
       toast.error(t('auth.fillRequired'));
       return;
     }
-    if (form.siren.length !== 9) {
+    // SIREN required for partners and architects, optional for clients
+    if (form.userType !== "client" && (!form.company || !form.siren)) {
+      toast.error(t('auth.fillRequired'));
+      return;
+    }
+    if (form.siren && form.siren.length !== 9) {
       toast.error(t('auth.sirenDigits'));
       return;
     }
@@ -244,30 +249,34 @@ const Auth = () => {
                   </div>
                 </div>
 
+                {/* Company — required for partner/architect, optional for client */}
                 <div>
-                  <span className={labelClass}>{t('auth.company')} *</span>
-                  <input value={form.company} onChange={handle("company")} className={inputClass} />
+                  <span className={labelClass}>{t('auth.company')} {form.userType !== "client" ? "*" : ""}</span>
+                  <input value={form.company} onChange={handle("company")} className={inputClass} placeholder={form.userType === "client" ? t('auth.companyOptional', 'Optionnel') : ""} />
                 </div>
 
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className={labelClass + " mb-0"}>{t('auth.sirenNumber')} *</span>
-                    {sirenChecking && <span className="text-[9px] text-muted-foreground">{t('auth.checking')}</span>}
-                    {sirenValid === true && <span className="text-[9px] text-green-600">{t('auth.valid')}</span>}
-                    {sirenValid === false && <span className="text-[9px] text-destructive">{t('auth.notFound')}</span>}
+                {/* SIREN — required for partner/architect, optional for client */}
+                {form.userType !== "client" ? (
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={labelClass + " mb-0"}>{t('auth.sirenNumber')} *</span>
+                      {sirenChecking && <span className="text-[9px] text-muted-foreground">{t('auth.checking')}</span>}
+                      {sirenValid === true && <span className="text-[9px] text-green-600">{t('auth.valid')}</span>}
+                      {sirenValid === false && <span className="text-[9px] text-destructive">{t('auth.notFound')}</span>}
+                    </div>
+                    <input
+                      value={form.siren}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 9);
+                        setForm((p) => ({ ...p, siren: val }));
+                        if (val.length === 9) validateSiren(val);
+                        else setSirenValid(null);
+                      }}
+                      placeholder="123456789"
+                      className={`${inputClass} ${sirenValid === false ? "border-destructive" : sirenValid === true ? "border-green-500" : ""}`}
+                    />
                   </div>
-                  <input
-                    value={form.siren}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 9);
-                      setForm((p) => ({ ...p, siren: val }));
-                      if (val.length === 9) validateSiren(val);
-                      else setSirenValid(null);
-                    }}
-                    placeholder="123456789"
-                    className={`${inputClass} ${sirenValid === false ? "border-destructive" : sirenValid === true ? "border-green-500" : ""}`}
-                  />
-                </div>
+                ) : null}
 
                 <div>
                   <span className={labelClass}>{t('auth.phone')}</span>
@@ -282,19 +291,28 @@ const Auth = () => {
                     className={inputClass}
                   >
                     <option value="France">France</option>
-                    <option value="Belgium">Belgique</option>
-                    <option value="Switzerland">Suisse</option>
+                    <option value="Belgium">{t('brief.countryBelgium')}</option>
+                    <option value="Switzerland">{t('brief.countrySwitzerland')}</option>
                     <option value="Luxembourg">Luxembourg</option>
                     <option value="Monaco">Monaco</option>
-                    <option value="Italy">Italie</option>
-                    <option value="Spain">Espagne</option>
-                    <option value="Portugal">Portugal</option>
-                    <option value="Germany">Allemagne</option>
-                    <option value="Netherlands">Pays-Bas</option>
-                    <option value="United Kingdom">Royaume-Uni</option>
-                    <option value="Other">Autre</option>
+                    <option value="Italy">{t('brief.countryItaly')}</option>
+                    <option value="Spain">{t('brief.countrySpain')}</option>
+                    <option value="Portugal">{t('brief.countryPortugal')}</option>
+                    <option value="Germany">{t('brief.countryGermany')}</option>
+                    <option value="Netherlands">{t('brief.countryNetherlands')}</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Other">{t('brief.other')}</option>
                   </select>
                 </div>
+
+                {/* Partner-specific hint */}
+                {form.userType === "partner" ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <p className="text-[10px] font-body text-amber-800">
+                      {t('auth.partnerHint', 'Votre espace partenaire sera activé après validation de votre profil. Pour devenir marque partenaire, rendez-vous sur la page Devenir partenaire.')}
+                    </p>
+                  </div>
+                ) : null}
               </>
             )}
 
