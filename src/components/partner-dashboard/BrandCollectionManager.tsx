@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Pencil, Image, Package, FolderOpen } from "lucide-react";
@@ -30,6 +31,7 @@ function groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {
 }
 
 export default function BrandCollectionManager({ partnerId }: BrandCollectionManagerProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [editingOffer, setEditingOffer] = useState<string | null>(null);
   const [editCollection, setEditCollection] = useState("");
@@ -57,10 +59,10 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
       .update({ collection_name: newName || null })
       .eq("id", offerId);
     if (error) {
-      toast.error("Erreur lors de la mise \u00e0 jour.");
+      toast.error(t("brand.updateError"));
       return;
     }
-    toast.success("Collection mise \u00e0 jour.");
+    toast.success(t("brand.collectionUpdated"));
     setEditingOffer(null);
     queryClient.invalidateQueries({ queryKey: ["brand-collection-offers", partnerId] });
   };
@@ -77,7 +79,7 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="font-display text-lg font-bold text-foreground">Gestion des collections</h2>
+          <h2 className="font-display text-lg font-bold text-foreground">{t("brand.manageCollections")}</h2>
           <p className="text-xs font-body text-muted-foreground">
             {offers.length} produit{offers.length > 1 ? "s" : ""} \u00b7 {collectionNames.length} collection{collectionNames.length > 1 ? "s" : ""}
           </p>
@@ -86,15 +88,15 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-6">
         <p className="text-xs font-body text-amber-800">
-          <strong>Mode Brand</strong> \u2014 Les prix ne sont jamais affich\u00e9s publiquement. Les acheteurs soumettent un brief projet qualifi\u00e9 pour acc\u00e9der \u00e0 vos collections.
+          {t("brand.brandModeInfo")}
         </p>
       </div>
 
       {collectionNames.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderOpen className="h-8 w-8 text-muted-foreground/30 mb-3" />
-          <p className="text-sm font-body text-muted-foreground mb-1">Aucun produit dans vos collections.</p>
-          <p className="text-xs font-body text-muted-foreground">Ajoutez des produits et attribuez-les \u00e0 une collection.</p>
+          <p className="text-sm font-body text-muted-foreground mb-1">{t("brand.noProducts")}</p>
+          <p className="text-xs font-body text-muted-foreground">{t("brand.addProducts")}</p>
         </div>
       ) : (
         <div className="space-y-8">
@@ -144,7 +146,7 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
                             onClick={() => { setEditingOffer(item.id); setEditCollection(item.collection_name || ""); }}
                             className="mt-1 text-[10px] font-body text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
                           >
-                            <Pencil className="h-2.5 w-2.5" /> Modifier collection
+                            <Pencil className="h-2.5 w-2.5" /> {t("brand.editCollection")}
                           </button>
                         )}
                       </div>

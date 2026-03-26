@@ -64,25 +64,18 @@ function computeScore(form: {
 
 const ESTABLISHMENT_TYPES = ["hotel", "restaurant", "resort", "bar", "cafe", "other"] as const;
 const STAR_OPTIONS = ["5\u2605", "4\u2605", "3\u2605", "sans_classement"] as const;
-const COUNTRIES = [
-  { code: "FR", label: "France" },
-  { code: "ES", label: "Espagne" },
-  { code: "IT", label: "Italie" },
-  { code: "DE", label: "Allemagne" },
-  { code: "BE", label: "Belgique" },
-  { code: "NL", label: "Pays-Bas" },
-  { code: "PT", label: "Portugal" },
-  { code: "CH", label: "Suisse" },
-  { code: "AT", label: "Autriche" },
-];
+const COUNTRY_CODES = ["FR", "ES", "IT", "DE", "BE", "NL", "PT", "CH", "AT"] as const;
+const COUNTRY_KEYS: Record<string, string> = { FR: "countryFrance", ES: "countrySpain", IT: "countryItaly", DE: "countryGermany", BE: "countryBelgium", NL: "countryNetherlands", PT: "countryPortugal", CH: "countrySwitzerland", AT: "countryAustria" };
 const BUDGET_RANGES = ["< 5K\u20AC", "5-15K\u20AC", "15-50K\u20AC", "50-100K\u20AC", "> 100K\u20AC"];
-const TIMELINES = [
-  { value: "urgent", label: "Urgent (< 1 mois)" },
-  { value: "short", label: "Court terme (1-3 mois)" },
-  { value: "medium", label: "Moyen terme (3-6 mois)" },
-  { value: "long", label: "Long terme (> 6 mois)" },
+const TIMELINE_KEYS = [
+  { value: "urgent", key: "timelineUrgent" },
+  { value: "short", key: "timelineShort" },
+  { value: "medium", key: "timelineMedium" },
+  { value: "long", key: "timelineLong" },
 ];
 const PROJECT_TYPES = ["new_project", "renovation", "replacement"] as const;
+const PROJECT_TYPE_KEYS: Record<string, string> = { new_project: "newProject", renovation: "renovation", replacement: "replacement" };
+const ESTABLISHMENT_KEYS: Record<string, string> = { hotel: "hotel", restaurant: "restaurant", resort: "resort", bar: "bar", cafe: "cafe", other: "other" };
 
 // ── Main component ───────────────────────────────────────────────────────────
 
@@ -177,7 +170,7 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
   const canSubmit = firstName && email && siren.length === 9;
 
   const handleSubmit = async () => {
-    if (!canSubmit) { toast.error("Veuillez remplir tous les champs requis."); return; }
+    if (!canSubmit) { toast.error(t("brief.fillRequired")); return; }
 
     const score = computeScore({ stars_or_class: starsOrClass, budget_range: budgetRange, quantity_estimate: quantityEstimate, timeline });
 
@@ -228,7 +221,7 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
       setStep("success");
     } catch (err) {
       console.error(err);
-      toast.error("Une erreur est survenue. Veuillez r\u00e9essayer.");
+      toast.error(t("brief.submitError"));
     } finally {
       setSubmitting(false);
     }
@@ -287,14 +280,13 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                     <CheckCircle2 className="h-7 w-7 text-green-600" />
                   </div>
                   <h2 className="font-display text-xl font-bold text-foreground mb-2">
-                    Brief projet envoy\u00e9
+                    {t("brief.successTitle")}
                   </h2>
                   <p className="text-sm font-body text-muted-foreground leading-relaxed mb-6">
-                    Votre brief projet est en cours d'analyse par notre \u00e9quipe.
-                    Si votre projet correspond aux crit\u00e8res de la marque, vous serez contact\u00e9 sous 72h.
+                    {t("brief.successDescription")}
                   </p>
                   <button onClick={onClose} className="px-8 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
-                    Fermer
+                    {t("brief.close")}
                   </button>
                 </div>
               )}
@@ -306,14 +298,13 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                     <AlertTriangle className="h-7 w-7 text-amber-600" />
                   </div>
                   <h2 className="font-display text-xl font-bold text-foreground mb-2">
-                    Projet non \u00e9ligible
+                    {t("brief.rejectedTitle")}
                   </h2>
                   <p className="text-sm font-body text-muted-foreground leading-relaxed mb-6">
-                    Cette marque r\u00e9serve ses produits aux projets CHR d'envergure.
-                    Pour des quantit\u00e9s plus modestes, explorez notre catalogue de fournisseurs standard.
+                    {t("brief.rejectedDescription")}
                   </p>
                   <button onClick={onClose} className="px-8 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
-                    Retour au catalogue
+                    {t("brief.backToCatalog")}
                   </button>
                 </div>
               )}
@@ -323,7 +314,7 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h2 className="font-display text-lg font-bold text-foreground">Soumettre un brief projet</h2>
+                      <h2 className="font-display text-lg font-bold text-foreground">{t("brief.submitTitle")}</h2>
                       <p className="text-xs font-body text-muted-foreground mt-0.5">{product.name} &middot; {offer.partner?.name || "Marque"}</p>
                     </div>
                     <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors p-1"><X className="h-5 w-5" /></button>
@@ -332,36 +323,36 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
 
                   <div className="flex items-center gap-2 mb-4">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <h3 className="font-display text-sm font-semibold text-foreground">\u00c9tape 1 \u2014 Votre \u00e9tablissement</h3>
+                    <h3 className="font-display text-sm font-semibold text-foreground">{t("brief.step1")}</h3>
                   </div>
 
                   <div className="space-y-3">
                     <div>
-                      <span className={labelClass}>Type d'\u00e9tablissement *</span>
+                      <span className={labelClass}>{t("brief.establishmentType")} *</span>
                       <select value={establishmentType} onChange={(e) => setEstablishmentType(e.target.value)} className={selectClass}>
-                        <option value="">S\u00e9lectionnez...</option>
-                        {ESTABLISHMENT_TYPES.map((t) => <option key={t} value={t}>{t === "hotel" ? "H\u00f4tel" : t === "restaurant" ? "Restaurant" : t === "resort" ? "Resort" : t === "bar" ? "Bar" : t === "cafe" ? "Caf\u00e9" : "Autre"}</option>)}
+                        <option value="">{t("brief.selectPlaceholder")}</option>
+                        {ESTABLISHMENT_TYPES.map((et) => <option key={et} value={et}>{t("brief." + ESTABLISHMENT_KEYS[et])}</option>)}
                       </select>
                     </div>
 
                     <div>
-                      <span className={labelClass}>Classement *</span>
+                      <span className={labelClass}>{t("brief.classification")} *</span>
                       <select value={starsOrClass} onChange={(e) => setStarsOrClass(e.target.value)} className={selectClass}>
-                        <option value="">S\u00e9lectionnez...</option>
-                        {STAR_OPTIONS.map((s) => <option key={s} value={s}>{s === "sans_classement" ? "Sans classement" : s}</option>)}
+                        <option value="">{t("brief.selectPlaceholder")}</option>
+                        {STAR_OPTIONS.map((s) => <option key={s} value={s}>{s === "sans_classement" ? t("brief.noClassification") : s}</option>)}
                       </select>
                     </div>
 
                     <div>
-                      <span className={labelClass}>Capacit\u00e9 (couverts ou chambres)</span>
-                      <input type="number" min={0} value={capacity || ""} onChange={(e) => setCapacity(parseInt(e.target.value) || 0)} placeholder="Ex: 120" className={inputClass} />
+                      <span className={labelClass}>{t("brief.capacity")}</span>
+                      <input type="number" min={0} value={capacity || ""} onChange={(e) => setCapacity(parseInt(e.target.value) || 0)} placeholder={t("brief.capacityPlaceholder")} className={inputClass} />
                     </div>
 
                     <div>
-                      <span className={labelClass}>Pays *</span>
+                      <span className={labelClass}>{t("brief.country")} *</span>
                       <select value={country} onChange={(e) => setCountry(e.target.value)} className={selectClass}>
-                        <option value="">S\u00e9lectionnez...</option>
-                        {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+                        <option value="">{t("brief.selectPlaceholder")}</option>
+                        {COUNTRY_CODES.map((code) => <option key={code} value={code}>{t("brief." + COUNTRY_KEYS[code])}</option>)}
                       </select>
                     </div>
                   </div>
@@ -371,7 +362,7 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                     disabled={!canProceed1}
                     className="w-full mt-5 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
                   >
-                    Suivant <ChevronRight className="h-4 w-4" />
+                    {t("brief.next")} <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
               )}
@@ -381,7 +372,7 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h2 className="font-display text-lg font-bold text-foreground">Soumettre un brief projet</h2>
+                      <h2 className="font-display text-lg font-bold text-foreground">{t("brief.submitTitle")}</h2>
                       <p className="text-xs font-body text-muted-foreground mt-0.5">{product.name}</p>
                     </div>
                     <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors p-1"><X className="h-5 w-5" /></button>
@@ -390,13 +381,13 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
 
                   <div className="flex items-center gap-2 mb-4">
                     <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                    <h3 className="font-display text-sm font-semibold text-foreground">\u00c9tape 2 \u2014 Votre projet</h3>
+                    <h3 className="font-display text-sm font-semibold text-foreground">{t("brief.step2")}</h3>
                   </div>
 
                   <div className="space-y-3">
                     {brandCollections.length > 0 && (
                       <div>
-                        <span className={labelClass}>Collections d'int\u00e9r\u00eat</span>
+                        <span className={labelClass}>{t("brief.collectionsInterest")}</span>
                         <div className="flex flex-wrap gap-2">
                           {brandCollections.map((c) => (
                             <button
@@ -416,31 +407,31 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                     )}
 
                     <div>
-                      <span className={labelClass}>Quantit\u00e9 estim\u00e9e *</span>
+                      <span className={labelClass}>{t("brief.estimatedQuantity")} *</span>
                       <input type="number" min={1} value={quantityEstimate || ""} onChange={(e) => setQuantityEstimate(parseInt(e.target.value) || 0)} className={inputClass} />
                     </div>
 
                     <div>
-                      <span className={labelClass}>Budget global *</span>
+                      <span className={labelClass}>{t("brief.globalBudget")} *</span>
                       <select value={budgetRange} onChange={(e) => setBudgetRange(e.target.value)} className={selectClass}>
-                        <option value="">S\u00e9lectionnez...</option>
+                        <option value="">{t("brief.selectPlaceholder")}</option>
                         {BUDGET_RANGES.map((b) => <option key={b} value={b}>{b}</option>)}
                       </select>
                     </div>
 
                     <div>
-                      <span className={labelClass}>Calendrier *</span>
+                      <span className={labelClass}>{t("brief.timeline")} *</span>
                       <select value={timeline} onChange={(e) => setTimeline(e.target.value)} className={selectClass}>
-                        <option value="">S\u00e9lectionnez...</option>
-                        {TIMELINES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                        <option value="">{t("brief.selectPlaceholder")}</option>
+                        {TIMELINE_KEYS.map((tl) => <option key={tl.value} value={tl.value}>{t("brief." + tl.key)}</option>)}
                       </select>
                     </div>
 
                     <div>
-                      <span className={labelClass}>Type de projet *</span>
+                      <span className={labelClass}>{t("brief.projectType")} *</span>
                       <select value={projectType} onChange={(e) => setProjectType(e.target.value)} className={selectClass}>
-                        <option value="">S\u00e9lectionnez...</option>
-                        {PROJECT_TYPES.map((p) => <option key={p} value={p}>{p === "new_project" ? "Nouveau projet" : p === "renovation" ? "R\u00e9novation" : "Remplacement"}</option>)}
+                        <option value="">{t("brief.selectPlaceholder")}</option>
+                        {PROJECT_TYPES.map((pt) => <option key={pt} value={pt}>{t("brief." + PROJECT_TYPE_KEYS[pt])}</option>)}
                       </select>
                     </div>
                   </div>
@@ -450,14 +441,14 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                       onClick={() => setStep(1)}
                       className="flex-1 py-3 font-display font-semibold text-sm border border-border text-foreground rounded-full hover:bg-card transition-colors flex items-center justify-center gap-2"
                     >
-                      <ChevronLeft className="h-4 w-4" /> Retour
+                      <ChevronLeft className="h-4 w-4" /> {t("brief.back")}
                     </button>
                     <button
                       onClick={() => setStep(3)}
                       disabled={!canProceed2}
                       className="flex-1 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
                     >
-                      Suivant <ChevronRight className="h-4 w-4" />
+                      {t("brief.next")} <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -468,7 +459,7 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h2 className="font-display text-lg font-bold text-foreground">Soumettre un brief projet</h2>
+                      <h2 className="font-display text-lg font-bold text-foreground">{t("brief.submitTitle")}</h2>
                       <p className="text-xs font-body text-muted-foreground mt-0.5">{product.name}</p>
                     </div>
                     <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors p-1"><X className="h-5 w-5" /></button>
@@ -477,40 +468,40 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
 
                   <div className="flex items-center gap-2 mb-4">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <h3 className="font-display text-sm font-semibold text-foreground">\u00c9tape 3 \u2014 Vos coordonn\u00e9es</h3>
+                    <h3 className="font-display text-sm font-semibold text-foreground">{t("brief.step3")}</h3>
                   </div>
 
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <span className={labelClass}>Pr\u00e9nom *</span>
+                        <span className={labelClass}>{t("brief.firstName")} *</span>
                         <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} />
                       </div>
                       <div>
-                        <span className={labelClass}>Nom</span>
+                        <span className={labelClass}>{t("brief.lastName")}</span>
                         <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} />
                       </div>
                     </div>
 
                     <div>
-                      <span className={labelClass}>Email *</span>
+                      <span className={labelClass}>{t("brief.email")} *</span>
                       <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="contact@restaurant.fr" className={inputClass} />
                     </div>
 
                     <div>
-                      <span className={labelClass}>Entreprise</span>
+                      <span className={labelClass}>{t("brief.company")}</span>
                       <input value={company} onChange={(e) => setCompany(e.target.value)} className={inputClass} />
                     </div>
 
                     <div>
                       <div className="flex items-center gap-2 mb-1.5">
-                        <span className={labelClass + " mb-0"}>SIREN *</span>
-                        {sirenChecking && <span className="text-[9px] text-muted-foreground">V\u00e9rification...</span>}
+                        <span className={labelClass + " mb-0"}>{t("brief.siren")} *</span>
+                        {sirenChecking && <span className="text-[9px] text-muted-foreground">{t("brief.sirenChecking")}</span>}
                         {sirenResult && !sirenChecking && (
                           <span className="text-[9px] text-green-600 flex items-center gap-0.5">\u2713 {sirenResult.companyName}</span>
                         )}
                         {sirenError && !sirenChecking && (
-                          <span className="text-[9px] text-destructive">Non trouv\u00e9</span>
+                          <span className="text-[9px] text-destructive">{t("brief.sirenNotFound")}</span>
                         )}
                       </div>
                       <input
@@ -522,12 +513,12 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                     </div>
 
                     <div>
-                      <span className={labelClass}>Message (optionnel)</span>
+                      <span className={labelClass}>{t("brief.message")}</span>
                       <textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         rows={2}
-                        placeholder="D\u00e9crivez votre projet, contraintes particuli\u00e8res..."
+                        placeholder={t("brief.messagePlaceholder")}
                         className="w-full text-sm font-body bg-background border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50 resize-none"
                       />
                     </div>
@@ -538,19 +529,19 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                       onClick={() => setStep(2)}
                       className="flex-1 py-3 font-display font-semibold text-sm border border-border text-foreground rounded-full hover:bg-card transition-colors flex items-center justify-center gap-2"
                     >
-                      <ChevronLeft className="h-4 w-4" /> Retour
+                      <ChevronLeft className="h-4 w-4" /> {t("brief.back")}
                     </button>
                     <button
                       onClick={handleSubmit}
                       disabled={!canSubmit || submitting}
                       className="flex-1 py-3 font-display font-semibold text-sm bg-[#D4603A] text-white rounded-full hover:opacity-90 transition-opacity disabled:opacity-40"
                     >
-                      {submitting ? "Envoi..." : "Soumettre le brief \u2192"}
+                      {submitting ? t("brief.submitting") : t("brief.submitButton") + " \u2192"}
                     </button>
                   </div>
 
                   <p className="text-[10px] font-body text-muted-foreground leading-relaxed mt-3 text-center">
-                    Mise en relation avec la marque sous 72h si votre projet est qualifi\u00e9.
+                    {t("brief.finePrint")}
                   </p>
                 </div>
               )}

@@ -127,7 +127,7 @@ export default function Collections() {
     <>
       <SEO
         title={t("nav.collections", "Collections") + " | TerrasseaHUB"}
-        description={"D\u00e9couvrez les collections exclusives de nos marques partenaires pour l\u2019h\u00f4tellerie-restauration outdoor haut de gamme."}
+        description={t("brand.heroDescription")}
       />
       <Header />
 
@@ -139,33 +139,33 @@ export default function Collections() {
           <div className="flex items-center gap-2 mb-6">
             <Sparkles className="h-4 w-4 text-[#D4603A]" />
             <span className="text-xs font-display font-semibold uppercase tracking-[0.2em] text-[#D4603A]">
-              {"Marques partenaires"}
+              {t("brand.partnersLabel")}
             </span>
           </div>
           <h1 className="font-display text-4xl md:text-6xl font-bold text-white tracking-tight mb-4 max-w-3xl">
-            {"Collections exclusives"}
+            {t("brand.exclusiveCollections")}
           </h1>
           <p className="text-base md:text-lg font-body text-white/50 max-w-2xl leading-relaxed">
-            {"Des fabricants d\u2019exception s\u00e9lectionn\u00e9s pour leur savoir-faire, leurs mat\u00e9riaux et leur engagement envers l\u2019h\u00f4tellerie-restauration haut de gamme."}
+            {t("brand.heroDescription")}
           </p>
           <div className="flex items-center gap-6 mt-8">
             <div className="text-center">
               <p className="font-display text-2xl font-bold text-white">{String(brands.length)}</p>
-              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{"Marques"}</p>
+              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{t("brand.brandsCount")}</p>
             </div>
             <div className="w-px h-8 bg-white/10" />
             <div className="text-center">
               <p className="font-display text-2xl font-bold text-white">
                 {String(Object.values(brandData).reduce((acc, d) => acc + Object.keys(d.grouped).length, 0))}
               </p>
-              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{"Collections"}</p>
+              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{t("brand.collectionsCount")}</p>
             </div>
             <div className="w-px h-8 bg-white/10" />
             <div className="text-center">
               <p className="font-display text-2xl font-bold text-white">
                 {String(Object.values(brandData).reduce((acc, d) => acc + d.totalProducts, 0))}
               </p>
-              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{"Produits"}</p>
+              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{t("brand.productsCount")}</p>
             </div>
           </div>
         </div>
@@ -176,7 +176,7 @@ export default function Collections() {
         <section className="py-12 bg-[#FAF7F4]">
           <div className="container mx-auto px-6 max-w-5xl">
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="text-xs font-body text-red-800">{"Erreur : " + error}</p>
+              <p className="text-xs font-body text-red-800">{t("common.error", "Erreur") + " : " + error}</p>
             </div>
           </div>
         </section>
@@ -243,7 +243,7 @@ export default function Collections() {
                           ) : null}
                           {brand.founded_year ? (
                             <span className="text-xs font-body text-muted-foreground">
-                              {"\u00b7 Depuis " + String(brand.founded_year)}
+                              {t("brand.since", { year: brand.founded_year })}
                             </span>
                           ) : null}
                         </div>
@@ -276,10 +276,10 @@ export default function Collections() {
                     <div className="flex items-center gap-4 text-xs font-body text-muted-foreground mb-5">
                       <span className="flex items-center gap-1.5">
                         <Package className="h-3.5 w-3.5" />
-                        {String(collNames.length) + " collection" + (collNames.length > 1 ? "s" : "")}
+                        {t("brand.collectionCount", { count: collNames.length })}
                       </span>
                       {data ? (
-                        <span>{String(data.totalProducts) + " produit" + (data.totalProducts > 1 ? "s" : "")}</span>
+                        <span>{t("brand.productCount", { count: data.totalProducts })}</span>
                       ) : null}
                     </div>
 
@@ -315,7 +315,7 @@ export default function Collections() {
                         onClick={() => setExpandedBrand((prev) => (prev === brand.id ? null : brand.id))}
                         className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors"
                       >
-                        {expandedBrand === brand.id ? "Masquer les collections" : "Voir les collections"}
+                        {expandedBrand === brand.id ? t("brand.hideCollections") : t("brand.showCollections")}
                         {expandedBrand === brand.id ? (
                           <ChevronUp className="h-3.5 w-3.5" />
                         ) : (
@@ -330,7 +330,7 @@ export default function Collections() {
                 {expandedBrand === brand.id && collNames.length > 0 ? (
                   <div className="mt-10 pt-10 border-t border-border">
                     <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-6">
-                      {"Collections " + brand.name}
+                      {t("brand.collectionsOf", { name: brand.name })}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                       {collNames.map((collName) => {
@@ -366,7 +366,7 @@ export default function Collections() {
                             </h4>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-[10px] font-body text-muted-foreground">
-                                {String(items.length) + " produit" + (items.length > 1 ? "s" : "")}
+                                {t("brand.productCount", { count: items.length })}
                               </span>
                               {categories.length > 0 ? (
                                 <span className="text-[10px] font-body text-muted-foreground">
@@ -384,11 +384,11 @@ export default function Collections() {
                         to={"/brands/" + brand.slug}
                         className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
                       >
-                        {"D\u00e9couvrir " + brand.name}
+                        {t("brand.discover", { name: brand.name })}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                       <span className="text-[10px] font-body text-muted-foreground">
-                        {"Acc\u00e8s sur brief qualifi\u00e9 \u00b7 R\u00e9ponse sous 72h"}
+                        {t("brand.briefAccess")}
                       </span>
                     </div>
                   </div>
@@ -404,16 +404,16 @@ export default function Collections() {
         <section className="bg-[#1C1A17] py-20">
           <div className="container mx-auto px-6 max-w-3xl text-center">
             <h2 className="font-display text-2xl md:text-3xl font-bold text-white mb-3">
-              {"Vous \u00eates une marque\u00a0?"}
+              {t("brand.areYouBrand")}
             </h2>
             <p className="text-sm font-body text-white/50 mb-8 max-w-lg mx-auto leading-relaxed">
-              {"Rejoignez notre s\u00e9lection de marques partenaires et pr\u00e9sentez vos collections \u00e0 un r\u00e9seau qualifi\u00e9 de professionnels CHR."}
+              {t("brand.joinDescription")}
             </p>
             <Link
               to="/become-partner"
               className="inline-flex items-center gap-2 px-8 py-3 font-display font-semibold text-sm bg-[#D4603A] text-white rounded-full hover:opacity-90 transition-opacity"
             >
-              {"Devenir marque partenaire"}
+              {t("brand.becomePartner")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

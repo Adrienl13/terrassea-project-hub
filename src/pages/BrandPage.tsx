@@ -155,10 +155,10 @@ export default function BrandPage() {
       <>
         <Header />
         <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
-          <h1 className="font-display text-2xl font-bold text-foreground mb-2">Marque introuvable</h1>
-          <p className="text-sm font-body text-muted-foreground mb-6">Cette marque n'existe pas ou n'est pas disponible.</p>
+          <h1 className="font-display text-2xl font-bold text-foreground mb-2">{t("brand.notFound")}</h1>
+          <p className="text-sm font-body text-muted-foreground mb-6">{t("brand.notFoundDescription")}</p>
           <Link to="/collections" className="text-sm font-display font-semibold text-foreground hover:underline">
-            &larr; Retour aux collections
+            &larr; {t("brand.backToCollections")}
           </Link>
         </div>
         <Footer />
@@ -182,7 +182,7 @@ export default function BrandPage() {
       >
         <div className="container mx-auto px-6 pb-12 pt-24">
           <Link to="/collections" className="inline-flex items-center gap-1.5 text-xs font-body text-white/60 hover:text-white mb-6 transition-colors">
-            <ArrowLeft className="h-3.5 w-3.5" /> Retour aux collections
+            <ArrowLeft className="h-3.5 w-3.5" /> {t("brand.backToCollections")}
           </Link>
           <div className="flex items-end gap-6">
             {brand.logo_url && (
@@ -202,7 +202,7 @@ export default function BrandPage() {
       {/* Section 2 — Origine & Savoir-faire */}
       <section className="bg-[#FAF7F4] py-16">
         <div className="container mx-auto px-6 max-w-3xl">
-          <h2 className="font-display text-2xl font-bold text-foreground mb-6">Origine & Savoir-faire</h2>
+          <h2 className="font-display text-2xl font-bold text-foreground mb-6">{t("brand.originExpertise")}</h2>
           {brand.description && (
             <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">{brand.description}</p>
           )}
@@ -232,8 +232,8 @@ export default function BrandPage() {
       {collectionNames.length > 0 && (
         <section className="py-16">
           <div className="container mx-auto px-6">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-2">Nos collections</h2>
-            <p className="text-sm font-body text-muted-foreground mb-10">S\u00e9lection pour l'h\u00f4tellerie et la restauration haut de gamme.</p>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-2">{t("brand.ourCollections")}</h2>
+            <p className="text-sm font-body text-muted-foreground mb-10">{t("brand.collectionSubtitle")}</p>
 
             <div className="space-y-12">
               {collectionNames.map((collName) => {
@@ -258,7 +258,7 @@ export default function BrandPage() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">
-                                Pas de photo
+                                {t("brand.noPhoto")}
                               </div>
                             )}
                           </div>
@@ -272,7 +272,7 @@ export default function BrandPage() {
                       onClick={() => setBriefOffer(items[0] || null)}
                       className="mt-6 inline-flex items-center gap-2 text-sm font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors"
                     >
-                      Soumettre un brief pour cette collection <ArrowRight className="h-4 w-4" />
+                      {t("brand.submitBriefForCollection")} <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
                 );
@@ -286,17 +286,17 @@ export default function BrandPage() {
       <section className="bg-[#1C1A17] py-16">
         <div className="container mx-auto px-6 text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold text-white mb-3">
-            Vous avez un projet CHR outdoor ?
+            {t("brand.outdoorProject")}
           </h2>
           <p className="text-sm font-body text-white/60 mb-8">
-            Mise en relation avec notre \u00e9quipe sous 72h
+            {t("brand.teamContact")}
           </p>
           {offers.length > 0 && (
             <button
               onClick={() => setBriefOffer(offers[0])}
               className="px-8 py-3 font-display font-semibold text-sm bg-[#D4603A] text-white rounded-full hover:opacity-90 transition-opacity"
             >
-              Soumettre un brief &rarr;
+              {t("brand.submitBrief")} &rarr;
             </button>
           )}
         </div>

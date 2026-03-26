@@ -48,18 +48,22 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  pending_review: { label: "En attente", color: "#D97706", bg: "#FFFBEB" },
-  qualified: { label: "Qualifi\u00e9", color: "#059669", bg: "#ECFDF5" },
-  accepted: { label: "Accept\u00e9", color: "#059669", bg: "#ECFDF5" },
-  declined: { label: "D\u00e9clin\u00e9", color: "#DC2626", bg: "#FEF2F2" },
-  rejected: { label: "Rejet\u00e9", color: "#DC2626", bg: "#FEF2F2" },
-  routed: { label: "Rout\u00e9", color: "#2563EB", bg: "#EFF6FF" },
-};
+function useStatusConfig() {
+  const { t } = useTranslation();
+  return {
+    pending_review: { label: t("brief.statusPending"), color: "#D97706", bg: "#FFFBEB" },
+    qualified: { label: t("brief.statusQualified"), color: "#059669", bg: "#ECFDF5" },
+    accepted: { label: t("brief.statusAccepted"), color: "#059669", bg: "#ECFDF5" },
+    declined: { label: t("brief.statusDeclined"), color: "#DC2626", bg: "#FEF2F2" },
+    rejected: { label: t("brief.statusRejected"), color: "#DC2626", bg: "#FEF2F2" },
+    routed: { label: t("brief.statusRouted"), color: "#2563EB", bg: "#EFF6FF" },
+  } as Record<string, { label: string; color: string; bg: string }>;
+}
 
 export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const STATUS_CONFIG = useStatusConfig();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data: briefs = [], isLoading } = useQuery({
@@ -81,10 +85,10 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
       .update({ status: action, updated_at: new Date().toISOString() })
       .eq("id", briefId);
     if (error) {
-      toast.error("Erreur lors de la mise \u00e0 jour.");
+      toast.error(t("brand.updateError"));
       return;
     }
-    toast.success(action === "accepted" ? "Brief accept\u00e9 \u2014 coordonn\u00e9es r\u00e9v\u00e9l\u00e9es." : "Brief d\u00e9clin\u00e9.");
+    toast.success(action === "accepted" ? t("brief.briefAccepted") : t("brief.briefDeclined"));
     queryClient.invalidateQueries({ queryKey: ["brand-briefs", partnerId] });
   };
 
@@ -100,8 +104,8 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <Inbox className="h-8 w-8 text-muted-foreground/30 mb-3" />
-        <p className="text-sm font-body text-muted-foreground mb-1">Aucun brief re\u00e7u pour le moment.</p>
-        <p className="text-xs font-body text-muted-foreground">Les briefs projet qualifi\u00e9s apparaitront ici.</p>
+        <p className="text-sm font-body text-muted-foreground mb-1">{t("brief.noBriefs")}</p>
+        <p className="text-xs font-body text-muted-foreground">{t("brief.briefsWillAppear")}</p>
       </div>
     );
   }
@@ -110,7 +114,7 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="font-display text-lg font-bold text-foreground">Briefs projet re\u00e7us</h2>
+          <h2 className="font-display text-lg font-bold text-foreground">{t("brief.receivedBriefs")}</h2>
           <p className="text-xs font-body text-muted-foreground">{briefs.length} brief{briefs.length > 1 ? "s" : ""}</p>
         </div>
       </div>
@@ -211,7 +215,7 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
                   {showContact && (
                     <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-2">
                       <p className="text-xs font-display font-semibold text-green-800 flex items-center gap-1.5">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Coordonn\u00e9es de l'acheteur
+                        <CheckCircle2 className="h-3.5 w-3.5" /> {t("brief.buyerCoordinates")}
                       </p>
                       <div className="grid grid-cols-2 gap-2 text-xs font-body text-green-800">
                         <p className="flex items-center gap-1.5"><Users className="h-3 w-3" /> {brief.first_name || "—"} {brief.last_name || ""}</p>
@@ -229,13 +233,13 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
                         onClick={() => handleAction(brief.id, "accepted")}
                         className="flex items-center gap-1.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full px-4 py-2 hover:opacity-90 transition-opacity"
                       >
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Accepter
+                        <CheckCircle2 className="h-3.5 w-3.5" /> {t("brief.accept")}
                       </button>
                       <button
                         onClick={() => handleAction(brief.id, "declined")}
                         className="flex items-center gap-1.5 text-xs font-display font-semibold border border-border text-muted-foreground rounded-full px-4 py-2 hover:bg-card transition-colors"
                       >
-                        <XCircle className="h-3.5 w-3.5" /> D\u00e9cliner
+                        <XCircle className="h-3.5 w-3.5" /> {t("brief.decline")}
                       </button>
                     </div>
                   )}
