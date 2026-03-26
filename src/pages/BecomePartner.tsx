@@ -40,6 +40,7 @@ const BecomePartner = () => {
     companyName: "", contactName: "", email: "", phone: "",
     website: "", vatNumber: "", country: "",
     partnerType: "" as "manufacturer" | "brand" | "reseller" | "",
+    partnerMode: "" as "brand_member" | "brand_network" | "",
     productCategories: [] as string[],
     estimatedVolume: "", deliveryCountries: [] as string[],
     message: "",
@@ -182,6 +183,10 @@ const BecomePartner = () => {
       toast.error(t('becomePartnerPage.fillRequired'));
       return;
     }
+    if (form.partnerType === "brand" && !form.partnerMode) {
+      toast.error(t('becomePartnerPage.selectBrandMode', 'Veuillez sélectionner votre mode marque.'));
+      return;
+    }
     if (form.productCategories.length === 0) {
       toast.error(t('becomePartnerPage.selectCategory'));
       return;
@@ -192,12 +197,13 @@ const BecomePartner = () => {
       const { error } = await supabase.from("partner_applications").insert({
         company_name: form.companyName,
         contact_name: form.contactName,
-        contact_email: form.email,
+        email: form.email,
         phone: form.phone || null,
         website: form.website || null,
         vat_number: form.vatNumber || null,
         country: form.country,
         partner_type: form.partnerType as "manufacturer" | "brand" | "reseller",
+        partner_mode: form.partnerType === "brand" && form.partnerMode ? form.partnerMode : "standard",
         product_categories: form.productCategories,
         estimated_annual_volume: form.estimatedVolume || null,
         delivery_countries: form.deliveryCountries,
@@ -502,6 +508,29 @@ const BecomePartner = () => {
                     <option value="reseller">{t('becomePartnerPage.resellerDistributor')}</option>
                   </select>
                 </div>
+
+                {/* Brand mode selector — only visible when partner_type is "brand" */}
+                {form.partnerType === "brand" ? (
+                  <div>
+                    <label className={labelClass}>{t('becomePartnerPage.brandMode', 'Mode marque')} *</label>
+                    <select
+                      value={form.partnerMode}
+                      onChange={(e) => setForm((p) => ({ ...p, partnerMode: e.target.value as "brand_member" | "brand_network" | "" }))}
+                      className={inputClass}
+                    >
+                      <option value="">{t('becomePartnerPage.selectBrandMode', 'Sélectionnez votre mode')}</option>
+                      <option value="brand_member">{t('becomePartnerPage.brandMember', 'Marque directe — Vous gérez les briefs et la relation client')}</option>
+                      <option value="brand_network">{t('becomePartnerPage.brandNetwork', 'Réseau de distribution — Les briefs sont routés vers vos distributeurs')}</option>
+                    </select>
+                    <p className="text-[10px] font-body text-muted-foreground mt-1.5">
+                      {form.partnerMode === "brand_member"
+                        ? t('becomePartnerPage.brandMemberHint', 'Vous recevez directement les briefs qualifiés et gérez la relation commerciale.')
+                        : form.partnerMode === "brand_network"
+                        ? t('becomePartnerPage.brandNetworkHint', 'Les briefs sont automatiquement dirigés vers vos distributeurs agréés par pays.')
+                        : t('becomePartnerPage.brandModeHint', 'Choisissez comment vous souhaitez interagir avec les acheteurs professionnels.')}
+                    </p>
+                  </div>
+                ) : null}
               </div>
 
               {/* Product categories */}

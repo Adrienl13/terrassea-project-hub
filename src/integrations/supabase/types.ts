@@ -910,6 +910,7 @@ export type Database = {
           estimated_annual_volume: string | null
           id: string
           message: string | null
+          partner_mode: string | null
           partner_type: string | null
           phone: string | null
           product_categories: string[] | null
@@ -932,6 +933,7 @@ export type Database = {
           estimated_annual_volume?: string | null
           id?: string
           message?: string | null
+          partner_mode?: string | null
           partner_type?: string | null
           phone?: string | null
           product_categories?: string[] | null
@@ -954,6 +956,7 @@ export type Database = {
           estimated_annual_volume?: string | null
           id?: string
           message?: string | null
+          partner_mode?: string | null
           partner_type?: string | null
           phone?: string | null
           product_categories?: string[] | null
