@@ -714,7 +714,7 @@
     "loyalty": "Fedeltà",
     "orders": "I miei ordini",
     "arrivals": "Arrivi",
-    "brandBriefs": "Brief di progetto",
+    "brandBriefs": "Richieste in arrivo",
     "brandCollections": "Collezioni",
     "brandNetwork": "Rete di distribuzione"
   },
@@ -3658,7 +3658,8 @@
     "addProducts": "Aggiungi prodotti e assegnali a una collezione.",
     "editCollection": "Modifica collezione",
     "collectionUpdated": "Collezione aggiornata.",
-    "updateError": "Errore durante l\u2019aggiornamento."
+    "updateError": "Errore durante l\u2019aggiornamento.",
+    "collectionPlaceholder": "Nome collezione"
   },
   "brief": {
     "submitTitle": "Invia un brief di progetto",
@@ -3726,6 +3727,16 @@
     "buyerCoordinates": "Dati di contatto dell\u2019acquirente",
     "accept": "Accetta",
     "decline": "Rifiuta",
+    "establishment": "Struttura",
+    "capacityLabel": "Capacità",
+    "budgetLabel": "Budget",
+    "timelineLabel": "Tempistiche",
+    "projectTypeLabel": "Tipo progetto",
+    "quantityLabel": "Quantità",
+    "countryLabel": "Paese",
+    "dateLabel": "Data",
+    "messageLabel": "Messaggio",
+    "units": "unità",
     "countryFrance": "Francia",
     "countrySpain": "Spagna",
     "countryItaly": "Italia",
@@ -3739,7 +3750,21 @@
     "countryDenmark": "Danimarca",
     "countrySweden": "Svezia",
     "countryPoland": "Polonia",
-    "countryGreece": "Grecia"
+    "countryGreece": "Grecia",
+    "emptyTitle": "La tua inbox \u00e8 pronta",
+    "emptySubtitle": "Ecco come le richieste qualificate arrivano fino a te.",
+    "howStep1Title": "Un acquirente scopre il tuo brand",
+    "howStep1Desc": "Un professionista dell\u2019ospitalit\u00e0 esplora le tue collezioni su Terrassea.",
+    "howStep2Title": "Invia un brief di progetto",
+    "howStep2Desc": "Tipo di struttura, budget, quantit\u00e0, tempistiche \u2014 tutto pre-qualificato.",
+    "howStep3Title": "Qualificazione automatica",
+    "howStep3Desc": "Il nostro algoritmo valuta il progetto. Solo i brief qualificati appaiono qui.",
+    "howStep4Title": "Tu decidi",
+    "howStep4Desc": "Accetta per rivelare i contatti dell\u2019acquirente, o rifiuta. Senza impegno.",
+    "tipTitle": "Aumenta la tua visibilit\u00e0",
+    "tip1": "Completa la tua pagina brand con descrizione, logo e foto.",
+    "tip2": "Aggiungi prodotti in almeno una collezione.",
+    "tip3": "I brief degli acquirenti che selezionano le tue collezioni hanno la priorit\u00e0."
   },
   "sourcing": {
     "overview": "Panoramica sourcing",

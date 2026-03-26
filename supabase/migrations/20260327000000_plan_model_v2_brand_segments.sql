@@ -73,3 +73,61 @@ DROP POLICY IF EXISTS "Admins full access to briefs" ON public.project_briefs;
 CREATE POLICY "Admins full access to briefs"
   ON public.project_briefs FOR ALL
   USING (public.is_admin());
+
+-- ============================================================================
+-- D. UPDATE partner_subscriptions CHECK constraint for brand plans
+-- ============================================================================
+
+ALTER TABLE public.partner_subscriptions
+  DROP CONSTRAINT IF EXISTS partner_subscriptions_plan_check;
+
+ALTER TABLE public.partner_subscriptions
+  ADD CONSTRAINT partner_subscriptions_plan_check
+  CHECK (plan = ANY (ARRAY['starter','growth','elite','brand_member','brand_network']));
+
+-- ============================================================================
+-- E. UPDATE plan-sync trigger to handle brand plans
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION public.sync_partner_subscription_on_plan_change()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  IF NEW.plan IS DISTINCT FROM OLD.plan THEN
+    INSERT INTO public.partner_subscriptions (partner_id, plan, status, commission_rate, max_products, updated_at)
+    VALUES (
+      NEW.id,
+      NEW.plan,
+      'active',
+      CASE NEW.plan
+        WHEN 'elite' THEN 3.5
+        WHEN 'growth' THEN 5
+        WHEN 'brand_member' THEN 2
+        WHEN 'brand_network' THEN 1.5
+        ELSE 8
+      END,
+      CASE NEW.plan
+        WHEN 'elite' THEN 150
+        WHEN 'growth' THEN 50
+        WHEN 'brand_member' THEN 999
+        WHEN 'brand_network' THEN 999
+        ELSE 30
+      END,
+      now()
+    )
+    ON CONFLICT (partner_id) DO UPDATE SET
+      plan = EXCLUDED.plan,
+      commission_rate = EXCLUDED.commission_rate,
+      max_products = EXCLUDED.max_products,
+      updated_at = now();
+
+    NEW.visibility_level := CASE NEW.plan
+      WHEN 'elite' THEN 'featured'
+      WHEN 'growth' THEN 'standard'
+      WHEN 'brand_member' THEN 'standard'
+      WHEN 'brand_network' THEN 'featured'
+      ELSE 'anonymous'
+    END;
+  END IF;
+  RETURN NEW;
+END;
+$$;

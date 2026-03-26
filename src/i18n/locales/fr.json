@@ -717,7 +717,7 @@
     "loyalty": "Fidélité",
     "orders": "Mes commandes",
     "arrivals": "Arrivages",
-    "brandBriefs": "Briefs projet",
+    "brandBriefs": "Demandes entrantes",
     "brandCollections": "Collections",
     "brandNetwork": "R\u00e9seau de distribution"
   },
@@ -3752,7 +3752,8 @@
     "addProducts": "Ajoutez des produits et attribuez-les \u00e0 une collection.",
     "editCollection": "Modifier collection",
     "collectionUpdated": "Collection mise \u00e0 jour.",
-    "updateError": "Erreur lors de la mise \u00e0 jour."
+    "updateError": "Erreur lors de la mise \u00e0 jour.",
+    "collectionPlaceholder": "Nom collection"
   },
   "brief": {
     "submitTitle": "Soumettre un brief projet",
@@ -3820,6 +3821,16 @@
     "buyerCoordinates": "Coordonn\u00e9es de l\u2019acheteur",
     "accept": "Accepter",
     "decline": "D\u00e9cliner",
+    "establishment": "\u00c9tablissement",
+    "capacityLabel": "Capacit\u00e9",
+    "budgetLabel": "Budget",
+    "timelineLabel": "Calendrier",
+    "projectTypeLabel": "Type projet",
+    "quantityLabel": "Quantit\u00e9",
+    "countryLabel": "Pays",
+    "dateLabel": "Date",
+    "messageLabel": "Message",
+    "units": "unit\u00e9s",
     "countryFrance": "France",
     "countrySpain": "Espagne",
     "countryItaly": "Italie",
@@ -3833,7 +3844,21 @@
     "countryDenmark": "Danemark",
     "countrySweden": "Su\u00e8de",
     "countryPoland": "Pologne",
-    "countryGreece": "Gr\u00e8ce"
+    "countryGreece": "Gr\u00e8ce",
+    "emptyTitle": "Votre inbox est pr\u00eate",
+    "emptySubtitle": "Voici comment les demandes qualifi\u00e9es arrivent jusqu'\u00e0 vous.",
+    "howStep1Title": "Un acheteur d\u00e9couvre votre marque",
+    "howStep1Desc": "Un professionnel CHR parcourt vos collections sur Terrassea.",
+    "howStep2Title": "Il soumet un brief projet",
+    "howStep2Desc": "Type d'\u00e9tablissement, budget, quantit\u00e9, calendrier \u2014 tout est pr\u00e9-qualifi\u00e9.",
+    "howStep3Title": "Qualification automatique",
+    "howStep3Desc": "Notre algorithme note le projet. Seuls les briefs qualifi\u00e9s apparaissent ici.",
+    "howStep4Title": "Vous d\u00e9cidez",
+    "howStep4Desc": "Acceptez pour r\u00e9v\u00e9ler les coordonn\u00e9es, ou d\u00e9clinez. Sans engagement.",
+    "tipTitle": "Boostez votre visibilit\u00e9",
+    "tip1": "Compl\u00e9tez votre page marque avec description, logo et photos.",
+    "tip2": "Ajoutez des produits dans au moins une collection.",
+    "tip3": "Les briefs des acheteurs qui s\u00e9lectionnent vos collections sont prioritaires."
   },
   "sourcing": {
     "overview": "Aper\u00e7u du sourcing",

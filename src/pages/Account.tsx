@@ -64,6 +64,7 @@ import BrandBriefInbox from "@/components/partner-dashboard/BrandBriefInbox";
 import BrandCollectionManager from "@/components/partner-dashboard/BrandCollectionManager";
 import BrandNetworkDashboard from "@/components/partner-dashboard/BrandNetworkDashboard";
 import BrandNetworkOverview from "@/components/partner-dashboard/BrandNetworkOverview";
+import BrandMemberOverview from "@/components/partner-dashboard/BrandMemberOverview";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -357,22 +358,14 @@ const Account = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("partners")
-        .select("id, profile_completed, profile_submitted, profile_status, profile_submitted_at, profile_review_notes, partner_mode")
+        .select("id, plan, profile_completed, profile_submitted, profile_status, profile_submitted_at, profile_review_notes, partner_mode")
         .eq("contact_email", profile!.email)
         .maybeSingle();
       if (error || !data) return null;
 
-      // Fetch the subscription plan for this partner
-      const { data: sub } = await supabase
-        .from("partner_subscriptions")
-        .select("plan")
-        .eq("partner_id", data.id)
-        .eq("status", "active")
-        .maybeSingle();
-
       return {
         id: data.id,
-        plan: sub?.plan ?? null,
+        plan: data.plan ?? null,
         profile_completed: !!data.profile_completed,
         profile_submitted: !!data.profile_submitted,
         profile_status: data.profile_status || null,
@@ -575,7 +568,7 @@ const Account = () => {
           switch (section) {
             case "overview":      return isBrandNetwork
               ? <BrandNetworkOverview partnerId={partnerId!} onNavigate={handlePartnerNav} />
-              : <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
+              : <BrandMemberOverview partnerId={partnerId!} onNavigate={handlePartnerNav} />;
             case "briefs":        return isBrandNetwork
               ? <BrandNetworkDashboard partnerId={partnerId!} />
               : <BrandBriefInbox partnerId={partnerId!} />;
@@ -584,7 +577,9 @@ const Account = () => {
             case "network":       return <BrandNetworkDashboard partnerId={partnerId!} />;
             case "performance":   return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
             case "settings":      return <SettingsSection profile={profile} />;
-            default:              return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
+            default:              return isBrandNetwork
+              ? <BrandNetworkOverview partnerId={partnerId!} onNavigate={handlePartnerNav} />
+              : <BrandMemberOverview partnerId={partnerId!} onNavigate={handlePartnerNav} />;
           }
         }
         // Standard partner sections
@@ -813,12 +808,22 @@ const Account = () => {
                   </>
                 ) : userType === "partner" ? (
                   <>
-                    <button
-                      onClick={() => setSection("catalogue")}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> {t('pd.catalogue.add')}
-                    </button>
+                    {partnerPlan === "brand_member" || partnerPlan === "brand_network" ? (
+                      <button
+                        onClick={() => setSection("collections")}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-display font-semibold rounded-full hover:opacity-90 transition-opacity text-white"
+                        style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)" }}
+                      >
+                        <FolderOpen className="h-3.5 w-3.5" /> {t('brand.manageCollections')}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setSection("catalogue")}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> {t('pd.catalogue.add')}
+                      </button>
+                    )}
                     <button
                       onClick={() => setSection("messages")}
                       className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
@@ -830,17 +835,30 @@ const Account = () => {
                         </span>
                       )}
                     </button>
-                    {(partnerPlan === "starter" || partnerPlan === "growth" || partnerPlan === "brand_member") && (
+                    {partnerPlan === "brand_member" && (
                       <button
                         onClick={() => navigate("/become-partner")}
                         className="w-full text-center py-2 text-[9px] font-display font-semibold rounded-full border hover:opacity-80 transition-opacity"
                         style={{
-                          background: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : partnerPlan === "growth" ? "elite" : "brand_network"].bg,
-                          color: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : partnerPlan === "growth" ? "elite" : "brand_network"].color,
-                          borderColor: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : partnerPlan === "growth" ? "elite" : "brand_network"].border,
+                          background: PLAN_CONFIG.brand_network.bg,
+                          color: PLAN_CONFIG.brand_network.color,
+                          borderColor: PLAN_CONFIG.brand_network.border,
                         }}
                       >
-                        Passer au plan {partnerPlan === "starter" ? "Growth" : partnerPlan === "growth" ? "Elite" : "Brand Network"} →
+                        {t('pd.upgrade.title', { plan: 'Brand Network' })} →
+                      </button>
+                    )}
+                    {(partnerPlan === "starter" || partnerPlan === "growth") && (
+                      <button
+                        onClick={() => navigate("/become-partner")}
+                        className="w-full text-center py-2 text-[9px] font-display font-semibold rounded-full border hover:opacity-80 transition-opacity"
+                        style={{
+                          background: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : "elite"].bg,
+                          color: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : "elite"].color,
+                          borderColor: PLAN_CONFIG[partnerPlan === "starter" ? "growth" : "elite"].border,
+                        }}
+                      >
+                        {t('pd.upgrade.title', { plan: partnerPlan === "starter" ? "Growth" : "Elite" })} →
                       </button>
                     )}
                   </>

@@ -714,7 +714,7 @@
     "loyalty": "Fidelidad",
     "orders": "Mis pedidos",
     "arrivals": "Llegadas",
-    "brandBriefs": "Briefs de proyecto",
+    "brandBriefs": "Solicitudes entrantes",
     "brandCollections": "Colecciones",
     "brandNetwork": "Red de distribuci\u00f3n"
   },
@@ -3658,7 +3658,8 @@
     "addProducts": "A\u00f1ada productos y as\u00edgnelos a una colecci\u00f3n.",
     "editCollection": "Modificar colecci\u00f3n",
     "collectionUpdated": "Colecci\u00f3n actualizada.",
-    "updateError": "Error durante la actualizaci\u00f3n."
+    "updateError": "Error durante la actualizaci\u00f3n.",
+    "collectionPlaceholder": "Nombre de colecci\u00f3n"
   },
   "brief": {
     "submitTitle": "Enviar un brief de proyecto",
@@ -3726,6 +3727,16 @@
     "buyerCoordinates": "Datos de contacto del comprador",
     "accept": "Aceptar",
     "decline": "Rechazar",
+    "establishment": "Establecimiento",
+    "capacityLabel": "Capacidad",
+    "budgetLabel": "Presupuesto",
+    "timelineLabel": "Calendario",
+    "projectTypeLabel": "Tipo de proyecto",
+    "quantityLabel": "Cantidad",
+    "countryLabel": "País",
+    "dateLabel": "Fecha",
+    "messageLabel": "Mensaje",
+    "units": "unidades",
     "countryFrance": "Francia",
     "countrySpain": "Espa\u00f1a",
     "countryItaly": "Italia",
@@ -3739,7 +3750,21 @@
     "countryDenmark": "Dinamarca",
     "countrySweden": "Suecia",
     "countryPoland": "Polonia",
-    "countryGreece": "Grecia"
+    "countryGreece": "Grecia",
+    "emptyTitle": "Su bandeja est\u00e1 lista",
+    "emptySubtitle": "As\u00ed llegan las solicitudes cualificadas hasta usted.",
+    "howStep1Title": "Un comprador descubre su marca",
+    "howStep1Desc": "Un profesional hostelero navega por sus colecciones en Terrassea.",
+    "howStep2Title": "Env\u00eda un brief de proyecto",
+    "howStep2Desc": "Tipo de establecimiento, presupuesto, cantidad, calendario \u2014 todo precalificado.",
+    "howStep3Title": "Cualificaci\u00f3n autom\u00e1tica",
+    "howStep3Desc": "Nuestro algoritmo eval\u00faa el proyecto. Solo los briefs cualificados aparecen aqu\u00ed.",
+    "howStep4Title": "Usted decide",
+    "howStep4Desc": "Acepte para revelar los datos del comprador, o rechace. Sin compromiso.",
+    "tipTitle": "Aumente su visibilidad",
+    "tip1": "Complete su p\u00e1gina de marca con descripci\u00f3n, logo y fotos.",
+    "tip2": "A\u00f1ada productos en al menos una colecci\u00f3n.",
+    "tip3": "Los briefs de compradores que seleccionan sus colecciones tienen prioridad."
   },
   "sourcing": {
     "overview": "Resumen de sourcing",

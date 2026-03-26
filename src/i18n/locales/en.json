@@ -717,7 +717,7 @@
     "loyalty": "Loyalty",
     "orders": "My orders",
     "arrivals": "Arrivals",
-    "brandBriefs": "Project briefs",
+    "brandBriefs": "Incoming requests",
     "brandCollections": "Collections",
     "brandNetwork": "Distribution network"
   },
@@ -3752,7 +3752,8 @@
     "addProducts": "Add products and assign them to a collection.",
     "editCollection": "Edit collection",
     "collectionUpdated": "Collection updated.",
-    "updateError": "Error updating."
+    "updateError": "Error updating.",
+    "collectionPlaceholder": "Collection name"
   },
   "brief": {
     "submitTitle": "Submit a project brief",
@@ -3820,6 +3821,16 @@
     "buyerCoordinates": "Buyer contact details",
     "accept": "Accept",
     "decline": "Decline",
+    "establishment": "Establishment",
+    "capacityLabel": "Capacity",
+    "budgetLabel": "Budget",
+    "timelineLabel": "Timeline",
+    "projectTypeLabel": "Project type",
+    "quantityLabel": "Quantity",
+    "countryLabel": "Country",
+    "dateLabel": "Date",
+    "messageLabel": "Message",
+    "units": "units",
     "countryFrance": "France",
     "countrySpain": "Spain",
     "countryItaly": "Italy",
@@ -3833,7 +3844,21 @@
     "countryDenmark": "Denmark",
     "countrySweden": "Sweden",
     "countryPoland": "Poland",
-    "countryGreece": "Greece"
+    "countryGreece": "Greece",
+    "emptyTitle": "Your inbox is ready",
+    "emptySubtitle": "Here's how qualified project briefs reach you.",
+    "howStep1Title": "Buyer discovers your brand",
+    "howStep1Desc": "A hospitality professional browses your collections on Terrassea.",
+    "howStep2Title": "They submit a project brief",
+    "howStep2Desc": "Establishment type, budget, quantity, timeline — all pre-qualified.",
+    "howStep3Title": "Auto-qualification",
+    "howStep3Desc": "Our algorithm scores the project. Only qualified briefs land here.",
+    "howStep4Title": "You decide",
+    "howStep4Desc": "Accept to reveal buyer contact, or decline. No obligation.",
+    "tipTitle": "Boost your visibility",
+    "tip1": "Complete your brand page with description, logo, and photos.",
+    "tip2": "Add products to at least one collection.",
+    "tip3": "Briefs from buyers who select your collections are prioritised."
   },
   "sourcing": {
     "overview": "Sourcing Overview",

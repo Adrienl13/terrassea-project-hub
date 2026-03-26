@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Inbox, Building2, MapPin, Users, Calendar, CheckCircle2, XCircle,
-  ChevronDown, ChevronUp, Mail, Phone, Building,
+  ChevronDown, ChevronUp, Mail, Phone, Building, Sparkles, Crown,
+  Eye, FileText, Shield, Lightbulb, ArrowRight,
 } from "lucide-react";
 
 interface BrandBriefInboxProps {
@@ -35,13 +36,13 @@ interface Brief {
 }
 
 function ScoreBar({ score }: { score: number }) {
-  const color = score >= 60 ? "bg-green-500" : score >= 30 ? "bg-amber-500" : "bg-red-400";
+  const color = score >= 60 ? "bg-emerald-500" : score >= 30 ? "bg-amber-500" : "bg-red-400";
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-        <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${Math.min(100, score)}%` }} />
+      <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+        <div className={`h-full ${color} rounded-full transition-all duration-500`} style={{ width: `${Math.min(100, score)}%` }} />
       </div>
-      <span className={`text-[10px] font-display font-bold ${score >= 60 ? "text-green-600" : score >= 30 ? "text-amber-600" : "text-red-500"}`}>
+      <span className={`text-[10px] font-display font-bold ${score >= 60 ? "text-emerald-600" : score >= 30 ? "text-amber-600" : "text-red-500"}`}>
         {score}
       </span>
     </div>
@@ -51,12 +52,12 @@ function ScoreBar({ score }: { score: number }) {
 function useStatusConfig() {
   const { t } = useTranslation();
   return {
-    pending_review: { label: t("brief.statusPending"), color: "#D97706", bg: "#FFFBEB" },
-    qualified: { label: t("brief.statusQualified"), color: "#059669", bg: "#ECFDF5" },
-    accepted: { label: t("brief.statusAccepted"), color: "#059669", bg: "#ECFDF5" },
-    declined: { label: t("brief.statusDeclined"), color: "#DC2626", bg: "#FEF2F2" },
-    rejected: { label: t("brief.statusRejected"), color: "#DC2626", bg: "#FEF2F2" },
-    routed: { label: t("brief.statusRouted"), color: "#2563EB", bg: "#EFF6FF" },
+    pending_review: { label: t("brief.statusPending"), color: "#D97706", bg: "linear-gradient(135deg, #FFFBEB, #FEF3C7)" },
+    qualified: { label: t("brief.statusQualified"), color: "#059669", bg: "linear-gradient(135deg, #ECFDF5, #D1FAE5)" },
+    accepted: { label: t("brief.statusAccepted"), color: "#059669", bg: "linear-gradient(135deg, #ECFDF5, #D1FAE5)" },
+    declined: { label: t("brief.statusDeclined"), color: "#DC2626", bg: "linear-gradient(135deg, #FEF2F2, #FECACA)" },
+    rejected: { label: t("brief.statusRejected"), color: "#DC2626", bg: "linear-gradient(135deg, #FEF2F2, #FECACA)" },
+    routed: { label: t("brief.statusRouted"), color: "#7C3AED", bg: "linear-gradient(135deg, #F5F3FF, #EDE9FE)" },
   } as Record<string, { label: string; color: string; bg: string }>;
 }
 
@@ -95,27 +96,97 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
       </div>
     );
   }
 
+  const pendingCount = briefs.filter((b) => b.status === "pending_review").length;
+  const acceptedCount = briefs.filter((b) => b.status === "accepted").length;
+
   if (briefs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <Inbox className="h-8 w-8 text-muted-foreground/30 mb-3" />
-        <p className="text-sm font-body text-muted-foreground mb-1">{t("brief.noBriefs")}</p>
-        <p className="text-xs font-body text-muted-foreground">{t("brief.briefsWillAppear")}</p>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-violet-600 to-purple-700 p-7">
+          <div className="absolute -top-6 -right-6 w-40 h-40 opacity-[0.06]">
+            <Crown className="w-full h-full text-white" />
+          </div>
+          <div className="relative">
+            <h2 className="font-display text-lg font-bold text-white flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              {t("brief.emptyTitle")}
+            </h2>
+            <p className="text-xs font-body text-purple-200 mt-1">{t("brief.emptySubtitle")}</p>
+          </div>
+        </div>
+
+        {/* How it works — 4 steps */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {[
+            { icon: Eye, titleKey: "brief.howStep1Title", descKey: "brief.howStep1Desc", color: "#7C3AED", num: "1" },
+            { icon: FileText, titleKey: "brief.howStep2Title", descKey: "brief.howStep2Desc", color: "#6D28D9", num: "2" },
+            { icon: Shield, titleKey: "brief.howStep3Title", descKey: "brief.howStep3Desc", color: "#5B21B6", num: "3" },
+            { icon: CheckCircle2, titleKey: "brief.howStep4Title", descKey: "brief.howStep4Desc", color: "#4C1D95", num: "4" },
+          ].map((step) => (
+            <div key={step.num} className="bg-white border border-purple-100 rounded-2xl p-5 relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-display font-bold"
+                  style={{ background: `linear-gradient(135deg, ${step.color}, ${step.color}dd)` }}
+                >
+                  {step.num}
+                </div>
+                <step.icon className="h-4 w-4 text-purple-400" />
+              </div>
+              <p className="text-xs font-display font-bold text-foreground mb-1">{t(step.titleKey)}</p>
+              <p className="text-[10px] font-body text-muted-foreground leading-relaxed">{t(step.descKey)}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Tips */}
+        <div className="bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200 rounded-2xl p-5">
+          <h3 className="text-xs font-display font-bold text-purple-800 flex items-center gap-2 mb-3">
+            <Lightbulb className="h-4 w-4 text-purple-500" />
+            {t("brief.tipTitle")}
+          </h3>
+          <div className="space-y-2">
+            {["brief.tip1", "brief.tip2", "brief.tip3"].map((key) => (
+              <div key={key} className="flex items-start gap-2">
+                <ArrowRight className="h-3 w-3 text-purple-400 mt-0.5 shrink-0" />
+                <p className="text-[11px] font-body text-purple-700">{t(key)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="font-display text-lg font-bold text-foreground">{t("brief.receivedBriefs")}</h2>
-          <p className="text-xs font-body text-muted-foreground">{briefs.length} brief{briefs.length > 1 ? "s" : ""}</p>
+      {/* Premium header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-violet-600 to-purple-700 p-6 mb-6">
+        <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
+          <Crown className="w-full h-full text-white" />
+        </div>
+        <div className="relative">
+          <h2 className="font-display text-lg font-bold text-white flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            {t("brief.receivedBriefs")}
+          </h2>
+          <p className="text-xs font-body text-purple-200 mt-1">{briefs.length} brief{briefs.length > 1 ? "s" : ""}</p>
+        </div>
+        <div className="flex gap-4 mt-4">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
+            <p className="text-xl font-display font-bold text-white">{pendingCount}</p>
+            <p className="text-[9px] font-body text-purple-200 uppercase tracking-wider">{t("brief.statusPending")}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
+            <p className="text-xl font-display font-bold text-white">{acceptedCount}</p>
+            <p className="text-[9px] font-body text-purple-200 uppercase tracking-wider">{t("brief.statusAccepted")}</p>
+          </div>
         </div>
       </div>
 
@@ -126,12 +197,12 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
           const showContact = brief.status === "accepted";
 
           return (
-            <div key={brief.id} className="border border-border rounded-xl overflow-hidden">
+            <div key={brief.id} className="border border-border rounded-2xl overflow-hidden hover:border-purple-200 transition-colors">
               {/* Summary row */}
               <button
                 onClick={() => setExpandedId(expanded ? null : brief.id)}
                 aria-expanded={expanded}
-                className="w-full flex items-center gap-4 p-4 text-left hover:bg-card/50 transition-colors"
+                className="w-full flex items-center gap-4 p-4 text-left hover:bg-purple-50/30 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -141,14 +212,14 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
                     {brief.stars_or_class && (
                       <span className="text-[10px] text-muted-foreground">{brief.stars_or_class}</span>
                     )}
-                    <span className="text-[10px] text-muted-foreground">\u00b7 {brief.country || "?"}</span>
-                    <span className="text-[10px] text-muted-foreground">\u00b7 {brief.budget_range || "?"}</span>
-                    <span className="text-[10px] text-muted-foreground">\u00b7 {brief.quantity_estimate ?? 0} unit\u00e9s</span>
+                    <span className="text-[10px] text-muted-foreground">&middot; {brief.country || "?"}</span>
+                    <span className="text-[10px] text-muted-foreground">&middot; {brief.budget_range || "?"}</span>
+                    <span className="text-[10px] text-muted-foreground">&middot; {brief.quantity_estimate ?? 0} {t("brief.units", "units")}</span>
                   </div>
                   {brief.collections_interest && brief.collections_interest.length > 0 && (
-                    <div className="flex gap-1 mt-1">
+                    <div className="flex gap-1 mt-1.5">
                       {brief.collections_interest.map((c) => (
-                        <span key={c} className="text-[9px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-body">{c}</span>
+                        <span key={c} className="text-[9px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100 font-body">{c}</span>
                       ))}
                     </div>
                   )}
@@ -158,7 +229,7 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
                     <ScoreBar score={brief.qualification_score || 0} />
                   </div>
                   <span
-                    className="text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                    className="text-[9px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full"
                     style={{ background: statusCfg.bg, color: statusCfg.color }}
                   >
                     {statusCfg.label}
@@ -169,57 +240,57 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
 
               {/* Expanded details */}
               {expanded && (
-                <div className="border-t border-border p-4 bg-card/30 space-y-4">
+                <div className="border-t border-border p-5 bg-gradient-to-b from-purple-50/30 to-transparent space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-body">
-                    <div>
-                      <p className="text-muted-foreground">\u00c9tablissement</p>
-                      <p className="font-semibold text-foreground">{brief.establishment_type || "N/A"} {brief.stars_or_class || ""}</p>
+                    <div className="bg-white rounded-xl p-3 border border-purple-100/50">
+                      <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{t("brief.establishment", "\u00c9tablissement")}</p>
+                      <p className="font-semibold text-foreground mt-0.5">{brief.establishment_type || "N/A"} {brief.stars_or_class || ""}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Capacit\u00e9</p>
-                      <p className="font-semibold text-foreground">{brief.capacity || "N/A"}</p>
+                    <div className="bg-white rounded-xl p-3 border border-purple-100/50">
+                      <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{t("brief.capacityLabel", "Capacit\u00e9")}</p>
+                      <p className="font-semibold text-foreground mt-0.5">{brief.capacity || "N/A"}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Budget</p>
-                      <p className="font-semibold text-foreground">{brief.budget_range || "N/A"}</p>
+                    <div className="bg-white rounded-xl p-3 border border-purple-100/50">
+                      <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{t("brief.budgetLabel", "Budget")}</p>
+                      <p className="font-semibold text-foreground mt-0.5">{brief.budget_range || "N/A"}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Calendrier</p>
-                      <p className="font-semibold text-foreground">{brief.timeline || "N/A"}</p>
+                    <div className="bg-white rounded-xl p-3 border border-purple-100/50">
+                      <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{t("brief.timelineLabel", "Calendrier")}</p>
+                      <p className="font-semibold text-foreground mt-0.5">{brief.timeline || "N/A"}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Type projet</p>
-                      <p className="font-semibold text-foreground">{brief.project_type || "N/A"}</p>
+                    <div className="bg-white rounded-xl p-3 border border-purple-100/50">
+                      <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{t("brief.projectTypeLabel", "Type projet")}</p>
+                      <p className="font-semibold text-foreground mt-0.5">{brief.project_type || "N/A"}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Quantit\u00e9</p>
-                      <p className="font-semibold text-foreground">{brief.quantity_estimate || 0}</p>
+                    <div className="bg-white rounded-xl p-3 border border-purple-100/50">
+                      <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{t("brief.quantityLabel", "Quantit\u00e9")}</p>
+                      <p className="font-semibold text-foreground mt-0.5">{brief.quantity_estimate || 0}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Pays</p>
-                      <p className="font-semibold text-foreground">{brief.country || "N/A"}</p>
+                    <div className="bg-white rounded-xl p-3 border border-purple-100/50">
+                      <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{t("brief.countryLabel", "Pays")}</p>
+                      <p className="font-semibold text-foreground mt-0.5">{brief.country || "N/A"}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Date</p>
-                      <p className="font-semibold text-foreground">{new Date(brief.created_at).toLocaleDateString("fr-FR")}</p>
+                    <div className="bg-white rounded-xl p-3 border border-purple-100/50">
+                      <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{t("brief.dateLabel", "Date")}</p>
+                      <p className="font-semibold text-foreground mt-0.5">{new Date(brief.created_at).toLocaleDateString()}</p>
                     </div>
                   </div>
 
                   {brief.message && (
                     <div className="text-xs font-body">
-                      <p className="text-muted-foreground mb-1">Message</p>
-                      <p className="text-foreground bg-background border border-border rounded-lg p-3">{brief.message}</p>
+                      <p className="text-muted-foreground text-[10px] uppercase tracking-wider mb-1.5">{t("brief.messageLabel", "Message")}</p>
+                      <p className="text-foreground bg-white border border-purple-100/50 rounded-xl p-4">{brief.message}</p>
                     </div>
                   )}
 
                   {/* Contact info — only shown after acceptance */}
                   {showContact && (
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-2">
-                      <p className="text-xs font-display font-semibold text-green-800 flex items-center gap-1.5">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> {t("brief.buyerCoordinates")}
+                    <div className="bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl p-5 space-y-3">
+                      <p className="text-xs font-display font-semibold text-emerald-800 flex items-center gap-1.5">
+                        <CheckCircle2 className="h-4 w-4" /> {t("brief.buyerCoordinates")}
                       </p>
-                      <div className="grid grid-cols-2 gap-2 text-xs font-body text-green-800">
-                        <p className="flex items-center gap-1.5"><Users className="h-3 w-3" /> {brief.first_name || "—"} {brief.last_name || ""}</p>
+                      <div className="grid grid-cols-2 gap-3 text-xs font-body text-emerald-800">
+                        <p className="flex items-center gap-1.5"><Users className="h-3 w-3" /> {brief.first_name || "\u2014"} {brief.last_name || ""}</p>
                         <p className="flex items-center gap-1.5"><Mail className="h-3 w-3" /> {brief.email || "N/A"}</p>
                         <p className="flex items-center gap-1.5"><Building className="h-3 w-3" /> {brief.company || "N/A"}</p>
                         <p className="flex items-center gap-1.5">SIREN: {brief.siren || "N/A"}</p>
@@ -232,13 +303,14 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
                     <div className="flex gap-3">
                       <button
                         onClick={() => handleAction(brief.id, "accepted")}
-                        className="flex items-center gap-1.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full px-4 py-2 hover:opacity-90 transition-opacity"
+                        className="flex items-center gap-1.5 text-xs font-display font-semibold text-white rounded-full px-5 py-2.5 hover:opacity-90 transition-opacity"
+                        style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)" }}
                       >
                         <CheckCircle2 className="h-3.5 w-3.5" /> {t("brief.accept")}
                       </button>
                       <button
                         onClick={() => handleAction(brief.id, "declined")}
-                        className="flex items-center gap-1.5 text-xs font-display font-semibold border border-border text-muted-foreground rounded-full px-4 py-2 hover:bg-card transition-colors"
+                        className="flex items-center gap-1.5 text-xs font-display font-semibold border border-border text-muted-foreground rounded-full px-5 py-2.5 hover:bg-card transition-colors"
                       >
                         <XCircle className="h-3.5 w-3.5" /> {t("brief.decline")}
                       </button>

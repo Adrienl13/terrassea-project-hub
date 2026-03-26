@@ -299,7 +299,7 @@ export default function AdminSubscriptions() {
                     {/* Plan selector */}
                     <div>
                       <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">Changer le plan</p>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-5 gap-2">
                         {Object.entries(PLAN_CONFIG).map(([key, cfg]) => {
                           const isActive = p.plan === key;
                           return (
