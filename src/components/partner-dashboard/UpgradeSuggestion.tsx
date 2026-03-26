@@ -5,14 +5,17 @@ import { TrendingUp, Sparkles, ArrowRight, Package, Percent } from "lucide-react
 
 // ── Plan config (matching AdminSubscriptions) ─────────────────────────────────
 
-const PLAN_ORDER = ["starter", "growth", "elite", "elite_pro"] as const;
-type PlanKey = (typeof PLAN_ORDER)[number];
+const CATALOGUE_ORDER = ["starter", "growth", "elite"] as const;
+const BRAND_ORDER = ["brand_member", "brand_network"] as const;
+const ALL_PLANS = [...CATALOGUE_ORDER, ...BRAND_ORDER] as const;
+type PlanKey = (typeof ALL_PLANS)[number];
 
 const PLAN_META: Record<PlanKey, { label: string; commission: number; maxProducts: number; maxFeatured: number; color: string }> = {
-  starter:   { label: "Starter",   commission: 8,   maxProducts: 30,  maxFeatured: 0,  color: "#6B7280" },
-  growth:    { label: "Growth",    commission: 5,   maxProducts: 50,  maxFeatured: 0,  color: "#2563EB" },
-  elite:     { label: "Elite",     commission: 3.5, maxProducts: 150, maxFeatured: 15, color: "#D4603A" },
-  elite_pro: { label: "Elite Pro", commission: 2.5, maxProducts: 300, maxFeatured: 30, color: "#7C3AED" },
+  starter:       { label: "Starter",       commission: 8,   maxProducts: 30,  maxFeatured: 0,  color: "#6B7280" },
+  growth:        { label: "Growth",        commission: 5,   maxProducts: 50,  maxFeatured: 0,  color: "#2563EB" },
+  elite:         { label: "Elite",         commission: 3.5, maxProducts: 150, maxFeatured: 15, color: "#D4603A" },
+  brand_member:  { label: "Brand Member",  commission: 2,   maxProducts: 999, maxFeatured: 0,  color: "#7C3AED" },
+  brand_network: { label: "Brand Network", commission: 1.5, maxProducts: 999, maxFeatured: 0,  color: "#6D28D9" },
 };
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -27,9 +30,11 @@ interface Props {
 export default function UpgradeSuggestion({ partnerId, currentPlan }: Props) {
   const navigate = useNavigate();
 
-  const planKey = (PLAN_ORDER.includes(currentPlan as PlanKey) ? currentPlan : "starter") as PlanKey;
-  const planIndex = PLAN_ORDER.indexOf(planKey);
-  const nextPlanKey = planIndex < PLAN_ORDER.length - 1 ? PLAN_ORDER[planIndex + 1] : null;
+  const isBrand = currentPlan === "brand_member" || currentPlan === "brand_network";
+  const ORDER = isBrand ? BRAND_ORDER : CATALOGUE_ORDER;
+  const planKey = ((ORDER as readonly string[]).includes(currentPlan) ? currentPlan : ORDER[0]) as PlanKey;
+  const planIndex = (ORDER as readonly string[]).indexOf(planKey);
+  const nextPlanKey = planIndex < ORDER.length - 1 ? ORDER[planIndex + 1] as PlanKey : null;
 
   // Already at highest plan
   if (!nextPlanKey) return null;

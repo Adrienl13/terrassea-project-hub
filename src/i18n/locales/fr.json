@@ -3253,7 +3253,8 @@
     "starter": "Starter",
     "growth": "Growth",
     "elite": "Elite",
-    "elitePro": "Elite Pro"
+    "brandMember": "Brand Member",
+    "brandNetwork": "Brand Network"
   },
   "partnerLoyalty": {
     "comingSoon": "Le programme de fidelite arrive bientot — restez connecte !",
@@ -3273,12 +3274,14 @@
       "starter": "Starter",
       "growth": "Growth",
       "elite": "Elite",
-      "elite_pro": "Elite Pro"
+      "brand_member": "Brand Member",
+      "brand_network": "Brand Network"
     },
     "tierTeaser": {
       "growth": "Commission reduite, analytics avancees et badge verifie",
       "elite": "Leads prioritaires, co-branding et account manager partage",
-      "elite_pro": "Manager dedie, analytics premium et API temps reel"
+      "brand_member": "Vente directe aux acheteurs CHR, boite de reception briefs et collections",
+      "brand_network": "Reseau de distributeurs, routage de briefs et dashboard marque complet"
     },
     "features": {
       "commission": "Commission",

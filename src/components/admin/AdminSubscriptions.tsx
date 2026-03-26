@@ -12,7 +12,8 @@ const PLAN_CONFIG: Record<string, { label: string; icon: any; color: string; com
   starter:   { label: "Starter",   icon: Shield, color: "#6B7280", commission: 8,   maxProducts: 30,  maxFeatured: 0,  price: "Gratuit" },
   growth:    { label: "Growth",    icon: Star,   color: "#2563EB", commission: 5,   maxProducts: 50,  maxFeatured: 0,  price: "249\u20AC/mois" },
   elite:     { label: "Elite",     icon: Crown,  color: "#D4603A", commission: 3.5, maxProducts: 150, maxFeatured: 15, price: "499\u20AC/mois" },
-  elite_pro: { label: "Elite Pro", icon: Gem,    color: "#7C3AED", commission: 2.5, maxProducts: 300, maxFeatured: 30, price: "899\u20AC/mois" },
+  brand_member:  { label: "Brand Member",  icon: Crown, color: "#7C3AED", commission: 2,   maxProducts: 999, maxFeatured: 0,  price: "799\u20AC/mois" },
+  brand_network: { label: "Brand Network", icon: Gem,   color: "#6D28D9", commission: 1.5, maxProducts: 999, maxFeatured: 0,  price: "1299\u20AC/mois" },
 };
 
 function countryFlag(code: string | null): string {
@@ -82,17 +83,23 @@ export default function AdminSubscriptions() {
   });
 
   // Stats
-  const planCounts: Record<string, number> = { starter: 0, growth: 0, elite: 0, elite_pro: 0 };
+  const planCounts: Record<string, number> = { starter: 0, growth: 0, elite: 0, brand_member: 0, brand_network: 0 };
   partners.forEach((p: any) => { if (p.plan && planCounts[p.plan] !== undefined) planCounts[p.plan]++; });
   const totalMRR = partners.reduce((s: number, p: any) => {
     if (p.plan === "growth") return s + 249;
     if (p.plan === "elite") return s + 499;
-    if (p.plan === "elite_pro") return s + 899;
+    if (p.plan === "brand_member") return s + 799;
+    if (p.plan === "brand_network") return s + 1299;
     return s;
   }, 0);
 
+  const MODE_FOR_PLAN: Record<string, string> = {
+    starter: "standard", growth: "standard", elite: "standard",
+    brand_member: "brand_member", brand_network: "brand_network",
+  };
+
   const changePlan = async (partnerId: string, newPlan: string) => {
-    const { error } = await supabase.from("partners").update({ plan: newPlan }).eq("id", partnerId);
+    const { error } = await supabase.from("partners").update({ plan: newPlan, partner_mode: MODE_FOR_PLAN[newPlan] || "standard" }).eq("id", partnerId);
     if (error) { toast.error("Erreur : " + error.message); return; }
 
     // Also update partner_subscriptions.plan to keep in sync

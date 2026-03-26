@@ -29,35 +29,40 @@ const TIER_ICONS: Record<PartnerTier, typeof Zap> = {
   starter: Shield,
   growth: Zap,
   elite: Crown,
-  elite_pro: Gem,
+  brand_member: Crown,
+  brand_network: Crown,
 };
 
 const TIER_GRADIENT: Record<PartnerTier, string> = {
   starter: "from-slate-400 to-slate-500",
   growth: "from-blue-500 to-blue-600",
   elite: "from-amber-500 to-amber-600",
-  elite_pro: "from-purple-500 to-violet-600",
+  brand_member: "from-purple-500 to-violet-600",
+  brand_network: "from-violet-600 to-indigo-700",
 };
 
 const TIER_BG: Record<PartnerTier, string> = {
   starter: "bg-slate-50 border-slate-200",
   growth: "bg-blue-50 border-blue-200",
   elite: "bg-amber-50 border-amber-200",
-  elite_pro: "bg-purple-50 border-purple-200",
+  brand_member: "bg-purple-50 border-purple-200",
+  brand_network: "bg-violet-50 border-violet-200",
 };
 
 const TIER_TEXT: Record<PartnerTier, string> = {
   starter: "text-slate-700",
   growth: "text-blue-700",
   elite: "text-amber-700",
-  elite_pro: "text-purple-700",
+  brand_member: "text-purple-700",
+  brand_network: "text-violet-700",
 };
 
 const TIER_RING: Record<PartnerTier, string> = {
   starter: "ring-slate-300",
   growth: "ring-blue-300",
   elite: "ring-amber-300",
-  elite_pro: "ring-purple-300",
+  brand_member: "ring-purple-300",
+  brand_network: "ring-violet-300",
 };
 
 // ── Action icon map ────────────────────────────────────────────────────────────
@@ -120,7 +125,7 @@ export default function PartnerLoyaltyProgram({ partnerId }: Props) {
   const tierConfig = TIER_CONFIG[currentTier];
   const nextTierConfig = nextTier ? TIER_CONFIG[nextTier] : null;
 
-  const TIER_KEYS: PartnerTier[] = ["starter", "growth", "elite", "elite_pro"];
+  const TIER_KEYS: PartnerTier[] = ["starter", "growth", "elite", "brand_member", "brand_network"];
 
   const FEATURES: {
     key: string;

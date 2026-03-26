@@ -84,7 +84,7 @@ export function usePaymentFlow() {
       const unitPrice = Number(quote.unit_price ?? 0);
 
       // 1b. Look up partner's plan to determine commission rate
-      const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, elite_pro: 2.5 };
+      const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, brand_member: 2, brand_network: 1.5 };
       let commissionRate = 8; // default starter
       if (quote.partner_id) {
         const { data: partnerRow } = await supabase

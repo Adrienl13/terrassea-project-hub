@@ -3159,7 +3159,8 @@
     "starter": "Starter",
     "growth": "Growth",
     "elite": "Elite",
-    "elitePro": "Elite Pro"
+    "brandMember": "Brand Member",
+    "brandNetwork": "Brand Network"
   },
   "partnerLoyalty": {
     "comingSoon": "Il programma fedelta sta arrivando — resta sintonizzato!",
@@ -3179,12 +3180,14 @@
       "starter": "Starter",
       "growth": "Growth",
       "elite": "Elite",
-      "elite_pro": "Elite Pro"
+      "brand_member": "Brand Member",
+      "brand_network": "Brand Network"
     },
     "tierTeaser": {
       "growth": "Commissione ridotta, analisi avanzate e badge verificato",
       "elite": "Lead prioritari, co-branding e account manager condiviso",
-      "elite_pro": "Manager dedicato, analisi premium e API in tempo reale"
+      "brand_member": "Vendita diretta ai buyer CHR, inbox brief e collezioni",
+      "brand_network": "Rete distributori, instradamento brief e dashboard brand completa"
     },
     "features": {
       "commission": "Commissione",

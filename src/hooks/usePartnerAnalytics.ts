@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 // ── Tier Types & Config ─────────────────────────────────────────────────────
 
-export type PartnerTier = "starter" | "growth" | "elite" | "elite_pro";
+export type PartnerTier = "starter" | "growth" | "elite" | "brand_member" | "brand_network";
 
 export interface TierConfig {
   key: PartnerTier;
@@ -39,7 +39,7 @@ export interface TierConfig {
   onboardingType: "self_service" | "assisted_10" | "full_integration";
   stockSync: "csv_manual" | "csv_auto" | "api_realtime";
   brandPageType: "basic" | "gallery" | "gallery_video";
-  badge: string; // "" | "verified" | "elite" | "elite_pro"
+  badge: string; // "" | "verified" | "elite" | "brand_member" | "brand_network"
   marketReport: "none" | "quarterly" | "monthly";
   color: string;
   icon: string;
@@ -91,10 +91,10 @@ export const TIER_CONFIG: Record<PartnerTier, TierConfig> = {
     brandPageType: "gallery", badge: "elite", marketReport: "quarterly",
     color: "amber", icon: "Crown",
   },
-  elite_pro: {
-    key: "elite_pro", name: "Elite Pro", nameKey: "partnerTiers.elitePro",
-    monthlyPrice: 899, annualPrice: 9170, commission: 2.5, engagement: "12_months",
-    maxProducts: 300, maxCategories: null, featuredProducts: 30,
+  brand_member: {
+    key: "brand_member", name: "Brand Member", nameKey: "partnerTiers.brandMember",
+    monthlyPrice: 799, annualPrice: 8150, commission: 2, engagement: "12_months",
+    maxProducts: 999, maxCategories: null, featuredProducts: 0,
     searchPriority: "maximum",
     hasAdvancedAnalytics: true, hasPremiumAnalytics: true,
     hasProLeads: true, proLeadsPriority: "exclusive_48h",
@@ -103,12 +103,27 @@ export const TIER_CONFIG: Record<PartnerTier, TierConfig> = {
     hasCoBranding: true, hasBetaAccess: true, hasMultiUsers: true, maxUsers: 3,
     socialPosts: 4, videoRelays: 3, sponsoredBanners: 3,
     onboardingType: "full_integration", stockSync: "api_realtime",
-    brandPageType: "gallery_video", badge: "elite_pro", marketReport: "monthly",
-    color: "purple", icon: "Gem",
+    brandPageType: "gallery_video", badge: "brand_member", marketReport: "monthly",
+    color: "purple", icon: "Crown",
+  },
+  brand_network: {
+    key: "brand_network", name: "Brand Network", nameKey: "partnerTiers.brandNetwork",
+    monthlyPrice: 1299, annualPrice: 13250, commission: 1.5, engagement: "12_months",
+    maxProducts: 999, maxCategories: null, featuredProducts: 0,
+    searchPriority: "maximum",
+    hasAdvancedAnalytics: true, hasPremiumAnalytics: true,
+    hasProLeads: true, proLeadsPriority: "exclusive_48h",
+    hasCsvExport: true, hasApiExport: true, hasRealtimeApi: true,
+    hasPrioritySupport: true, hasDedicatedManager: true, hasSharedManager: false,
+    hasCoBranding: true, hasBetaAccess: true, hasMultiUsers: true, maxUsers: 5,
+    socialPosts: 6, videoRelays: 4, sponsoredBanners: 4,
+    onboardingType: "full_integration", stockSync: "api_realtime",
+    brandPageType: "gallery_video", badge: "brand_network", marketReport: "monthly",
+    color: "violet", icon: "Crown",
   },
 };
 
-const TIER_ORDER: PartnerTier[] = ["starter", "growth", "elite", "elite_pro"];
+const TIER_ORDER: PartnerTier[] = ["starter", "growth", "elite", "brand_member", "brand_network"];
 
 // ── Helper ──────────────────────────────────────────────────────────────────
 
@@ -332,13 +347,11 @@ export interface PointsHistoryEntry {
 interface LoyaltyThresholds {
   growth: number;
   elite: number;
-  elite_pro: number;
 }
 
 const DEFAULT_THRESHOLDS: LoyaltyThresholds = {
   growth: 2000,
   elite: 5000,
-  elite_pro: 20000,
 };
 
 // ── Hook 2: usePartnerLoyalty ───────────────────────────────────────────────
@@ -421,14 +434,11 @@ export function usePartnerLoyalty(partnerId: string | undefined) {
       typeof raw === "object" &&
       !Array.isArray(raw) &&
       "growth" in raw &&
-      "elite" in raw &&
-      "elite_pro" in raw
+      "elite" in raw
     ) {
       return {
         growth: Number((raw as Record<string, unknown>).growth) || DEFAULT_THRESHOLDS.growth,
         elite: Number((raw as Record<string, unknown>).elite) || DEFAULT_THRESHOLDS.elite,
-        elite_pro:
-          Number((raw as Record<string, unknown>).elite_pro) || DEFAULT_THRESHOLDS.elite_pro,
       };
     }
     return DEFAULT_THRESHOLDS;
@@ -437,50 +447,41 @@ export function usePartnerLoyalty(partnerId: string | undefined) {
   // Compute tier from lifetime points
   const lifetimePoints = loyalty?.lifetimePoints ?? 0;
 
+  // Loyalty tier progression only applies to catalogue plans (starter→growth→elite)
   const currentTier: PartnerTier =
-    lifetimePoints >= thresholds.elite_pro
-      ? "elite_pro"
-      : lifetimePoints >= thresholds.elite
-        ? "elite"
-        : lifetimePoints >= thresholds.growth
-          ? "growth"
-          : "starter";
+    lifetimePoints >= thresholds.elite
+      ? "elite"
+      : lifetimePoints >= thresholds.growth
+        ? "growth"
+        : "starter";
 
   const nextTier: PartnerTier | null =
-    currentTier === "elite_pro"
+    currentTier === "elite"
       ? null
-      : currentTier === "elite"
-        ? "elite_pro"
-        : currentTier === "growth"
-          ? "elite"
-          : "growth";
+      : currentTier === "growth"
+        ? "elite"
+        : "growth";
 
   const pointsToNextTier: number | null = (() => {
-    if (currentTier === "elite_pro") return null;
+    if (currentTier === "elite") return null;
     const target =
-      currentTier === "elite"
-        ? thresholds.elite_pro
-        : currentTier === "growth"
-          ? thresholds.elite
-          : thresholds.growth;
+      currentTier === "growth"
+        ? thresholds.elite
+        : thresholds.growth;
     return Math.max(0, target - lifetimePoints);
   })();
 
   const tierProgress: number = (() => {
-    if (currentTier === "elite_pro") return 100;
+    if (currentTier === "elite") return 100;
 
     const currentThreshold =
-      currentTier === "elite"
-        ? thresholds.elite
-        : currentTier === "growth"
-          ? thresholds.growth
-          : 0;
+      currentTier === "growth"
+        ? thresholds.growth
+        : 0;
     const nextThreshold =
-      currentTier === "elite"
-        ? thresholds.elite_pro
-        : currentTier === "growth"
-          ? thresholds.elite
-          : thresholds.growth;
+      currentTier === "growth"
+        ? thresholds.elite
+        : thresholds.growth;
 
     const range = nextThreshold - currentThreshold;
     if (range <= 0) return 100;
@@ -539,7 +540,7 @@ export function usePartnerTierConfig(partnerId: string | undefined) {
 
   const subscriptionPlan: PartnerTier = (() => {
     const plan = partner?.plan;
-    if (plan === "elite_pro" || plan === "elite" || plan === "growth" || plan === "starter") {
+    if (plan === "elite" || plan === "growth" || plan === "starter" || plan === "brand_member" || plan === "brand_network") {
       return plan;
     }
     return "starter";
