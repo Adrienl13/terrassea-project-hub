@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FolderOpen, User, Menu, X, ChevronDown } from "lucide-react";
+import { FolderOpen, User, Menu, X, ChevronDown, LogOut, Settings, Plus } from "lucide-react";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import NotificationBell from "@/components/NotificationBell";
@@ -106,10 +107,24 @@ const NAV_LINKS = [
 const Header = () => {
   const { t, i18n } = useTranslation();
   const { itemCount } = useProjectCart();
+  const { user, signOut } = useAuth();
   const [openCat, setOpenCat] = useState<string | null>(null);
   const [dropdownPos, setDropdownPos] = useState({ left: 0, top: 0 });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileAccordion, setMobileAccordion] = useState<string | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const closeMobile = () => {
     setMobileOpen(false);
@@ -160,30 +175,89 @@ const Header = () => {
 
             <NotificationBell />
 
+            {/* User menu — combines Mon projet, Mon compte, Lancer un projet */}
+            <div className="hidden sm:block relative" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+                className="relative flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <User className="h-5 w-5" />
+                {itemCount > 0 ? (
+                  <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-[#D4603A] text-white text-[9px] flex items-center justify-center font-display font-bold">
+                    {itemCount}
+                  </span>
+                ) : null}
+              </button>
+
+              <AnimatePresence>
+                {userMenuOpen ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-2 w-56 bg-background border border-border rounded-xl shadow-lg overflow-hidden z-50"
+                  >
+                    <div className="py-1.5">
+                      <Link
+                        to="/project-cart"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-body text-foreground hover:bg-muted/50 transition-colors"
+                      >
+                        <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                        {t("nav.myProject")}
+                        {itemCount > 0 ? (
+                          <span className="ml-auto text-[10px] font-display font-bold bg-[#D4603A] text-white rounded-full px-1.5 py-0.5">
+                            {itemCount}
+                          </span>
+                        ) : null}
+                      </Link>
+                      <Link
+                        to="/account"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-body text-foreground hover:bg-muted/50 transition-colors"
+                      >
+                        <Settings className="h-4 w-4 text-muted-foreground" />
+                        {t("nav.myAccount")}
+                      </Link>
+                      <div className="border-t border-border my-1" />
+                      <Link
+                        to="/projects/new"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-display font-semibold text-[#D4603A] hover:bg-muted/50 transition-colors"
+                      >
+                        <Plus className="h-4 w-4" />
+                        {t("nav.launchProject")}
+                      </Link>
+                      {user ? (
+                        <>
+                          <div className="border-t border-border my-1" />
+                          <button
+                            onClick={() => { setUserMenuOpen(false); signOut(); }}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-body text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors w-full text-left"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            {t("nav.signOut", "Se d\u00e9connecter")}
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+
+            {/* Mobile: simple icon for project cart */}
             <Link
               to="/project-cart"
-              className="relative flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
+              className="sm:hidden relative flex items-center text-muted-foreground hover:text-foreground transition-colors"
             >
               <FolderOpen className="h-5 w-5" />
-              <span className="hidden sm:inline">{t("nav.myProject")}</span>
-              {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 sm:-right-6 h-5 w-5 rounded-full bg-foreground text-primary-foreground text-xs flex items-center justify-center font-display font-bold">
+              {itemCount > 0 ? (
+                <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-[#D4603A] text-white text-[9px] flex items-center justify-center font-display font-bold">
                   {itemCount}
                 </span>
-              )}
-            </Link>
-            <Link
-              to="/account"
-              className="hidden sm:flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <User className="h-5 w-5" />
-              <span className="hidden sm:inline">{t("nav.myAccount")}</span>
-            </Link>
-            <Link
-              to="/projects/new"
-              className="hidden sm:inline-flex px-5 py-2.5 text-sm font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
-            >
-              {t("nav.launchProject")}
+              ) : null}
             </Link>
 
             {/* Mobile hamburger */}
