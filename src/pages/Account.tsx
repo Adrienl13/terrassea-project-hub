@@ -63,6 +63,7 @@ import PartnerProfileForm from "@/components/partner-dashboard/PartnerProfileFor
 import BrandBriefInbox from "@/components/partner-dashboard/BrandBriefInbox";
 import BrandCollectionManager from "@/components/partner-dashboard/BrandCollectionManager";
 import BrandNetworkDashboard from "@/components/partner-dashboard/BrandNetworkDashboard";
+import BrandNetworkOverview from "@/components/partner-dashboard/BrandNetworkOverview";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -568,7 +569,9 @@ const Account = () => {
         // Brand-specific sections
         if (isBrand) {
           switch (section) {
-            case "overview":      return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
+            case "overview":      return isBrandNetwork
+              ? <BrandNetworkOverview partnerId={partnerId!} onNavigate={handlePartnerNav} />
+              : <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
             case "briefs":        return isBrandNetwork
               ? <BrandNetworkDashboard partnerId={partnerId!} />
               : <BrandBriefInbox partnerId={partnerId!} />;

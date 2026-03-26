@@ -3837,6 +3837,16 @@
     "budget": "Budget",
     "date": "Date",
     "status": "Statut",
-    "acceptedByDistrib": "Accept\u00e9 par distrib."
+    "acceptedByDistrib": "Accept\u00e9 par distrib.",
+    "countriesCovered": "Pays couverts",
+    "totalLeads": "Leads totaux",
+    "routedCount": "{{count}} rout\u00e9",
+    "conversionRate": "Taux conversion",
+    "coverageMap": "Couverture g\u00e9ographique",
+    "noCoverage": "Non couvert",
+    "manageDistributorsDesc": "G\u00e9rer vos distributeurs par pays",
+    "viewLeadsDesc": "Suivre les leads rout\u00e9s",
+    "pendingCount": "{{count}} en attente",
+    "collectionsDesc": "Vos collections produits"
   }
 }

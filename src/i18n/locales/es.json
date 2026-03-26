@@ -3743,6 +3743,16 @@
     "budget": "Presupuesto",
     "date": "Fecha",
     "status": "Estado",
-    "acceptedByDistrib": "Aceptado por distrib."
+    "acceptedByDistrib": "Aceptado por distrib.",
+    "countriesCovered": "Pa\u00edses cubiertos",
+    "totalLeads": "Leads totales",
+    "routedCount": "{{count}} dirigido",
+    "conversionRate": "Tasa conversi\u00f3n",
+    "coverageMap": "Cobertura geogr\u00e1fica",
+    "noCoverage": "Sin cobertura",
+    "manageDistributorsDesc": "Gestionar distribuidores por pa\u00eds",
+    "viewLeadsDesc": "Seguir los leads dirigidos",
+    "pendingCount": "{{count}} pendiente",
+    "collectionsDesc": "Sus colecciones de productos"
   }
 }

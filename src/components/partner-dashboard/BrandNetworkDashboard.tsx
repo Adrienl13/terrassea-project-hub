@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MapPin, Briefcase, Plus, Trash2, Shield, Globe } from "lucide-react";
+import { MapPin, Briefcase, Plus, Trash2, Shield, Globe, TrendingUp, Users } from "lucide-react";
 
 interface BrandNetworkDashboardProps {
   partnerId: string;
@@ -159,6 +159,48 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
       <div>
         <h2 className="font-display text-lg font-bold text-foreground">{t("network.title")}</h2>
         <p className="text-xs font-body text-muted-foreground mt-0.5">{t("network.subtitle")}</p>
+      </div>
+
+      {/* ── Stats bar ───────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <Globe className="h-4 w-4 text-blue-600" />
+          </div>
+          <div>
+            <p className="font-display text-lg font-bold text-foreground">{new Set(distributors.map((d) => d.country_code)).size}</p>
+            <p className="text-[9px] font-body text-muted-foreground uppercase tracking-wider">{t("network.countriesCovered", "Pays couverts")}</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+            <Users className="h-4 w-4 text-green-600" />
+          </div>
+          <div>
+            <p className="font-display text-lg font-bold text-foreground">{distributors.length}</p>
+            <p className="text-[9px] font-body text-muted-foreground uppercase tracking-wider">{t("network.distributors")}</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#D4603A]/10 flex items-center justify-center shrink-0">
+            <Briefcase className="h-4 w-4 text-[#D4603A]" />
+          </div>
+          <div>
+            <p className="font-display text-lg font-bold text-foreground">{routedBriefs.length}</p>
+            <p className="text-[9px] font-body text-muted-foreground uppercase tracking-wider">{t("network.routedLeads")}</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+            <TrendingUp className="h-4 w-4 text-purple-600" />
+          </div>
+          <div>
+            <p className="font-display text-lg font-bold text-foreground">
+              {briefs.length > 0 ? Math.round((briefs.filter((b) => b.status === "accepted").length / briefs.length) * 100) : 0}%
+            </p>
+            <p className="text-[9px] font-body text-muted-foreground uppercase tracking-wider">{t("network.conversionRate", "Conversion")}</p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
