@@ -194,7 +194,7 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
               const hydrated: CartItem[] = serverItems
                 .filter((si) => productMap.has(si.productId))
                 .map((si) => ({
-                  product: productMap.get(si.productId)! as unknown as DBProduct,
+                  product: productMap.get(si.productId)!,
                   quantity: si.quantity,
                   conceptName: si.conceptName,
                   selectedSupplier: si.selectedSupplier,
@@ -235,7 +235,7 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
           .upsert(
             {
               user_id: user.id,
-              cart_data: serializeCartItems(items) as unknown as Record<string, unknown>[],
+              cart_data: serializeCartItems(items) as any,
               notes,
               item_count: items.reduce((s, i) => s + i.quantity, 0),
               total_estimated: totalEstimated,

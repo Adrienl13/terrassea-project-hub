@@ -521,17 +521,17 @@ export default function PartnerAnalyticsDashboard({ partnerId, tier }: Props) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-display font-semibold text-xs text-foreground">
-                    Sophie Martin
+                    {t("partnerAnalytics.managerName", "Account Manager")}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
                     {t("partnerAnalytics.dedicatedManager")}
                   </p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="inline-flex items-center gap-1 text-[9px] text-muted-foreground">
-                      <Mail className="h-3 w-3" /> sophie.martin@terrassea.com
+                      <Mail className="h-3 w-3" /> contact@terrassea.com
                     </span>
                     <span className="inline-flex items-center gap-1 text-[9px] text-muted-foreground">
-                      <Phone className="h-3 w-3" /> +33 1 42 00 00 00
+                      <Phone className="h-3 w-3" /> {t("partnerAnalytics.contactPhone", "+33 1 00 00 00 00")}
                     </span>
                   </div>
                 </div>

@@ -130,12 +130,13 @@ export default function BrandBriefInbox({ partnerId }: BrandBriefInboxProps) {
               {/* Summary row */}
               <button
                 onClick={() => setExpandedId(expanded ? null : brief.id)}
+                aria-expanded={expanded}
                 className="w-full flex items-center gap-4 p-4 text-left hover:bg-card/50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-display font-semibold text-foreground">
-                      {brief.establishment_type ? (brief.establishment_type === "hotel" ? "H\u00f4tel" : brief.establishment_type.charAt(0).toUpperCase() + brief.establishment_type.slice(1)) : "N/A"}
+                      {brief.establishment_type ? t("brief." + brief.establishment_type, brief.establishment_type) : "N/A"}
                     </span>
                     {brief.stars_or_class && (
                       <span className="text-[10px] text-muted-foreground">{brief.stars_or_class}</span>

@@ -237,7 +237,7 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
               <div key={d.id} className="flex items-center gap-4 p-3 border border-border rounded-xl">
                 <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
                   {d.partner?.logo_url ? (
-                    <img src={d.partner.logo_url} alt="" className="w-6 h-6 rounded object-contain" />
+                    <img src={d.partner.logo_url} alt={d.partner?.name || ""} className="w-6 h-6 rounded object-contain" />
                   ) : (
                     <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
                   )}

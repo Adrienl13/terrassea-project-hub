@@ -100,9 +100,9 @@ function CreateArrivalForm({
 
       <label className="flex items-center gap-2 cursor-pointer">
         {preorder ? (
-          <ToggleRight className="h-5 w-5 text-foreground" onClick={() => setPreorder(false)} />
+          <ToggleRight className="h-5 w-5 text-foreground" onClick={() => setPreorder(false)} aria-label={t("arrivals.preorderEnabled")} />
         ) : (
-          <ToggleLeft className="h-5 w-5 text-muted-foreground" onClick={() => setPreorder(true)} />
+          <ToggleLeft className="h-5 w-5 text-muted-foreground" onClick={() => setPreorder(true)} aria-label={t("arrivals.preorderEnabled")} />
         )}
         <span className="text-xs font-body text-foreground">{t("arrivals.preorderEnabled")}</span>
       </label>
@@ -212,7 +212,7 @@ function AddProductSearch({
               className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-muted/50 transition-colors"
             >
               {p.image && (
-                <img src={p.image} alt="" className="w-7 h-7 object-cover rounded-sm flex-shrink-0" />
+                <img src={p.image} alt={p.name} className="w-7 h-7 object-cover rounded-sm flex-shrink-0" />
               )}
               <span className="text-xs font-body text-foreground truncate">{p.name}</span>
             </button>
@@ -504,7 +504,7 @@ function ItemRow({
       <td className="py-2 pr-3">
         <div className="flex items-center gap-2">
           {item.productImage && (
-            <img src={item.productImage} alt="" className="w-8 h-8 object-cover rounded-sm flex-shrink-0" />
+            <img src={item.productImage} alt={item.productName} className="w-8 h-8 object-cover rounded-sm flex-shrink-0" />
           )}
           <span className="text-foreground truncate max-w-[200px]">{item.productName}</span>
         </div>

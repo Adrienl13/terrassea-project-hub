@@ -179,6 +179,8 @@ const Header = () => {
             <div className="hidden sm:block relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen((prev) => !prev)}
+                aria-expanded={userMenuOpen}
+                aria-label={t("nav.myAccount")}
                 className="relative flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
               >
                 <User className="h-5 w-5" />

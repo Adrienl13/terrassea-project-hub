@@ -32,7 +32,7 @@ export function useProducts(searchTerm?: string, categoryFilter?: string) {
         if (!searchResults || searchResults.length === 0) return [];
 
         // Re-fetch full product data for matched IDs to get all fields
-        const matchedIds = searchResults.map((r: any) => r.id);
+        const matchedIds = searchResults.map((r: { id: string }) => r.id);
         const { data: fullProducts, error: fullError } = await supabase
           .from("products")
           .select("*")
@@ -61,7 +61,7 @@ export function useProducts(searchTerm?: string, categoryFilter?: string) {
         const ordered = matchedIds
           .map((id: string) => productMap.get(id))
           .filter(Boolean)
-          .map((raw: any) => normalizeProduct(raw));
+          .map((raw) => normalizeProduct(raw as Record<string, unknown>));
 
         return enrichProductsWithOffers(ordered, offerStats);
       }
