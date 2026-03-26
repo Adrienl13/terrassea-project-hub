@@ -8,7 +8,7 @@ import {
   XCircle, Clock, AlertTriangle, Star, TrendingUp,
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
-  CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge, Landmark,
+  CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge, Landmark, Crown,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +29,7 @@ import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
 import AdminProductReview from "@/components/admin/AdminProductReview";
 import AdminChatbotStats from "@/components/admin/AdminChatbotStats";
 import AdminFinancing from "@/components/admin/AdminFinancing";
+import AdminBrandManagement from "@/components/admin/AdminBrandManagement";
 import ColorVariantEditor from "@/components/admin/ColorVariantEditor";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
 import type { ColorVariant } from "@/lib/products";
@@ -37,7 +38,7 @@ import type { ColorVariant } from "@/lib/products";
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "settings";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "settings";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -1715,6 +1716,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
       { id: "partners",    icon: Building2,     label: "Partenaires", badgeKey: "partners" },
       { id: "submissions", icon: Inbox,         label: "Soumissions",   badgeKey: "submissions" },
       { id: "subscriptions", icon: Star,        label: "Abonnements" },
+      { id: "brands",        icon: Crown,       label: "Marques" },
     ],
   },
   {
@@ -1759,6 +1761,7 @@ const TAB_TITLES: Record<Tab, string> = {
   partner_visibility: "Visibilite partenaires",
   analytics: "Analytics",
   pro_service: "Pro Service",
+  brands: "Gestion des marques",
 };
 
 const Admin = () => {
@@ -1964,6 +1967,7 @@ const Admin = () => {
           {tab === "products"     && <ProductsTab />}
           {tab === "submissions"  && <AdminProductReview />}
           {tab === "financing"    && <AdminFinancing />}
+          {tab === "brands"       && <AdminBrandManagement />}
           {tab === "chatbot"      && <AdminChatbotStats />}
         </div>
       </main>
