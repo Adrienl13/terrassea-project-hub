@@ -1964,7 +1964,8 @@
     "stock_lowStock": "Low stock",
     "stock_production": "Quick production",
     "stock_onOrder": "On order",
-    "stock_toConfirm": "To confirm"
+    "stock_toConfirm": "To confirm",
+    "brandPartner": "Brand Partner"
   },
   "resources": {
     "title": "The Expert Guide",

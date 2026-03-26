@@ -17,6 +17,7 @@ export interface FilterState {
   colors: string[];
   features: string[];
   stock: string[];
+  brandPartners: string[];
   priceRange: [number, number];
 }
 
@@ -28,6 +29,7 @@ export const EMPTY_FILTERS: FilterState = {
   colors: [],
   features: [],
   stock: [],
+  brandPartners: [],
   priceRange: [0, 500],
 };
 
@@ -153,11 +155,17 @@ function toggle(arr: string[], value: string): string[] {
   return arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 }
 
+export interface BrandPartnerOption {
+  id: string;
+  name: string;
+}
+
 interface ProductFilterSidebarProps {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
   onClose?: () => void;
   showHeader?: boolean;
+  brandPartners?: BrandPartnerOption[];
 }
 
 export default function ProductFilterSidebar({
@@ -165,6 +173,7 @@ export default function ProductFilterSidebar({
   onChange,
   onClose,
   showHeader = false,
+  brandPartners = [],
 }: ProductFilterSidebarProps) {
   const { t } = useTranslation();
   const update = (partial: Partial<FilterState>) =>
@@ -220,6 +229,29 @@ export default function ProductFilterSidebar({
               <CheckboxGroup options={STYLE_OPTIONS} selected={filters.styles} labelKeys={STYLE_LABEL_KEYS} onToggle={(v) => update({ styles: toggle(filters.styles, v) })} />
             </AccordionContent>
           </AccordionItem>
+
+          {brandPartners.length > 0 && (
+            <AccordionItem value="brand" className="border-border">
+              <AccordionTrigger className="text-xs font-display font-bold uppercase tracking-wider text-foreground hover:no-underline py-3">
+                {t('filters.brandPartner', 'Brand Partner')}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2">
+                  {brandPartners.map((bp) => (
+                    <label key={bp.id} className="flex items-center gap-2 cursor-pointer group">
+                      <Checkbox
+                        checked={filters.brandPartners.includes(bp.id)}
+                        onCheckedChange={() => update({ brandPartners: toggle(filters.brandPartners, bp.id) })}
+                      />
+                      <span className="text-xs font-body text-muted-foreground group-hover:text-foreground transition-colors">
+                        {bp.name}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
 
           <AccordionItem value="price" className="border-border">
             <AccordionTrigger className="text-xs font-display font-bold uppercase tracking-wider text-foreground hover:no-underline py-3">

@@ -15,6 +15,7 @@ import SearchAutocomplete from "@/components/SearchAutocomplete";
 import CompareBar from "@/components/products/CompareBar";
 import ProductFilterSidebar, {
   type FilterState,
+  type BrandPartnerOption,
   EMPTY_FILTERS,
   SORT_OPTIONS,
 } from "@/components/products/ProductFilterSidebar";
@@ -80,6 +81,39 @@ const Products = () => {
     setSearchParams(searchParams);
   };
 
+  // Fetch brand partners for filter + identify brand product IDs
+  const { data: brandPartnersData } = useQuery({
+    queryKey: ["brand-partners-filter"],
+    queryFn: async () => {
+      const { data: partners } = await supabase
+        .from("partners")
+        .select("id, name")
+        .in("partner_mode", ["brand_member", "brand_network"])
+        .eq("is_active", true)
+        .order("name");
+
+      const { data: offers } = await supabase
+        .from("product_offers")
+        .select("product_id, partner_id, pricing_mode")
+        .eq("is_active", true)
+        .not("collection_name", "is", null);
+
+      return {
+        partners: (partners ?? []) as BrandPartnerOption[],
+        offers: offers ?? [],
+      };
+    },
+  });
+
+  const brandPartnerOptions = brandPartnersData?.partners ?? [];
+  const brandProductMap = useMemo(() => {
+    const map = new Map<string, { partnerId: string; pricingMode: string | null }>();
+    for (const o of brandPartnersData?.offers ?? []) {
+      map.set(o.product_id, { partnerId: o.partner_id, pricingMode: o.pricing_mode });
+    }
+    return map;
+  }, [brandPartnersData]);
+
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
@@ -112,7 +146,7 @@ const Products = () => {
   const activeFilterCount =
     filters.categories.length + filters.usage.length + filters.materials.length +
     filters.styles.length + filters.colors.length + filters.features.length +
-    filters.stock.length +
+    filters.stock.length + filters.brandPartners.length +
     (filters.priceRange[0] > 0 || filters.priceRange[1] < 500 ? 1 : 0);
 
   const clearAllFilters = () => setFilters(EMPTY_FILTERS);
@@ -211,6 +245,13 @@ const Products = () => {
       result = result.filter((p) =>
         filters.stock.includes(p.stock_status || "available")
       );
+
+    // Brand partner filter
+    if (filters.brandPartners.length > 0)
+      result = result.filter((p) => {
+        const brand = brandProductMap.get(p.id);
+        return brand && filters.brandPartners.includes(brand.partnerId);
+      });
 
     // Price filter
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
@@ -315,7 +356,7 @@ const Products = () => {
               {!isMobile && (
                 <aside className="w-60 flex-shrink-0">
                   <div className="sticky top-24">
-                    <ProductFilterSidebar filters={filters} onChange={setFilters} />
+                    <ProductFilterSidebar filters={filters} onChange={setFilters} brandPartners={brandPartnerOptions} />
                   </div>
                 </aside>
               )}
@@ -406,13 +447,13 @@ const Products = () => {
                 ) : viewMode === "grid" ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                     {filtered.map((product) => (
-                      <ProductGridCard key={product.id} product={product} onAdd={handleAdd} />
+                      <ProductGridCard key={product.id} product={product} onAdd={handleAdd} isBrandProduct={brandProductMap.has(product.id)} />
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {filtered.map((product) => (
-                      <ProductListCard key={product.id} product={product} onAdd={handleAdd} />
+                      <ProductListCard key={product.id} product={product} onAdd={handleAdd} isBrandProduct={brandProductMap.has(product.id)} />
                     ))}
                   </div>
                 )}
@@ -433,6 +474,7 @@ const Products = () => {
             onChange={setFilters}
             onClose={() => setMobileFilterOpen(false)}
             showHeader
+            brandPartners={brandPartnerOptions}
           />
         </SheetContent>
       </Sheet>
@@ -461,16 +503,13 @@ function StockBadge({ status }: { status: string | null }) {
   );
 }
 
-function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DBProduct) => void }) {
+function ProductGridCard({ product, onAdd, isBrandProduct }: { product: DBProduct; onAdd: (p: DBProduct) => void; isBrandProduct?: boolean }) {
+  const { t } = useTranslation();
   const { addToCompare, isInCompare } = useCompare();
   const { isFavourite, toggleFavourite } = useFavourites();
   const inCompare = isInCompare(product.id);
   const fav = isFavourite(product.id);
   const localName = ml(product, "name");
-
-  const priceDisplay = product.price_min != null
-    ? `From €${product.price_min.toFixed(2)}`
-    : product.indicative_price || null;
 
   const STOCK_DOT: Record<string, { dot: string; label: string }> = {
     available:    { dot: "bg-green-500",         label: "In stock"     },
@@ -544,9 +583,11 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
         )}
         <div className="flex items-center justify-between mt-2 gap-1">
           <p className="text-xs font-display font-semibold text-foreground">
-            {product.price_min != null
-              ? `From €${product.price_min.toFixed(2)}`
-              : product.indicative_price ?? <span className="font-normal text-muted-foreground">On request</span>}
+            {isBrandProduct
+              ? <span className="font-semibold italic text-[#D4603A]">{t("vendorOffers.onQualifiedBrief", "Sur brief qualifié")}</span>
+              : product.price_min != null
+                ? `From €${product.price_min.toFixed(2)}`
+                : product.indicative_price ?? <span className="font-normal text-muted-foreground">{t("vendorOffers.onRequest", "On request")}</span>}
           </p>
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stock.dot}`} title={stock.label} />
         </div>
@@ -560,7 +601,8 @@ function ProductGridCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
   );
 }
 
-function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DBProduct) => void }) {
+function ProductListCard({ product, onAdd, isBrandProduct }: { product: DBProduct; onAdd: (p: DBProduct) => void; isBrandProduct?: boolean }) {
+  const { t } = useTranslation();
   const { isFavourite, toggleFavourite } = useFavourites();
   const fav = isFavourite(product.id);
   const localName = ml(product, "name");
@@ -604,9 +646,11 @@ function ProductListCard({ product, onAdd }: { product: DBProduct; onAdd: (p: DB
         </p>
         <div className="flex items-center gap-2 mt-2">
           <span className="text-sm font-display font-medium text-foreground">
-            {product.price_min != null
-              ? `From €${product.price_min.toFixed(2)}`
-              : product.indicative_price || "On request"}
+            {isBrandProduct
+              ? <span className="font-semibold italic text-[#D4603A]">{t("vendorOffers.onQualifiedBrief", "Sur brief qualifié")}</span>
+              : product.price_min != null
+                ? `From €${product.price_min.toFixed(2)}`
+                : product.indicative_price || t("vendorOffers.onRequest", "On request")}
           </span>
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
             ({

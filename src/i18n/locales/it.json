@@ -1927,7 +1927,8 @@
     "stock_lowStock": "Scorte limitate",
     "stock_production": "Produzione rapida",
     "stock_onOrder": "In ordine",
-    "stock_toConfirm": "Da confermare"
+    "stock_toConfirm": "Da confermare",
+    "brandPartner": "Marchio partner"
   },
   "resources": {
     "title": "La Guida Esperta",

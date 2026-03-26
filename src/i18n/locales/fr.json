@@ -1964,7 +1964,8 @@
     "stock_lowStock": "Stock limité",
     "stock_production": "Production rapide",
     "stock_onOrder": "En commande",
-    "stock_toConfirm": "À confirmer"
+    "stock_toConfirm": "À confirmer",
+    "brandPartner": "Marque partenaire"
   },
   "resources": {
     "title": "Le Guide Expert",
