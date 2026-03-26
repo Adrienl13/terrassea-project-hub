@@ -36,6 +36,11 @@ const BADGE_CONFIG: Record<SupplierBadge, { labelKey: string; icon: typeof Star;
     icon: TrendingUp,
     className: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   },
+  top_rated: {
+    labelKey: "supplierRecs.badgeTopRated",
+    icon: Star,
+    className: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+  },
 };
 
 const STOCK_DOT: Record<string, string> = {
@@ -172,6 +177,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                 </Link>
                 {recommended.badges.map((badge) => {
                   const config = BADGE_CONFIG[badge];
+                  if (!config) return null;
                   const Icon = config.icon;
                   return (
                     <span
@@ -250,6 +256,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
                 </Link>
                 {offer.badges.map((badge) => {
                   const config = BADGE_CONFIG[badge];
+                  if (!config) return null;
                   const Icon = config.icon;
                   return (
                     <span
