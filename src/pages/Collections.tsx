@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, MapPin, Sparkles, Package, Award } from "lucide-react";
+import { ArrowRight, MapPin, Sparkles, Package, Award, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -64,6 +64,7 @@ export default function Collections() {
   const { t } = useTranslation();
   const [brands, setBrands] = useState<BrandPartner[]>([]);
   const [brandData, setBrandData] = useState<Record<string, BrandCollections>>({});
+  const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -271,8 +272,8 @@ export default function Collections() {
                       </div>
                     ) : null}
 
-                    {/* Stats */}
-                    <div className="flex items-center gap-4 text-xs font-body text-muted-foreground">
+                    {/* Stats + mini collection previews */}
+                    <div className="flex items-center gap-4 text-xs font-body text-muted-foreground mb-5">
                       <span className="flex items-center gap-1.5">
                         <Package className="h-3.5 w-3.5" />
                         {String(collNames.length) + " collection" + (collNames.length > 1 ? "s" : "")}
@@ -281,12 +282,53 @@ export default function Collections() {
                         <span>{String(data.totalProducts) + " produit" + (data.totalProducts > 1 ? "s" : "")}</span>
                       ) : null}
                     </div>
+
+                    {/* Mini preview thumbnails — always visible */}
+                    {collNames.length > 0 ? (
+                      <div className="flex gap-2 mb-6">
+                        {collNames.map((collName) => {
+                          const items = collections[collName] ?? [];
+                          const thumb = items.find((i) => i.product?.image_url)?.product?.image_url ?? null;
+                          return (
+                            <Link
+                              key={collName}
+                              to={"/brands/" + brand.slug + "?collection=" + encodeURIComponent(collName)}
+                              className="group flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-background hover:border-foreground/30 transition-colors"
+                            >
+                              {thumb ? (
+                                <img src={thumb} alt="" className="h-5 w-5 rounded-full object-cover" />
+                              ) : (
+                                <div className="h-5 w-5 rounded-full bg-gradient-to-br from-stone-200 to-stone-300 flex items-center justify-center">
+                                  <span className="text-[7px] font-bold text-stone-500">{collName.charAt(0)}</span>
+                                </div>
+                              )}
+                              <span className="text-[11px] font-display font-semibold text-foreground">{collName}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+
+                    {/* Expand / Collapse button */}
+                    {collNames.length > 0 ? (
+                      <button
+                        onClick={() => setExpandedBrand((prev) => (prev === brand.id ? null : brand.id))}
+                        className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors"
+                      >
+                        {expandedBrand === brand.id ? "Masquer les collections" : "Voir les collections"}
+                        {expandedBrand === brand.id ? (
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        ) : (
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    ) : null}
                   </div>
                 </div>
 
-                {/* ── Collections grid ─────────────────────────────────────── */}
-                {collNames.length > 0 ? (
-                  <div className="mt-12">
+                {/* ── Expanded collections grid ───────────────────────────── */}
+                {expandedBrand === brand.id && collNames.length > 0 ? (
+                  <div className="mt-10 pt-10 border-t border-border">
                     <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-6">
                       {"Collections " + brand.name}
                     </h3>
@@ -302,7 +344,6 @@ export default function Collections() {
                             to={"/brands/" + brand.slug + "?collection=" + encodeURIComponent(collName)}
                             className="group block"
                           >
-                            {/* Collection image */}
                             <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3 relative">
                               {heroImage ? (
                                 <img
@@ -320,8 +361,6 @@ export default function Collections() {
                                 <ArrowRight className="h-3.5 w-3.5 text-foreground" />
                               </div>
                             </div>
-
-                            {/* Collection info */}
                             <h4 className="font-display text-base font-bold text-foreground group-hover:text-[#D4603A] transition-colors">
                               {collName}
                             </h4>
@@ -339,30 +378,21 @@ export default function Collections() {
                         );
                       })}
                     </div>
-                  </div>
-                ) : data ? (
-                  <div className="mt-12 text-center py-8">
-                    <p className="text-xs font-body text-muted-foreground">{"Collections bient\u00f4t disponibles."}</p>
-                  </div>
-                ) : (
-                  <div className="mt-12 flex justify-center py-8">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
-                  </div>
-                )}
 
-                {/* ── CTA ─────────────────────────────────────────────────── */}
-                <div className="mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <Link
-                    to={"/brands/" + brand.slug}
-                    className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
-                  >
-                    {"D\u00e9couvrir " + brand.name}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                  <span className="text-[10px] font-body text-muted-foreground">
-                    {"Acc\u00e8s sur brief qualifi\u00e9 \u00b7 R\u00e9ponse sous 72h"}
-                  </span>
-                </div>
+                    <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                      <Link
+                        to={"/brands/" + brand.slug}
+                        className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                      >
+                        {"D\u00e9couvrir " + brand.name}
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                      <span className="text-[10px] font-body text-muted-foreground">
+                        {"Acc\u00e8s sur brief qualifi\u00e9 \u00b7 R\u00e9ponse sous 72h"}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </section>
           );
