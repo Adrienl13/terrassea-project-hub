@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ml } from "@/lib/i18nFields";
 import { motion } from "framer-motion";
 import {
-  Search, SlidersHorizontal, X, Plus, LayoutGrid, List, BarChart3, ChevronDown, Heart,
+  Search, SlidersHorizontal, X, Plus, LayoutGrid, List, BarChart3, ChevronDown, Heart, Sparkles,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -547,6 +547,11 @@ function ProductGridCard({ product, onAdd, isBrandProduct }: { product: DBProduc
           >
             <Heart className={`h-3.5 w-3.5 ${fav ? "text-white fill-white" : "text-gray-400"}`} />
           </button>
+          {isBrandProduct ? (
+            <span className="absolute bottom-2 left-2 z-10 inline-flex items-center gap-1 text-[9px] font-display font-semibold uppercase tracking-wider bg-[#D4603A] text-white px-2 py-0.5 rounded-full">
+              <Sparkles className="h-2.5 w-2.5" />{t("common.brand", "Brand")}
+            </span>
+          ) : null}
           <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={(e) => { e.preventDefault(); addToCompare(product); }}
@@ -629,8 +634,13 @@ function ProductListCard({ product, onAdd, isBrandProduct }: { product: DBProduc
         <div className="flex items-start justify-between gap-2">
           <div>
             <Link to={`/products/${product.id}`}>
-              <h3 className="font-display font-semibold text-sm text-foreground hover:underline">
+              <h3 className="font-display font-semibold text-sm text-foreground hover:underline inline-flex items-center gap-1.5">
                 {localName}
+                {isBrandProduct ? (
+                  <span className="inline-flex items-center gap-0.5 text-[8px] font-display font-semibold uppercase tracking-wider bg-[#D4603A] text-white px-1.5 py-0.5 rounded-full shrink-0">
+                    <Sparkles className="h-2 w-2" />{t("common.brand", "Brand")}
+                  </span>
+                ) : null}
               </h3>
             </Link>
             {product.brand_source && (
