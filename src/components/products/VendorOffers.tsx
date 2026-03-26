@@ -177,12 +177,20 @@ function usePartnerTypeLabel() {
 function SupplierAvatar({ index, isAdmin, offer }: {
   index: number; isAdmin: boolean; offer: ProductOffer;
 }) {
-  if (isAdmin && offer.partner?.logo_url) {
-    return <img src={offer.partner.logo_url} alt="" className="w-8 h-8 rounded-full object-cover bg-card" />;
+  const showReal = isAdmin || offer.pricing_mode === "on_request";
+  if (showReal && offer.partner?.logo_url) {
+    return <img src={offer.partner.logo_url} alt={offer.partner?.name || ""} className="w-8 h-8 rounded-full object-cover bg-card" />;
+  }
+  if (showReal) {
+    return (
+      <div className="w-8 h-8 rounded-full bg-card flex items-center justify-center text-xs font-display font-bold text-muted-foreground">
+        {offer.partner?.name?.charAt(0) || "?"}
+      </div>
+    );
   }
   return (
     <div className="w-8 h-8 rounded-full bg-card flex items-center justify-center text-xs font-display font-bold text-muted-foreground">
-      {isAdmin ? (offer.partner?.name?.charAt(0) || "?") : (index + 1)}
+      {index + 1}
     </div>
   );
 }
@@ -213,6 +221,14 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
     return t("vendorOffers.verifiedSupplier", { index: index + 1 });
   };
 
+  // Brand partners (pricing_mode = on_request) always show their real name
+  const getDisplayName = (offer: ProductOffer, index: number): string => {
+    if (isAdmin) return offer.partner?.name || "Unknown";
+    if (offer.pricing_mode === "on_request" && offer.partner?.name) return offer.partner.name;
+    return getMaskedName(index);
+  };
+
+
   const summary = useMemo(() => {
     if (offers.length === 0) return { lowestTotal: null, fastestDelivery: null, bestStockIndex: null };
     const priced = offers.filter((o) => o.price !== null);
@@ -241,7 +257,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
   const buildSupplier = (offer: ProductOffer, index: number): SelectedSupplier => ({
     offerId: offer.id,
     partnerId: offer.partner_id,
-    partnerName: isAdmin ? (offer.partner?.name || "Unknown") : getMaskedName(index),
+    partnerName: getDisplayName(offer, index),
     partnerCountry: offer.partner?.country,
     price: offer.price,
     stockStatus: offer.stock_status,
@@ -338,9 +354,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
             <span className="flex items-center gap-1.5">
               <Package className="h-3.5 w-3.5" />
               {t("vendorOffers.bestStock")} <strong className="text-foreground font-display">
-                {isAdmin
-                  ? offers[summary.bestStockIndex]?.partner?.name
-                  : getMaskedName(summary.bestStockIndex)}
+                {offers[summary.bestStockIndex] ? getDisplayName(offers[summary.bestStockIndex], summary.bestStockIndex) : "—"}
               </strong>
             </span>
           )}
@@ -370,7 +384,7 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
               const fit = evaluateQuantityFit(offer, quantity);
               const total = offer.price !== null ? offer.price * quantity : null;
               const flag = getFlag(offer.partner?.country);
-              const displayName = isAdmin ? (offer.partner?.name || "Unknown") : getMaskedName(index);
+              const displayName = getDisplayName(offer, index);
 
               return (
                 <tr key={offer.id} className="border-b border-border/50 last:border-0">
