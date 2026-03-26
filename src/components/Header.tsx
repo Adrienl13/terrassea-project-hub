@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FolderOpen, User, Menu, X, ChevronDown, LogOut, Settings, Plus } from "lucide-react";
+import { FolderOpen, User, Menu, X, ChevronDown, LogOut, Settings } from "lucide-react";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";

@@ -120,6 +120,7 @@ export default function Collections() {
     for (const brand of brands) {
       if (!brandData[brand.id]) fetchCollections(brand.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- brandData intentionally excluded to avoid refetch loop
   }, [brands, fetchCollections]);
 
   // ── Render ───────────────────────────────────────────────────────────────
