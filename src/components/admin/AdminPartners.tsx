@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -90,6 +90,17 @@ const COUNTRIES = [
 
 export default function AdminPartners() {
   const queryClient = useQueryClient();
+
+  /** Invalidate every cache that holds partner data (admin + public + dashboard) */
+  const invalidatePartnerCaches = useCallback(() => {
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const key = query.queryKey[0];
+        return typeof key === "string" && (key.includes("partner") || key.includes("distributor"));
+      },
+    });
+  }, [queryClient]);
+
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [view, setView] = useState<"list" | "detail" | "form">("list");
@@ -187,7 +198,7 @@ export default function AdminPartners() {
       toast.error("Erreur : " + error.message);
     } else {
       toast.success(isEditing ? "Partenaire mis à jour" : "Partenaire créé");
-      queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
+      invalidatePartnerCaches();
       setView("list");
       setIsEditing(false);
     }
@@ -198,7 +209,7 @@ export default function AdminPartners() {
     const { error } = await supabase.from("partners").delete().eq("id", id);
     if (error) { toast.error("Erreur : " + error.message); return; }
     toast.success("Partenaire supprimé");
-    queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
+    invalidatePartnerCaches();
     setView("list");
   };
 
@@ -226,8 +237,7 @@ export default function AdminPartners() {
     }
 
     toast.success("Partenaire approuvé");
-    queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-pending-partner-profiles"] });
+    invalidatePartnerCaches();
     setReviewAction(false);
   };
 
@@ -256,8 +266,7 @@ export default function AdminPartners() {
 
     toast.success("Demande de modifications envoyée");
     setReviewComment("");
-    queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-pending-partner-profiles"] });
+    invalidatePartnerCaches();
     setReviewAction(false);
   };
 
@@ -285,8 +294,7 @@ export default function AdminPartners() {
 
     toast.success("Partenaire rejeté");
     setReviewComment("");
-    queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-pending-partner-profiles"] });
+    invalidatePartnerCaches();
     setReviewAction(false);
   };
 
