@@ -462,13 +462,13 @@ const BecomePartner = () => {
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <p className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-              {t('becomePartnerPage.partnerPlans')}
+              {form.partnerType === "brand" ? t('becomePartnerPage.brandPlansLabel', 'Plans marque') : t('becomePartnerPage.partnerPlans')}
             </p>
             <h2 className="font-display text-3xl font-bold text-foreground">
-              {t('becomePartnerPage.plansTitle')}
+              {form.partnerType === "brand" ? t('becomePartnerPage.brandPlansTitle', 'Développez votre marque sur Terrassea') : t('becomePartnerPage.plansTitle')}
             </h2>
             <p className="mt-3 font-body text-sm text-muted-foreground max-w-lg mx-auto">
-              {t('becomePartnerPage.plansDesc')}
+              {form.partnerType === "brand" ? t('becomePartnerPage.brandPlansDesc', 'Abonnement mensuel avec commission réduite. Page marque dédiée, briefs qualifiés et outils de gestion inclus.') : t('becomePartnerPage.plansDesc')}
             </p>
           </div>
           <div className={`grid grid-cols-1 ${form.partnerType === "brand" ? "md:grid-cols-2 max-w-3xl mx-auto" : "md:grid-cols-3"} gap-6`}>
