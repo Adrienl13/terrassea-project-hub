@@ -562,10 +562,10 @@ const BecomePartner = () => {
               {t('becomePartnerPage.applyToJoin')}
             </p>
             <h2 className="font-display text-2xl font-bold text-foreground">
-              {t('becomePartnerPage.partnerApplication')}
+              {form.partnerType === "brand" ? t('becomePartnerPage.brandApplication', 'Candidature marque') : t('becomePartnerPage.partnerApplication')}
             </h2>
             <p className="mt-3 font-body text-sm text-muted-foreground leading-relaxed max-w-md">
-              {t('becomePartnerPage.applicationDesc')}
+              {form.partnerType === "brand" ? t('becomePartnerPage.brandApplicationDesc', 'Chaque candidature est examinée manuellement. Si approuvée, vous recevrez un accès sous 48–72h avec votre page marque dédiée et vos outils de gestion.') : t('becomePartnerPage.applicationDesc')}
             </p>
 
             <div className="mt-8 space-y-5">
@@ -766,7 +766,7 @@ const BecomePartner = () => {
               <div className="flex items-center gap-2 mt-2">
                 <Shield className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                 <p className="text-[10px] font-body text-muted-foreground leading-relaxed">
-                  {t('becomePartnerPage.reviewNotice')}
+                  {form.partnerType === "brand" ? t('becomePartnerPage.brandReviewNotice', 'Chaque candidature est examinée manuellement. Réponse sous 48–72h. Les marques approuvées accèdent immédiatement à leur espace dédié.') : t('becomePartnerPage.reviewNotice')}
                 </p>
               </div>
             </div>
