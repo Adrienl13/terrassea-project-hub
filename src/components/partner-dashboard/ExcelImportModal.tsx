@@ -119,7 +119,7 @@ function matchScore(fileName: string, productName: string): number {
 
 // ── Batch splitter (for large CSVs, send in chunks to avoid token limits) ────
 
-const MAX_ROWS_PER_BATCH = 120;
+const MAX_ROWS_PER_BATCH = 25;
 
 // ── Component ────────────────────────────────────────────────────────────────
 

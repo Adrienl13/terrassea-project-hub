@@ -144,7 +144,7 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 16000,
+        max_tokens: 64000,
         system: SYSTEM_PROMPT,
         messages: [{
           role: "user",
