@@ -3900,7 +3900,10 @@
     "collectionUpdated": "Collection updated.",
     "updateError": "Error updating.",
     "collectionPlaceholder": "Collection name",
-    "noCollection": "No collection"
+    "noCollection": "No collection",
+    "newCollection": "New collection",
+    "newCollectionPlaceholder": "Name of the new collection",
+    "backToList": "← Choose an existing collection"
   },
   "brief": {
     "submitTitle": "Submit a project brief",

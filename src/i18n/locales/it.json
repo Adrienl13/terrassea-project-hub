@@ -3900,7 +3900,10 @@
     "collectionUpdated": "Collezione aggiornata.",
     "updateError": "Errore durante l’aggiornamento.",
     "collectionPlaceholder": "Nome collezione",
-    "noCollection": "Senza collezione"
+    "noCollection": "Senza collezione",
+    "newCollection": "Nuova collezione",
+    "newCollectionPlaceholder": "Nome della nuova collezione",
+    "backToList": "← Scegli una collezione esistente"
   },
   "brief": {
     "submitTitle": "Invia un brief di progetto",

@@ -35,6 +35,7 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
   const queryClient = useQueryClient();
   const [editingOffer, setEditingOffer] = useState<string | null>(null);
   const [editCollection, setEditCollection] = useState("");
+  const [isNewCollection, setIsNewCollection] = useState(false);
 
   const { data: offers = [], isLoading } = useQuery({
     queryKey: ["brand-collection-offers", partnerId],
@@ -52,6 +53,7 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
 
   const collections = groupBy(offers, "collection_name");
   const collectionNames = Object.keys(collections);
+  const existingCollections = collectionNames.filter(n => n !== "__uncategorized__").sort();
 
   const handleUpdateCollection = async (offerId: string, newName: string) => {
     const { error } = await supabase
@@ -64,6 +66,7 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
     }
     toast.success(t("brand.collectionUpdated"));
     setEditingOffer(null);
+    setIsNewCollection(false);
     queryClient.invalidateQueries({ queryKey: ["brand-collection-offers", partnerId] });
   };
 
@@ -139,24 +142,56 @@ export default function BrandCollectionManager({ partnerId }: BrandCollectionMan
                         <p className="text-[10px] font-body text-muted-foreground">{item.product?.category || ""}</p>
 
                         {editingOffer === item.id ? (
-                          <div className="mt-2 flex gap-1">
-                            <input
-                              value={editCollection}
-                              onChange={(e) => setEditCollection(e.target.value)}
-                              placeholder={t("brand.collectionPlaceholder", "Nom collection")}
-                              className="flex-1 text-[10px] border border-purple-200 rounded-full px-2.5 py-1.5 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"
-                            />
-                            <button
-                              onClick={() => handleUpdateCollection(item.id, editCollection)}
-                              className="text-[10px] font-display font-semibold text-white rounded-full px-3 py-1.5"
-                              style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)" }}
-                            >
-                              OK
-                            </button>
+                          <div className="mt-2 space-y-1.5">
+                            <div className="flex gap-1">
+                              {isNewCollection ? (
+                                <input
+                                  value={editCollection}
+                                  onChange={(e) => setEditCollection(e.target.value)}
+                                  placeholder={t("brand.newCollectionPlaceholder", "Nom de la nouvelle collection")}
+                                  autoFocus
+                                  className="flex-1 text-[10px] border border-purple-200 rounded-full px-2.5 py-1.5 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"
+                                />
+                              ) : (
+                                <select
+                                  value={editCollection}
+                                  onChange={(e) => {
+                                    if (e.target.value === "__new__") {
+                                      setIsNewCollection(true);
+                                      setEditCollection("");
+                                    } else {
+                                      setEditCollection(e.target.value);
+                                    }
+                                  }}
+                                  className="flex-1 text-[10px] border border-purple-200 rounded-full px-2.5 py-1.5 bg-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"
+                                >
+                                  <option value="">{t("brand.noCollection", "No collection")}</option>
+                                  {existingCollections.map(name => (
+                                    <option key={name} value={name}>{name}</option>
+                                  ))}
+                                  <option value="__new__">+ {t("brand.newCollection", "Nouvelle collection")}</option>
+                                </select>
+                              )}
+                              <button
+                                onClick={() => handleUpdateCollection(item.id, editCollection)}
+                                className="text-[10px] font-display font-semibold text-white rounded-full px-3 py-1.5"
+                                style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)" }}
+                              >
+                                OK
+                              </button>
+                            </div>
+                            {isNewCollection && (
+                              <button
+                                onClick={() => { setIsNewCollection(false); setEditCollection(item.collection_name || ""); }}
+                                className="text-[9px] font-body text-purple-500 hover:text-purple-700 transition-colors"
+                              >
+                                {t("brand.backToList", "← Choisir une collection existante")}
+                              </button>
+                            )}
                           </div>
                         ) : (
                           <button
-                            onClick={() => { setEditingOffer(item.id); setEditCollection(item.collection_name || ""); }}
+                            onClick={() => { setEditingOffer(item.id); setEditCollection(item.collection_name || ""); setIsNewCollection(false); }}
                             className="mt-1.5 text-[10px] font-body text-purple-500 hover:text-purple-700 transition-colors flex items-center gap-1"
                           >
                             <Pencil className="h-2.5 w-2.5" /> {t("brand.editCollection")}
