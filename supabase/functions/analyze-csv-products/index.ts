@@ -12,7 +12,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-async function requireAdmin(req: Request): Promise<string | Response> {
+async function requirePartnerOrAdmin(req: Request): Promise<string | Response> {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return new Response(JSON.stringify({ error: "Authentication required" }), {
@@ -30,8 +30,8 @@ async function requireAdmin(req: Request): Promise<string | Response> {
   }
   const { data: profile } = await supabase
     .from("user_profiles").select("user_type").eq("id", user.id).single();
-  if (profile?.user_type !== "admin") {
-    return new Response(JSON.stringify({ error: "Admin access required" }), {
+  if (profile?.user_type !== "admin" && profile?.user_type !== "partner") {
+    return new Response(JSON.stringify({ error: "Partner or admin access required" }), {
       status: 403, headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
@@ -111,8 +111,8 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: CORS_HEADERS });
   }
 
-  // Auth: admin only
-  const adminCheck = await requireAdmin(req);
+  // Auth: partner or admin
+  const adminCheck = await requirePartnerOrAdmin(req);
   if (adminCheck instanceof Response) return adminCheck;
 
   if (!ANTHROPIC_API_KEY) {
