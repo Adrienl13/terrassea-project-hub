@@ -969,10 +969,10 @@ const Account = () => {
                       {t('account.browseCatalogue')}
                     </button>
                     <button
-                      onClick={() => navigate("/pro-service")}
+                      onClick={() => navigate("/become-partner")}
                       className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-body text-muted-foreground border border-border rounded-full hover:border-foreground hover:text-foreground transition-all"
                     >
-                      {t('cd.quickActions.talkExpert')}
+                      <Sparkles className="h-3.5 w-3.5" /> {t('account.becomePartner', 'Become a partner')}
                     </button>
                   </>
                 )}
