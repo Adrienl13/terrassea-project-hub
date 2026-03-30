@@ -43,6 +43,8 @@ const BrandPage = lazy(() => import("./pages/BrandPage"));
 const Collections = lazy(() => import("./pages/Collections"));
 const ProService = lazy(() => import("./pages/ProService"));
 
+const ProServiceGate = lazy(() => import("./pages/ProServiceGate"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -73,7 +75,7 @@ const App = () => (
                   <Route path="/projects/new" element={<ProtectedRoute><ProjectBuilder /></ProtectedRoute>} />
                   <Route path="/inspirations" element={<Inspirations />} />
                   <Route path="/resources" element={<Resources />} />
-                  <Route path="/pro-service" element={<ProtectedRoute requireAdmin><ProService /></ProtectedRoute>} />
+                  <Route path="/pro-service" element={<ProServiceGate />} />
                   <Route path="/partners" element={<Partners />} />
                   <Route path="/become-partner" element={<BecomePartner />} />
                   <Route path="/partners/:slug" element={<PartnerDetail />} />
