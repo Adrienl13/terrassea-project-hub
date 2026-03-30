@@ -1758,7 +1758,23 @@
       "template": "Template scaricato!",
       "mixed": "{{valid}} valido/i, {{invalid}} con errori."
     },
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "mode": {
+      "chooseTitle": "Importa CSV / Excel",
+      "chooseSubtitle": "Scegli la modalità di importazione",
+      "directTitle": "Importazione diretta CSV",
+      "directSubtitle": "Gratuito e istantaneo — usa il nostro template standardizzato",
+      "directLabel": "Importazione diretta",
+      "directDesc": "Usa il nostro template CSV. Gratuito e istantaneo.",
+      "directHint": "Scarica il nostro template, compilalo con i tuoi prodotti e importalo qui. Colonne standardizzate, nessuna elaborazione IA.",
+      "directFormats": "CSV o Excel · Colonne standardizzate del template",
+      "aiLabel": "Importazione IA",
+      "aiDesc": "Formato libero, l'IA analizza e arricchisce i dati. Più lento.",
+      "downloadTemplate": "Scarica template",
+      "changeMode": "Cambia modalità",
+      "recommended": "Consigliato",
+      "free": "Gratuito"
+    }
   },
   "api": {
     "title": "Sincronizzazione stock in tempo reale",

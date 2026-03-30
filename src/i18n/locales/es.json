@@ -1758,7 +1758,23 @@
       "template": "¡Plantilla descargada!",
       "mixed": "{{valid}} válido(s), {{invalid}} con errores."
     },
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "mode": {
+      "chooseTitle": "Importar CSV / Excel",
+      "chooseSubtitle": "Elija su modo de importación",
+      "directTitle": "Importación directa CSV",
+      "directSubtitle": "Gratis e instantáneo — use nuestra plantilla estandarizada",
+      "directLabel": "Importación directa",
+      "directDesc": "Use nuestra plantilla CSV. Gratis e instantáneo.",
+      "directHint": "Descargue nuestra plantilla, complétela con sus productos e impórtela aquí. Columnas estandarizadas, sin procesamiento IA.",
+      "directFormats": "CSV o Excel · Columnas estandarizadas de la plantilla",
+      "aiLabel": "Importación IA",
+      "aiDesc": "Formato libre, la IA analiza y enriquece sus datos. Más lento.",
+      "downloadTemplate": "Descargar plantilla",
+      "changeMode": "Cambiar modo",
+      "recommended": "Recomendado",
+      "free": "Gratis"
+    }
   },
   "api": {
     "title": "Sincronización de stock en tiempo real",

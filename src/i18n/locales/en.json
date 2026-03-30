@@ -1758,7 +1758,23 @@
       "template": "Template downloaded!",
       "mixed": "{{valid}} valid, {{invalid}} with errors."
     },
-    "close": "Close"
+    "close": "Close",
+    "mode": {
+      "chooseTitle": "CSV / Excel Import",
+      "chooseSubtitle": "Choose your import mode",
+      "directTitle": "Direct CSV Import",
+      "directSubtitle": "Free and instant — use our standardized template",
+      "directLabel": "Direct import",
+      "directDesc": "Use our CSV template. Free and instant.",
+      "directHint": "Download our template, fill it with your products, then upload it here. Standardized columns, no AI processing.",
+      "directFormats": "CSV or Excel · Standardized template columns",
+      "aiLabel": "AI import",
+      "aiDesc": "Any format, AI analyzes and enriches your data. Slower.",
+      "downloadTemplate": "Download template",
+      "changeMode": "Change mode",
+      "recommended": "Recommended",
+      "free": "Free"
+    }
   },
   "api": {
     "title": "Real-time stock sync",

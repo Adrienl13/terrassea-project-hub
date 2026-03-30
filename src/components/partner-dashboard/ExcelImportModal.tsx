@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
   X, Upload, FileSpreadsheet, Check, Loader2, AlertTriangle,
   Download, Trash2, CheckCircle2, XCircle, Info, Sparkles,
-  ImagePlus, Link2, Image as ImageIcon,
+  ImagePlus, Link2, Image as ImageIcon, Zap, Bot, ArrowLeft,
 } from "lucide-react";
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
 
@@ -136,9 +136,11 @@ export default function ExcelImportModal({
   const { user } = useAuth();
   const config = PLAN_CONFIG[plan];
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const directFileInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<"upload" | "analyzing" | "preview" | "photos" | "importing">("upload");
+  const [importMode, setImportMode] = useState<"select" | "direct" | "ai">("select");
   const [fileName, setFileName] = useState("");
   const [products, setProducts] = useState<AIProduct[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
@@ -188,10 +190,158 @@ export default function ExcelImportModal({
     setFileName(file.name);
     try {
       const text = await readFileAsText(file);
-      await processCSVWithAI(text);
+      if (importMode === "direct") {
+        processCSVDirect(text);
+      } else {
+        await processCSVWithAI(text);
+      }
     } catch (err) {
       toast.error(t("import.readError", "Impossible de lire le fichier. Vérifiez le format."));
     }
+  };
+
+  const handleFileSelectDirect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["csv", "tsv", "txt", "xlsx", "xls"].includes(ext || "")) {
+      toast.error(t("import.unsupportedFormat", "Format non supporté. Utilisez un fichier CSV, Excel (.xlsx) ou TSV."));
+      return;
+    }
+    setFileName(file.name);
+    try {
+      const text = await readFileAsText(file);
+      processCSVDirect(text);
+    } catch (err) {
+      toast.error(t("import.readError", "Impossible de lire le fichier. Vérifiez le format."));
+    }
+  };
+
+  // ── Direct CSV import (no AI) ──
+
+  const parseBool = (val: string | undefined): boolean => {
+    if (!val) return false;
+    const v = val.trim().toLowerCase();
+    return ["true", "yes", "oui", "1"].includes(v);
+  };
+
+  const parseArrayField = (val: string | undefined): string[] => {
+    if (!val) return [];
+    return val.split(/[|,]/).map(s => s.trim()).filter(Boolean);
+  };
+
+  const parseNum = (val: string | undefined): number | null => {
+    if (!val) return null;
+    const n = parseFloat(val.replace(",", "."));
+    return isNaN(n) ? null : n;
+  };
+
+  const processCSVDirect = (text: string) => {
+    const rows = parseCSV(text);
+    if (rows.length < 2) {
+      toast.error(t("ei.errors.empty", "Le fichier semble vide ou ne contient qu'un en-tête."));
+      return;
+    }
+
+    const rawHeaders = rows[0];
+    const headerMap: Record<string, number> = {};
+    rawHeaders.forEach((h, i) => {
+      headerMap[h.trim().toLowerCase()] = i;
+    });
+
+    const col = (row: string[], key: string): string | undefined => {
+      const idx = headerMap[key];
+      return idx !== undefined ? row[idx]?.trim() || undefined : undefined;
+    };
+
+    const dataRows = rows.slice(1).filter(r => r.some(c => c !== ""));
+    if (dataRows.length === 0) {
+      toast.error(t("ei.errors.none", "Aucun produit trouvé dans le fichier."));
+      return;
+    }
+
+    const mapped: AIProduct[] = dataRows.map((row) => {
+      const name = col(row, "name") || "";
+      const category = col(row, "category") || "";
+      const errors: string[] = [];
+      if (!name) errors.push(t("ei.errors.missingName", "Nom manquant"));
+      if (!category) errors.push(t("ei.errors.invalidCat", "Catégorie invalide ou manquante"));
+
+      return {
+        id: crypto.randomUUID(),
+        name,
+        category,
+        subcategory: col(row, "subcategory") || null,
+        short_description: col(row, "short_description") || null,
+        long_description: null,
+        material_structure: col(row, "material_structure") || null,
+        material_seat: col(row, "material_seat") || null,
+        main_color: col(row, "main_color") || null,
+        secondary_color: null,
+        available_colors: parseArrayField(col(row, "available_colors")),
+        style_tags: parseArrayField(col(row, "style_tags")),
+        ambience_tags: [],
+        material_tags: [],
+        use_case_tags: [],
+        technical_tags: [],
+        price_min: parseNum(col(row, "price_min")),
+        price_max: parseNum(col(row, "price_max")),
+        dimensions_length_cm: parseNum(col(row, "dimensions_length_cm")),
+        dimensions_width_cm: parseNum(col(row, "dimensions_width_cm")),
+        dimensions_height_cm: parseNum(col(row, "dimensions_height_cm")),
+        seat_height_cm: parseNum(col(row, "seat_height_cm")),
+        weight_kg: parseNum(col(row, "weight_kg")),
+        is_outdoor: col(row, "is_outdoor") !== undefined ? parseBool(col(row, "is_outdoor")) : true,
+        is_stackable: parseBool(col(row, "is_stackable")),
+        is_chr_heavy_use: false,
+        uv_resistant: false,
+        weather_resistant: false,
+        fire_retardant: false,
+        lightweight: false,
+        easy_maintenance: false,
+        country_of_manufacture: col(row, "country_of_manufacture") || null,
+        warranty: col(row, "warranty") || null,
+        stock_status: col(row, "stock_status") || null,
+        stock_quantity: null,
+        collection: col(row, "collection") || null,
+        brand_source: col(row, "brand_source") || null,
+        image_url: null,
+        gallery_urls: [],
+        valid: !!name && !!category,
+        errors,
+      };
+    });
+
+    if (mapped.length === 0) {
+      toast.error(t("ei.errors.none", "Aucun produit trouvé dans le fichier."));
+      return;
+    }
+
+    setProducts(mapped);
+    setColumnMapping({});
+    setStep("preview");
+
+    const validC = mapped.filter(p => p.valid).length;
+    const invalidC = mapped.length - validC;
+    if (invalidC > 0) {
+      toast.warning(`${validC} produit${validC > 1 ? "s" : ""} importé${validC > 1 ? "s" : ""}, ${invalidC} avec des erreurs.`);
+    } else {
+      toast.success(`${validC} produit${validC > 1 ? "s" : ""} prêt${validC > 1 ? "s" : ""} à importer.`);
+    }
+  };
+
+  const downloadDirectTemplate = () => {
+    const headers = ["name","category","subcategory","short_description","material_structure","material_seat","main_color","available_colors","style_tags","price_min","price_max","dimensions_length_cm","dimensions_width_cm","dimensions_height_cm","seat_height_cm","weight_kg","is_outdoor","is_stackable","collection","brand_source","stock_status","country_of_manufacture","warranty"];
+    const example = ["Chaise Riviera","Chairs","Dining Chair","Chaise empilable en aluminium","Aluminium","Textilene","anthracite","anthracite|white|taupe","modern|mediterranean","89","","56","58","84","45","3.8","true","true","Riviera","","available","Italy","2 ans"];
+    const csv = [headers.join(";"), example.join(";")].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "terrassea-product-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(t("ei.success.template", "Template téléchargé !"));
   };
 
   const processCSVWithAI = async (text: string) => {
@@ -550,11 +700,18 @@ export default function ExcelImportModal({
           <div>
             <h2 className="font-display font-bold text-base text-foreground flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4" />
-              Import intelligent CSV
-              <span className="text-[9px] font-body text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">IA</span>
+              {importMode === "direct" ? t("ei.mode.directTitle", "Import direct CSV") :
+               importMode === "ai" ? (
+                <>
+                  Import intelligent CSV
+                  <span className="text-[9px] font-body text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">IA</span>
+                </>
+               ) : t("ei.mode.chooseTitle", "Import CSV / Excel")}
             </h2>
             <p className="text-[10px] font-body text-muted-foreground mt-0.5">
-              L'IA analyse votre fichier et enrichit automatiquement chaque produit
+              {importMode === "direct" ? t("ei.mode.directSubtitle", "Gratuit et instantané — utilisez notre template standardisé") :
+               importMode === "ai" ? t("ei.subtitle", "L'IA analyse votre fichier et enrichit automatiquement chaque produit") :
+               t("ei.mode.chooseSubtitle", "Choisissez votre mode d'import")}
             </p>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -563,9 +720,118 @@ export default function ExcelImportModal({
         </div>
 
         <div className="px-6 py-5">
-          {/* ── Step: Upload ── */}
-          {step === "upload" && (
+          {/* ── Step: Upload — Mode Select ── */}
+          {step === "upload" && importMode === "select" && (
             <div className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Direct import card */}
+                <button
+                  onClick={() => setImportMode("direct")}
+                  className="group relative text-left border-2 border-border rounded-sm p-5 hover:border-foreground/40 transition-all"
+                >
+                  <span className="absolute top-3 right-3 text-[8px] font-display font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    {t("ei.mode.recommended", "Recommandé")}
+                  </span>
+                  <Zap className="h-6 w-6 text-amber-500 mb-3" />
+                  <p className="text-sm font-display font-bold text-foreground mb-1">
+                    {t("ei.mode.directLabel", "Import direct")}
+                  </p>
+                  <p className="text-[10px] font-body text-muted-foreground leading-relaxed">
+                    {t("ei.mode.directDesc", "Utilisez notre template CSV. Gratuit et instantané.")}
+                  </p>
+                  <span className="inline-flex items-center gap-1 mt-3 text-[9px] font-display font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    <Zap className="h-2.5 w-2.5" /> {t("ei.mode.free", "Gratuit")}
+                  </span>
+                </button>
+
+                {/* AI import card */}
+                <button
+                  onClick={() => setImportMode("ai")}
+                  className="group text-left border-2 border-border rounded-sm p-5 hover:border-foreground/40 transition-all"
+                >
+                  <Bot className="h-6 w-6 text-emerald-500 mb-3" />
+                  <p className="text-sm font-display font-bold text-foreground mb-1">
+                    {t("ei.mode.aiLabel", "Import IA")}
+                  </p>
+                  <p className="text-[10px] font-body text-muted-foreground leading-relaxed">
+                    {t("ei.mode.aiDesc", "Format libre, l'IA analyse et enrichit vos données. Plus lent.")}
+                  </p>
+                  <span className="inline-flex items-center gap-1 mt-3 text-[9px] font-display font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    <Sparkles className="h-2.5 w-2.5" /> IA
+                  </span>
+                </button>
+              </div>
+
+              <div
+                className="flex items-center gap-3 px-4 py-2.5 rounded-sm border text-[10px] font-body"
+                style={{ background: config.bg, borderColor: config.border, color: config.color }}
+              >
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                <span>
+                  <strong>Commission {config.label} : {config.commission}%</strong> — Indiquez vos prix HT, la commission sera ajoutée automatiquement.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step: Upload — Direct mode ── */}
+          {step === "upload" && importMode === "direct" && (
+            <div className="space-y-5">
+              <button onClick={() => setImportMode("select")}
+                className="flex items-center gap-1.5 text-[10px] font-display font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="h-3 w-3" /> {t("ei.mode.changeMode", "Changer de mode")}
+              </button>
+
+              <div className="flex items-start gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-sm">
+                <Zap className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-[10px] font-body text-amber-800 leading-relaxed">
+                    <strong>{t("ei.mode.directLabel", "Import direct")} :</strong>{" "}
+                    {t("ei.mode.directHint", "Téléchargez notre template, remplissez-le avec vos produits, puis importez-le ici. Colonnes standardisées, aucun traitement IA.")}
+                  </p>
+                  <button onClick={downloadDirectTemplate}
+                    className="flex items-center gap-1.5 mt-2 text-[10px] font-display font-semibold text-amber-700 hover:underline">
+                    <Download className="h-3 w-3" /> {t("ei.mode.downloadTemplate", "Télécharger le template")}
+                  </button>
+                </div>
+              </div>
+
+              <div
+                onDragOver={e => e.preventDefault()}
+                onDrop={handleDrop}
+                onClick={() => directFileInputRef.current?.click()}
+                className="border-2 border-dashed border-border rounded-sm p-10 text-center cursor-pointer hover:border-foreground/30 transition-colors"
+              >
+                <input ref={directFileInputRef} type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" onChange={handleFileSelectDirect} className="hidden" />
+                <Upload className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm font-display font-semibold text-foreground mb-1">
+                  {t("ei.upload.dragDrop", "Glissez votre fichier ou cliquez pour sélectionner")}
+                </p>
+                <p className="text-[10px] font-body text-muted-foreground">
+                  {t("ei.mode.directFormats", "CSV ou Excel · Colonnes standardisées du template")}
+                </p>
+              </div>
+
+              <div
+                className="flex items-center gap-3 px-4 py-2.5 rounded-sm border text-[10px] font-body"
+                style={{ background: config.bg, borderColor: config.border, color: config.color }}
+              >
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                <span>
+                  <strong>Commission {config.label} : {config.commission}%</strong> — Indiquez vos prix HT, la commission sera ajoutée automatiquement.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step: Upload — AI mode ── */}
+          {step === "upload" && importMode === "ai" && (
+            <div className="space-y-5">
+              <button onClick={() => setImportMode("select")}
+                className="flex items-center gap-1.5 text-[10px] font-display font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="h-3 w-3" /> {t("ei.mode.changeMode", "Changer de mode")}
+              </button>
+
               <div className="flex items-start gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-sm">
                 <Sparkles className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
                 <div className="flex-1">
