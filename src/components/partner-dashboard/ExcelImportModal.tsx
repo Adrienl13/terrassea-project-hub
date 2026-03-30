@@ -59,7 +59,9 @@ interface AIProduct {
 
 // ── CSV Parser ────────────────────────────────────────────────────────────────
 
-function parseCSV(text: string): string[][] {
+function parseCSV(rawText: string): string[][] {
+  // Strip UTF-8 BOM if present
+  const text = rawText.charCodeAt(0) === 0xFEFF ? rawText.slice(1) : rawText;
   const rows: string[][] = [];
   let current = "";
   let inQuotes = false;
@@ -149,17 +151,34 @@ export default function ExcelImportModal({
 
   // ── File handling ──
 
+  const readFileAsText = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext === "xlsx" || ext === "xls") {
+      // For Excel files, read as ArrayBuffer and convert using SheetJS
+      const { read, utils } = await import("xlsx");
+      const buffer = await file.arrayBuffer();
+      const workbook = read(buffer, { type: "array" });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      return utils.sheet_to_csv(firstSheet, { FS: ";" });
+    }
+    return file.text();
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const ext = file.name.split(".").pop()?.toLowerCase();
-    if (!["csv", "tsv", "txt"].includes(ext || "")) {
-      toast.error("Format non supporté. Utilisez un fichier CSV ou TSV.");
+    if (!["csv", "tsv", "txt", "xlsx", "xls"].includes(ext || "")) {
+      toast.error(t("import.unsupportedFormat", "Format non supporté. Utilisez un fichier CSV, Excel (.xlsx) ou TSV."));
       return;
     }
     setFileName(file.name);
-    const text = await file.text();
-    await processCSVWithAI(text);
+    try {
+      const text = await readFileAsText(file);
+      await processCSVWithAI(text);
+    } catch (err) {
+      toast.error(t("import.readError", "Impossible de lire le fichier. Vérifiez le format."));
+    }
   };
 
   const handleDrop = async (e: React.DragEvent) => {
@@ -167,8 +186,12 @@ export default function ExcelImportModal({
     const file = e.dataTransfer.files[0];
     if (!file) return;
     setFileName(file.name);
-    const text = await file.text();
-    await processCSVWithAI(text);
+    try {
+      const text = await readFileAsText(file);
+      await processCSVWithAI(text);
+    } catch (err) {
+      toast.error(t("import.readError", "Impossible de lire le fichier. Vérifiez le format."));
+    }
   };
 
   const processCSVWithAI = async (text: string) => {
@@ -564,7 +587,7 @@ export default function ExcelImportModal({
                 onClick={() => fileInputRef.current?.click()}
                 className="border-2 border-dashed border-border rounded-sm p-10 text-center cursor-pointer hover:border-foreground/30 transition-colors"
               >
-                <input ref={fileInputRef} type="file" accept=".csv,.tsv,.txt" onChange={handleFileSelect} className="hidden" />
+                <input ref={fileInputRef} type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" onChange={handleFileSelect} className="hidden" />
                 <Upload className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm font-display font-semibold text-foreground mb-1">
                   Glissez votre fichier ou cliquez pour sélectionner
