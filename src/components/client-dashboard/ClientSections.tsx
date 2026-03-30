@@ -389,7 +389,7 @@ export function ClientOverview({
           onClick={() => {
             setShowHowItWorks(!showHowItWorks);
             if (showHowItWorks) {
-              try { localStorage.setItem("terrassea_hiw_seen", "1"); } catch {}
+              try { localStorage.setItem("terrassea_hiw_seen", "1"); } catch { /* noop */ }
             }
           }}
           className="w-full flex items-center justify-between px-5 py-4 hover:bg-card transition-colors"
@@ -609,6 +609,7 @@ export function ClientProjectDetail({
   const navigate = useNavigate();
   const { data: allProjects = [] } = useClientProjects();
   const { data: allQuotes = [] } = useClientQuotes();
+  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const project = allProjects.find((p) => p.id === projectId);
 
   if (!project) {
@@ -624,7 +625,6 @@ export function ClientProjectDetail({
   const relatedQuotes = allQuotes.filter((q) => q.projectRequestId === project.id);
   const totalItems = products.reduce((sum, p) => sum + p.quantity, 0);
   const totalBudget = products.reduce((sum, p) => sum + (p.priceMin || 0) * p.quantity, 0);
-  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
 
   // Steps for progress
   const steps = ["draft", "sourcing", "quoted", "ordered", "delivered"];

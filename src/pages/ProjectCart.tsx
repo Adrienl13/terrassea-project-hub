@@ -114,13 +114,13 @@ const ProjectCart = () => {
     try {
       const saved = localStorage.getItem("terrassea_cart_form");
       if (saved) setFormData(JSON.parse(saved));
-    } catch {}
+    } catch { /* noop */ }
   }, []);
 
   useEffect(() => {
     try {
       localStorage.setItem("terrassea_cart_form", JSON.stringify(formData));
-    } catch {}
+    } catch { /* noop */ }
   }, [formData]);
 
   // ── SIREN auto-lookup ────────────────────────────────────────────────────────

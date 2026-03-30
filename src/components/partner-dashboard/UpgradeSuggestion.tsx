@@ -36,16 +36,13 @@ export default function UpgradeSuggestion({ partnerId, currentPlan }: Props) {
   const planIndex = (ORDER as readonly string[]).indexOf(planKey);
   const nextPlanKey = planIndex < ORDER.length - 1 ? ORDER[planIndex + 1] as PlanKey : null;
 
-  // Already at highest plan
-  if (!nextPlanKey) return null;
-
   const currentMeta = PLAN_META[planKey];
-  const nextMeta = PLAN_META[nextPlanKey];
+  const nextMeta = nextPlanKey ? PLAN_META[nextPlanKey] : null;
 
   // Fetch product count and recent commission spend
   const { data } = useQuery({
     queryKey: ["upgrade-suggestion", partnerId],
-    enabled: !!partnerId,
+    enabled: !!partnerId && !!nextPlanKey,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       // Count partner's published products
@@ -73,7 +70,7 @@ export default function UpgradeSuggestion({ partnerId, currentPlan }: Props) {
       }
 
       // How much they would save with the next plan's commission rate
-      const hypotheticalCommission = totalRevenue * (nextMeta.commission / 100);
+      const hypotheticalCommission = totalRevenue * (nextMeta!.commission / 100);
       const potentialSavings = Math.max(0, totalCommissionPaid - hypotheticalCommission);
 
       return {
@@ -83,6 +80,9 @@ export default function UpgradeSuggestion({ partnerId, currentPlan }: Props) {
       };
     },
   });
+
+  // Already at highest plan
+  if (!nextPlanKey || !nextMeta) return null;
 
   const productCount = data?.productCount ?? 0;
   const potentialSavings = data?.potentialSavings ?? 0;

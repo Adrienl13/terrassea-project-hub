@@ -149,7 +149,7 @@ function AddProductSearch({
   const { data: products = [] } = useQuery({
     queryKey: ["partner-products-for-arrival", partnerId, search],
     queryFn: async () => {
-      let query = supabase
+      const query = supabase
         .from("product_offers")
         .select("product_id, products(id, name, image_url)")
         .eq("partner_id", partnerId)

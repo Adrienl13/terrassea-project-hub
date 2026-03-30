@@ -88,6 +88,7 @@ export default function PartnerLoyaltyProgram({ partnerId }: Props) {
     tierProgress,
     isLoading,
   } = usePartnerLoyalty(partnerId);
+  const { isEligibleForUpgrade, eligibleTier, subscriptionPlan } = usePartnerTierConfig(partnerId);
 
   // ── Loading state ──────────────────────────────────────────────────────────
 
@@ -116,8 +117,6 @@ export default function PartnerLoyaltyProgram({ partnerId }: Props) {
       </div>
     );
   }
-
-  const { isEligibleForUpgrade, eligibleTier, subscriptionPlan } = usePartnerTierConfig(partnerId);
 
   const points = loyalty?.pointsBalance ?? 0;
   const lifetimePoints = loyalty?.lifetimePoints ?? 0;

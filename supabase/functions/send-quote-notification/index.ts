@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     }
 
     if (table === "partner_applications" && type === "UPDATE" && record.status === "approved") {
-      record.contact_email && await sendEmail(record.contact_email, "🎉 Your Terrassea partner application is approved", partnerApprovedEmail(record));
+      if (record.contact_email) await sendEmail(record.contact_email, "🎉 Your Terrassea partner application is approved", partnerApprovedEmail(record));
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });

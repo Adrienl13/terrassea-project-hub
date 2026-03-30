@@ -233,7 +233,7 @@ export function useSupplierCalls() {
   });
 
   // Get full call detail with responses + partner info
-  const getCallDetail = (callId: string) =>
+  const useCallDetail = (callId: string) =>
     useQuery<{ call: SupplierCall | null; responses: SupplierResponse[] }>({
       queryKey: ["supplier-call-detail", callId],
       queryFn: async () => {
@@ -310,7 +310,7 @@ export function useSupplierCalls() {
     isClosing: closeCallMutation.isPending,
     selectResponse: selectResponseMutation.mutateAsync,
     isSelectingResponse: selectResponseMutation.isPending,
-    getCallDetail,
+    useCallDetail,
   };
 }
 
