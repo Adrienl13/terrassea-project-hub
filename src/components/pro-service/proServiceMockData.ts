@@ -1,4 +1,4 @@
-// ── Pro Service Hub — shared mock data ────────────────────────────────────────
+// ── Pro Service Hub — placeholder data (admin-only, no DB tables yet) ─────────
 
 export type ProjectStatus =
   | "submitted"

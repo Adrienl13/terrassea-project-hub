@@ -134,8 +134,8 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-    } catch (err) {
-      console.warn("Failed to persist cart to localStorage:", err);
+    } catch {
+      // localStorage persist failed silently
     }
   }, [items]);
 
@@ -143,8 +143,8 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       localStorage.setItem(NOTES_STORAGE_KEY, notes);
-    } catch (err) {
-      console.warn("Failed to persist notes to localStorage:", err);
+    } catch {
+      // localStorage persist failed silently
     }
   }, [notes]);
 
@@ -167,7 +167,6 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
 
         if (error) {
-          console.warn("Failed to load server cart:", error);
           return;
         }
 
@@ -186,7 +185,6 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
                 .in("id", productIds);
 
               if (prodErr || !products) {
-                console.warn("Failed to hydrate server cart products:", prodErr);
                 return;
               }
 
@@ -210,8 +208,8 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
             }
           }
         }
-      } catch (err) {
-        console.warn("Error loading server cart:", err);
+      } catch {
+        // Server cart load failed silently
       }
     })();
   }, [user]);
@@ -244,13 +242,11 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
             { onConflict: "user_id" }
           );
 
-        if (error) {
-          console.warn("Failed to sync cart to server:", error);
-        } else {
+        if (!error) {
           serverCartExistsRef.current = true;
         }
-      } catch (err) {
-        console.warn("Error syncing cart to server:", err);
+      } catch {
+        // Server sync failed silently
       }
     }, 3000);
 
@@ -265,8 +261,8 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
         .from("saved_carts")
         .update({ submitted_at: new Date().toISOString() })
         .eq("user_id", user.id);
-    } catch (err) {
-      console.warn("Failed to mark cart as submitted:", err);
+    } catch {
+      // Mark-submitted failed silently
     }
   }, [user]);
 

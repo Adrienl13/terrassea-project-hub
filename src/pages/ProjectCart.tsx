@@ -258,7 +258,7 @@ const ProjectCart = () => {
           });
         }
       } catch {
-        console.warn("Failed to create admin notifications for cart submission");
+        // Non-blocking: admin notification failed silently
       }
 
       // Send confirmation email (non-blocking)
@@ -272,7 +272,7 @@ const ProjectCart = () => {
           },
         });
       } catch {
-        console.warn("Failed to send cart submission confirmation email");
+        // Non-blocking: confirmation email failed silently
       }
     } catch (err) {
       console.error(err);

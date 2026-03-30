@@ -91,7 +91,6 @@ export function useChatbot() {
 
       const { data, error: err } = await query;
       if (err) {
-        console.warn("Chatbot product search error:", err);
         return [];
       }
       return (data ?? []).map(normalizeProduct);

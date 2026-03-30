@@ -947,7 +947,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
           });
         }
       } catch {
-        console.warn("Failed to notify admins of quote acceptance");
+        // Non-blocking: admin notification failed silently
       }
     } catch (err) {
       console.error(err);

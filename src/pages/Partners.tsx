@@ -401,7 +401,7 @@ export default function Partners() {
             >
               {[
                 { value: `${partners.length || "—"}`, label: t('partners.verifiedSuppliersCount'),  accent: "#D4603A" },
-                { value: `${countries.length || "7"}`, label: t('partners.countriesCovered'),  accent: "#4A90A4" },
+                { value: `${countries.length || "—"}`, label: t('partners.countriesCovered'),  accent: "#4A90A4" },
                 { value: "100%",                        label: t('partners.chrReviewed'),       accent: "#1D9E75" },
                 { value: t('partners.protected'),       label: t('partners.supplierIdentity'),  accent: "#8B7355" },
               ].map((stat, i) => (

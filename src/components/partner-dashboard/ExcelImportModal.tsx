@@ -211,8 +211,7 @@ export default function ExcelImportModal({
           if (result.error) throw result.error;
           if (!result.data?.products) throw new Error("Pas de produits retournés");
           data = result.data;
-        } catch (batchErr: any) {
-          console.warn(`Batch ${batchNum} failed:`, batchErr);
+        } catch {
           toast.warning(`Lot ${batchNum}/${totalBatches} échoué — ${batch.length} produits ignorés.`);
           continue; // Skip this batch, continue with the rest
         }
@@ -371,11 +370,10 @@ export default function ExcelImportModal({
       const slug = productName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").slice(0, 50);
       const path = `product-imports/${Date.now()}-${slug}-${index}.${ext}`;
       const { error } = await supabase.storage.from("product-images").upload(path, blob, { contentType: blob.type, upsert: false });
-      if (error) { console.warn("Photo upload failed:", error.message); return null; }
+      if (error) { return null; }
       const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
       return urlData?.publicUrl || null;
-    } catch (err) {
-      console.warn("Photo upload error:", err);
+    } catch {
       return null;
     }
   };
@@ -463,13 +461,11 @@ export default function ExcelImportModal({
           partner_id: partnerId,
         });
         if (error) {
-          console.warn(`Insert failed for "${p.name}":`, error.message);
           failedNames.push(p.name);
         } else {
           imported++;
         }
-      } catch (err: any) {
-        console.warn(`Insert exception for "${p.name}":`, err);
+      } catch {
         failedNames.push(p.name);
       }
       setImportProgress(Math.round(((idx + 1) / validProducts.length) * 100));

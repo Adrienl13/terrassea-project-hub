@@ -197,8 +197,8 @@ export default function AdminOrderTracking() {
               queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
             }
           }
-        } catch (err) {
-          console.warn("Auto-migration check failed:", err);
+        } catch {
+          // Auto-migration check failed silently
         }
       }
     }
@@ -276,7 +276,7 @@ export default function AdminOrderTracking() {
                       body: { action: "notify_order_shipped", orderId: selected.id },
                     });
                   } catch {
-                    console.warn("Failed to send order shipped notification");
+                    // Non-blocking: shipped notification failed silently
                   }
                 }} />
             )}
@@ -301,7 +301,7 @@ export default function AdminOrderTracking() {
                         },
                       });
                     } catch {
-                      console.warn("Failed to send delivery confirmation email");
+                      // Non-blocking: delivery email failed silently
                     }
                   }
                 }} />

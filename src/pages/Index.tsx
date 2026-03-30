@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Compass, Layers, Send, Sparkles, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import SEO from "@/components/SEO";
 import SmartSearch from "@/components/SmartSearch";
 import SpaceCard from "@/components/SpaceCard";
@@ -26,7 +28,26 @@ import spaceCamping from "@/assets/space-camping.jpg";
 
 // spaces and stats/steps are now translated inline via t()
 
-
+async function fetchPlatformStats() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sb = supabase as any;
+  const productsRes = await sb.from("products").select("id", { count: "exact", head: true }).eq("is_active", true);
+  const partnersRes = await sb.from("partners").select("id", { count: "exact", head: true }).eq("is_active", true);
+  const countriesRes = await sb.from("partners").select("country").eq("is_active", true);
+  const categoriesRes = await sb.from("products").select("category").eq("is_active", true);
+  const distinctCountries = new Set<string>(
+    ((countriesRes.data ?? []) as { country: string | null }[]).map((r) => r.country).filter(Boolean) as string[]
+  );
+  const distinctCategories = new Set<string>(
+    ((categoriesRes.data ?? []) as { category: string | null }[]).map((r) => r.category).filter(Boolean) as string[]
+  );
+  return {
+    products: (productsRes.count ?? 0) as number,
+    partners: (partnersRes.count ?? 0) as number,
+    countries: distinctCountries.size,
+    categories: distinctCategories.size,
+  };
+}
 
 type FlowPhase = "idle" | "product_search" | "discovery" | "results";
 
@@ -35,6 +56,12 @@ const Index = () => {
   const navigate = useNavigate();
   const heroRef = useRef<HTMLDivElement>(null);
   const { data: products = [], isLoading: productsLoading } = useProducts();
+
+  const { data: platformStats } = useQuery({
+    queryKey: ["platform-stats"],
+    queryFn: fetchPlatformStats,
+    staleTime: 1000 * 60 * 10,
+  });
 
   const [phase, setPhase] = useState<FlowPhase>("idle");
   const [searchQuery, setSearchQuery] = useState("");
@@ -283,10 +310,10 @@ const Index = () => {
         <div className="container mx-auto">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { value: "500+", labelKey: "stats.curatedProducts" },
-              { value: "10+", labelKey: "stats.partnerSuppliers" },
-              { value: "5", labelKey: "stats.europeanCountries" },
-              { value: "5", labelKey: "stats.spaceCategories" },
+              { value: platformStats ? String(platformStats.products) : "—", labelKey: "stats.curatedProducts" },
+              { value: platformStats ? String(platformStats.partners) : "—", labelKey: "stats.partnerSuppliers" },
+              { value: platformStats ? String(platformStats.countries) : "—", labelKey: "stats.europeanCountries" },
+              { value: platformStats ? String(platformStats.categories) : "—", labelKey: "stats.spaceCategories" },
             ].map((stat, i) =>
             <motion.div key={stat.labelKey} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
                 <p className="font-display text-2xl md:text-3xl font-bold text-foreground">{stat.value}</p>

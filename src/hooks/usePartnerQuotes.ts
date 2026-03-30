@@ -141,7 +141,7 @@ export function usePartnerQuotes() {
             }
           }
         } catch {
-          console.warn("Failed to send quote reply notification");
+          // Non-blocking: quote reply notification failed silently
         }
       }
     },

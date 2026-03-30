@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Layers, Sparkles, X } from "lucide-react";
 import Header from "@/components/Header";
@@ -23,7 +25,6 @@ interface MoodboardDef {
   palette: string[];
   colorNames: string[];
   materials: Material[];
-  productCount: number;
   keywordKeys: string[];
   gradient: string;
   accentColor: string;
@@ -32,13 +33,13 @@ interface MoodboardDef {
 // ─── Static data (translation-key based) ───────────────────────────────────────
 
 const SPACE_IDS = ["all", "restaurant", "hotel", "rooftop", "beachclub", "camping"] as const;
-const SPACE_META: Record<string, { gradient: string; emoji: string; count: number }> = {
-  all:        { gradient: "", emoji: "✦", count: 0 },
-  restaurant: { gradient: "from-[#D4603A]/20 via-[#C4956A]/10 to-transparent", emoji: "🍽", count: 42 },
-  hotel:      { gradient: "from-[#4A90A4]/20 via-[#8AAFBF]/10 to-transparent", emoji: "🏨", count: 28 },
-  rooftop:    { gradient: "from-[#2D2D2D]/20 via-[#C4956A]/10 to-transparent", emoji: "🌆", count: 19 },
-  beachclub:  { gradient: "from-[#2BBCD4]/20 via-[#F2C14E]/10 to-transparent", emoji: "🏖", count: 15 },
-  camping:    { gradient: "from-[#6B7B5E]/20 via-[#8B7355]/10 to-transparent", emoji: "⛺", count: 11 },
+const SPACE_META: Record<string, { gradient: string; emoji: string }> = {
+  all:        { gradient: "", emoji: "✦" },
+  restaurant: { gradient: "from-[#D4603A]/20 via-[#C4956A]/10 to-transparent", emoji: "🍽" },
+  hotel:      { gradient: "from-[#4A90A4]/20 via-[#8AAFBF]/10 to-transparent", emoji: "🏨" },
+  rooftop:    { gradient: "from-[#2D2D2D]/20 via-[#C4956A]/10 to-transparent", emoji: "🌆" },
+  beachclub:  { gradient: "from-[#2BBCD4]/20 via-[#F2C14E]/10 to-transparent", emoji: "🏖" },
+  camping:    { gradient: "from-[#6B7B5E]/20 via-[#8B7355]/10 to-transparent", emoji: "⛺" },
 };
 
 const STYLE_KEYS = ["allStyles", "bistro", "mediterranean", "beachClub", "urban", "lounge", "nordic", "natural"] as const;
@@ -58,7 +59,7 @@ const MOODBOARD_DEFS: MoodboardDef[] = [
       { color: "#9B9B9B", labelKey: "materials.cafeParisien.2.label", proKey: "materials.cafeParisien.2.pro" },
       { color: "#C0C0C0", labelKey: "materials.cafeParisien.3.label", proKey: "materials.cafeParisien.3.pro" },
     ],
-    productCount: 12,
+
     keywordKeys: ["moods.convivial", "moods.authentic", "moods.highTraffic"],
     gradient: "from-[#C0392B] via-[#7D2935] to-[#1A1A1A]",
     accentColor: "#C0392B",
@@ -77,7 +78,7 @@ const MOODBOARD_DEFS: MoodboardDef[] = [
       { color: "#C0C0C0", labelKey: "materials.rivieraMed.2.label", proKey: "materials.rivieraMed.2.pro" },
       { color: "#D4603A", labelKey: "materials.rivieraMed.3.label", proKey: "materials.rivieraMed.3.pro" },
     ],
-    productCount: 18,
+
     keywordKeys: ["moods.warm", "moods.mediterranean", "moods.heavyUse"],
     gradient: "from-[#D4603A] via-[#C4956A] to-[#4A90A4]",
     accentColor: "#D4603A",
@@ -96,7 +97,7 @@ const MOODBOARD_DEFS: MoodboardDef[] = [
       { color: "#F5E6D3", labelKey: "materials.beachClub.2.label", proKey: "materials.beachClub.2.pro" },
       { color: "#C0C0C0", labelKey: "materials.beachClub.3.label", proKey: "materials.beachClub.3.pro" },
     ],
-    productCount: 14,
+
     keywordKeys: ["moods.relaxed", "moods.ibizaStyle", "moods.marineResistance"],
     gradient: "from-[#2BBCD4] via-[#F2C14E] to-[#F5E6D3]",
     accentColor: "#2BBCD4",
@@ -115,7 +116,7 @@ const MOODBOARD_DEFS: MoodboardDef[] = [
       { color: "#5D3A1A", labelKey: "materials.rooftopUrban.2.label", proKey: "materials.rooftopUrban.2.pro" },
       { color: "#888888", labelKey: "materials.rooftopUrban.3.label", proKey: "materials.rooftopUrban.3.pro" },
     ],
-    productCount: 10,
+
     keywordKeys: ["moods.contemporary", "moods.evening", "moods.windResistance"],
     gradient: "from-[#1A1A1A] via-[#2D2D2D] to-[#C4956A]",
     accentColor: "#C4956A",
@@ -134,7 +135,7 @@ const MOODBOARD_DEFS: MoodboardDef[] = [
       { color: "#888888", labelKey: "materials.loungeLuxe.2.label", proKey: "materials.loungeLuxe.2.pro" },
       { color: "#8B7355", labelKey: "materials.loungeLuxe.3.label", proKey: "materials.loungeLuxe.3.pro" },
     ],
-    productCount: 9,
+
     keywordKeys: ["moods.refined", "moods.evening", "moods.highEnd"],
     gradient: "from-[#1B4D3E] via-[#1A2456] to-[#722F37]",
     accentColor: "#C4956A",
@@ -153,7 +154,7 @@ const MOODBOARD_DEFS: MoodboardDef[] = [
       { color: "#F5E6D3", labelKey: "materials.nordicCalm.2.label", proKey: "materials.nordicCalm.2.pro" },
       { color: "#6B7B5E", labelKey: "materials.nordicCalm.3.label", proKey: "materials.nordicCalm.3.pro" },
     ],
-    productCount: 11,
+
     keywordKeys: ["moods.pure", "moods.functional", "moods.fourSeasons"],
     gradient: "from-[#D4C9B8] via-[#B4B2A9] to-[#8B7355]",
     accentColor: "#8B7355",
@@ -172,7 +173,7 @@ const MOODBOARD_DEFS: MoodboardDef[] = [
       { color: "#F5E6D3", labelKey: "materials.naturalOrganic.2.label", proKey: "materials.naturalOrganic.2.pro" },
       { color: "#6B7B5E", labelKey: "materials.naturalOrganic.3.label", proKey: "materials.naturalOrganic.3.pro" },
     ],
-    productCount: 13,
+
     keywordKeys: ["moods.authentic", "moods.durable", "moods.ecoFriendly"],
     gradient: "from-[#8B7355] via-[#6B7B5E] to-[#D4C9B8]",
     accentColor: "#8B7355",
@@ -210,10 +211,11 @@ function GradientVisual({ gradient, styleLabel }: { gradient: string; styleLabel
 
 // ─── MoodCard ─────────────────────────────────────────────────────────────────
 
-function MoodCard({ board, isSelected, onSelect, t }: {
+function MoodCard({ board, isSelected, onSelect, productCount, t }: {
   board: MoodboardDef;
   isSelected: boolean;
   onSelect: (b: MoodboardDef) => void;
+  productCount: number;
   t: (key: string) => string;
 }) {
   const name = t(`inspirations.${board.nameKey}`);
@@ -237,7 +239,7 @@ function MoodCard({ board, isSelected, onSelect, t }: {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-display font-semibold text-foreground">{name}</h3>
             <span className="text-[10px] text-muted-foreground font-body">
-              {board.productCount} {t('inspirations.products')}
+              {productCount} {t('inspirations.products')}
             </span>
           </div>
           <p className="text-xs text-muted-foreground font-body mt-0.5">{tagline}</p>
@@ -275,7 +277,7 @@ function MoodCard({ board, isSelected, onSelect, t }: {
 
 // ─── Detail panel ─────────────────────────────────────────────────────────────
 
-function DetailPanel({ board, onClose, t }: { board: MoodboardDef; onClose: () => void; t: (key: string) => string }) {
+function DetailPanel({ board, onClose, productCount, t }: { board: MoodboardDef; onClose: () => void; productCount: number; t: (key: string) => string }) {
   const navigate = useNavigate();
   const name = t(`inspirations.${board.nameKey}`);
   const styleLabel = t(`inspirations.styles.${board.styleKey}`);
@@ -356,7 +358,7 @@ function DetailPanel({ board, onClose, t }: { board: MoodboardDef; onClose: () =
                   {t('inspirations.available')}
                 </span>
               </div>
-              <p className="text-2xl font-display font-bold text-foreground">{board.productCount}</p>
+              <p className="text-2xl font-display font-bold text-foreground">{productCount}</p>
               <p className="text-[10px] text-muted-foreground">
                 {t('inspirations.matchingStyle')}
               </p>
@@ -391,6 +393,49 @@ const Inspirations = () => {
   const [activeSpace, setActiveSpace] = useState(searchParams.get("space") || "all");
   const [activeStyleKey, setActiveStyleKey] = useState("allStyles");
   const [selectedBoard, setSelectedBoard] = useState<MoodboardDef | null>(null);
+
+  // Fetch product counts by category and style_tags
+  const { data: productCounts } = useQuery({
+    queryKey: ["inspiration-counts"],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from("products")
+        .select("category, style_tags")
+        .eq("is_active", true);
+      const rows = (data ?? []) as { category: string | null; style_tags: string[] | null }[];
+
+      // Count by category (for SPACE_META)
+      const byCategory: Record<string, number> = {};
+      for (const row of rows) {
+        const cat = row.category;
+        if (cat) byCategory[cat] = (byCategory[cat] ?? 0) + 1;
+      }
+
+      // Count by style tag (for moodboard productCount)
+      const byStyle: Record<string, number> = {};
+      for (const row of rows) {
+        const tags: string[] = row.style_tags ?? [];
+        for (const tag of tags) {
+          byStyle[tag] = (byStyle[tag] ?? 0) + 1;
+        }
+      }
+
+      return { byCategory, byStyle };
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const getSpaceCount = (id: string): number => {
+    if (!productCounts || id === "all") return 0;
+    return productCounts.byCategory[id] ?? 0;
+  };
+
+  const getStyleCount = (styleKey: string): number => {
+    if (!productCounts) return 0;
+    const tag = STYLE_URL_MAP[styleKey] || styleKey;
+    return productCounts.byStyle[tag] ?? 0;
+  };
 
   const filtered = useMemo(() =>
     MOODBOARD_DEFS.filter((b) => {
@@ -470,8 +515,8 @@ const Inspirations = () => {
                     <div className="relative">
                       <p className="text-base mb-0.5">{meta.emoji}</p>
                       <p className="text-xs font-display font-semibold text-foreground">{getSpaceLabel(id)}</p>
-                      {meta.count > 0 && (
-                        <p className="text-[10px] text-muted-foreground">{meta.count} {t('inspirations.inspi')}</p>
+                      {id !== "all" && getSpaceCount(id) > 0 && (
+                        <p className="text-[10px] text-muted-foreground">{getSpaceCount(id)} {t('inspirations.inspi')}</p>
                       )}
                     </div>
                   </button>
@@ -528,7 +573,7 @@ const Inspirations = () => {
               <AnimatePresence mode="wait">
                 <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filtered.map((board) => (
-                    <MoodCard key={board.id} board={board} isSelected={selectedBoard?.id === board.id} onSelect={handleSelect} t={t} />
+                    <MoodCard key={board.id} board={board} isSelected={selectedBoard?.id === board.id} onSelect={handleSelect} productCount={getStyleCount(board.styleKey)} t={t} />
                   ))}
                 </motion.div>
               </AnimatePresence>
@@ -541,7 +586,7 @@ const Inspirations = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <AnimatePresence mode="wait">
               {selectedBoard && (
-                <DetailPanel board={selectedBoard} onClose={() => setSelectedBoard(null)} t={t} />
+                <DetailPanel board={selectedBoard} onClose={() => setSelectedBoard(null)} productCount={getStyleCount(selectedBoard.styleKey)} t={t} />
               )}
             </AnimatePresence>
           </div>

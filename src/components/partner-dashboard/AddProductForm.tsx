@@ -290,7 +290,6 @@ export default function AddProductForm({
         .from("product-images")
         .upload(path, file, { contentType: file.type });
       if (uploadError) {
-        console.warn("Upload failed, using preview:", uploadError.message);
         urls.push(preview);
       } else {
         const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
@@ -402,7 +401,6 @@ export default function AddProductForm({
 
         if (uploadError) {
           // If bucket doesn't exist, use the preview as URL placeholder
-          console.warn("Upload failed, using placeholder:", uploadError.message);
           finalImageUrl = imagePreview || "";
         } else {
           const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);

@@ -26,8 +26,8 @@ export function CompareProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       localStorage.setItem("terrassea_compare", JSON.stringify(items));
-    } catch (err) {
-      console.warn("Failed to persist compare items to localStorage:", err);
+    } catch {
+      // localStorage persist failed silently
     }
   }, [items]);
 

@@ -150,8 +150,6 @@ interface ArchitectQuote {
   attachments?: string[];
 }
 
-// MOCK_QUOTES removed — now fetched from quote_requests table in ArchitectQuotesSection.
-
 interface ResponseProduct {
   name: string;
   qty: number;
@@ -204,10 +202,6 @@ interface SupplierCall {
   createdAt: string;
   responses: SupplierResponse[];
 }
-
-// MOCK_SUPPLIER_CALLS removed — now using useSupplierCalls() hook for real DB data.
-
-// MOCK_POINTS_HISTORY removed — rewards system is "coming soon".
 
 // ── Tier Badge ─────────────────────────────────────────────────────────────────
 

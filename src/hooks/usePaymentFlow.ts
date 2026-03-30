@@ -230,8 +230,7 @@ export function usePaymentFlow() {
           },
         });
       } catch {
-        // Email sending is non-blocking; log but don't throw
-        console.warn("Failed to send payment instructions email");
+        // Email sending is non-blocking
       }
 
       // 7. Create in-app notification for the client

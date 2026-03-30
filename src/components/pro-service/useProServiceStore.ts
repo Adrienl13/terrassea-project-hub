@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  // Demo data — will be replaced with DB queries when tables exist
   MOCK_PROFESSIONALS,
   MOCK_ARCHITECT_REQUESTS,
   type ProProject, type ProConnection, type ProProfessional,
@@ -90,12 +89,10 @@ export function useProServiceStore(): ProServiceStore {
   const [connections, setConnections] = useState<ProConnection[]>([]);
   const [supplierCalls] = useState<SupplierCall[]>([]);
   const [architectRequests, setArchitectRequests] = useState<ArchitectRequest[]>(
-    // Demo data — will be replaced when architect_requests table is created
     [...MOCK_ARCHITECT_REQUESTS]
   );
   const [isLoading, setIsLoading] = useState(true);
 
-  // Demo data — no professionals table exists yet
   const professionals = MOCK_PROFESSIONALS;
 
   // ── Fetch projects from pro_service_requests ──────────────────────────────

@@ -33,8 +33,8 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     try {
       localStorage.setItem("terrassea_favourites", JSON.stringify(favourites));
-    } catch (err) {
-      console.warn("Failed to persist favourites to localStorage:", err);
+    } catch {
+      // localStorage persist failed silently
     }
   }, [favourites]);
 
@@ -74,8 +74,8 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
           const newProducts = (products as unknown as DBProduct[]).filter((p) => !existingIds.has(p.id));
           return newProducts.length > 0 ? [...prev, ...newProducts] : prev;
         });
-      } catch (err) {
-        console.warn("Failed to load DB favourites:", err);
+      } catch {
+        // DB favourites load failed silently
       }
     })();
   }, [user]);
@@ -96,8 +96,8 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
           .eq("entity_type", "product")
           .eq("entity_id", productId);
       }
-    } catch (err) {
-      console.warn("Failed to sync favourite to DB:", err);
+    } catch {
+      // DB sync failed silently
     }
   }, [user]);
 

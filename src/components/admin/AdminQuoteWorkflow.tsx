@@ -248,8 +248,8 @@ export default function AdminQuoteWorkflow() {
           },
         });
       }
-    } catch (err) {
-      console.warn("Failed to notify partner about quote assignment:", err);
+    } catch {
+      // Non-blocking: partner notification failed silently
     }
   };
 

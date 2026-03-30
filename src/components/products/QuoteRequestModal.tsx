@@ -163,7 +163,7 @@ const QuoteRequestModal = ({
           });
         }
       } catch {
-        console.warn("Failed to create admin notifications for quote request");
+        // Non-blocking: admin notification failed silently
       }
 
       setStep("success");
