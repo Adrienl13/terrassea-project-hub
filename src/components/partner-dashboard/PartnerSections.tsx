@@ -330,6 +330,58 @@ function ProductRow({
 // ── PARTNER OVERVIEW ─────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
+function TopProductsWidget({ partnerId, onNavigate }: { partnerId: string | null; onNavigate: PartnerSectionSetter }) {
+  const { t } = useTranslation();
+  const { data: topProducts = [] } = useQuery({
+    queryKey: ["partner-top-products", partnerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("product_offers")
+        .select("product_id, product:product_id(name, image_url)")
+        .eq("partner_id", partnerId!)
+        .eq("is_active", true)
+        .is("source_offer_id", null)
+        .limit(3);
+      return (data ?? []) as { product_id: string; product: { name: string; image_url: string | null } | null }[];
+    },
+    enabled: !!partnerId,
+  });
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="font-display font-bold text-sm text-foreground">{t('pd.overview.topProducts')}</p>
+        <button
+          onClick={() => onNavigate("catalogue")}
+          className="text-[10px] font-body text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+        >
+          {t('pd.overview.myCatalogue')} <ChevronRight className="h-3 w-3" />
+        </button>
+      </div>
+      <div className="space-y-2">
+        {topProducts.length > 0 ? topProducts.map((item) => (
+          <div
+            key={item.product_id}
+            onClick={() => onNavigate("catalogue")}
+            className="flex items-center justify-between px-3 py-2 border border-border rounded-sm cursor-pointer hover:border-foreground/20 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              {item.product?.image_url ? (
+                <img src={item.product.image_url} alt="" className="w-6 h-6 rounded object-cover" />
+              ) : (
+                <Star className="h-3.5 w-3.5 text-amber-500" />
+              )}
+              <p className="text-xs font-display font-semibold text-foreground">{item.product?.name || "—"}</p>
+            </div>
+          </div>
+        )) : (
+          <p className="text-xs font-body text-muted-foreground py-4 text-center">{t('pd.overview.noProducts', 'Aucun produit dans le catalogue')}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNavigate: PartnerSectionSetter }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -478,39 +530,7 @@ export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNav
       </div>
 
       {/* Top products */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-display font-bold text-sm text-foreground">{t('pd.overview.topProducts')}</p>
-          <button
-            onClick={() => onNavigate("catalogue")}
-            className="text-[10px] font-body text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-          >
-            {t('pd.overview.myCatalogue')} <ChevronRight className="h-3 w-3" />
-          </button>
-        </div>
-        <div className="space-y-2">
-          <div
-            onClick={() => onNavigate("catalogue")}
-            className="flex items-center justify-between px-3 py-2 border border-border rounded-sm cursor-pointer hover:border-foreground/20 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Star className="h-3.5 w-3.5 text-amber-500" />
-              <p className="text-xs font-display font-semibold text-foreground">Chaise Riviera</p>
-            </div>
-            <p className="text-[10px] font-body text-muted-foreground">142 vues · 12 devis</p>
-          </div>
-          <div
-            onClick={() => onNavigate("catalogue")}
-            className="flex items-center justify-between px-3 py-2 border border-border rounded-sm cursor-pointer hover:border-foreground/20 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Star className="h-3.5 w-3.5 text-amber-500" />
-              <p className="text-xs font-display font-semibold text-foreground">Parasol XL</p>
-            </div>
-            <p className="text-[10px] font-body text-muted-foreground">98 vues · 8 devis</p>
-          </div>
-        </div>
-      </div>
+      <TopProductsWidget partnerId={partnerId} onNavigate={onNavigate} />
 
       {/* Quick messages preview */}
       <QuickMessagesPreview onNavigate={onNavigate} />
