@@ -166,7 +166,7 @@ export default function ProServiceAdminHub({ store }: { store: ProServiceStore }
                             <ThumbsUp className="h-3 w-3" /> {t("proHub.admin.approve")}
                           </button>
                           <button
-                            onClick={() => store.updateConnectionStatus(conn.id, "rejected")}
+                            onClick={() => store.updateConnectionStatus(conn.id, "declined")}
                             className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-display font-semibold text-muted-foreground border border-border rounded-full hover:text-foreground"
                           >
                             <XCircle className="h-3 w-3" /> {t("proHub.admin.reject")}

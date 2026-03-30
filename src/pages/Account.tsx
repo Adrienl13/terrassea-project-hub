@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox, Clock,
-  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck,
+  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -65,6 +65,7 @@ import BrandCollectionManager from "@/components/partner-dashboard/BrandCollecti
 import BrandNetworkDashboard from "@/components/partner-dashboard/BrandNetworkDashboard";
 import BrandNetworkOverview from "@/components/partner-dashboard/BrandNetworkOverview";
 import BrandMemberOverview from "@/components/partner-dashboard/BrandMemberOverview";
+import BrandCatalogueSection from "@/components/partner-dashboard/BrandCatalogueSection";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -389,6 +390,20 @@ const Account = () => {
     },
     enabled: !!partnerId && profile?.user_type === "partner",
   });
+  // Detect if partner is a distributor (has brand_distributors records)
+  const { data: isDistributor = false } = useQuery({
+    queryKey: ["partner-is-distributor", partnerId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("brand_distributors")
+        .select("id", { count: "exact", head: true })
+        .eq("distributor_id", partnerId!)
+        .eq("is_active", true);
+      return (count ?? 0) > 0;
+    },
+    enabled: !!partnerId && profile?.user_type === "partner",
+  });
+
   const partnerPlan: PartnerPlan =
     partnerData?.plan === "elite" || partnerData?.plan === "growth" || partnerData?.plan === "starter" || partnerData?.plan === "brand_member" || partnerData?.plan === "brand_network"
       ? (partnerData.plan as PartnerPlan)
@@ -455,11 +470,23 @@ const Account = () => {
 
   const userType = profile.user_type as keyof typeof PROFILE_CONFIG;
   const config = PROFILE_CONFIG[userType] ?? PROFILE_CONFIG.client;
-  const nav = userType === "partner"
-    ? (partnerData?.partner_mode === "brand_network" ? NAV_BRAND_NETWORK
-       : partnerData?.partner_mode === "brand_member" ? NAV_BRAND_MEMBER
-       : getPartnerNav(partnerPlan))
-    : config.nav;
+  const brandCatalogueNavItem = { id: "brand-catalogue", icon: Tag, labelKey: "account.brandCatalogue" };
+
+  const nav = (() => {
+    if (userType !== "partner") return config.nav;
+    let base = partnerData?.partner_mode === "brand_network"
+      ? NAV_BRAND_NETWORK
+      : partnerData?.partner_mode === "brand_member"
+        ? NAV_BRAND_MEMBER
+        : getPartnerNav(partnerPlan);
+    // Add brand catalogue nav for distributors (partners with inherited offers)
+    if (isDistributor) {
+      const settingsIdx = base.findIndex(item => item.id === "settings");
+      const insertIdx = settingsIdx >= 0 ? settingsIdx : base.length;
+      base = [...base.slice(0, insertIdx), brandCatalogueNavItem, ...base.slice(insertIdx)];
+    }
+    return base;
+  })();
 
   const handleSignOut = async () => {
     await signOut();
@@ -573,6 +600,7 @@ const Account = () => {
               ? <BrandNetworkDashboard partnerId={partnerId!} />
               : <BrandBriefInbox partnerId={partnerId!} />;
             case "collections":   return <BrandCollectionManager partnerId={partnerId!} />;
+            case "brand-catalogue": return <BrandCatalogueSection partnerId={partnerId!} />;
             case "messages":      return <PartnerMessagesSection />;
             case "network":       return <BrandNetworkDashboard partnerId={partnerId!} />;
             case "performance":   return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
@@ -588,6 +616,7 @@ const Account = () => {
           case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
           case "messages":    return <PartnerMessagesSection />;
           case "catalogue":   return <><PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />{partnerId && <PartnerSubmissionFeedbackSection partnerId={partnerId} />}</>;
+          case "brand-catalogue": return <BrandCatalogueSection partnerId={partnerId!} />;
           case "arrivals":    return <PartnerArrivalsSection partnerId={partnerId} />;
           case "featured":    return <PartnerFeaturedSection plan={partnerPlan} partnerId={partnerId} />;
           case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;

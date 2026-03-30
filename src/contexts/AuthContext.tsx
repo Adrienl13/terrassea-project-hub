@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setProfile(null);
         return;
       }
-      setProfile(data ?? null);
+      setProfile(data as UserProfile ?? null);
     } catch (err) {
       console.error("[Auth] Unexpected error fetching profile:", err);
       setProfile(null);

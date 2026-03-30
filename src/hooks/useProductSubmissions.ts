@@ -100,7 +100,7 @@ export function useProductSubmission() {
 
         const { data: submission, error: insertError } = await supabase
           .from("product_submissions")
-          .insert(submissionPayload as Record<string, unknown>)
+          .insert(submissionPayload as any)
           .select("id")
           .single();
 
@@ -132,7 +132,7 @@ export function useProductSubmission() {
 
           await supabase
             .from("notifications")
-            .insert(notifications as Record<string, unknown>[]);
+            .insert(notifications as any);
         }
 
         return { submissionId: submission.id as string, duplicate: bestMatch };
@@ -279,14 +279,14 @@ export function useAdminSubmissions() {
 
       const { error: productError } = await supabase
         .from("products")
-        .insert(productInsert);
+        .insert(productInsert as any);
 
       if (productError) throw productError;
 
       // Update submission status
       const { error: updateError } = await supabase
         .from("product_submissions")
-        .update({ status: "approved", updated_at: new Date().toISOString() } as Record<string, unknown>)
+        .update({ status: "approved", updated_at: new Date().toISOString() } as any)
         .eq("id", id);
 
       if (updateError) throw updateError;
@@ -345,7 +345,7 @@ export function useAdminSubmissions() {
       // Mark submission as approved
       await supabase
         .from("product_submissions")
-        .update({ status: "approved", updated_at: new Date().toISOString() } as Record<string, unknown>)
+        .update({ status: "approved", updated_at: new Date().toISOString() } as any)
         .eq("id", id);
 
       const productName = (pd.name as string) ?? "votre produit";
@@ -371,7 +371,7 @@ export function useAdminSubmissions() {
           .from("products")
           .update({
             long_description: submission.merged_description,
-          } as Record<string, unknown>)
+          } as any)
           .eq("id", submission.detected_duplicate_id);
       }
 
@@ -399,14 +399,14 @@ export function useAdminSubmissions() {
 
       const { error: offerError } = await supabase
         .from("product_offers")
-        .insert(offerInsert);
+        .insert(offerInsert as any);
 
       if (offerError) throw offerError;
 
       // Update submission status
       const { error: updateError } = await supabase
         .from("product_submissions")
-        .update({ status: "merged", updated_at: new Date().toISOString() } as Record<string, unknown>)
+        .update({ status: "merged", updated_at: new Date().toISOString() } as any)
         .eq("id", id);
 
       if (updateError) throw updateError;
@@ -429,7 +429,7 @@ export function useAdminSubmissions() {
           status: "rejected",
           admin_notes: notes,
           updated_at: new Date().toISOString(),
-        } as Record<string, unknown>)
+        } as any)
         .eq("id", id);
 
       if (error) throw error;
@@ -486,7 +486,7 @@ export function useAdminSubmissions() {
         .update({
           merged_description: mergedDescription,
           updated_at: new Date().toISOString(),
-        } as Record<string, unknown>)
+        } as any)
         .eq("id", id);
 
       if (updateError) throw updateError;

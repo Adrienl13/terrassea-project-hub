@@ -82,18 +82,20 @@ export default function AdminFinancing() {
       const req = requests.find(r => r.id === id);
       if (req?.user_id) {
         const cfg = STATUS_CONFIG[newStatus];
-        await supabase.from("notifications").insert({
-          user_id: req.user_id,
-          title: "Financement — " + (cfg?.label || newStatus),
-          body: newStatus === "documents_requis"
-            ? "Merci d'envoyer vos documents par email pour finaliser votre demande."
-            : newStatus === "acceptee"
-            ? "Votre demande de financement a été acceptée !"
-            : newStatus === "refusee"
-            ? "Votre demande de financement n'a pas été retenue."
-            : `Votre demande de financement est passée au statut : ${cfg?.label || newStatus}`,
-          type: newStatus === "acceptee" ? "success" : newStatus === "refusee" ? "warning" : "info",
-        }).catch(() => {});
+        try {
+          await supabase.from("notifications").insert({
+            user_id: req.user_id,
+            title: "Financement — " + (cfg?.label || newStatus),
+            body: newStatus === "documents_requis"
+              ? "Merci d'envoyer vos documents par email pour finaliser votre demande."
+              : newStatus === "acceptee"
+              ? "Votre demande de financement a été acceptée !"
+              : newStatus === "refusee"
+              ? "Votre demande de financement n'a pas été retenue."
+              : `Votre demande de financement est passée au statut : ${cfg?.label || newStatus}`,
+            type: newStatus === "acceptee" ? "success" : newStatus === "refusee" ? "warning" : "info",
+          });
+        } catch { /* notification failure is non-critical */ }
       }
 
       queryClient.invalidateQueries({ queryKey: ["financing-requests"] });

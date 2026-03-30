@@ -87,23 +87,23 @@ function applyPriorityAdjustment(
       // Pack more 2-seaters (space-efficient)
       d.twoSeatRatio = Math.min(d.twoSeatRatio + 0.15, 0.8);
       d.sixSeatRatio = Math.max(d.sixSeatRatio - 0.1, 0);
-      d.fourSeatRatio = 1 - d.twoSeatRatio - d.sixSeatRatio;
+      d.fourSeatRatio = Math.max(0, 1 - d.twoSeatRatio - d.sixSeatRatio);
       break;
     case "spacious":
       // Fewer tables, larger formats
       d.sixSeatRatio = Math.min(d.sixSeatRatio + 0.15, 0.5);
       d.twoSeatRatio = Math.max(d.twoSeatRatio - 0.1, 0.1);
-      d.fourSeatRatio = 1 - d.twoSeatRatio - d.sixSeatRatio;
+      d.fourSeatRatio = Math.max(0, 1 - d.twoSeatRatio - d.sixSeatRatio);
       break;
     case "couples":
       d.twoSeatRatio = Math.min(d.twoSeatRatio + 0.2, 0.85);
       d.sixSeatRatio = 0;
-      d.fourSeatRatio = 1 - d.twoSeatRatio;
+      d.fourSeatRatio = Math.max(0, 1 - d.twoSeatRatio);
       break;
     case "groups":
       d.sixSeatRatio = Math.min(d.sixSeatRatio + 0.25, 0.6);
       d.twoSeatRatio = Math.max(d.twoSeatRatio - 0.15, 0.05);
-      d.fourSeatRatio = 1 - d.twoSeatRatio - d.sixSeatRatio;
+      d.fourSeatRatio = Math.max(0, 1 - d.twoSeatRatio - d.sixSeatRatio);
       break;
     case "flexible-groups":
       // Favor combinable formats
@@ -217,7 +217,7 @@ function generateLockedLayout(
 
   for (let i = 0; i < lockedFormats.length; i++) {
     const fmt = lockedFormats[i];
-    const ratio = ratios[i] ?? (1 / lockedFormats.length);
+    const ratio = ratios[i] ?? (lockedFormats.length > 0 ? 1 / lockedFormats.length : 0);
     const seatsForFormat = i === lockedFormats.length - 1
       ? remaining
       : Math.round(totalSeats * ratio);

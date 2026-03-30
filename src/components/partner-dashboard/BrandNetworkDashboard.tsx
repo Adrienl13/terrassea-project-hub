@@ -30,6 +30,11 @@ interface Distributor {
   is_exclusive: boolean | null;
   is_active: boolean | null;
   priority: number | null;
+  allow_price_override: boolean | null;
+  collections: string[] | null;
+  commission_override: number | null;
+  revenue_share_brand: number | null;
+  revenue_share_distributor: number | null;
   partner: {
     id: string;
     name: string;
@@ -63,6 +68,7 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
   const [addingDistributor, setAddingDistributor] = useState(false);
   const [newCountry, setNewCountry] = useState("");
   const [newDistributorId, setNewDistributorId] = useState("");
+  const [newCollections, setNewCollections] = useState<string[]>([]);
 
   // ── Fetch distributors for this brand ──────────────────────────────────
   const { data: distributors = [] } = useQuery({
@@ -70,12 +76,12 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
     queryFn: async () => {
       const { data, error } = await supabase
         .from("brand_distributors")
-        .select("id, brand_id, distributor_id, country_code, is_exclusive, is_active, priority, partner:distributor_id(id, name, country, logo_url)")
+        .select("id, brand_id, distributor_id, country_code, is_exclusive, is_active, priority, allow_price_override, collections, commission_override, revenue_share_brand, revenue_share_distributor, partner:distributor_id(id, name, country, logo_url)")
         .eq("brand_id", partnerId)
         .eq("is_active", true)
         .order("country_code");
       if (error) throw error;
-      return (data ?? []) as Distributor[];
+      return (data ?? []) as unknown as Distributor[];
     },
   });
 
@@ -95,6 +101,21 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
     enabled: addingDistributor,
   });
 
+  // ── Fetch brand's collection names ─────────────────────────────────────
+  const { data: brandCollections = [] } = useQuery({
+    queryKey: ["brand-collections-list", partnerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_offers")
+        .select("collection_name")
+        .eq("partner_id", partnerId)
+        .eq("is_active", true)
+        .not("collection_name", "is", null);
+      if (error) throw error;
+      return [...new Set((data ?? []).map(d => d.collection_name).filter(Boolean))] as string[];
+    },
+  });
+
   // ── Fetch routed briefs ────────────────────────────────────────────────
   const { data: briefs = [], isLoading } = useQuery({
     queryKey: ["brand-network-briefs", partnerId],
@@ -111,6 +132,24 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
 
   const routedBriefs = briefs;
 
+  // ── Fetch synced offers count ──────────────────────────────────────────
+  const { data: syncedOffersCount = 0 } = useQuery({
+    queryKey: ["brand-synced-offers", partnerId],
+    queryFn: async () => {
+      const distIds = distributors.map(d => d.distributor_id);
+      if (distIds.length === 0) return 0;
+      const { count, error } = await supabase
+        .from("product_offers")
+        .select("id", { count: "exact", head: true })
+        .in("partner_id", distIds)
+        .not("source_offer_id", "is", null)
+        .eq("is_active", true);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: distributors.length > 0,
+  });
+
   // ── Add distributor ────────────────────────────────────────────────────
   const handleAddDistributor = async () => {
     if (!newCountry || !newDistributorId) return;
@@ -119,6 +158,7 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
       distributor_id: newDistributorId,
       country_code: newCountry,
       is_active: true,
+      collections: newCollections.length > 0 ? newCollections : [],
     });
     if (error) {
       toast.error(t("brand.updateError"));
@@ -128,6 +168,7 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
     setAddingDistributor(false);
     setNewCountry("");
     setNewDistributorId("");
+    setNewCollections([]);
     queryClient.invalidateQueries({ queryKey: ["brand-distributors", partnerId] });
   };
 
@@ -170,7 +211,7 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
       </div>
 
       {/* ── Stats bar ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <div className="bg-white border border-purple-100 rounded-2xl p-4 hover:shadow-md hover:shadow-purple-100/50 transition-all">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/10 flex items-center justify-center mb-2">
             <Globe className="h-4 w-4 text-blue-600" />
@@ -200,6 +241,13 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
             {briefs.length > 0 ? Math.round((briefs.filter((b) => b.status === "accepted").length / briefs.length) * 100) : 0}%
           </p>
           <p className="text-[9px] font-body text-muted-foreground uppercase tracking-wider">{t("network.conversionRate")}</p>
+        </div>
+        <div className="bg-white border border-purple-100 rounded-2xl p-4 hover:shadow-md hover:shadow-purple-100/50 transition-all">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-600/10 flex items-center justify-center mb-2">
+            <Sparkles className="h-4 w-4 text-amber-600" />
+          </div>
+          <p className="font-display text-2xl font-bold text-foreground">{syncedOffersCount}</p>
+          <p className="text-[9px] font-body text-muted-foreground uppercase tracking-wider">{t("network.syncedProducts")}</p>
         </div>
       </div>
 
@@ -259,6 +307,29 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
                 ))}
               </select>
             </div>
+            {brandCollections.length > 0 && (
+              <div className="w-full">
+                <span className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                  {t("network.selectCollections")}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {brandCollections.map(col => (
+                    <label key={col} className="flex items-center gap-1.5 text-xs font-body cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newCollections.includes(col)}
+                        onChange={(e) => {
+                          if (e.target.checked) setNewCollections(prev => [...prev, col]);
+                          else setNewCollections(prev => prev.filter(c => c !== col));
+                        }}
+                        className="rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      {col}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <button
               onClick={handleAddDistributor}
               disabled={!newCountry || !newDistributorId}
@@ -303,6 +374,20 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
                     <Shield className="h-2.5 w-2.5" />{t("network.exclusive")}
                   </span>
                 ) : null}
+                {/* Collections */}
+                {d.collections && d.collections.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {d.collections.map(c => (
+                      <span key={c} className="text-[8px] font-display font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 border border-purple-200">{c}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-[8px] font-body text-muted-foreground italic">{t("network.allCollections")}</span>
+                )}
+                {/* Commission */}
+                <span className="text-[8px] font-body text-muted-foreground">
+                  {d.revenue_share_brand ?? 30}/{d.revenue_share_distributor ?? 70}
+                </span>
                 <button
                   onClick={() => handleRemoveDistributor(d.id)}
                   className="text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-lg hover:bg-red-50"

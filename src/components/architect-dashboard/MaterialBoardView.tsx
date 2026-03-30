@@ -111,7 +111,7 @@ export default function MaterialBoardView({ boardId, isReadOnly = false }: Props
         .order("priority_score", { ascending: false })
         .limit(12);
       if (error) throw error;
-      return (data ?? []) as DBProduct[];
+      return (data ?? []) as unknown as DBProduct[];
     },
     enabled: searchQuery.trim().length >= 2,
   });

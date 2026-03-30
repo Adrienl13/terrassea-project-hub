@@ -140,7 +140,7 @@ export function UpgradeCTA({ currentPlan }: { currentPlan: PartnerPlan }) {
 
   const handleUpgrade = () => {
     navigate("/become-partner");
-    if (nextPlan === "elite" || nextPlan === "brand_member" || nextPlan === "brand_network") {
+    if (nextPlan === "elite" || nextPlan === "brand_network") {
       toast.info(`Contactez-nous pour discuter du plan ${nextConfig.label}.`);
     }
   };
@@ -634,10 +634,12 @@ export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
     status: STATUS_MAP[q.status]?.label || q.status,
     statusKey: q.status,
     statusStyle: STATUS_MAP[q.status]?.style || "bg-gray-100 text-gray-600",
-    products: [{ name: q.product_name, qty: q.quantity, unitPrice: Number(q.unit_price || 0) }],
+    products: [{ name: q.product_name, qty: q.quantity, unitPrice: Number(q.unit_price || 0), color: null as string | null }],
     projectName: q.project_name,
     projectType: q.project_venue_type,
     city: q.client_city,
+    timeline: null as string | null,
+    budget: null as number | null,
     message: q.message,
     hasPdf: !!q.latest_pdf_path,
     isSigned: !!q.signed_at,
@@ -1657,7 +1659,7 @@ export function PartnerFeaturedSection({ plan, partnerId }: { plan: PartnerPlan;
     queryKey: ["partner-sub-overrides", partnerId],
     queryFn: async () => {
       const { data } = await supabase.from("partner_subscriptions")
-        .select("max_products, max_featured, commission_rate")
+        .select("max_products, commission_rate")
         .eq("partner_id", partnerId!)
         .maybeSingle();
       return data;
@@ -1667,7 +1669,7 @@ export function PartnerFeaturedSection({ plan, partnerId }: { plan: PartnerPlan;
 
   // Use TIER_CONFIG from usePartnerAnalytics for default featured limit, with override support
   const defaultFeatured = TIER_CONFIG_ANALYTICS[plan as PartnerTierType]?.featuredProducts ?? 0;
-  const maxFeatured = featSubOverrides?.max_featured ?? defaultFeatured;
+  const maxFeatured = defaultFeatured;
   const isStarter = plan === "starter";
 
   // Fetch real featured products from DB
@@ -1842,7 +1844,7 @@ export function PartnerFeaturedSection({ plan, partnerId }: { plan: PartnerPlan;
             </p>
           </div>
 
-          {(plan === "starter" || plan === "growth" || plan === "brand_member") && <UpgradeCTA currentPlan={plan} />}
+          {(plan === "growth" || plan === "brand_member") && <UpgradeCTA currentPlan={plan} />}
         </>
       )}
     </div>

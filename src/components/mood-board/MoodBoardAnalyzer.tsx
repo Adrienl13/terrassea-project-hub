@@ -18,7 +18,7 @@ interface UploadZoneProps {
   previewUrl: string | null;
   onFileSelect: (file: File) => void;
   onAnalyze: () => void;
-  t: (key: string, fallback?: string) => string;
+  t: any;
 }
 
 function UploadZone({
@@ -136,7 +136,7 @@ function UploadZone({
 
 interface AnalyzingOverlayProps {
   imageUrl: string;
-  t: (key: string, fallback?: string) => string;
+  t: any;
 }
 
 function AnalyzingOverlay({ imageUrl, t }: AnalyzingOverlayProps) {
@@ -219,7 +219,7 @@ interface MatchedProductCardProps {
   product: DBProduct;
   score: number;
   onAddToProject: (product: DBProduct) => void;
-  t: (key: string, fallback?: string) => string;
+  t: any;
 }
 
 function MatchedProductCard({ product, score, onAddToProject, t }: MatchedProductCardProps) {
@@ -300,7 +300,7 @@ interface ResultsPanelProps {
   isArchitect?: boolean;
   onSaveMaterialBoard?: () => void;
   isSavingBoard?: boolean;
-  t: (key: string, fallback?: string) => string;
+  t: any;
 }
 
 function ResultsPanel({

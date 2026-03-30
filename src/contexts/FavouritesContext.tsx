@@ -81,7 +81,7 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   // Sync toggle to DB when authenticated
-  const syncToggleToDB = async (productId: string, isAdding: boolean) => {
+  const syncToggleToDB = useCallback(async (productId: string, isAdding: boolean) => {
     if (!user) return;
     try {
       if (isAdding) {
@@ -99,7 +99,7 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.warn("Failed to sync favourite to DB:", err);
     }
-  };
+  }, [user]);
 
   const isFavourite = useCallback(
     (productId: string) => favourites.some((p) => p.id === productId),
@@ -114,7 +114,7 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
         : [...prev, product]
     );
     syncToggleToDB(product.id, !isCurrentlyFav);
-  }, [favourites]);
+  }, [favourites, syncToggleToDB]);
 
   const value = useMemo(
     () => ({ favourites, isFavourite, toggleFavourite, count: favourites.length }),

@@ -21,8 +21,8 @@ const SUFFIX_LANGS: SupportedLang[] = ["fr", "es", "it"];
  * @param field - The base field name in English (e.g. "description", "name")
  * @returns The translated value if available, otherwise the English fallback
  */
-export function ml<T extends Record<string, unknown>>(
-  row: T,
+export function ml(
+  row: Record<string, any>,
   field: string,
 ): string {
   const lang = i18n.language?.slice(0, 2) as string;

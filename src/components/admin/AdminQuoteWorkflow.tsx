@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePaymentFlow } from "@/hooks/usePaymentFlow";
@@ -7,20 +8,29 @@ import {
   Search, Eye, ArrowLeft, FileText, Clock, CheckCircle2,
   XCircle, Package, MapPin, Building2, PenTool, Download,
   Send, ChevronRight, ChevronDown, AlertTriangle, User,
-  Truck, CreditCard, ShoppingCart,
+  Truck, CreditCard, ShoppingCart, Banknote,
 } from "lucide-react";
 
 const QuotePdfViewer = lazy(() => import("@/components/quotes/QuotePdfViewer"));
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-  pending:  { label: "En attente",     color: "#D97706", bg: "#FFFBEB", icon: Clock },
-  replied:  { label: "Devis reçu",     color: "#2563EB", bg: "#EFF6FF", icon: FileText },
-  accepted: { label: "Accepté",        color: "#059669", bg: "#ECFDF5", icon: CheckCircle2 },
-  signed:   { label: "Signé",          color: "#059669", bg: "#ECFDF5", icon: PenTool },
-  expired:  { label: "Expiré",         color: "#6B7280", bg: "#F3F4F6", icon: XCircle },
-  cancelled:{ label: "Annulé",         color: "#DC2626", bg: "#FEF2F2", icon: XCircle },
+const STATUS_STYLE: Record<string, { color: string; bg: string; icon: any }> = {
+  pending:  { color: "#D97706", bg: "#FFFBEB", icon: Clock },
+  replied:  { color: "#2563EB", bg: "#EFF6FF", icon: FileText },
+  accepted: { color: "#059669", bg: "#ECFDF5", icon: CheckCircle2 },
+  signed:   { color: "#059669", bg: "#ECFDF5", icon: PenTool },
+  expired:  { color: "#6B7280", bg: "#F3F4F6", icon: XCircle },
+  cancelled:{ color: "#DC2626", bg: "#FEF2F2", icon: XCircle },
+};
+
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  pending: "adminQuotes.statusPending",
+  replied: "adminQuotes.statusReplied",
+  accepted: "adminQuotes.statusAccepted",
+  signed: "adminQuotes.statusSigned",
+  expired: "adminQuotes.statusExpired",
+  cancelled: "adminQuotes.statusCancelled",
 };
 
 const STATUSES = ["pending", "replied", "accepted", "signed", "expired", "cancelled"];
@@ -30,6 +40,7 @@ const STATUSES = ["pending", "replied", "accepted", "signed", "expired", "cancel
 // ══════════════════════════════════════════════════════════════════════════════
 
 export default function AdminQuoteWorkflow() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { createOrderFromQuote, isCreatingOrder } = usePaymentFlow();
   const [filter, setFilter] = useState("all");
@@ -73,12 +84,75 @@ export default function AdminQuoteWorkflow() {
       if (!selectedId) return null;
       const { data } = await supabase
         .from("orders")
-        .select("id")
+        .select("id, commission_rate, commission_amount")
         .eq("quote_request_id", selectedId)
         .maybeSingle();
       return data;
     },
     enabled: !!selectedId,
+  });
+
+  // Resolve the effective commission rate for the selected quote's partner/product
+  const selectedQuote = selectedId ? quotes.find((q: any) => q.id === selectedId) : null;
+  const { data: commissionPreview } = useQuery({
+    queryKey: ["admin-quote-commission", selectedQuote?.partner_id, selectedQuote?.product_id],
+    queryFn: async () => {
+      if (!selectedQuote?.partner_id) return null;
+      const partnerId = selectedQuote.partner_id;
+      const productId = selectedQuote.product_id;
+
+      // Try brand-distributor effective commission first
+      if (productId) {
+        const { data: product } = await supabase
+          .from("products")
+          .select("partner_id")
+          .eq("id", productId)
+          .maybeSingle();
+
+        if (product?.partner_id) {
+          const { data: ec } = await supabase
+            .from("v_effective_commissions" as any)
+            .select("effective_commission_rate")
+            .eq("brand_id", product.partner_id)
+            .eq("distributor_id", partnerId)
+            .maybeSingle() as { data: { effective_commission_rate: number } | null };
+
+          if (ec?.effective_commission_rate != null) {
+            const rate = Number(ec.effective_commission_rate);
+            const total = Number(selectedQuote.total_price ?? 0);
+            return { rate, amount: Math.round((total * rate) / 100 * 100) / 100, source: "brand_distributor" as const };
+          }
+        }
+      }
+
+      // Fallback: partner_subscriptions commission
+      const { data: sub } = await supabase
+        .from("partner_subscriptions")
+        .select("commission_rate")
+        .eq("partner_id", partnerId)
+        .maybeSingle();
+
+      if (sub?.commission_rate != null) {
+        const rate = Number(sub.commission_rate);
+        const total = Number(selectedQuote.total_price ?? 0);
+        return { rate, amount: Math.round((total * rate) / 100 * 100) / 100, source: "plan" as const };
+      }
+
+      // Last resort: hardcoded plan-based
+      const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, brand_member: 2, brand_network: 1.5 };
+      const { data: partnerRow } = await supabase
+        .from("partners")
+        .select("plan")
+        .eq("id", partnerId)
+        .maybeSingle();
+
+      const rate = partnerRow?.plan && COMMISSION_BY_PLAN[partnerRow.plan] !== undefined
+        ? COMMISSION_BY_PLAN[partnerRow.plan]
+        : 8;
+      const total = Number(selectedQuote.total_price ?? 0);
+      return { rate, amount: Math.round((total * rate) / 100 * 100) / 100, source: "plan_fallback" as const };
+    },
+    enabled: !!selectedQuote?.partner_id,
   });
 
   const filtered = quotes.filter((q: any) => {
@@ -108,21 +182,21 @@ export default function AdminQuoteWorkflow() {
       .from("quote_requests")
       .update({ status })
       .eq("id", id);
-    if (error) { toast.error("Erreur : " + error.message); return; }
-    toast.success(`Statut mis à jour : ${STATUS_CONFIG[status]?.label || status}`);
+    if (error) { toast.error(t("adminQuotes.errorPrefix") + error.message); return; }
+    toast.success(t("adminQuotes.statusUpdated", { status: t(STATUS_LABEL_KEYS[status] || status) }));
     queryClient.invalidateQueries({ queryKey: ["admin-quotes"] });
 
     // Notify client of quote status change
     const quote = quotes.find((q: any) => q.id === id);
     if (quote?.email) {
       const notifMap: Record<string, string> = {
-        replied: "Un fournisseur a répondu à votre demande de devis",
-        expired: "Votre devis a expiré",
-        cancelled: "Votre devis a été annulé",
+        replied: t("adminQuotes.notifReplied"),
+        expired: t("adminQuotes.notifExpired"),
+        cancelled: t("adminQuotes.notifCancelled"),
       };
       const message = notifMap[status];
       if (message) {
-        await notifyUser(quote.email, "Mise à jour devis", message, "/account?tab=quotes");
+        await notifyUser(quote.email, t("adminQuotes.notifQuoteUpdate"), message, "/account?tab=quotes");
       }
     }
   };
@@ -132,8 +206,8 @@ export default function AdminQuoteWorkflow() {
       .from("quote_requests")
       .update({ partner_id: partnerId, partner_name: partnerName })
       .eq("id", quoteId);
-    if (error) { toast.error("Erreur : " + error.message); return; }
-    toast.success(`Partenaire assigné : ${partnerName}`);
+    if (error) { toast.error(t("adminQuotes.errorPrefix") + error.message); return; }
+    toast.success(t("adminQuotes.partnerAssigned", { name: partnerName }));
     queryClient.invalidateQueries({ queryKey: ["admin-quotes"] });
 
     // Non-blocking: notify the partner
@@ -157,20 +231,20 @@ export default function AdminQuoteWorkflow() {
         if (profile?.id) {
           await supabase.from("notifications").insert({
             user_id: profile.id,
-            title: "Nouveau devis assigné",
-            body: "Un nouveau devis vous a été assigné",
+            title: t("adminQuotes.notifNewQuoteTitle"),
+            body: t("adminQuotes.notifNewQuoteBody"),
             type: "quote_assigned",
             link: "/partner/quotes",
-          } as Record<string, unknown>);
+          });
         }
 
         // Send email notification
         await supabase.functions.invoke("send-notification-email", {
           body: {
             to: partner.contact_email,
-            subject: "Terrassea — Un nouveau devis vous a été assigné",
-            body_html: `<p>Bonjour ${partnerName},</p><p>Un nouveau devis vous a été assigné sur Terrassea. Connectez-vous à votre espace partenaire pour le consulter.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
-            body_text: `Bonjour ${partnerName}, un nouveau devis vous a été assigné sur Terrassea. Connectez-vous à votre espace partenaire pour le consulter.`,
+            subject: t("adminQuotes.emailSubjectNewQuote"),
+            body_html: `<p>${t("adminQuotes.emailGreeting", { name: partnerName })}</p><p>${t("adminQuotes.emailNewQuoteBody")}</p><p>${t("adminQuotes.emailSignOff")}<br/>${t("adminQuotes.emailTeam")}</p>`,
+            body_text: t("adminQuotes.emailNewQuoteText", { name: partnerName }),
           },
         });
       }
@@ -181,13 +255,13 @@ export default function AdminQuoteWorkflow() {
 
   // ── Detail view ──
   if (selected) {
-    const sc = STATUS_CONFIG[selected.status] || STATUS_CONFIG.pending;
+    const sc = STATUS_STYLE[selected.status] || STATUS_STYLE.pending;
     const project = selected.project;
     return (
       <div className="space-y-5">
         <button onClick={() => setSelectedId(null)}
           className="flex items-center gap-1.5 text-xs font-body text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> Retour aux devis
+          <ArrowLeft className="h-4 w-4" /> {t("adminQuotes.backToQuotes")}
         </button>
 
         {/* Header */}
@@ -196,21 +270,21 @@ export default function AdminQuoteWorkflow() {
             <div>
               <h2 className="font-display font-bold text-lg">{selected.product_name || "—"}</h2>
               <p className="text-xs font-body text-muted-foreground mt-0.5">
-                {project?.project_name || "Pas de projet lié"} · {selected.quantity || 0} pcs
+                {project?.project_name || t("adminQuotes.noLinkedProject")} · {selected.quantity || 0} {t("adminQuotes.pcs")}
               </p>
             </div>
             <span className="text-[10px] font-display font-semibold uppercase px-3 py-1.5 rounded-full" style={{ background: sc.bg, color: sc.color }}>
-              <sc.icon className="h-3 w-3 inline mr-1" /> {sc.label}
+              <sc.icon className="h-3 w-3 inline mr-1" /> {t(STATUS_LABEL_KEYS[selected.status] || selected.status)}
             </span>
           </div>
         </div>
 
         {/* Quick status change */}
         <div>
-          <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">Changer le statut</p>
+          <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t("adminQuotes.changeStatus")}</p>
           <div className="flex gap-2 flex-wrap">
             {STATUSES.map(s => {
-              const cfg = STATUS_CONFIG[s];
+              const cfg = STATUS_STYLE[s];
               const isActive = selected.status === s;
               return (
                 <button
@@ -221,7 +295,7 @@ export default function AdminQuoteWorkflow() {
                   }`}
                   style={isActive ? { borderColor: cfg.color, color: cfg.color } : undefined}
                 >
-                  {cfg.label}
+                  {t(STATUS_LABEL_KEYS[s])}
                 </button>
               );
             })}
@@ -233,22 +307,22 @@ export default function AdminQuoteWorkflow() {
           {/* Client */}
           <div className="border border-border rounded-xl p-4">
             <h3 className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-              <User className="h-3.5 w-3.5" /> Client
+              <User className="h-3.5 w-3.5" /> {t("adminQuotes.clientSection")}
             </h3>
             <div className="space-y-2 text-xs font-body">
-              <div><span className="text-muted-foreground">Nom :</span> <span className="text-foreground font-semibold">{selected.first_name} {selected.last_name}</span></div>
-              <div><span className="text-muted-foreground">Email :</span> <span className="text-foreground">{selected.email}</span></div>
-              <div><span className="text-muted-foreground">Société :</span> <span className="text-foreground">{selected.company || "—"}</span></div>
-              <div><span className="text-muted-foreground">SIREN :</span> <span className="text-foreground">{selected.siren || "—"}</span></div>
-              {selected.client_city && <div><span className="text-muted-foreground">Ville livraison :</span> <span className="text-foreground">{selected.client_city}</span></div>}
-              {selected.message && <div className="pt-2 border-t border-border"><span className="text-muted-foreground">Message :</span><p className="text-foreground mt-0.5 italic">"{selected.message}"</p></div>}
+              <div><span className="text-muted-foreground">{t("adminQuotes.nameLabel")}</span> <span className="text-foreground font-semibold">{selected.first_name} {selected.last_name}</span></div>
+              <div><span className="text-muted-foreground">{t("adminQuotes.emailLabel")}</span> <span className="text-foreground">{selected.email}</span></div>
+              <div><span className="text-muted-foreground">{t("adminQuotes.companyLabel")}</span> <span className="text-foreground">{selected.company || "—"}</span></div>
+              <div><span className="text-muted-foreground">{t("adminQuotes.sirenLabel")}</span> <span className="text-foreground">{selected.siren || "—"}</span></div>
+              {selected.client_city && <div><span className="text-muted-foreground">{t("adminQuotes.deliveryCityLabel")}</span> <span className="text-foreground">{selected.client_city}</span></div>}
+              {selected.message && <div className="pt-2 border-t border-border"><span className="text-muted-foreground">{t("adminQuotes.messageLabel")}</span><p className="text-foreground mt-0.5 italic">"{selected.message}"</p></div>}
             </div>
           </div>
 
           {/* Partner assignment */}
           <div className="border border-border rounded-xl p-4">
             <h3 className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-              <Building2 className="h-3.5 w-3.5" /> Fournisseur assigné
+              <Building2 className="h-3.5 w-3.5" /> {t("adminQuotes.assignedSupplier")}
             </h3>
             {selected.partner_name ? (
               <div className="space-y-2 text-xs font-body">
@@ -260,11 +334,11 @@ export default function AdminQuoteWorkflow() {
                 </div>
               </div>
             ) : (
-              <p className="text-xs font-body text-muted-foreground mb-2">Aucun fournisseur assigné</p>
+              <p className="text-xs font-body text-muted-foreground mb-2">{t("adminQuotes.noSupplierAssigned")}</p>
             )}
             <div className="mt-3">
               <label className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
-                {selected.partner_name ? "Réassigner" : "Assigner un fournisseur"}
+                {selected.partner_name ? t("adminQuotes.reassign") : t("adminQuotes.assignSupplier")}
               </label>
               <select
                 value={selected.partner_id || ""}
@@ -274,7 +348,7 @@ export default function AdminQuoteWorkflow() {
                 }}
                 className="w-full text-sm font-body bg-white border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-foreground/40"
               >
-                <option value="">— Sélectionner —</option>
+                <option value="">{t("adminQuotes.selectOption")}</option>
                 {partners.map((p: any) => (
                   <option key={p.id} value={p.id}>{p.name} ({p.plan})</option>
                 ))}
@@ -286,26 +360,65 @@ export default function AdminQuoteWorkflow() {
         {/* Quote details */}
         <div className="border border-border rounded-xl p-4">
           <h3 className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-            <CreditCard className="h-3.5 w-3.5" /> Détails financiers
+            <CreditCard className="h-3.5 w-3.5" /> {t("adminQuotes.financialDetails")}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="border border-border rounded-lg p-3">
-              <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">Quantité</p>
-              <p className="text-sm font-display font-bold mt-0.5">{selected.quantity || "—"} pcs</p>
+              <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">{t("adminQuotes.quantity")}</p>
+              <p className="text-sm font-display font-bold mt-0.5">{selected.quantity || "—"} {t("adminQuotes.pcs")}</p>
             </div>
             <div className="border border-border rounded-lg p-3">
-              <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">Prix unitaire</p>
+              <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">{t("adminQuotes.unitPrice")}</p>
               <p className="text-sm font-display font-bold mt-0.5">{selected.unit_price ? `€${selected.unit_price}` : "—"}</p>
             </div>
             <div className="border border-border rounded-lg p-3">
-              <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">Total</p>
+              <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">{t("adminQuotes.total")}</p>
               <p className="text-sm font-display font-bold text-[#D4603A] mt-0.5">{selected.total_price ? `€${Number(selected.total_price).toLocaleString()}` : "—"}</p>
             </div>
             <div className="border border-border rounded-lg p-3">
-              <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">Signé le</p>
+              <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">{t("adminQuotes.signedOn")}</p>
               <p className="text-sm font-display font-bold mt-0.5">{selected.signed_at ? new Date(selected.signed_at).toLocaleDateString("fr-FR") : "—"}</p>
             </div>
           </div>
+
+          {/* Commission preview (admin only — invisible to client) */}
+          {selected.partner_id && (commissionPreview || existingOrder) && (
+            <div className="mt-3 border border-[#D4603A]/20 bg-[#D4603A]/5 rounded-lg p-3">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Banknote className="h-3.5 w-3.5 text-[#D4603A]" />
+                <p className="text-[9px] font-display font-semibold uppercase text-[#D4603A]">
+                  {t("adminQuotes.commissionPreview")}
+                </p>
+                {commissionPreview?.source === "brand_distributor" && (
+                  <span className="text-[8px] font-display font-semibold px-1.5 py-0.5 rounded-full bg-[#D4603A]/10 text-[#D4603A]">
+                    {t("adminQuotes.commissionSourceBrand")}
+                  </span>
+                )}
+                {(commissionPreview?.source === "plan" || commissionPreview?.source === "plan_fallback") && (
+                  <span className="text-[8px] font-display font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600">
+                    {t("adminQuotes.commissionSourcePlan")}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-baseline gap-4">
+                <div>
+                  <span className="text-xs font-body text-muted-foreground">{t("adminQuotes.commissionRate")} </span>
+                  <span className="text-sm font-display font-bold text-[#D4603A]">
+                    {existingOrder?.commission_rate ?? commissionPreview?.rate ?? "—"}%
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs font-body text-muted-foreground">{t("adminQuotes.commissionAmount")} </span>
+                  <span className="text-sm font-display font-bold text-[#D4603A]">
+                    €{Number(existingOrder?.commission_amount ?? commissionPreview?.amount ?? 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[9px] font-body text-muted-foreground mt-1">
+                {t("adminQuotes.commissionNote")}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Create order button — only for accepted/signed quotes without an existing order */}
@@ -315,12 +428,12 @@ export default function AdminQuoteWorkflow() {
               onClick={() => {
                 createOrderFromQuote(selected.id, {
                   onSuccess: () => {
-                    toast.success("Commande créée avec succès");
+                    toast.success(t("adminQuotes.orderCreatedSuccess"));
                     queryClient.invalidateQueries({ queryKey: ["admin-quote-order", selected.id] });
                     queryClient.invalidateQueries({ queryKey: ["admin-quotes"] });
                   },
                   onError: (err: Error) => {
-                    toast.error("Erreur : " + err.message);
+                    toast.error(t("adminQuotes.errorPrefix") + err.message);
                   },
                 });
               }}
@@ -328,20 +441,20 @@ export default function AdminQuoteWorkflow() {
               className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-xs font-display font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ShoppingCart className="h-4 w-4" />
-              {isCreatingOrder ? "Création en cours…" : "Créer la commande"}
+              {isCreatingOrder ? t("adminQuotes.creatingOrder") : t("adminQuotes.createOrder")}
             </button>
             <p className="text-[10px] font-body text-muted-foreground mt-2">
-              Génère une commande avec appel de fonds (acompte + solde) et envoie les instructions de paiement au client.
+              {t("adminQuotes.orderDescription")}
             </p>
           </div>
         )}
         {(selected.status === "accepted" || selected.status === "signed") && existingOrder && (
           <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-4">
             <p className="text-xs font-display font-semibold text-emerald-700 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Commande déjà créée
+              <CheckCircle2 className="h-4 w-4" /> {t("adminQuotes.orderAlreadyCreated")}
             </p>
             <p className="text-[10px] font-body text-emerald-600 mt-1">
-              ID : {existingOrder.id.slice(0, 8)}…
+              {t("adminQuotes.idLabel")} {existingOrder.id.slice(0, 8)}…
             </p>
           </div>
         )}
@@ -349,7 +462,7 @@ export default function AdminQuoteWorkflow() {
         {/* Documents PDF */}
         <div className="border border-border rounded-xl p-4">
           <h3 className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-            <FileText className="h-3.5 w-3.5" /> Documents
+            <FileText className="h-3.5 w-3.5" /> {t("adminQuotes.documents")}
           </h3>
           <Suspense fallback={<div className="h-12 animate-pulse bg-card rounded-lg" />}>
             <QuotePdfViewer quoteRequestId={selected.id} />
@@ -360,7 +473,7 @@ export default function AdminQuoteWorkflow() {
         {project && (
           <div className="border border-border rounded-xl p-4">
             <h3 className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-              <Package className="h-3.5 w-3.5" /> Projet lié
+              <Package className="h-3.5 w-3.5" /> {t("adminQuotes.linkedProject")}
             </h3>
             <div className="text-xs font-body">
               <p className="font-display font-semibold text-foreground">{project.project_name}</p>
@@ -373,25 +486,25 @@ export default function AdminQuoteWorkflow() {
   }
 
   // ── List view ──
-  if (isLoading) return <p className="text-muted-foreground font-body text-sm">Chargement...</p>;
+  if (isLoading) return <p className="text-muted-foreground font-body text-sm">{t("adminQuotes.loading")}</p>;
 
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-display font-bold text-lg">Workflow devis</h2>
+        <h2 className="font-display font-bold text-lg">{t("adminQuotes.workflowTitle")}</h2>
         <p className="text-xs font-body text-muted-foreground mt-0.5">
-          Gérez toutes les demandes de devis : assignez des fournisseurs, changez les statuts, consultez les PDFs.
+          {t("adminQuotes.workflowDescription")}
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {STATUSES.map(s => {
-          const cfg = STATUS_CONFIG[s];
+          const cfg = STATUS_STYLE[s];
           return (
             <div key={s} className="text-center px-3 py-2.5 rounded-lg border border-border" style={{ background: cfg.bg }}>
               <p className="font-display font-bold text-lg" style={{ color: cfg.color }}>{counts[s] || 0}</p>
-              <p className="text-[9px] font-display font-semibold" style={{ color: cfg.color }}>{cfg.label}</p>
+              <p className="text-[9px] font-display font-semibold" style={{ color: cfg.color }}>{t(STATUS_LABEL_KEYS[s])}</p>
             </div>
           );
         })}
@@ -402,13 +515,13 @@ export default function AdminQuoteWorkflow() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher par produit, client, fournisseur…"
+            placeholder={t("adminQuotes.searchPlaceholder")}
             className="w-full pl-9 pr-4 py-2.5 border border-border rounded-lg text-xs font-body focus:outline-none focus:border-foreground/40" />
         </div>
       </div>
 
       <div className="flex gap-1 flex-wrap">
-        {[{ id: "all", label: "Tous" }, ...STATUSES.map(s => ({ id: s, label: STATUS_CONFIG[s].label }))].map(f => (
+        {[{ id: "all", label: t("adminQuotes.all") }, ...STATUSES.map(s => ({ id: s, label: t(STATUS_LABEL_KEYS[s]) }))].map(f => (
           <button key={f.id} onClick={() => setFilter(f.id)}
             className={`text-[10px] font-display font-semibold px-3 py-1.5 rounded-full transition-all ${
               filter === f.id ? "bg-foreground text-primary-foreground" : "border border-border text-muted-foreground hover:border-foreground/20"
@@ -422,12 +535,12 @@ export default function AdminQuoteWorkflow() {
       {filtered.length === 0 ? (
         <div className="text-center py-16">
           <FileText className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-sm font-body text-muted-foreground">Aucun devis avec ce filtre.</p>
+          <p className="text-sm font-body text-muted-foreground">{t("adminQuotes.noQuotesFilter")}</p>
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map((q: any) => {
-            const sc = STATUS_CONFIG[q.status] || STATUS_CONFIG.pending;
+            const sc = STATUS_STYLE[q.status] || STATUS_STYLE.pending;
             return (
               <div
                 key={q.id}
@@ -438,7 +551,7 @@ export default function AdminQuoteWorkflow() {
                   <div className="flex items-center gap-2">
                     <p className="text-xs font-display font-bold text-foreground group-hover:text-[#D4603A] truncate">{q.product_name || "—"}</p>
                     <span className="text-[9px] font-display font-semibold px-2 py-0.5 rounded-full shrink-0" style={{ background: sc.bg, color: sc.color }}>
-                      {sc.label}
+                      {t(STATUS_LABEL_KEYS[q.status] || q.status)}
                     </span>
                     {q.latest_pdf_path && <FileText className="h-3 w-3 text-red-500 shrink-0" />}
                     {q.signed_at && <PenTool className="h-3 w-3 text-emerald-500 shrink-0" />}
@@ -451,7 +564,7 @@ export default function AdminQuoteWorkflow() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-xs font-display font-bold">{q.total_price ? `€${Number(q.total_price).toLocaleString()}` : "—"}</p>
-                  <p className="text-[9px] font-body text-muted-foreground">{q.quantity || 0} pcs</p>
+                  <p className="text-[9px] font-body text-muted-foreground">{q.quantity || 0} {t("adminQuotes.pcs")}</p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100" />
               </div>

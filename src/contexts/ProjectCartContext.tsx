@@ -190,7 +190,7 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              const productMap = new Map(products.map((p) => [p.id, p]));
+              const productMap = new Map(products.map((p) => [p.id, p as unknown as DBProduct]));
               const hydrated: CartItem[] = serverItems
                 .filter((si) => productMap.has(si.productId))
                 .map((si) => ({

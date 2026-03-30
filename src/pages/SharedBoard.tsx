@@ -55,7 +55,7 @@ export default function SharedBoard() {
 
         items.push({
           ...item,
-          product: product as DBProduct | null,
+          product: product as unknown as DBProduct | null,
         });
       }
 
@@ -122,8 +122,8 @@ export default function SharedBoard() {
             const product = item.product;
             if (!product) return null;
 
-            const name = ml(product, "name", lang) || product.name || "—";
-            const image = product.image || "/placeholder.svg";
+            const name = ml(product, "name") || product.name || "—";
+            const image = product.image_url || "/placeholder.svg";
 
             return (
               <div

@@ -58,6 +58,8 @@ export interface ProductTypeTags {
 // ── Main product interface ────────────────────────────────
 export interface DBProduct {
   id:   string;
+  created_at?: string | null;
+  updated_at?: string | null;
   name: string;
   name_fr: string | null;
   name_es: string | null;
@@ -123,6 +125,9 @@ export interface DBProduct {
   country_of_manufacture: string | null;
   warranty:               string | null;
   maintenance_info:       string | null;
+  maintenance_info_fr?: string | null;
+  maintenance_info_es?: string | null;
+  maintenance_info_it?: string | null;
   stock_status:           string | null;
   stock_quantity:         number | null;
   estimated_delivery_days: number | null;
@@ -130,6 +135,9 @@ export interface DBProduct {
   popularity_score:   number;
   priority_score:     number;
   data_quality_score: number;
+  // Deduplication fields from DB
+  duplicate_of?: string | null;
+  is_canonical_instance?: boolean | null;
   // Linked partner (supplier who owns this product)
   partner_id: string | null;
   // Computed at fetch time from product_offers
@@ -283,8 +291,8 @@ export async function fetchTagDefinitions(
 
 // ── Normalize raw Supabase row → DBProduct ─────────────────
 
-export function normalizeProduct(raw: any): DBProduct {
-  return {
+export function normalizeProduct(raw: Record<string, any>): DBProduct {
+  return ({
     ...raw,
     style_tags:      raw.style_tags      ?? [],
     ambience_tags:   raw.ambience_tags   ?? [],
@@ -315,7 +323,7 @@ export function normalizeProduct(raw: any): DBProduct {
     priority_score:     raw.priority_score     ?? 0,
     data_quality_score: raw.data_quality_score ?? 0,
     publish_status:     raw.publish_status     ?? "draft",
-  };
+  }) as DBProduct;
 }
 
 // ── Helpers ───────────────────────────────────────────────

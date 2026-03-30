@@ -28,10 +28,9 @@ export default function BecomePartnerDialog({ open, onOpenChange }: Props) {
       country: form.get("country") as string,
       partner_type: partnerType as "brand" | "manufacturer" | "reseller" | "designer",
       website: form.get("website") as string,
-      product_category: form.get("product_category") as string,
-      certifications: form.get("certifications") as string,
       contact_name: form.get("contact_name") as string,
-      contact_email: form.get("contact_email") as string,
+      email: form.get("contact_email") as string,
+      message: [form.get("product_category"), form.get("certifications")].filter(Boolean).join(" | ") || null,
     };
 
     const { error } = await supabase.from("partner_applications").insert(payload);

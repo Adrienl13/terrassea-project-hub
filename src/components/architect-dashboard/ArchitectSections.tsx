@@ -248,34 +248,38 @@ function StatCard({
 
 // ── Status styles ──────────────────────────────────────────────────────────────
 
-const STATUS_STYLES: Record<string, { label: string; style: string }> = {
-  draft:         { label: "Brouillon",  style: "bg-muted text-muted-foreground" },
-  quoting:       { label: "Devis",      style: "bg-amber-50 text-amber-700" },
-  "in-progress": { label: "En cours",   style: "bg-blue-50 text-blue-700" },
-  in_progress:   { label: "En cours",   style: "bg-blue-50 text-blue-700" },
-  delivered:     { label: "Livré",      style: "bg-green-50 text-green-700" },
-  archived:      { label: "Archivé",    style: "bg-muted text-muted-foreground" },
+const STATUS_STYLES: Record<string, { labelKey: string; style: string }> = {
+  draft:         { labelKey: "ad.statusLabel.draft",       style: "bg-muted text-muted-foreground" },
+  quoting:       { labelKey: "ad.statusLabel.quoting",     style: "bg-amber-50 text-amber-700" },
+  "in-progress": { labelKey: "ad.statusLabel.inProgress",  style: "bg-blue-50 text-blue-700" },
+  in_progress:   { labelKey: "ad.statusLabel.inProgress",  style: "bg-blue-50 text-blue-700" },
+  delivered:     { labelKey: "ad.statusLabel.delivered",    style: "bg-green-50 text-green-700" },
+  archived:      { labelKey: "ad.statusLabel.archived",    style: "bg-muted text-muted-foreground" },
 };
 
-const QUOTE_STATUS_STYLES: Record<string, { label: string; style: string }> = {
-  pending:  { label: "En attente", style: "bg-amber-50 text-amber-700" },
-  replied:  { label: "Répondu",    style: "bg-blue-50 text-blue-700" },
-  accepted: { label: "Accepté",    style: "bg-green-50 text-green-700" },
-  expired:  { label: "Expiré",     style: "bg-muted text-muted-foreground" },
-  declined: { label: "Décliné",    style: "bg-red-50 text-red-700" },
+const QUOTE_STATUS_STYLES: Record<string, { labelKey: string; style: string }> = {
+  pending:  { labelKey: "ad.quoteStatus.pending",   style: "bg-amber-50 text-amber-700" },
+  replied:  { labelKey: "ad.quoteStatus.replied",   style: "bg-blue-50 text-blue-700" },
+  accepted: { labelKey: "ad.quoteStatus.accepted",  style: "bg-green-50 text-green-700" },
+  expired:  { labelKey: "ad.quoteStatus.expired",   style: "bg-muted text-muted-foreground" },
+  declined: { labelKey: "ad.quoteStatus.declined",  style: "bg-red-50 text-red-700" },
 };
 
-const CALL_STATUS_STYLES: Record<string, { label: string; style: string }> = {
-  open:       { label: "Ouvert",      style: "bg-green-50 text-green-700" },
-  evaluating: { label: "Évaluation",  style: "bg-amber-50 text-amber-700" },
-  closed:     { label: "Clôturé",     style: "bg-muted text-muted-foreground" },
+const CALL_STATUS_STYLES: Record<string, { labelKey: string; style: string }> = {
+  open:       { labelKey: "ad.callStatus.open",       style: "bg-green-50 text-green-700" },
+  evaluating: { labelKey: "ad.callStatus.evaluating", style: "bg-amber-50 text-amber-700" },
+  closed:     { labelKey: "ad.callStatus.closed",     style: "bg-muted text-muted-foreground" },
 };
 
-const PRODUCT_STATUS_STYLES: Record<string, string> = {
-  "commandé":      "bg-green-50 text-green-700",
-  "devis accepté": "bg-blue-50 text-blue-700",
-  "devis envoyé":  "bg-amber-50 text-amber-700",
-  "en attente":    "bg-muted text-muted-foreground",
+const PRODUCT_STATUS_KEYS: Record<string, { labelKey: string; style: string }> = {
+  "commandé":      { labelKey: "ad.productStatus.ordered",       style: "bg-green-50 text-green-700" },
+  "ordered":       { labelKey: "ad.productStatus.ordered",       style: "bg-green-50 text-green-700" },
+  "devis accepté": { labelKey: "ad.productStatus.quoteAccepted", style: "bg-blue-50 text-blue-700" },
+  "quote_accepted":{ labelKey: "ad.productStatus.quoteAccepted", style: "bg-blue-50 text-blue-700" },
+  "devis envoyé":  { labelKey: "ad.productStatus.quoteSent",     style: "bg-amber-50 text-amber-700" },
+  "quote_sent":    { labelKey: "ad.productStatus.quoteSent",     style: "bg-amber-50 text-amber-700" },
+  "en attente":    { labelKey: "ad.productStatus.pending",       style: "bg-muted text-muted-foreground" },
+  "pending":       { labelKey: "ad.productStatus.pending",       style: "bg-muted text-muted-foreground" },
 };
 
 const VENUE_ICONS: Record<string, string> = {
@@ -286,14 +290,14 @@ const VENUE_ICONS: Record<string, string> = {
 function dbToArchitectProject(row: any, zones?: ZoneWithProducts[]): ArchitectProject {
   const zonesMapped: ProjectZone[] = (zones || []).map((z) => ({
     id: z.id,
-    name: z.zone_name || "Zone",
+    name: z.zone_name || "",
     area: z.zone_area || "",
     productCount: z.products?.length || 0,
     products: (z.products || []).map((p: any) => ({
       name: p.product?.name || "Unknown product",
       qty: p.quantity || 1,
       supplier: p.supplier_name || "",
-      status: p.status || "en attente",
+      status: p.status || "pending",
       image: p.product?.image || undefined,
       productId: p.product_id || undefined,
     })),
@@ -301,7 +305,7 @@ function dbToArchitectProject(row: any, zones?: ZoneWithProducts[]): ArchitectPr
   const totalProducts = zonesMapped.reduce((sum, z) => sum + z.productCount, 0);
 
   const updatedAt = row.updated_at
-    ? new Date(row.updated_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+    ? new Date(row.updated_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })
     : "";
 
   return {
@@ -413,7 +417,7 @@ export function ArchitectOverview({
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span className="text-xs font-display font-semibold text-foreground">€{p.estimatedValue.toLocaleString()}</span>
-                  <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${st.style}`}>{st.label}</span>
+                  <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${st.style}`}>{t(st.labelKey)}</span>
                 </div>
               </div>
             );
@@ -436,10 +440,10 @@ export function ArchitectOverview({
                 <Megaphone className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs font-display font-semibold text-foreground truncate">{c.projectTitle}</p>
-                  <p className="text-[10px] font-body text-muted-foreground">{c.budget} · {c.responsesCount} réponses · {c.createdAt}</p>
+                  <p className="text-[10px] font-body text-muted-foreground">{c.budget} · {c.responsesCount} {t('ad.calls.responses')} · {c.createdAt}</p>
                 </div>
               </div>
-              <span className="text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-50 text-green-700">Ouvert</span>
+              <span className="text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-50 text-green-700">{t('ad.callStatus.open')}</span>
             </div>
           ))}
         </div>
@@ -458,7 +462,7 @@ export function ArchitectOverview({
                   <img src={p.image_url || "/placeholder.svg"} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
                 <p className="text-[11px] font-display font-semibold text-foreground truncate">{p.name}</p>
-                <p className="text-[10px] font-body text-muted-foreground">{p.price_min ? `dès €${p.price_min}` : "Sur demande"}</p>
+                <p className="text-[10px] font-body text-muted-foreground">{p.price_min ? `${t('ad.overview.fromPrice')} €${p.price_min}` : t('ad.overview.onRequest')}</p>
               </div>
             ))}
           </div>
@@ -473,12 +477,12 @@ export function ArchitectOverview({
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const VENUE_TYPES = [
-  { value: "hotel", icon: "🏨", label: "Hôtel" },
-  { value: "restaurant", icon: "🍽", label: "Restaurant" },
-  { value: "bar", icon: "🍸", label: "Bar" },
-  { value: "beach-club", icon: "🏖", label: "Beach Club" },
-  { value: "rooftop", icon: "🌇", label: "Rooftop" },
-  { value: "cafe", icon: "☕", label: "Café" },
+  { value: "hotel", icon: "🏨", labelKey: "ad.venueType.hotel" },
+  { value: "restaurant", icon: "🍽", labelKey: "ad.venueType.restaurant" },
+  { value: "bar", icon: "🍸", labelKey: "ad.venueType.bar" },
+  { value: "beach-club", icon: "🏖", labelKey: "ad.venueType.beachClub" },
+  { value: "rooftop", icon: "🌇", labelKey: "ad.venueType.rooftop" },
+  { value: "cafe", icon: "☕", labelKey: "ad.venueType.cafe" },
 ];
 
 const inputCls = "w-full text-xs font-body bg-transparent border border-border rounded-sm px-3 py-2 focus:outline-none focus:border-foreground transition-colors";
@@ -524,7 +528,7 @@ export function ArchitectCreateProject({ onBack, onCreated }: { onBack: () => vo
       toast.success(t("ad.create.success") || "Project created");
       onCreated?.(dbToArchitectProject(created));
     } catch (err: any) {
-      toast.error(err?.message || "Failed to create project");
+      toast.error(err?.message || t('ad.create.error'));
     } finally {
       setSubmitting(false);
     }
@@ -548,7 +552,7 @@ export function ArchitectCreateProject({ onBack, onCreated }: { onBack: () => vo
                 className="text-[10px] font-display font-semibold px-3 py-1.5 rounded-full border border-border hover:border-foreground text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
               >
                 <FileText className="h-3 w-3" />
-                {t('ad.create.fromTemplate', 'Créer depuis un template')}
+                {t('ad.create.fromTemplate', 'Create from template')}
               </button>
               {showTemplateDropdown && (
                 <div className="absolute right-0 top-full mt-1 w-56 bg-card border border-border rounded-sm shadow-lg z-20 py-1">
@@ -607,7 +611,7 @@ export function ArchitectCreateProject({ onBack, onCreated }: { onBack: () => vo
                 <button key={v.value} onClick={() => setForm(p => ({ ...p, venueType: v.value }))}
                   className={`p-2 rounded-sm border text-center transition-all ${form.venueType === v.value ? "border-foreground bg-card" : "border-border hover:border-foreground/20"}`}>
                   <span className="text-sm block">{v.icon}</span>
-                  <span className="text-[9px] font-display font-semibold text-foreground">{v.label}</span>
+                  <span className="text-[9px] font-display font-semibold text-foreground">{t(v.labelKey)}</span>
                 </button>
               ))}
             </div>
@@ -616,7 +620,7 @@ export function ArchitectCreateProject({ onBack, onCreated }: { onBack: () => vo
             <div><span className={labelCls}>{t('ad.create.address')}</span><input value={form.address} onChange={set("address")} className={inputCls} /></div>
             <div className="grid grid-cols-2 gap-2">
               <div><span className={labelCls}>{t('ad.create.surface')}</span><input value={form.surfaceArea} onChange={set("surfaceArea")} placeholder="ex: 200m²" className={inputCls} /></div>
-              <div><span className={labelCls}>{t('ad.create.style')}</span><input value={form.style} onChange={set("style")} placeholder="ex: Contemporain" className={inputCls} /></div>
+              <div><span className={labelCls}>{t('ad.create.style')}</span><input value={form.style} onChange={set("style")} placeholder={t('ad.create.stylePlaceholder')} className={inputCls} /></div>
             </div>
           </div>
         </div>
@@ -689,9 +693,9 @@ export function ArchitectProjectDetail({
     return (
       <div className="space-y-4">
         <button onClick={() => setActiveBoardId(null)} className="flex items-center gap-1.5 text-[10px] font-body text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="h-3 w-3" /> Back to project
+          <ArrowLeft className="h-3 w-3" /> {t('ad.detail.backToProject')}
         </button>
-        <Suspense fallback={<div className="py-8 text-center text-sm text-muted-foreground">Loading board...</div>}>
+        <Suspense fallback={<div className="py-8 text-center text-sm text-muted-foreground">{t('ad.detail.loadingBoard')}</div>}>
           <MaterialBoardView boardId={activeBoardId} />
         </Suspense>
       </div>
@@ -703,7 +707,7 @@ export function ArchitectProjectDetail({
 
   const addNote = () => {
     if (!newNote.trim()) return;
-    setNotes(prev => [{ id: `n-${Date.now()}`, text: newNote.trim(), author: "Vous", date: "Maintenant" }, ...prev]);
+    setNotes(prev => [{ id: `n-${Date.now()}`, text: newNote.trim(), author: t('ad.detail.noteAuthorYou'), date: t('ad.detail.noteNow') }, ...prev]);
     setNewNote("");
   };
   const deleteNote = (id: string) => setNotes(prev => prev.filter(n => n.id !== id));
@@ -727,12 +731,12 @@ export function ArchitectProjectDetail({
           </div>
           <div className="flex items-center gap-2">
             {editing ? (
-              <select value={editStatus} onChange={e => setEditStatus(e.target.value)}
+              <select value={editStatus} onChange={e => setEditStatus(e.target.value as typeof editStatus)}
                 className="text-[10px] font-display font-semibold px-2.5 py-1 rounded-full border border-border bg-transparent focus:outline-none">
-                {Object.entries(STATUS_STYLES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                {Object.entries(STATUS_STYLES).map(([k, v]) => <option key={k} value={k}>{t(v.labelKey)}</option>)}
               </select>
             ) : (
-              <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${st.style}`}>{st.label}</span>
+              <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${st.style}`}>{t(st.labelKey)}</span>
             )}
             <button onClick={async () => {
                 if (editing) {
@@ -772,7 +776,7 @@ export function ArchitectProjectDetail({
               disabled={savingTemplate}
               className="text-[10px] font-display font-semibold px-3 py-1 rounded-full border border-border hover:border-foreground text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
             >
-              {savingTemplate ? "..." : t('ad.detail.saveAsTemplate', 'Sauvegarder comme template')}
+              {savingTemplate ? "..." : t('ad.detail.saveAsTemplate', 'Save as template')}
             </button>
           </div>
         </div>
@@ -824,8 +828,8 @@ export function ArchitectProjectDetail({
               {editAddress && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {editAddress}</span>}
               {project.surfaceArea && <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {project.surfaceArea}</span>}
               {project.style && <span className="flex items-center gap-1"><Star className="h-3 w-3" /> {project.style}</span>}
-              {project.startDate && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Début : {project.startDate}</span>}
-              {editDeadline && <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Deadline : {editDeadline}</span>}
+              {project.startDate && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {t('ad.detail.startDateLabel')}: {project.startDate}</span>}
+              {editDeadline && <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {t('ad.detail.deadlineLabel')}: {editDeadline}</span>}
             </div>
           </>
         )}
@@ -843,7 +847,7 @@ export function ArchitectProjectDetail({
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            {tab === "zones" ? t('ad.detail.zonesProducts') : tab === "notes" ? t('ad.detail.notes') : "Material Boards"}
+            {tab === "zones" ? t('ad.detail.zonesProducts') : tab === "notes" ? t('ad.detail.notes') : t('ad.detail.materialBoards')}
             {tab === "boards" && boards.length > 0 && ` (${boards.length})`}
           </button>
         ))}
@@ -855,7 +859,7 @@ export function ArchitectProjectDetail({
           {/* Add zone button + inline form */}
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
-              {project.zones.length} zone{project.zones.length !== 1 ? "s" : ""}
+              {project.zones.length} {t('ad.detail.zones')}
             </p>
             <button
               onClick={() => setShowAddZone(!showAddZone)}
@@ -896,7 +900,7 @@ export function ArchitectProjectDetail({
                     setNewZoneArea("");
                     setShowAddZone(false);
                   } catch (err: any) {
-                    toast.error(err?.message || "Failed to create zone");
+                    toast.error(err?.message || t('ad.detail.zoneCreateError'));
                   } finally {
                     setAddingZone(false);
                   }
@@ -916,7 +920,7 @@ export function ArchitectProjectDetail({
                   <div className="flex items-center gap-2">
                     <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="text-xs font-display font-semibold text-foreground">{zone.name}</span>
-                    <span className="text-[10px] font-body text-muted-foreground">{zone.area} · {zone.productCount} produits</span>
+                    <span className="text-[10px] font-body text-muted-foreground">{zone.area} · {zone.productCount} {t('ad.detail.products')}</span>
                   </div>
                   <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${activeZone === zone.id ? "rotate-90" : ""}`} />
                 </button>
@@ -956,7 +960,7 @@ export function ArchitectProjectDetail({
                             <td className="px-2 py-2 text-[11px] font-body text-foreground text-center">{prod.qty}</td>
                             <td className="px-2 py-2 text-[11px] font-body text-muted-foreground">{prod.supplier}</td>
                             <td className="px-4 py-2 text-right">
-                              <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${PRODUCT_STATUS_STYLES[prod.status] || "bg-muted text-muted-foreground"}`}>{prod.status}</span>
+                              <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${(PRODUCT_STATUS_KEYS[prod.status] || { style: "bg-muted text-muted-foreground" }).style}`}>{t((PRODUCT_STATUS_KEYS[prod.status] || { labelKey: "ad.productStatus.pending" }).labelKey)}</span>
                             </td>
                           </tr>
                         ))}
@@ -971,7 +975,7 @@ export function ArchitectProjectDetail({
           {project.zones.length === 0 && !showAddZone && (
             <div className="text-center py-8">
               <MapPin className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-[10px] font-body text-muted-foreground">No zones yet</p>
+              <p className="text-[10px] font-body text-muted-foreground">{t('ad.detail.noZones')}</p>
             </div>
           )}
         </div>
@@ -979,7 +983,7 @@ export function ArchitectProjectDetail({
 
       {/* Notes tab — real DB annotations */}
       {activeTab === "notes" && (
-        <Suspense fallback={<div className="py-8 text-center text-sm text-muted-foreground">Loading notes...</div>}>
+        <Suspense fallback={<div className="py-8 text-center text-sm text-muted-foreground">{t('ad.detail.loadingNotes')}</div>}>
           <ProjectAnnotations projectId={projectId} />
         </Suspense>
       )}
@@ -988,11 +992,11 @@ export function ArchitectProjectDetail({
       {activeTab === "boards" && (
         <div className="space-y-3">
           {boardsLoading ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">Loading boards...</div>
+            <div className="py-8 text-center text-sm text-muted-foreground">{t('ad.detail.loadingBoards')}</div>
           ) : boards.length === 0 ? (
             <div className="text-center py-8">
               <Image className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-[10px] font-body text-muted-foreground">No material boards for this project</p>
+              <p className="text-[10px] font-body text-muted-foreground">{t('ad.detail.noBoards')}</p>
             </div>
           ) : (
             boards.map((board: any) => (
@@ -1004,7 +1008,7 @@ export function ArchitectProjectDetail({
                 <div className="min-w-0">
                   <p className="text-xs font-display font-semibold text-foreground truncate">{board.board_name}</p>
                   <p className="text-[10px] font-body text-muted-foreground">
-                    {board.items?.length || 0} items · {board.updated_at ? new Date(board.updated_at).toLocaleDateString("fr-FR") : ""}
+                    {board.items?.length || 0} {t('ad.detail.boardItems')} · {board.updated_at ? new Date(board.updated_at).toLocaleDateString() : ""}
                   </p>
                 </div>
                 <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1029,12 +1033,12 @@ export function ArchitectProjectDetail({
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="min-w-0">
                         <p className="text-xs font-display font-semibold text-foreground text-left">{q.supplierName}</p>
-                        <p className="text-[10px] font-body text-muted-foreground text-left">{q.products.length} produits · {q.dateSent}{q.dateReply ? ` · Répondu ${q.dateReply}` : ""}</p>
+                        <p className="text-[10px] font-body text-muted-foreground text-left">{q.products.length} {t('ad.detail.products')} · {q.dateSent}{q.dateReply ? ` · ${t('ad.quoteStatus.replied')} ${q.dateReply}` : ""}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span className="text-xs font-display font-semibold text-foreground">€{q.amount.toLocaleString()}</span>
-                      <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${qst.style}`}>{qst.label}</span>
+                      <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${qst.style}`}>{t(qst.labelKey)}</span>
                       <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
                     </div>
                   </button>
@@ -1189,7 +1193,7 @@ export function ArchitectProjectsSection({
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-display font-semibold text-foreground truncate">{p.projectName}</p>
                     <p className="text-[10px] font-body text-muted-foreground">
-                      {p.clientName} · {p.zoneCount} zones · {p.productCount} produits · {p.quotesCount} devis
+                      {p.clientName} · {p.zoneCount} {t('ad.detail.zones')} · {p.productCount} {t('ad.detail.products')} · {p.quotesCount} {t('ad.detail.quotes')}
                     </p>
                   </div>
                 </div>
@@ -1198,7 +1202,7 @@ export function ArchitectProjectsSection({
                     <p className="text-xs font-display font-semibold text-foreground">€{p.estimatedValue.toLocaleString()}</p>
                     <p className="text-[9px] font-body text-muted-foreground">{p.updatedAt}</p>
                   </div>
-                  <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap ${st.style}`}>{st.label}</span>
+                  <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap ${st.style}`}>{t(st.labelKey)}</span>
                   <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
               </div>
@@ -1260,7 +1264,7 @@ function QuoteDetail({ quote, onBack }: { quote: ArchitectQuote; onBack: () => v
           <h2 className="font-display font-bold text-lg text-foreground">{quote.supplierName}</h2>
           <p className="text-xs font-body text-muted-foreground">{quote.projectName} · {quote.clientName}</p>
         </div>
-        <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${qst.style}`}>{qst.label}</span>
+        <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${qst.style}`}>{t(qst.labelKey)}</span>
       </div>
 
       {/* Key info */}
@@ -1389,10 +1393,10 @@ export function ArchitectQuotesSection({ tier }: { tier: ArchitectTier }) {
       supplierName: row.partner_name || "—",
       productSummary: row.product_name || "—",
       amount: Number(row.total_price || row.unit_price || 0),
-      dateSent: row.created_at ? new Date(row.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "—",
-      dateReply: row.replied_at ? new Date(row.replied_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : undefined,
+      dateSent: row.created_at ? new Date(row.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" }) : "—",
+      dateReply: row.replied_at ? new Date(row.replied_at).toLocaleDateString(undefined, { day: "numeric", month: "short" }) : undefined,
       status: statusMap[row.status || "pending"] || "pending",
-      validUntil: row.validity_expires_at ? new Date(row.validity_expires_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : undefined,
+      validUntil: row.validity_expires_at ? new Date(row.validity_expires_at).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) : undefined,
       supplierMessage: row.message || undefined,
       products: row.product_name ? [{ name: row.product_name, qty: row.quantity || 1, unitPrice: Number(row.unit_price || 0), total: Number(row.total_price || 0) }] : [],
     };
@@ -1466,11 +1470,11 @@ export function ArchitectQuotesSection({ tier }: { tier: ArchitectTier }) {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-display font-semibold text-foreground truncate">{q.supplierName}</p>
                         <p className="text-[10px] font-body text-muted-foreground truncate">{q.productSummary}</p>
-                        <p className="text-[9px] font-body text-muted-foreground">{q.dateSent}{q.dateReply ? ` · Répondu le ${q.dateReply}` : ""}</p>
+                        <p className="text-[9px] font-body text-muted-foreground">{q.dateSent}{q.dateReply ? ` · ${t('ad.quoteDetail.repliedOn')} ${q.dateReply}` : ""}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <span className="text-xs font-display font-semibold text-foreground">€{q.amount.toLocaleString()}</span>
-                        <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap ${st.style}`}>{st.label}</span>
+                        <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap ${st.style}`}>{t(st.labelKey)}</span>
                         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
                     </div>
@@ -1489,16 +1493,19 @@ export function ArchitectQuotesSection({ tier }: { tier: ArchitectTier }) {
 // ── ARCHITECT SUPPLIER CALLS SECTION ────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const NEED_PRESETS = [
-  { cat: "Assises", ph: "Chaises, fauteuils, tabourets, banquettes…" },
-  { cat: "Tables", ph: "Tables dining, basses, hautes, d'appoint…" },
-  { cat: "Protection solaire", ph: "Parasols, voiles d'ombrage, stores…" },
-];
-
-const NEED_CATEGORIES = [
-  "Assises", "Tables", "Protection solaire", "Bains de soleil & transats",
-  "Éclairage", "Décoration", "Végétal & jardinières", "Canapés & lounge",
-  "Accessoires", "Rangement", "Chauffage extérieur", "Autre",
+const NEED_CATEGORIES_DATA = [
+  { value: "seating",         labelKey: "ad.needCategory.seating" },
+  { value: "tables",          labelKey: "ad.needCategory.tables" },
+  { value: "sun_protection",  labelKey: "ad.needCategory.sunProtection" },
+  { value: "sunbeds",         labelKey: "ad.needCategory.sunbeds" },
+  { value: "lighting",        labelKey: "ad.needCategory.lighting" },
+  { value: "decoration",      labelKey: "ad.needCategory.decoration" },
+  { value: "planters",        labelKey: "ad.needCategory.planters" },
+  { value: "sofas_lounge",    labelKey: "ad.needCategory.sofasLounge" },
+  { value: "accessories",     labelKey: "ad.needCategory.accessories" },
+  { value: "storage",         labelKey: "ad.needCategory.storage" },
+  { value: "outdoor_heating", labelKey: "ad.needCategory.outdoorHeating" },
+  { value: "other",           labelKey: "ad.needCategory.other" },
 ];
 
 interface NeedRow {
@@ -1598,8 +1605,8 @@ function CallDetailExpanded({
 
         {/* Project specs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-          {styleStr && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Style</p><p className="text-[10px] font-body text-foreground">{styleStr}</p></div>}
-          {call.urgency && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Urgence</p><p className={`text-[10px] font-body ${call.urgency === "urgent" ? "text-red-600 font-semibold" : "text-foreground"}`}>{call.urgency === "urgent" ? "Urgent" : call.urgency === "flexible" ? "Flexible" : "Normal"}</p></div>}
+          {styleStr && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.calls.styleLabel')}</p><p className="text-[10px] font-body text-foreground">{styleStr}</p></div>}
+          {call.urgency && <div className="px-3 py-2 border border-border rounded-sm"><p className="text-[8px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t('ad.calls.urgencyLabel')}</p><p className={`text-[10px] font-body ${call.urgency === "urgent" ? "text-red-600 font-semibold" : "text-foreground"}`}>{call.urgency === "urgent" ? t('ad.calls.urgencyUrgent') : call.urgency === "flexible" ? t('ad.calls.urgencyFlexible') : t('ad.calls.urgencyNormal')}</p></div>}
         </div>
 
         {/* Needs by priority (mapped from categoriesNeeded) */}
@@ -1609,7 +1616,7 @@ function CallDetailExpanded({
             <div className="space-y-1.5">
               {needs.map(n => {
                 const priorityStyle = n.priority === "essential" ? "border-l-green-500 bg-green-50/30" : n.priority === "important" ? "border-l-blue-500 bg-blue-50/30" : "border-l-muted-foreground/30 bg-muted/20";
-                const priorityLabel = n.priority === "essential" ? "Essentiel" : n.priority === "important" ? "Important" : "Optionnel";
+                const priorityLabel = n.priority === "essential" ? t('ad.calls.priorityEssential') : n.priority === "important" ? t('ad.calls.priorityImportant') : t('ad.calls.priorityOptional');
                 const priorityColor = n.priority === "essential" ? "text-green-700 bg-green-50" : n.priority === "important" ? "text-blue-700 bg-blue-50" : "text-muted-foreground bg-muted";
                 return (
                   <div key={n.category} className={`flex items-center justify-between px-3 py-2 border-l-2 rounded-r-sm ${priorityStyle}`}>
@@ -1662,7 +1669,7 @@ function CallDetailExpanded({
                   total: p.total || (p.qty || p.quantity || 0) * (p.unitPrice || p.unit_price || 0),
                   image: p.image || p.image_url,
                 }));
-                const displayName = r.partnerName || "Fournisseur";
+                const displayName = r.partnerName || t('ad.calls.supplierFallback');
                 const displayInitial = displayName[0] || "?";
                 return (
                 <div key={r.id} className={`border rounded-sm overflow-hidden ${r.isSelected ? "border-green-400 bg-green-50/30" : "border-border"}`}>
@@ -1691,8 +1698,8 @@ function CallDetailExpanded({
                     {/* Key numbers */}
                     <div className="flex items-center gap-4 mt-2 text-[10px] font-body">
                       {r.estimatedAmount != null && <span className="font-display font-bold text-foreground">&euro;{r.estimatedAmount.toLocaleString()}</span>}
-                      {r.deliveryWeeks != null && <span className="flex items-center gap-1 text-muted-foreground"><Clock className="h-3 w-3" /> {r.deliveryWeeks} sem.</span>}
-                      {products.length > 0 && <span className="text-muted-foreground">{products.length} produits</span>}
+                      {r.deliveryWeeks != null && <span className="flex items-center gap-1 text-muted-foreground"><Clock className="h-3 w-3" /> {r.deliveryWeeks} {t('ad.calls.weeksAbbr')}</span>}
+                      {products.length > 0 && <span className="text-muted-foreground">{products.length} {t('ad.detail.products')}</span>}
                     </div>
                   </div>
 
@@ -1757,9 +1764,9 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
   const [showNew, setShowNew] = useState(false);
   const [expandedCall, setExpandedCall] = useState<string | null>(null);
   const [needRows, setNeedRows] = useState<NeedRow[]>([
-    makeNeedRow("Assises", "", "essential"),
-    makeNeedRow("Tables", "", "essential"),
-    makeNeedRow("Protection solaire", "", "important"),
+    makeNeedRow("seating", "", "essential"),
+    makeNeedRow("tables", "", "essential"),
+    makeNeedRow("sun_protection", "", "important"),
   ]);
 
   // ── Create form state ──────────────────────────────────────────────────────
@@ -1779,7 +1786,7 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
     setFormProject(""); setFormBudget(""); setFormDeadline(""); setFormBrief("");
     setFormStyle(""); setFormUrgency("normal"); setFormMaterials("");
     setFormSurface(""); setFormCapacity(""); setFormAmbiance(""); setFormConstraints("");
-    setNeedRows([makeNeedRow("Assises", "", "essential"), makeNeedRow("Tables", "", "essential"), makeNeedRow("Protection solaire", "", "important")]);
+    setNeedRows([makeNeedRow("seating", "", "essential"), makeNeedRow("tables", "", "essential"), makeNeedRow("sun_protection", "", "important")]);
   };
 
   const handleCreateCall = async () => {
@@ -1792,7 +1799,7 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
     const projectLabel = formProject || formBrief.slice(0, 60);
     const categories = needRows
       .filter(r => r.category && r.category !== "")
-      .map(r => r.category === "Autre" ? r.customCategory : r.category)
+      .map(r => r.category === "other" ? r.customCategory : r.category)
       .filter(Boolean);
     const styles = formStyle ? formStyle.split(",").map(s => s.trim()).filter(Boolean) : [];
 
@@ -1824,7 +1831,7 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
       toast.success(t('ad.calls.responseSelected'));
     } catch (err: any) {
       console.error("Failed to select response:", err);
-      toast.error(err?.message || "Error");
+      toast.error(err?.message || t('ad.calls.selectError'));
     }
   };
 
@@ -1834,7 +1841,7 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
       toast.success(t('ad.calls.callClosed'));
     } catch (err: any) {
       console.error("Failed to close call:", err);
-      toast.error(err?.message || "Error");
+      toast.error(err?.message || t('ad.calls.closeError'));
     }
   };
 
@@ -1910,13 +1917,13 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
                 <div key={row.id} className="grid grid-cols-12 gap-2 items-start">
                   <select
                     value={row.category}
-                    onChange={e => setNeedRows(prev => prev.map(r => r.id === row.id ? { ...r, category: e.target.value, customCategory: e.target.value === "Autre" ? r.customCategory : "" } : r))}
+                    onChange={e => setNeedRows(prev => prev.map(r => r.id === row.id ? { ...r, category: e.target.value, customCategory: e.target.value === "other" ? r.customCategory : "" } : r))}
                     className={inputCls + " col-span-3"}
                   >
                     <option value="">{t('ad.calls.needCategory')}</option>
-                    {NEED_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    {NEED_CATEGORIES_DATA.map(c => <option key={c.value} value={c.value}>{t(c.labelKey)}</option>)}
                   </select>
-                  {row.category === "Autre" ? (
+                  {row.category === "other" ? (
                     <div className="col-span-2">
                       <input
                         value={row.customCategory}
@@ -1930,12 +1937,12 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
                     value={row.description}
                     onChange={e => setNeedRows(prev => prev.map(r => r.id === row.id ? { ...r, description: e.target.value } : r))}
                     placeholder={t('ad.calls.needDesc')}
-                    className={inputCls + (row.category === "Autre" ? " col-span-3" : " col-span-5")}
+                    className={inputCls + (row.category === "other" ? " col-span-3" : " col-span-5")}
                   />
                   <input
                     value={row.qty}
                     onChange={e => setNeedRows(prev => prev.map(r => r.id === row.id ? { ...r, qty: e.target.value } : r))}
-                    placeholder="Qté" type="number"
+                    placeholder={t('ad.detail.qty')} type="number"
                     className={inputCls + " col-span-1"}
                   />
                   <select
@@ -1961,7 +1968,7 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
 
           {/* Style + urgency */}
           <div className="grid grid-cols-3 gap-3">
-            <div><span className={labelCls}>{t('ad.calls.styleLabel')}</span><input value={formStyle} onChange={e => setFormStyle(e.target.value)} placeholder="ex: Contemporain, Bistrot chic…" className={inputCls} /></div>
+            <div><span className={labelCls}>{t('ad.calls.styleLabel')}</span><input value={formStyle} onChange={e => setFormStyle(e.target.value)} placeholder={t('ad.calls.stylePlaceholder')} className={inputCls} /></div>
             <div>
               <span className={labelCls}>{t('ad.calls.urgencyLabel')}</span>
               <select value={formUrgency} onChange={e => setFormUrgency(e.target.value as "normal" | "urgent" | "flexible")} className={inputCls}>
@@ -1970,13 +1977,13 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
                 <option value="flexible">{t('ad.calls.urgencyFlexible')}</option>
               </select>
             </div>
-            <div><span className={labelCls}>{t('ad.calls.materialsLabel')}</span><input value={formMaterials} onChange={e => setFormMaterials(e.target.value)} placeholder="Aluminium, Teck, Résine…" className={inputCls} /></div>
+            <div><span className={labelCls}>{t('ad.calls.materialsLabel')}</span><input value={formMaterials} onChange={e => setFormMaterials(e.target.value)} placeholder={t('ad.calls.materialsPlaceholder')} className={inputCls} /></div>
           </div>
 
           {/* Surface + capacity */}
           <div className="grid grid-cols-2 gap-3">
             <div><span className={labelCls}>{t('ad.calls.surfaceLabel')}</span><input value={formSurface} onChange={e => setFormSurface(e.target.value)} placeholder="ex: 200m²" className={inputCls} /></div>
-            <div><span className={labelCls}>{t('ad.calls.capacityLabel')}</span><input value={formCapacity} onChange={e => setFormCapacity(e.target.value)} placeholder="ex: 80 couverts" type="number" className={inputCls} /></div>
+            <div><span className={labelCls}>{t('ad.calls.capacityLabel')}</span><input value={formCapacity} onChange={e => setFormCapacity(e.target.value)} placeholder={t('ad.calls.capacityPlaceholder')} type="number" className={inputCls} /></div>
           </div>
 
           {/* Ambiance + constraints */}
@@ -2041,7 +2048,7 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${st.style}`}>{st.label}</span>
+                            <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${st.style}`}>{t(st.labelKey)}</span>
                             <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`} />
                           </div>
                         </div>
@@ -2050,9 +2057,9 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
                         <div className="flex items-center gap-3 text-[10px] font-body text-muted-foreground">
                           {c.budget && <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {c.budget}</span>}
                           {c.deadline && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {c.deadline}</span>}
-                          <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {c.responsesCount} rép.</span>
-                          <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {c.views} vues</span>
-                          <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {c.clicks} clics</span>
+                          <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {c.responsesCount} {t('ad.calls.responsesAbbr')}</span>
+                          <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {c.views} {t('ad.calls.viewsAbbr')}</span>
+                          <span className="flex items-center gap-1"><Target className="h-3 w-3" /> {c.clicks} {t('ad.calls.clicksAbbr')}</span>
                         </div>
                         {needTags.length > 0 && (
                           <div className="flex gap-1.5 mt-2 flex-wrap">
@@ -2089,24 +2096,24 @@ export function ArchitectCallsSection({ tier }: { tier: ArchitectTier }) {
 
 // ── Messaging helpers ───────────────────────────────────────────────────────
 
-function timeAgo(date: string) {
+function timeAgo(date: string, tFn: (key: string) => string) {
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "maintenant";
-  if (mins < 60) return `${mins}min`;
+  if (mins < 1) return tFn('ad.time.now');
+  if (mins < 60) return `${mins}${tFn('ad.time.min')}`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
+  if (hrs < 24) return `${hrs}${tFn('ad.time.hours')}`;
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}j`;
-  return new Date(date).toLocaleDateString("fr-FR");
+  if (days < 7) return `${days}${tFn('ad.time.days')}`;
+  return new Date(date).toLocaleDateString();
 }
 
 const USER_TYPE_COLOR: Record<string, string> = {
   client: "text-blue-600 bg-blue-50", partner: "text-emerald-600 bg-emerald-50",
   architect: "text-purple-600 bg-purple-50", admin: "text-red-600 bg-red-50",
 };
-const USER_TYPE_LABEL: Record<string, string> = {
-  client: "Client", partner: "Partenaire", architect: "Architecte", admin: "Admin",
+const USER_TYPE_LABEL_KEY: Record<string, string> = {
+  client: "ad.userType.client", partner: "ad.userType.partner", architect: "ad.userType.architect", admin: "ad.userType.admin",
 };
 
 function participantName(p: { profile: { first_name: string | null; last_name: string | null; email: string } }) {
@@ -2119,6 +2126,7 @@ function participantName(p: { profile: { first_name: string | null; last_name: s
 function ConversationListItem({ conv, userId, isActive, onClick, showProject = true }: {
   conv: any; userId: string; isActive: boolean; onClick: () => void; showProject?: boolean;
 }) {
+  const { t } = useTranslation();
   const others = conv.participants.filter((p: any) => p.user_id !== userId);
   return (
     <button onClick={onClick}
@@ -2131,10 +2139,10 @@ function ConversationListItem({ conv, userId, isActive, onClick, showProject = t
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <p className={`text-[10px] font-display truncate ${conv.unread_count > 0 ? "font-bold text-foreground" : "font-semibold text-foreground"}`}>
-            {conv.subject || others.map((p: any) => participantName(p)).join(", ") || "Conversation"}
+            {conv.subject || others.map((p: any) => participantName(p)).join(", ") || t('ad.messages.conversationFallback')}
           </p>
           <span className="text-[8px] font-body text-muted-foreground whitespace-nowrap ml-1">
-            {conv.last_message_at ? timeAgo(conv.last_message_at) : ""}
+            {conv.last_message_at ? timeAgo(conv.last_message_at, t) : ""}
           </span>
         </div>
         {showProject && conv.project_name && (
@@ -2160,6 +2168,7 @@ function ConversationListItem({ conv, userId, isActive, onClick, showProject = t
 // ── Inline conversation thread ──────────────────────────────────────────────
 
 function InlineThread({ conversationId, onBack }: { conversationId: string; onBack: () => void }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { messages, sendMessage, markConversationRead } = useMessages(conversationId);
   const { conversations } = useConversations();
@@ -2176,7 +2185,7 @@ function InlineThread({ conversationId, onBack }: { conversationId: string; onBa
     if (!input.trim() || sending) return;
     setSending(true);
     try { await sendMessage(input); setInput(""); }
-    catch (err: any) { toast.error(err.message || "Erreur d'envoi"); }
+    catch (err: any) { toast.error(err.message || t('ad.messages.sendError')); }
     finally { setSending(false); }
   };
 
@@ -2191,7 +2200,7 @@ function InlineThread({ conversationId, onBack }: { conversationId: string; onBa
         </button>
         <div className="flex-1 min-w-0">
           <p className="font-display font-semibold text-xs text-foreground truncate">
-            {conv?.subject || others.map((p: any) => participantName(p)).join(", ") || "Conversation"}
+            {conv?.subject || others.map((p: any) => participantName(p)).join(", ") || t('ad.messages.conversationFallback')}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
             {others.map((p: any) => (
@@ -2208,7 +2217,7 @@ function InlineThread({ conversationId, onBack }: { conversationId: string; onBa
         {messages.length === 0 && (
           <div className="text-center py-10">
             <MessageSquare className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
-            <p className="text-[10px] font-body text-muted-foreground">Aucun message</p>
+            <p className="text-[10px] font-body text-muted-foreground">{t('ad.messages.noMessages')}</p>
           </div>
         )}
         {messages.map((msg: any) => {
@@ -2227,7 +2236,7 @@ function InlineThread({ conversationId, onBack }: { conversationId: string; onBa
                   {msg.body}
                 </div>
                 <p className={`text-[8px] font-body text-muted-foreground/50 mt-0.5 ${isMe ? "text-right" : ""}`}>
-                  {msg.created_at ? timeAgo(msg.created_at) : ""}
+                  {msg.created_at ? timeAgo(msg.created_at, t) : ""}
                 </p>
               </div>
             </div>
@@ -2242,7 +2251,7 @@ function InlineThread({ conversationId, onBack }: { conversationId: string; onBa
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="Votre message..."
+            placeholder={t('ad.messages.messagePlaceholder')}
             rows={1}
             className="flex-1 bg-card border border-border rounded-2xl px-3 py-2 text-[11px] font-body outline-none focus:ring-1 focus:ring-foreground resize-none max-h-20"
           />
@@ -2321,14 +2330,14 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
     try {
       const convId = await createConversation(
         user!.id, [selectedUser.id],
-        newSubject || `Conversation avec ${selectedUser.first_name || selectedUser.email}`,
+        newSubject || `${t('ad.messages.conversationWith')} ${selectedUser.first_name || selectedUser.email}`,
         newMessage,
         newProjectRef || undefined,
         newProjectName || undefined,
       );
       setShowNew(false); setSelectedUser(null); setNewSubject(""); setNewMessage(""); setNewSearch(""); setNewProjectRef(""); setNewProjectName("");
       setActiveConv(convId);
-    } catch (err: any) { toast.error(err.message || "Erreur"); }
+    } catch (err: any) { toast.error(err.message || t('ad.messages.error')); }
     finally { setCreating(false); }
   };
 
@@ -2405,7 +2414,7 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
           {/* List */}
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
-              <p className="text-center py-8 text-[10px] text-muted-foreground font-body">Chargement...</p>
+              <p className="text-center py-8 text-[10px] text-muted-foreground font-body">{t('ad.messages.loading')}</p>
             ) : filtered.length === 0 ? (
               <div className="text-center py-10 px-4">
                 <MessageSquare className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
@@ -2461,7 +2470,7 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
                       {[selectedUser.first_name, selectedUser.last_name].filter(Boolean).join(" ") || selectedUser.email}
                     </span>
                     <span className={`text-[8px] font-display font-semibold px-1.5 py-0.5 rounded-full ${USER_TYPE_COLOR[selectedUser.user_type] || ""}`}>
-                      {USER_TYPE_LABEL[selectedUser.user_type] || selectedUser.user_type}
+                      {USER_TYPE_LABEL_KEY[selectedUser.user_type] ? t(USER_TYPE_LABEL_KEY[selectedUser.user_type]) : selectedUser.user_type}
                     </span>
                     <button onClick={() => setSelectedUser(null)} aria-label="Close" className="text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>
                   </div>
@@ -2480,7 +2489,7 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
                               {u.company && <p className="text-[9px] text-muted-foreground truncate">{u.company}</p>}
                             </div>
                             <span className={`text-[8px] font-display font-semibold px-1.5 py-0.5 rounded-full ${USER_TYPE_COLOR[u.user_type] || ""}`}>
-                              {USER_TYPE_LABEL[u.user_type] || u.user_type}
+                              {USER_TYPE_LABEL_KEY[u.user_type] ? t(USER_TYPE_LABEL_KEY[u.user_type]) : u.user_type}
                             </span>
                           </button>
                         ))}
@@ -2538,7 +2547,7 @@ export function ArchitectRewardsSection({ tier }: { tier: ArchitectTier }) {
   const allTiers: ArchitectTier[] = ["studio", "atelier", "maison"];
 
   const benefits = [
-    { key: "quotesMonth", getValue: (ti: ArchitectTier) => TIER_CONFIG[ti].quotesPerMonth ? `${TIER_CONFIG[ti].quotesPerMonth}` : "Illimite" },
+    { key: "quotesMonth", getValue: (ti: ArchitectTier) => TIER_CONFIG[ti].quotesPerMonth ? `${TIER_CONFIG[ti].quotesPerMonth}` : t('ad.rewards.unlimited') },
     { key: "priority", getValue: (ti: ArchitectTier) => ti !== "studio" },
     { key: "earlyAccess", getValue: (ti: ArchitectTier) => ti !== "studio" },
     { key: "samples", getValue: (ti: ArchitectTier) => ti === "maison" ? "3/trim." : ti === "atelier" ? "1/trim." : false },

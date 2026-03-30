@@ -152,7 +152,7 @@ function FeedbackForm({ submissionId, partnerId, onSent }: { submissionId: strin
         body: feedback.general_comment || "Un administrateur a examiné votre soumission. Consultez le retour.",
         type: "product_feedback",
         link: "/account?section=catalogue",
-      } as Record<string, unknown>);
+      });
 
       toast.success("Retour envoyé au partenaire");
       onSent();

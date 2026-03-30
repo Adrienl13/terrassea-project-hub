@@ -56,22 +56,23 @@ function StatCard({
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { bg: string; text: string; label: string }> = {
-    draft:     { bg: "bg-gray-100", text: "text-gray-600", label: "Brouillon" },
-    sourcing:  { bg: "bg-blue-50",  text: "text-blue-700", label: "En recherche" },
-    quoted:    { bg: "bg-amber-50", text: "text-amber-700", label: "Devis reçu" },
-    ordered:   { bg: "bg-emerald-50", text: "text-emerald-700", label: "Commandé" },
-    delivered: { bg: "bg-green-50", text: "text-green-700", label: "Livré" },
-    pending:   { bg: "bg-amber-50", text: "text-amber-700", label: "En attente" },
-    replied:   { bg: "bg-blue-50",  text: "text-blue-700", label: "Devis reçu" },
-    accepted:  { bg: "bg-green-50", text: "text-green-700", label: "Accepté" },
-    signed:    { bg: "bg-emerald-50", text: "text-emerald-700", label: "Signé" },
-    expired:   { bg: "bg-gray-100", text: "text-gray-500", label: "Expiré" },
+  const { t } = useTranslation();
+  const config: Record<string, { bg: string; text: string; labelKey: string }> = {
+    draft:     { bg: "bg-gray-100", text: "text-gray-600", labelKey: "clientDashboard.projectStatus.draft" },
+    sourcing:  { bg: "bg-blue-50",  text: "text-blue-700", labelKey: "clientDashboard.projectStatus.sourcing" },
+    quoted:    { bg: "bg-amber-50", text: "text-amber-700", labelKey: "clientDashboard.projectStatus.quoted" },
+    ordered:   { bg: "bg-emerald-50", text: "text-emerald-700", labelKey: "clientDashboard.projectStatus.ordered" },
+    delivered: { bg: "bg-green-50", text: "text-green-700", labelKey: "clientDashboard.projectStatus.delivered" },
+    pending:   { bg: "bg-amber-50", text: "text-amber-700", labelKey: "clientDashboard.projectStatus.pending" },
+    replied:   { bg: "bg-blue-50",  text: "text-blue-700", labelKey: "clientDashboard.projectStatus.replied" },
+    accepted:  { bg: "bg-green-50", text: "text-green-700", labelKey: "clientDashboard.projectStatus.accepted" },
+    signed:    { bg: "bg-emerald-50", text: "text-emerald-700", labelKey: "clientDashboard.projectStatus.signed" },
+    expired:   { bg: "bg-gray-100", text: "text-gray-500", labelKey: "clientDashboard.projectStatus.expired" },
   };
   const c = config[status] ?? config.draft;
   return (
     <span className={`text-[9px] font-display font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${c.bg} ${c.text}`}>
-      {c.label}
+      {t(c.labelKey)}
     </span>
   );
 }
@@ -115,14 +116,14 @@ function getSupplierDisplayName(quote: ClientQuote) {
 
 // ── Date formatting ─────────────────────────────────────────────────────────
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: (key: string, opts?: any) => string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const days = Math.floor(diff / 86400000);
-  if (days < 1) return "Aujourd'hui";
-  if (days === 1) return "Hier";
-  if (days < 7) return `Il y a ${days} jours`;
-  if (days < 30) return `Il y a ${Math.floor(days / 7)} sem.`;
-  return `Il y a ${Math.floor(days / 30)} mois`;
+  if (days < 1) return t("clientDashboard.timeAgo.today");
+  if (days === 1) return t("clientDashboard.timeAgo.yesterday");
+  if (days < 7) return t("clientDashboard.timeAgo.daysAgo", { count: days });
+  if (days < 30) return t("clientDashboard.timeAgo.weeksAgo", { count: Math.floor(days / 7) });
+  return t("clientDashboard.timeAgo.monthsAgo", { count: Math.floor(days / 30) });
 }
 
 // ── Venue emojis ───────────────────────────────────────────────────────────────
@@ -237,15 +238,15 @@ export function ClientOverview({
               <Landmark className="h-4 w-4 text-emerald-700" />
             </div>
             <div className="flex-1">
-              <p className="font-display font-bold text-xs text-foreground">Financez votre terrasse</p>
+              <p className="font-display font-bold text-xs text-foreground">{t("clientDashboard.financeTerrace")}</p>
               <p className="text-[10px] font-body text-muted-foreground mt-0.5">
-                Étalez votre investissement sur 12 à 60 mois avec notre partenaire financier.
+                {t("clientDashboard.financeDescription")}
               </p>
             </div>
             <button onClick={() => setShowFinancingModal(true)}
               className="flex items-center gap-1.5 px-4 py-2 text-[10px] font-display font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 rounded-full hover:bg-emerald-200 transition-colors shrink-0">
               <Landmark className="h-3 w-3" />
-              Demander
+              {t("clientDashboard.financeApply")}
             </button>
           </div>
         </div>
@@ -309,7 +310,7 @@ export function ClientOverview({
                     {p.name}
                   </p>
                   <p className="text-[10px] font-body text-muted-foreground">
-                    {p.productCount} produits · {timeAgo(p.updatedAt)}
+                    {p.productCount} {t("clientDashboard.products")} · {timeAgo(p.updatedAt, t)}
                   </p>
                 </div>
               </div>
@@ -574,7 +575,7 @@ export function ClientProjectsSection({ onNavigate }: { onNavigate: ClientSectio
                     {p.name}
                   </p>
                   <p className="text-[11px] font-body text-muted-foreground mt-0.5">
-                    {p.productCount} produits · {p.quotesCount} devis · {timeAgo(p.updatedAt)}
+                    {p.productCount} {t("clientDashboard.products")} · {p.quotesCount} {t("clientDashboard.quotes")} · {timeAgo(p.updatedAt, t)}
                   </p>
                 </div>
               </div>
@@ -860,7 +861,7 @@ export function ClientProjectDetail({
               <div key={p.id} className="flex items-center justify-between text-xs font-body">
                 <span className="text-muted-foreground truncate mr-3">{p.name} ×{p.quantity}</span>
                 <span className="font-display font-semibold text-foreground shrink-0">
-                  {p.unitPrice ? `€${(p.unitPrice * p.quantity).toLocaleString()}` : "—"}
+                  {p.priceMin ? `€${(p.priceMin * p.quantity).toLocaleString()}` : "—"}
                 </span>
               </div>
             ))}
@@ -930,7 +931,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
     try {
       const { error } = await supabase.from("quote_requests").update({ status: "accepted" }).eq("id", quoteId);
       if (error) throw error;
-      toast.success("Devis accept\u00e9");
+      toast.success(t("clientDashboard.quoteAccepted"));
       queryClient.invalidateQueries({ queryKey: ["client-quotes"] });
 
       // Notify admins
@@ -939,8 +940,8 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
         for (const admin of admins || []) {
           await supabase.from("notifications").insert({
             user_id: admin.id,
-            title: "Devis accept\u00e9",
-            body: `Le client ${profile?.first_name || profile?.email || "inconnu"} a accept\u00e9 le devis pour ${productName}`,
+            title: t("clientDashboard.quoteAccepted"),
+            body: t("clientDashboard.quoteAcceptedNotifBody", { name: profile?.first_name || profile?.email || "inconnu", product: productName }),
             type: "info",
             link: "/admin?tab=quotes",
           });
@@ -950,7 +951,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
       }
     } catch (err) {
       console.error(err);
-      toast.error("Erreur lors de l'acceptation du devis");
+      toast.error(t("clientDashboard.quoteAcceptError"));
     } finally {
       setAccepting(false);
     }
@@ -1032,7 +1033,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
           <div className="grid grid-cols-2 gap-3">
             <SpecRow label={t("cd.detail.spec.quantity")} value={`${activeQuote.quantity} pcs`} />
             <SpecRow label={t("cd.detail.spec.unitPrice")} value={`€${activeQuote.unitPrice}`} />
-            <SpecRow label={t("cd.quotes.validUntil")} value={"30 jours"} />
+            <SpecRow label={t("cd.quotes.validUntil")} value={t("clientDashboard.thirtyDays")} />
             <SpecRow label={t("cd.detail.spec.subtotal")} value={`€${activeQuote.totalPrice.toLocaleString()}`} highlight />
           </div>
         </div>
@@ -1072,7 +1073,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
               disabled={accepting}
               className="w-full flex items-center justify-center gap-2 py-3 text-sm font-display font-bold bg-foreground text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-40"
             >
-              <Check className="h-4 w-4" /> {accepting ? "..." : "Accepter ce devis"}
+              <Check className="h-4 w-4" /> {accepting ? "..." : t("clientDashboard.acceptQuote")}
             </button>
           )}
 
@@ -1244,7 +1245,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
             if (qId) {
               await supabase.from("quote_requests").update({ status: "signed", signed_at: new Date().toISOString() }).eq("id", qId);
               queryClient.invalidateQueries({ queryKey: ["client-quotes"] });
-              toast.success("Devis sign\u00e9 avec succ\u00e8s");
+              toast.success(t("clientDashboard.quoteSigned"));
 
               // Notify admins
               const activeQ = allQuotes.find((q) => q.id === qId);
@@ -1253,8 +1254,8 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
                 for (const admin of admins || []) {
                   await supabase.from("notifications").insert({
                     user_id: admin.id,
-                    title: "Devis sign\u00e9",
-                    body: `Le client ${profile?.first_name || profile?.email || "inconnu"} a sign\u00e9 le devis pour ${activeQ?.productName || "un produit"}`,
+                    title: t("clientDashboard.quoteSignedNotifTitle"),
+                    body: t("clientDashboard.quoteSignedNotifBody", { name: profile?.first_name || profile?.email || "inconnu", product: activeQ?.productName || "un produit" }),
                     type: "info",
                     link: "/admin?tab=quotes",
                   });
@@ -1367,7 +1368,7 @@ function SignatureModal({
                   <SpecRow label={t("cd.detail.spec.quantity")} value={`${quote.quantity} pcs`} />
                   <SpecRow label={t("cd.detail.spec.unitPrice")} value={`€${quote.unitPrice}`} />
                   <SpecRow label="Total" value={`€${quote.totalPrice.toLocaleString()}`} highlight />
-                  <SpecRow label={t("cd.quotes.validUntil")} value={"30 jours"} />
+                  <SpecRow label={t("cd.quotes.validUntil")} value={t("clientDashboard.thirtyDays")} />
                   <SpecRow label={t("cd.sign.project")} value={quote.projectName} />
                 </div>
               </div>

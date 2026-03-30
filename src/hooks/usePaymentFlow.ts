@@ -83,19 +83,61 @@ export function usePaymentFlow() {
       const quantity = Number(quote.quantity ?? 1);
       const unitPrice = Number(quote.unit_price ?? 0);
 
-      // 1b. Look up partner's plan to determine commission rate
-      const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, brand_member: 2, brand_network: 1.5 };
-      let commissionRate = 8; // default starter
+      // 1b. Resolve commission rate via v_effective_commissions (brand-distributor)
+      //     or fall back to the distributor's plan-based commission from partner_subscriptions.
+      let commissionRate = 8; // default fallback (starter plan)
+
       if (quote.partner_id) {
-        const { data: partnerRow } = await supabase
-          .from("partners")
-          .select("plan")
-          .eq("id", quote.partner_id)
-          .maybeSingle();
-        if (partnerRow?.plan && COMMISSION_BY_PLAN[partnerRow.plan] !== undefined) {
-          commissionRate = COMMISSION_BY_PLAN[partnerRow.plan];
+        let found = false;
+
+        // If the product belongs to a brand, look up the brand-distributor effective rate
+        if (quote.product_id) {
+          const { data: product } = await supabase
+            .from("products")
+            .select("partner_id")
+            .eq("id", quote.product_id)
+            .maybeSingle();
+
+          if (product?.partner_id) {
+            const { data: ec } = await supabase
+              .from("v_effective_commissions" as any)
+              .select("effective_commission_rate")
+              .eq("brand_id", product.partner_id)
+              .eq("distributor_id", quote.partner_id)
+              .maybeSingle() as { data: { effective_commission_rate: number } | null };
+
+            if (ec?.effective_commission_rate != null) {
+              commissionRate = Number(ec.effective_commission_rate);
+              found = true;
+            }
+          }
+        }
+
+        // Fallback: use the distributor's plan-based commission from partner_subscriptions
+        if (!found) {
+          const { data: sub } = await supabase
+            .from("partner_subscriptions")
+            .select("commission_rate")
+            .eq("partner_id", quote.partner_id)
+            .maybeSingle();
+
+          if (sub?.commission_rate != null) {
+            commissionRate = Number(sub.commission_rate);
+          } else {
+            // Last resort: plan-based hardcoded fallback
+            const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, brand_member: 2, brand_network: 1.5 };
+            const { data: partnerRow } = await supabase
+              .from("partners")
+              .select("plan")
+              .eq("id", quote.partner_id)
+              .maybeSingle();
+            if (partnerRow?.plan && COMMISSION_BY_PLAN[partnerRow.plan] !== undefined) {
+              commissionRate = COMMISSION_BY_PLAN[partnerRow.plan];
+            }
+          }
         }
       }
+
       const commissionAmount = Math.round((totalPrice * commissionRate) / 100 * 100) / 100;
 
       // 2. Calculate deposit and balance
@@ -151,7 +193,7 @@ export function usePaymentFlow() {
           commission_amount: commissionAmount,
           payment_method: "bank_transfer",
           status: "pending_deposit",
-        } as Record<string, unknown>)
+        } as any)
         .select()
         .single();
 
@@ -159,11 +201,11 @@ export function usePaymentFlow() {
 
       // 5. Insert order_event
       await supabase.from("order_events").insert({
-        order_id: (order as Record<string, unknown>).id,
+        order_id: (order as any).id,
         event_type: "order_created",
         description: `Order created from quote ${quoteRequestId}. Payment reference: ${paymentReference}`,
         actor: user?.id ?? "system",
-      } as Record<string, unknown>);
+      } as any);
 
       // 6. Send payment instructions email via Edge Function
       const lang = localStorage.getItem("i18nextLng") ?? "en";
@@ -200,11 +242,11 @@ export function usePaymentFlow() {
           body: `Your order for ${quote.product_name} has been created. Please proceed with the deposit payment.`,
           type: "order_update",
           link: `/account?tab=orders`,
-        } as Record<string, unknown>);
+        } as any);
       }
 
       // 8. Return the order
-      return order as Record<string, unknown>;
+      return order as any;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-orders"] });
@@ -238,7 +280,7 @@ export function usePaymentFlow() {
         event_type: "deposit_confirmed",
         description: "Deposit payment confirmed. Production can begin.",
         actor: user?.id ?? "system",
-      } as Record<string, unknown>);
+      } as any);
 
       // 3. Notify client
       const { data: order } = await supabase
@@ -254,7 +296,7 @@ export function usePaymentFlow() {
           body: `Your deposit for ${order.product_name} has been confirmed. Production is starting.`,
           type: "order_update",
           link: `/account?tab=orders`,
-        } as Record<string, unknown>);
+        } as any);
       }
     },
     onSuccess: () => {
@@ -287,7 +329,7 @@ export function usePaymentFlow() {
         event_type: "balance_confirmed",
         description: "Balance payment confirmed. Order is fully paid.",
         actor: user?.id ?? "system",
-      } as Record<string, unknown>);
+      } as any);
 
       // 3. Notify client
       const { data: order } = await supabase
@@ -303,7 +345,7 @@ export function usePaymentFlow() {
           body: `Your balance payment for ${order.product_name} has been confirmed. Your order is fully paid.`,
           type: "order_update",
           link: `/account?tab=orders`,
-        } as Record<string, unknown>);
+        } as any);
       }
     },
     onSuccess: () => {

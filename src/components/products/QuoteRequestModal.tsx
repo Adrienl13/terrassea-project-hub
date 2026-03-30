@@ -4,6 +4,7 @@ import { X, Shield, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import type { DBProduct } from "@/lib/products";
 import type { ProductOffer } from "@/lib/productOffers";
 
@@ -45,6 +46,7 @@ const QuoteRequestModal = ({
   open, onClose, product, offers = [], defaultQuantity = 1,
 }: QuoteRequestModalProps) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [step, setStep] = useState<"form" | "success">("form");
   const [submitting, setSubmitting] = useState(false);
 
@@ -109,11 +111,11 @@ const QuoteRequestModal = ({
 
   const handleSubmit = async () => {
     if (!form.firstName || !form.email || !form.siren) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t("quoteModal.fillRequired"));
       return;
     }
     if (form.siren.length !== 9) {
-      toast.error("SIREN must be 9 digits.");
+      toast.error(t("quoteModal.sirenDigits"));
       return;
     }
 
@@ -154,8 +156,8 @@ const QuoteRequestModal = ({
         for (const admin of admins || []) {
           await supabase.from("notifications").insert({
             user_id: admin.id,
-            title: "Nouvelle demande de devis",
-            body: `${form.firstName} ${form.lastName || ""} a demandé un devis pour ${product.name} (x${form.quantity})`.trim(),
+            title: t("quoteModal.notifTitle"),
+            body: t("quoteModal.notifBody", { firstName: form.firstName, lastName: form.lastName || "", product: product.name, quantity: form.quantity }),
             type: "info",
             link: "/admin?tab=quotes",
           });
@@ -167,7 +169,7 @@ const QuoteRequestModal = ({
       setStep("success");
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t("quoteModal.errorGeneric"));
     } finally {
       setSubmitting(false);
     }
@@ -206,20 +208,18 @@ const QuoteRequestModal = ({
                   </div>
 
                   <h2 className="font-display text-xl font-bold text-foreground mb-2">
-                    Quote request sent
+                    {t("quoteModal.successTitle")}
                   </h2>
 
-                  <p className="text-sm font-body text-muted-foreground leading-relaxed mb-6">
-                    Our sourcing team will review your request for{" "}
-                    <span className="font-semibold text-foreground">{product.name}</span> and get back
-                    to you within 48 hours with pricing and availability details.
-                  </p>
+                  <p className="text-sm font-body text-muted-foreground leading-relaxed mb-6"
+                    dangerouslySetInnerHTML={{ __html: t("quoteModal.successBody", { product: product.name }) }}
+                  />
 
                   <button
                     onClick={onClose}
                     className="px-8 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
                   >
-                    Close
+                    {t("quoteModal.close")}
                   </button>
                 </div>
               ) : (
@@ -229,11 +229,11 @@ const QuoteRequestModal = ({
                   <div className="flex items-start justify-between mb-5">
                     <div>
                       <h2 className="font-display text-lg font-bold text-foreground">
-                        Request a quote
+                        {t("quoteModal.title")}
                       </h2>
                       <p className="text-xs font-body text-muted-foreground mt-0.5">
                         {product.name}
-                        {offers.length > 0 && ` · ${offers.length} supplier${offers.length > 1 ? "s" : ""}`}
+                        {offers.length > 0 && ` · ${t("quoteModal.suppliersCount", { count: offers.length })}`}
                       </p>
                     </div>
                     <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors p-1">
@@ -276,22 +276,22 @@ const QuoteRequestModal = ({
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <span className={labelClass}>First name *</span>
+                        <span className={labelClass}>{t("quoteModal.firstName")}</span>
                         <input value={form.firstName} onChange={handle("firstName")} className={inputClass} />
                       </div>
                       <div>
-                        <span className={labelClass}>Last name</span>
+                        <span className={labelClass}>{t("quoteModal.lastName")}</span>
                         <input value={form.lastName} onChange={handle("lastName")} className={inputClass} />
                       </div>
                     </div>
 
                     <div>
-                      <span className={labelClass}>Email *</span>
+                      <span className={labelClass}>{t("quoteModal.email")}</span>
                       <input value={form.email} onChange={handle("email")} type="email" placeholder="hello@restaurant.fr" className={inputClass} />
                     </div>
 
                     <div>
-                      <span className={labelClass}>Phone</span>
+                      <span className={labelClass}>{t("quoteModal.phone")}</span>
                       <input value={form.phone} onChange={handle("phone")} className={inputClass} />
                     </div>
 
@@ -299,14 +299,14 @@ const QuoteRequestModal = ({
                     <div>
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className={labelClass + " mb-0"}>SIREN *</span>
-                        {sirenChecking && <span className="text-[9px] text-muted-foreground">Checking...</span>}
+                        {sirenChecking && <span className="text-[9px] text-muted-foreground">{t("quoteModal.checking")}</span>}
                         {sirenResult && !sirenChecking && (
                           <span className="text-[9px] text-green-600 flex items-center gap-0.5">
                             ✓ {sirenResult.companyName}
                           </span>
                         )}
                         {sirenError && !sirenChecking && (
-                          <span className="text-[9px] text-destructive">Not found</span>
+                          <span className="text-[9px] text-destructive">{t("quoteModal.notFound")}</span>
                         )}
                       </div>
                       <input
@@ -331,7 +331,7 @@ const QuoteRequestModal = ({
                             className="overflow-hidden"
                           >
                             <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mt-2 mb-0.5">
-                              Delivery address
+                              {t("quoteModal.deliveryAddress")}
                             </p>
                             <p className="text-xs font-body text-foreground bg-card border border-border rounded-lg px-3 py-2">
                               {sirenResult.address}
@@ -342,12 +342,12 @@ const QuoteRequestModal = ({
                     </div>
 
                     <div>
-                      <span className={labelClass}>Message (optional)</span>
+                      <span className={labelClass}>{t("quoteModal.messageLabel")}</span>
                       <textarea
                         value={form.message}
                         onChange={handle("message")}
                         rows={2}
-                        placeholder="Any specific requirements, timeline, customization..."
+                        placeholder={t("quoteModal.messagePlaceholder")}
                         className="w-full text-sm font-body bg-background border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50 resize-none"
                       />
                     </div>
@@ -359,14 +359,14 @@ const QuoteRequestModal = ({
                     disabled={submitting}
                     className="w-full mt-5 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity disabled:opacity-40"
                   >
-                    {submitting ? "Sending..." : "Send quote request →"}
+                    {submitting ? t("quoteModal.sending") : t("quoteModal.submit")}
                   </button>
 
                   {/* Privacy note */}
                   <div className="flex items-center gap-2 mt-3">
                     <Shield className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                     <p className="text-[10px] font-body text-muted-foreground leading-relaxed">
-                      Your request is handled by our sourcing team. Supplier identity revealed after confirmation. Response within 48h.
+                      {t("quoteModal.privacyNote")}
                     </p>
                   </div>
                 </div>

@@ -107,11 +107,11 @@ export function usePartnerQuotes() {
         try {
           const { data: quote } = await supabase
             .from("quote_requests")
-            .select("client_email, client_first_name, product_name, email")
+            .select("email, client_first_name, product_name")
             .eq("id", quoteId)
             .single();
 
-          const clientEmail = quote?.client_email || quote?.email;
+          const clientEmail = quote?.email;
 
           if (clientEmail) {
             // Send email notification

@@ -133,8 +133,10 @@ function scoreLeadTime(offer: ProductOffer, allOffers: ProductOffer[]): number {
   const sameProduct = allOffers.filter((o) => o.product_id === offer.product_id && o.delivery_delay_days != null);
   if (sameProduct.length <= 1) return days <= 7 ? 100 : days <= 21 ? 70 : days <= 42 ? 50 : 30;
 
-  const minDays = Math.min(...sameProduct.map((o) => o.delivery_delay_days!));
-  const maxDays = Math.max(...sameProduct.map((o) => o.delivery_delay_days!));
+  const dayValues = sameProduct.map((o) => o.delivery_delay_days).filter((d): d is number => d != null);
+  if (dayValues.length === 0) return 30;
+  const minDays = Math.min(...dayValues);
+  const maxDays = Math.max(...dayValues);
 
   if (maxDays === minDays) return 80;
   // Inverted linear: fastest = 100, slowest = 20
@@ -147,8 +149,10 @@ function scorePrice(offer: ProductOffer, allOffers: ProductOffer[]): number {
   const sameProduct = allOffers.filter((o) => o.product_id === offer.product_id && o.price != null);
   if (sameProduct.length <= 1) return 70;
 
-  const minPrice = Math.min(...sameProduct.map((o) => o.price!));
-  const maxPrice = Math.max(...sameProduct.map((o) => o.price!));
+  const priceValues = sameProduct.map((o) => o.price).filter((p): p is number => p != null);
+  if (priceValues.length === 0) return 30;
+  const minPrice = Math.min(...priceValues);
+  const maxPrice = Math.max(...priceValues);
 
   if (maxPrice === minPrice) return 80;
   // Cheapest = 100, most expensive = 20

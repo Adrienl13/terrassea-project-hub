@@ -308,7 +308,7 @@ export function usePreorder() {
       if (!profile?.id) throw new Error("Not authenticated");
 
       // Atomic preorder: check availability + increment reserved + insert record
-      const { error: rpcError } = await supabase.rpc("reserve_preorder", {
+      const { error: rpcError } = await supabase.rpc("reserve_preorder" as any, {
         p_arrival_item_id: params.arrivalItemId,
         p_user_id: profile.id,
         p_product_id: params.productId,

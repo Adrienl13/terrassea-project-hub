@@ -89,6 +89,11 @@ export type Database = {
           is_exclusive: boolean | null
           is_active: boolean | null
           priority: number | null
+          allow_price_override: boolean | null
+          collections: string[] | null
+          commission_override: number | null
+          revenue_share_brand: number | null
+          revenue_share_distributor: number | null
           created_at: string | null
         }
         Insert: {
@@ -99,6 +104,11 @@ export type Database = {
           is_exclusive?: boolean | null
           is_active?: boolean | null
           priority?: number | null
+          allow_price_override?: boolean | null
+          collections?: string[] | null
+          commission_override?: number | null
+          revenue_share_brand?: number | null
+          revenue_share_distributor?: number | null
           created_at?: string | null
         }
         Update: {
@@ -109,6 +119,11 @@ export type Database = {
           is_exclusive?: boolean | null
           is_active?: boolean | null
           priority?: number | null
+          allow_price_override?: boolean | null
+          collections?: string[] | null
+          commission_override?: number | null
+          revenue_share_brand?: number | null
+          revenue_share_distributor?: number | null
           created_at?: string | null
         }
         Relationships: [
@@ -1461,6 +1476,8 @@ export type Database = {
           admin_notes: string | null
           admin_visibility_override: boolean | null
           application_id: string | null
+          brand_features: Json | null
+          certifications: string[] | null
           city: string | null
           contact_email: string | null
           contact_name: string | null
@@ -1474,12 +1491,12 @@ export type Database = {
           description_es: string | null
           description_fr: string | null
           description_it: string | null
-          certifications: string[] | null
           founded_year: number | null
           gallery_urls: string[] | null
           hero_image_url: string | null
           id: string
           is_active: boolean | null
+          is_featured: boolean | null
           is_public: boolean | null
           logo_url: string | null
           name: string
@@ -1508,6 +1525,8 @@ export type Database = {
           admin_notes?: string | null
           admin_visibility_override?: boolean | null
           application_id?: string | null
+          brand_features?: Json | null
+          certifications?: string[] | null
           city?: string | null
           contact_email?: string | null
           contact_name?: string | null
@@ -1521,12 +1540,12 @@ export type Database = {
           description_es?: string | null
           description_fr?: string | null
           description_it?: string | null
-          certifications?: string[] | null
           founded_year?: number | null
           gallery_urls?: string[] | null
           hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name: string
@@ -1555,6 +1574,7 @@ export type Database = {
           admin_notes?: string | null
           admin_visibility_override?: boolean | null
           application_id?: string | null
+          brand_features?: Json | null
           certifications?: string[] | null
           city?: string | null
           contact_email?: string | null
@@ -1574,6 +1594,7 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name?: string
@@ -2067,6 +2088,7 @@ export type Database = {
           pricing_mode: string | null
           product_id: string
           purchase_type: string | null
+          source_offer_id: string | null
           stock_quantity: number | null
           stock_status: string | null
           updated_at: string | null
@@ -2087,6 +2109,7 @@ export type Database = {
           pricing_mode?: string | null
           product_id: string
           purchase_type?: string | null
+          source_offer_id?: string | null
           stock_quantity?: number | null
           stock_status?: string | null
           updated_at?: string | null
@@ -2107,6 +2130,7 @@ export type Database = {
           pricing_mode?: string | null
           product_id?: string
           purchase_type?: string | null
+          source_offer_id?: string | null
           stock_quantity?: number | null
           stock_status?: string | null
           updated_at?: string | null
@@ -2124,6 +2148,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_offers_source_offer_id_fkey"
+            columns: ["source_offer_id"]
+            isOneToOne: false
+            referencedRelation: "product_offers"
             referencedColumns: ["id"]
           },
         ]
@@ -2152,6 +2183,7 @@ export type Database = {
           message: string | null
           qualification_score: number | null
           status: string | null
+          is_auto_routed: boolean | null
           created_at: string
           updated_at: string | null
         }
@@ -2178,6 +2210,7 @@ export type Database = {
           message?: string | null
           qualification_score?: number | null
           status?: string | null
+          is_auto_routed?: boolean | null
           created_at?: string
           updated_at?: string | null
         }
@@ -2204,6 +2237,7 @@ export type Database = {
           message?: string | null
           qualification_score?: number | null
           status?: string | null
+          is_auto_routed?: boolean | null
           created_at?: string
           updated_at?: string | null
         }

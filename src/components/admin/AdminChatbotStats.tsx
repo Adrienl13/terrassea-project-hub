@@ -37,7 +37,7 @@ interface ConversationSummary {
 
 // ── Helper: safe Supabase query (tables may not exist yet) ─────────────────
 
-async function safeQuery<T>(fn: () => Promise<{ data: T | null; error: any }>): Promise<T | null> {
+async function safeQuery<T>(fn: () => PromiseLike<{ data: T | null; error: any }>): Promise<T | null> {
   try {
     const { data, error } = await fn();
     if (error) return null;

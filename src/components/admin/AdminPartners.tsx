@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -89,6 +90,7 @@ const COUNTRIES = [
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function AdminPartners() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   /** Invalidate every cache that holds partner data (admin + public + dashboard) */
@@ -157,7 +159,7 @@ export default function AdminPartners() {
   });
 
   const handleSave = async () => {
-    if (!formData.name.trim()) { toast.error("Le nom est obligatoire"); return; }
+    if (!formData.name.trim()) { toast.error(t("adminPartners.nameRequired")); return; }
     setSaving(true);
     const slug = generateSlug(formData.name);
     const payload = {
@@ -188,16 +190,16 @@ export default function AdminPartners() {
 
     let error;
     if (isEditing && selectedId) {
-      ({ error } = await supabase.from("partners").update(cleanPayload).eq("id", selectedId));
+      ({ error } = await supabase.from("partners").update(cleanPayload as any).eq("id", selectedId));
     } else {
-      ({ error } = await supabase.from("partners").insert({ ...cleanPayload, slug }));
+      ({ error } = await supabase.from("partners").insert({ ...cleanPayload, slug } as any));
     }
 
     setSaving(false);
     if (error) {
-      toast.error("Erreur : " + error.message);
+      toast.error(t("adminPartners.errorPrefix") + error.message);
     } else {
-      toast.success(isEditing ? "Partenaire mis à jour" : "Partenaire créé");
+      toast.success(isEditing ? t("adminPartners.partnerUpdated") : t("adminPartners.partnerCreated"));
       invalidatePartnerCaches();
       setView("list");
       setIsEditing(false);
@@ -205,10 +207,10 @@ export default function AdminPartners() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer ce partenaire ? Cette action est irréversible.")) return;
+    if (!confirm(t("adminPartners.deleteConfirm"))) return;
     const { error } = await supabase.from("partners").delete().eq("id", id);
-    if (error) { toast.error("Erreur : " + error.message); return; }
-    toast.success("Partenaire supprimé");
+    if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); return; }
+    toast.success(t("adminPartners.partnerDeleted"));
     invalidatePartnerCaches();
     setView("list");
   };
@@ -222,27 +224,27 @@ export default function AdminPartners() {
       is_public: true,
     } as Record<string, unknown>).eq("id", partner.id);
 
-    if (error) { toast.error("Erreur : " + error.message); setReviewAction(false); return; }
+    if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
 
     // Notify partner
     const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", partner.contact_email).maybeSingle();
     if (partnerUser) {
       await supabase.from("notifications").insert({
         user_id: partnerUser.id,
-        title: "Fiche partenaire approuvée",
-        body: "Votre fiche a été approuvée ! Vous pouvez maintenant ajouter vos produits.",
+        title: t("adminPartners.notifApprovedTitle"),
+        body: t("adminPartners.notifApprovedBody"),
         type: "info",
         link: "/account",
       });
     }
 
-    toast.success("Partenaire approuvé");
+    toast.success(t("adminPartners.partnerApproved"));
     invalidatePartnerCaches();
     setReviewAction(false);
   };
 
   const handleRequestChanges = async (partner: Partner) => {
-    if (!reviewComment.trim()) { toast.error("Veuillez ajouter un commentaire"); return; }
+    if (!reviewComment.trim()) { toast.error(t("adminPartners.addCommentRequired")); return; }
     setReviewAction(true);
     const { error } = await supabase.from("partners").update({
       profile_status: "changes_requested",
@@ -251,27 +253,27 @@ export default function AdminPartners() {
       profile_submitted: false,
     } as Record<string, unknown>).eq("id", partner.id);
 
-    if (error) { toast.error("Erreur : " + error.message); setReviewAction(false); return; }
+    if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
 
     const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", partner.contact_email).maybeSingle();
     if (partnerUser) {
       await supabase.from("notifications").insert({
         user_id: partnerUser.id,
-        title: "Modifications demandées sur votre fiche",
-        body: `L'admin a demandé des modifications : ${reviewComment.trim()}`,
+        title: t("adminPartners.notifChangesTitle"),
+        body: t("adminPartners.notifChangesBody", { comment: reviewComment.trim() }),
         type: "info",
         link: "/account",
       });
     }
 
-    toast.success("Demande de modifications envoyée");
+    toast.success(t("adminPartners.changesRequestSent"));
     setReviewComment("");
     invalidatePartnerCaches();
     setReviewAction(false);
   };
 
   const handleReject = async (partner: Partner) => {
-    if (!reviewComment.trim()) { toast.error("Veuillez ajouter une raison"); return; }
+    if (!reviewComment.trim()) { toast.error(t("adminPartners.addReasonRequired")); return; }
     setReviewAction(true);
     const { error } = await supabase.from("partners").update({
       profile_status: "rejected",
@@ -279,20 +281,20 @@ export default function AdminPartners() {
       profile_completed: false,
     } as Record<string, unknown>).eq("id", partner.id);
 
-    if (error) { toast.error("Erreur : " + error.message); setReviewAction(false); return; }
+    if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
 
     const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", partner.contact_email).maybeSingle();
     if (partnerUser) {
       await supabase.from("notifications").insert({
         user_id: partnerUser.id,
-        title: "Fiche partenaire refusée",
-        body: `Votre fiche partenaire a été refusée. Raison : ${reviewComment.trim()}`,
+        title: t("adminPartners.notifRejectedTitle"),
+        body: t("adminPartners.notifRejectedBody", { comment: reviewComment.trim() }),
         type: "info",
         link: "/account",
       });
     }
 
-    toast.success("Partenaire rejeté");
+    toast.success(t("adminPartners.partnerRejected"));
     setReviewComment("");
     invalidatePartnerCaches();
     setReviewAction(false);
@@ -311,53 +313,53 @@ export default function AdminPartners() {
         <div className="flex items-center justify-between">
           <button onClick={() => { setView("list"); setIsEditing(false); }}
             className="flex items-center gap-1.5 text-xs font-body text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Retour
+            <ArrowLeft className="h-4 w-4" /> {t("adminPartners.back")}
           </button>
-          <h2 className="font-display font-bold text-lg">{isEditing ? "Modifier le partenaire" : "Nouveau partenaire"}</h2>
+          <h2 className="font-display font-bold text-lg">{isEditing ? t("adminPartners.editPartner") : t("adminPartners.newPartner")}</h2>
         </div>
 
         <div className="space-y-5">
           {/* Identity */}
           <div className="border border-border rounded-xl p-5 space-y-4">
-            <h3 className="font-display font-bold text-sm">Identité</h3>
+            <h3 className="font-display font-bold text-sm">{t("adminPartners.identitySection")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div><label className={labelClass}>Nom de l'entreprise *</label><input type="text" value={formData.name} onChange={set("name")} className={inputClass} /></div>
+              <div><label className={labelClass}>{t("adminPartners.companyName")}</label><input type="text" value={formData.name} onChange={set("name")} className={inputClass} /></div>
               <div>
-                <label className={labelClass}>Type *</label>
+                <label className={labelClass}>{t("adminPartners.typeLabel")}</label>
                 <select value={formData.partner_type} onChange={set("partner_type")} className={inputClass}>
                   {PARTNER_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <div><label className={labelClass}>Email de contact</label><input type="email" value={formData.contact_email} onChange={set("contact_email")} className={inputClass} /></div>
-              <div><label className={labelClass}>Nom du contact</label><input type="text" value={formData.contact_name} onChange={set("contact_name")} className={inputClass} /></div>
-              <div><label className={labelClass}>Téléphone</label><input type="tel" value={formData.contact_phone} onChange={set("contact_phone")} className={inputClass} /></div>
-              <div><label className={labelClass}>N° TVA / SIREN</label><input type="text" value={formData.vat_number} onChange={set("vat_number")} className={inputClass} /></div>
+              <div><label className={labelClass}>{t("adminPartners.contactEmail")}</label><input type="email" value={formData.contact_email} onChange={set("contact_email")} className={inputClass} /></div>
+              <div><label className={labelClass}>{t("adminPartners.contactName")}</label><input type="text" value={formData.contact_name} onChange={set("contact_name")} className={inputClass} /></div>
+              <div><label className={labelClass}>{t("adminPartners.phone")}</label><input type="tel" value={formData.contact_phone} onChange={set("contact_phone")} className={inputClass} /></div>
+              <div><label className={labelClass}>{t("adminPartners.vatSiren")}</label><input type="text" value={formData.vat_number} onChange={set("vat_number")} className={inputClass} /></div>
             </div>
           </div>
 
           {/* Location */}
           <div className="border border-border rounded-xl p-5 space-y-4">
-            <h3 className="font-display font-bold text-sm">Localisation</h3>
+            <h3 className="font-display font-bold text-sm">{t("adminPartners.locationSection")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className={labelClass}>Pays</label>
+                <label className={labelClass}>{t("adminPartners.countryLabel")}</label>
                 <select value={formData.country_code} onChange={(e) => {
                   const c = COUNTRIES.find(c => c.code === e.target.value);
                   setFormData(prev => ({ ...prev, country_code: e.target.value, country: c?.name || "" }));
                 }} className={inputClass}>
-                  <option value="">— Sélectionner —</option>
+                  <option value="">{t("adminPartners.selectOption")}</option>
                   {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                 </select>
               </div>
-              <div><label className={labelClass}>Ville</label><input type="text" value={formData.city} onChange={set("city")} className={inputClass} /></div>
-              <div><label className={labelClass}>Site web</label><input type="url" value={formData.website} onChange={set("website")} placeholder="https://..." className={inputClass} /></div>
+              <div><label className={labelClass}>{t("adminPartners.cityLabel")}</label><input type="text" value={formData.city} onChange={set("city")} className={inputClass} /></div>
+              <div><label className={labelClass}>{t("adminPartners.websiteLabel")}</label><input type="url" value={formData.website} onChange={set("website")} placeholder="https://..." className={inputClass} /></div>
             </div>
-            <div><label className={labelClass}>Pays de livraison (séparés par des virgules)</label><input type="text" value={formData.delivery_countries} onChange={set("delivery_countries")} placeholder="France, Italie, Espagne…" className={inputClass} /></div>
+            <div><label className={labelClass}>{t("adminPartners.deliveryCountries")}</label><input type="text" value={formData.delivery_countries} onChange={set("delivery_countries")} placeholder={t("adminPartners.deliveryPlaceholder")} className={inputClass} /></div>
           </div>
 
           {/* Plan */}
           <div className="border border-border rounded-xl p-5 space-y-4">
-            <h3 className="font-display font-bold text-sm">Plan & Abonnement</h3>
+            <h3 className="font-display font-bold text-sm">{t("adminPartners.planSubscription")}</h3>
             <div className="grid grid-cols-3 gap-3">
               {PLANS.map(p => (
                 <button
@@ -370,7 +372,7 @@ export default function AdminPartners() {
                 >
                   <p.icon className="h-5 w-5" style={{ color: p.color }} />
                   <span className="text-xs font-display font-bold">{p.label}</span>
-                  <span className="text-[9px] font-body text-muted-foreground">Commission {p.commission}</span>
+                  <span className="text-[9px] font-body text-muted-foreground">{t("adminPartners.commissionLabel")} {p.commission}</span>
                 </button>
               ))}
             </div>
@@ -378,24 +380,24 @@ export default function AdminPartners() {
 
           {/* Details */}
           <div className="border border-border rounded-xl p-5 space-y-4">
-            <h3 className="font-display font-bold text-sm">Détails</h3>
-            <div><label className={labelClass}>Description</label><textarea value={formData.description} onChange={set("description")} rows={3} className={`${inputClass} resize-none`} /></div>
-            <div><label className={labelClass}>URL du logo</label><input type="url" value={formData.logo_url} onChange={set("logo_url")} placeholder="https://..." className={inputClass} /></div>
-            <div><label className={labelClass}>Spécialités (séparées par des virgules)</label><input type="text" value={formData.specialty_tags} onChange={set("specialty_tags")} placeholder="teak, aluminium, parasols…" className={inputClass} /></div>
-            <div><label className={labelClass}>Catégories produits (séparées par des virgules)</label><input type="text" value={formData.product_categories} onChange={set("product_categories")} placeholder="Chairs, Tables, Parasols…" className={inputClass} /></div>
+            <h3 className="font-display font-bold text-sm">{t("adminPartners.detailsSection")}</h3>
+            <div><label className={labelClass}>{t("adminPartners.descriptionLabel")}</label><textarea value={formData.description} onChange={set("description")} rows={3} className={`${inputClass} resize-none`} /></div>
+            <div><label className={labelClass}>{t("adminPartners.logoUrl")}</label><input type="url" value={formData.logo_url} onChange={set("logo_url")} placeholder="https://..." className={inputClass} /></div>
+            <div><label className={labelClass}>{t("adminPartners.specialties")}</label><input type="text" value={formData.specialty_tags} onChange={set("specialty_tags")} placeholder={t("adminPartners.specialtiesPlaceholder")} className={inputClass} /></div>
+            <div><label className={labelClass}>{t("adminPartners.productCategories")}</label><input type="text" value={formData.product_categories} onChange={set("product_categories")} placeholder={t("adminPartners.categoriesPlaceholder")} className={inputClass} /></div>
           </div>
 
           {/* Visibility */}
           <div className="border border-border rounded-xl p-5 space-y-4">
-            <h3 className="font-display font-bold text-sm">Visibilité</h3>
+            <h3 className="font-display font-bold text-sm">{t("adminPartners.visibilitySection")}</h3>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={formData.is_active} onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))} className="rounded" />
-                <span className="text-xs font-body">Actif</span>
+                <span className="text-xs font-body">{t("adminPartners.activeLabel")}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={formData.is_public} onChange={(e) => setFormData(prev => ({ ...prev, is_public: e.target.checked }))} className="rounded" />
-                <span className="text-xs font-body">Public</span>
+                <span className="text-xs font-body">{t("adminPartners.publicLabel")}</span>
               </label>
             </div>
           </div>
@@ -405,11 +407,11 @@ export default function AdminPartners() {
             <button onClick={handleSave} disabled={saving}
               className="flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-40">
               {saving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Save className="h-4 w-4" />}
-              {isEditing ? "Enregistrer" : "Créer le partenaire"}
+              {isEditing ? t("adminPartners.save") : t("adminPartners.createPartner")}
             </button>
             <button onClick={() => { setView("list"); setIsEditing(false); }}
               className="px-6 py-3 font-display font-semibold text-sm text-muted-foreground border border-border rounded-full hover:text-foreground">
-              Annuler
+              {t("adminPartners.cancel")}
             </button>
             {isEditing && selectedId && (
               <button onClick={() => handleDelete(selectedId)}
@@ -430,11 +432,11 @@ export default function AdminPartners() {
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <button onClick={() => setView("list")} className="flex items-center gap-1.5 text-xs font-body text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Retour
+            <ArrowLeft className="h-4 w-4" /> {t("adminPartners.back")}
           </button>
           <button onClick={() => { setFormData(partnerToForm(selected)); setIsEditing(true); setView("form"); }}
             className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90">
-            <Pencil className="h-3.5 w-3.5" /> Modifier
+            <Pencil className="h-3.5 w-3.5" /> {t("adminPartners.edit")}
           </button>
         </div>
 
@@ -450,7 +452,7 @@ export default function AdminPartners() {
                 {planCfg.label} ({planCfg.commission})
               </span>
               <span className={`text-[10px] font-display font-semibold px-2 py-0.5 rounded-full ${selected.is_active ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-                {selected.is_active ? "Actif" : "Inactif"}
+                {selected.is_active ? t("adminPartners.activeLabel") : t("adminBrands.inactive")}
               </span>
             </div>
           </div>
@@ -458,14 +460,14 @@ export default function AdminPartners() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: "Email", value: selected.contact_email },
-            { label: "Contact", value: selected.contact_name },
-            { label: "Téléphone", value: selected.contact_phone },
-            { label: "TVA/SIREN", value: selected.vat_number },
-            { label: "Ville", value: selected.city },
-            { label: "Pays", value: selected.country },
-            { label: "Site web", value: selected.website },
-            { label: "Produits", value: String(productCounts[selected.slug] || 0) },
+            { label: t("adminPartners.detailEmail"), value: selected.contact_email },
+            { label: t("adminPartners.detailContact"), value: selected.contact_name },
+            { label: t("adminPartners.detailPhone"), value: selected.contact_phone },
+            { label: t("adminPartners.detailVat"), value: selected.vat_number },
+            { label: t("adminPartners.detailCity"), value: selected.city },
+            { label: t("adminPartners.detailCountry"), value: selected.country },
+            { label: t("adminPartners.detailWebsite"), value: selected.website },
+            { label: t("adminPartners.detailProducts"), value: String(productCounts[selected.slug] || 0) },
           ].filter(({ value }) => value).map(({ label, value }) => (
             <div key={label} className="border border-border rounded-lg p-3">
               <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
@@ -476,7 +478,7 @@ export default function AdminPartners() {
 
         {selected.description && (
           <div className="border border-border rounded-lg p-4">
-            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-1">Description</p>
+            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-1">{t("adminPartners.descriptionLabel")}</p>
             <p className="text-sm font-body text-muted-foreground">{selected.description}</p>
           </div>
         )}
@@ -486,36 +488,36 @@ export default function AdminPartners() {
           <div className="border-2 border-amber-300 bg-amber-50 rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2">
               <Search className="h-5 w-5 text-amber-700" />
-              <h3 className="font-display font-bold text-sm text-amber-800">Fiche partenaire à valider</h3>
+              <h3 className="font-display font-bold text-sm text-amber-800">{t("adminPartners.profileToValidate")}</h3>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs font-body">
-              <div><span className="text-muted-foreground">Nom :</span> <span className="font-semibold">{selected.name}</span></div>
-              <div><span className="text-muted-foreground">Type :</span> <span className="font-semibold capitalize">{selected.partner_type}</span></div>
-              <div><span className="text-muted-foreground">Pays :</span> <span className="font-semibold">{[selected.country, selected.city].filter(Boolean).join(", ") || "—"}</span></div>
-              <div><span className="text-muted-foreground">TVA/SIREN :</span> <span className="font-semibold">{selected.vat_number || "—"}</span></div>
-              <div className="col-span-2"><span className="text-muted-foreground">Catégories :</span> <span className="font-semibold">{(selected.product_categories || []).join(", ") || "—"}</span></div>
+              <div><span className="text-muted-foreground">{t("adminPartners.nameFieldLabel")}</span> <span className="font-semibold">{selected.name}</span></div>
+              <div><span className="text-muted-foreground">{t("adminPartners.typeFieldLabel")}</span> <span className="font-semibold capitalize">{selected.partner_type}</span></div>
+              <div><span className="text-muted-foreground">{t("adminPartners.countryFieldLabel")}</span> <span className="font-semibold">{[selected.country, selected.city].filter(Boolean).join(", ") || "—"}</span></div>
+              <div><span className="text-muted-foreground">{t("adminPartners.vatFieldLabel")}</span> <span className="font-semibold">{selected.vat_number || "—"}</span></div>
+              <div className="col-span-2"><span className="text-muted-foreground">{t("adminPartners.categoriesFieldLabel")}</span> <span className="font-semibold">{(selected.product_categories || []).join(", ") || "—"}</span></div>
             </div>
             {selected.description && (
               <div className="text-xs font-body text-muted-foreground italic">"{selected.description}"</div>
             )}
             {selected.logo_url && (
               <div>
-                <span className="text-[10px] font-display font-semibold text-muted-foreground">Logo :</span>
+                <span className="text-[10px] font-display font-semibold text-muted-foreground">{t("adminPartners.logoFieldLabel")}</span>
                 <img src={selected.logo_url} alt="Logo" className="w-12 h-12 rounded-lg border border-border mt-1 object-cover" />
               </div>
             )}
 
             <div>
               <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
-                Commentaire (requis pour modifications/rejet)
+                {t("adminPartners.reviewCommentLabel")}
               </label>
               <textarea
                 value={reviewComment}
                 onChange={(e) => setReviewComment(e.target.value)}
                 rows={2}
                 className="w-full text-sm font-body bg-white border border-border rounded-lg px-3 py-2.5 focus:outline-none focus:border-foreground/40 resize-none"
-                placeholder="Commentaire pour le partenaire..."
+                placeholder={t("adminPartners.reviewCommentPlaceholder")}
               />
             </div>
 
@@ -525,21 +527,21 @@ export default function AdminPartners() {
                 disabled={reviewAction}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-40"
               >
-                <CheckCircle2 className="h-3.5 w-3.5" /> Approuver
+                <CheckCircle2 className="h-3.5 w-3.5" /> {t("adminPartners.approve")}
               </button>
               <button
                 onClick={() => handleRequestChanges(selected)}
                 disabled={reviewAction}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-amber-500 text-white rounded-full hover:bg-amber-600 disabled:opacity-40"
               >
-                <AlertTriangle className="h-3.5 w-3.5" /> Demander modifs
+                <AlertTriangle className="h-3.5 w-3.5" /> {t("adminPartners.requestChanges")}
               </button>
               <button
                 onClick={() => handleReject(selected)}
                 disabled={reviewAction}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-red-600 text-white rounded-full hover:bg-red-700 disabled:opacity-40"
               >
-                <XCircle className="h-3.5 w-3.5" /> Rejeter
+                <XCircle className="h-3.5 w-3.5" /> {t("adminPartners.reject")}
               </button>
             </div>
           </div>
@@ -547,7 +549,7 @@ export default function AdminPartners() {
 
         {(selected.specialty_tags?.length || 0) > 0 && (
           <div>
-            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">Spécialités</p>
+            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t("adminPartners.specialtiesLabel")}</p>
             <div className="flex flex-wrap gap-1.5">
               {selected.specialty_tags!.map(s => <span key={s} className="text-[10px] bg-card border border-border px-2 py-0.5 rounded-full">{s}</span>)}
             </div>
@@ -558,7 +560,7 @@ export default function AdminPartners() {
   }
 
   // ── List view ──
-  if (isLoading) return <p className="text-muted-foreground font-body text-sm">Chargement...</p>;
+  if (isLoading) return <p className="text-muted-foreground font-body text-sm">{t("adminPartners.loading")}</p>;
 
   return (
     <div>
@@ -566,19 +568,19 @@ export default function AdminPartners() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <input type="text" value={filter} onChange={e => setFilter(e.target.value)}
-            placeholder="Rechercher un fournisseur..."
+            placeholder={t("adminPartners.searchSupplier")}
             className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2.5 text-sm font-body outline-none focus:border-foreground/40" />
         </div>
         <button onClick={() => { setFormData(EMPTY_FORM); setIsEditing(false); setView("form"); }}
           className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90">
-          <Plus className="h-3.5 w-3.5" /> Nouveau partenaire
+          <Plus className="h-3.5 w-3.5" /> {t("adminPartners.newPartnerBtn")}
         </button>
       </div>
 
       <div className="flex gap-1 mb-5 flex-wrap">
         <button onClick={() => setTypeFilter("all")}
           className={`px-3 py-1.5 text-xs font-display font-semibold rounded-full transition-all ${typeFilter === "all" ? "bg-foreground text-primary-foreground" : "border border-border text-muted-foreground"}`}>
-          Tous ({partners.length})
+          {t("adminPartners.allFilter")} ({partners.length})
         </button>
         {types.map(t => (
           <button key={t} onClick={() => setTypeFilter(t)}
@@ -591,7 +593,7 @@ export default function AdminPartners() {
       {filtered.length === 0 ? (
         <div className="text-center py-16">
           <Building2 className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-sm font-body text-muted-foreground">Aucun fournisseur trouvé.</p>
+          <p className="text-sm font-body text-muted-foreground">{t("adminPartners.noSupplierFound")}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -616,11 +618,11 @@ export default function AdminPartners() {
                         : (partner as Record<string, unknown>).profile_status === "rejected" ? "bg-red-50 text-red-700"
                         : "bg-gray-50 text-gray-700"
                     }`}>
-                      {partner.profile_completed ? "Approuvé"
-                        : (partner as Record<string, unknown>).profile_status === "pending_review" ? "En attente"
-                        : (partner as Record<string, unknown>).profile_status === "changes_requested" ? "Modifs demandées"
-                        : (partner as Record<string, unknown>).profile_status === "rejected" ? "Rejeté"
-                        : "Profil incomplet"}
+                      {partner.profile_completed ? t("adminPartners.profileApproved")
+                        : (partner as Record<string, unknown>).profile_status === "pending_review" ? t("adminPartners.profilePendingReview")
+                        : (partner as Record<string, unknown>).profile_status === "changes_requested" ? t("adminPartners.profileChangesRequested")
+                        : (partner as Record<string, unknown>).profile_status === "rejected" ? t("adminPartners.profileRejected")
+                        : t("adminPartners.profileIncomplete")}
                     </span>
                   </div>
                   <p className="text-[10px] font-body text-muted-foreground">
@@ -630,7 +632,7 @@ export default function AdminPartners() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={`w-2 h-2 rounded-full ${partner.is_active ? "bg-emerald-500" : "bg-red-400"}`} />
-                  <span className="text-[10px] font-body text-muted-foreground">{productCounts[partner.slug] || 0} prod.</span>
+                  <span className="text-[10px] font-body text-muted-foreground">{productCounts[partner.slug] || 0} {t("adminPartners.prod")}</span>
                 </div>
               </div>
             );

@@ -51,6 +51,8 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
     { id: "completed", label: t("proHub.partner.tabCompleted"), count: completedConnections.length },
   ];
 
+  const interestShown = connectedProjectIds;
+
   const handleExpressInterest = (projectId: string) => {
     store.addConnection({
       projectId,

@@ -31,17 +31,17 @@ const orderRef = (id: string) => `TRS-${id.slice(0, 8).toUpperCase()}`;
 
 // ── Status config ────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { bg: string; text: string; border: string; icon: any; label: string }> = {
-  pending:          { bg: "bg-slate-50",   text: "text-slate-600",  border: "border-slate-200", icon: Clock,        label: "En attente" },
-  pending_deposit:  { bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-200", icon: Clock,        label: "Acompte requis" },
-  deposit_paid:     { bg: "bg-blue-50",    text: "text-blue-700",   border: "border-blue-200",  icon: CheckCircle2, label: "Acompte payé" },
-  confirmed:        { bg: "bg-blue-50",    text: "text-blue-700",   border: "border-blue-200",  icon: CheckCircle2, label: "Confirmé" },
-  in_production:    { bg: "bg-indigo-50",  text: "text-indigo-700", border: "border-indigo-200",icon: Factory,      label: "En production" },
-  production:       { bg: "bg-indigo-50",  text: "text-indigo-700", border: "border-indigo-200",icon: Factory,      label: "En production" },
-  shipped:          { bg: "bg-purple-50",  text: "text-purple-700", border: "border-purple-200",icon: Truck,        label: "Expédié" },
-  delivered:        { bg: "bg-emerald-50", text: "text-emerald-700",border: "border-emerald-200",icon: CheckCircle2, label: "Livré" },
-  completed:        { bg: "bg-emerald-50", text: "text-emerald-700",border: "border-emerald-200",icon: CheckCircle2, label: "Terminé" },
-  cancelled:        { bg: "bg-red-50",     text: "text-red-600",    border: "border-red-200",   icon: XCircle,      label: "Annulé" },
+const STATUS_CONFIG: Record<string, { bg: string; text: string; border: string; icon: any; labelKey: string }> = {
+  pending:          { bg: "bg-slate-50",   text: "text-slate-600",  border: "border-slate-200", icon: Clock,        labelKey: "clientDashboard.orderStatus.pending" },
+  pending_deposit:  { bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-200", icon: Clock,        labelKey: "clientDashboard.orderStatus.pendingDeposit" },
+  deposit_paid:     { bg: "bg-blue-50",    text: "text-blue-700",   border: "border-blue-200",  icon: CheckCircle2, labelKey: "clientDashboard.orderStatus.depositPaid" },
+  confirmed:        { bg: "bg-blue-50",    text: "text-blue-700",   border: "border-blue-200",  icon: CheckCircle2, labelKey: "clientDashboard.orderStatus.confirmed" },
+  in_production:    { bg: "bg-indigo-50",  text: "text-indigo-700", border: "border-indigo-200",icon: Factory,      labelKey: "clientDashboard.orderStatus.inProduction" },
+  production:       { bg: "bg-indigo-50",  text: "text-indigo-700", border: "border-indigo-200",icon: Factory,      labelKey: "clientDashboard.orderStatus.inProduction" },
+  shipped:          { bg: "bg-purple-50",  text: "text-purple-700", border: "border-purple-200",icon: Truck,        labelKey: "clientDashboard.orderStatus.shipped" },
+  delivered:        { bg: "bg-emerald-50", text: "text-emerald-700",border: "border-emerald-200",icon: CheckCircle2, labelKey: "clientDashboard.orderStatus.delivered" },
+  completed:        { bg: "bg-emerald-50", text: "text-emerald-700",border: "border-emerald-200",icon: CheckCircle2, labelKey: "clientDashboard.orderStatus.completed" },
+  cancelled:        { bg: "bg-red-50",     text: "text-red-600",    border: "border-red-200",   icon: XCircle,      labelKey: "clientDashboard.orderStatus.cancelled" },
 };
 
 const STATUS_STEPS = ["pending", "confirmed", "production", "shipped", "delivered"];
@@ -58,12 +58,13 @@ function getStatusCfg(status: string) {
 // ── Status badge ─────────────────────────────────────────────────────────────
 
 function OrderStatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const cfg = getStatusCfg(status);
   const Icon = cfg.icon;
   return (
     <span className={`inline-flex items-center gap-1.5 text-[10px] font-display font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
       <Icon className="h-3 w-3" />
-      {cfg.label}
+      {t(cfg.labelKey)}
     </span>
   );
 }
@@ -112,11 +113,11 @@ function useReorder() {
 
 type FilterTab = "all" | "active" | "awaiting" | "delivered";
 
-const FILTER_TABS: { key: FilterTab; label: string }[] = [
-  { key: "all",       label: "Tous" },
-  { key: "active",    label: "En cours" },
-  { key: "awaiting",  label: "En attente" },
-  { key: "delivered", label: "Livrées" },
+const FILTER_TABS: { key: FilterTab; labelKey: string }[] = [
+  { key: "all",       labelKey: "clientDashboard.filterTabs.all" },
+  { key: "active",    labelKey: "clientDashboard.filterTabs.active" },
+  { key: "awaiting",  labelKey: "clientDashboard.filterTabs.awaiting" },
+  { key: "delivered", labelKey: "clientDashboard.filterTabs.delivered" },
 ];
 
 function filterOrders(orders: ClientOrder[], tab: FilterTab): ClientOrder[] {
@@ -135,6 +136,7 @@ function filterOrders(orders: ClientOrder[], tab: FilterTab): ClientOrder[] {
 // ── Summary stats ────────────────────────────────────────────────────────────
 
 function OrderStats({ orders }: { orders: ClientOrder[] }) {
+  const { t } = useTranslation();
   const activeCount = orders.filter((o) => ACTIVE_STATUSES.includes(o.status)).length;
   const awaitingCount = orders.filter((o) => AWAITING_PAYMENT_STATUSES.includes(o.status)).length;
   const deliveredCount = orders.filter((o) => DELIVERED_STATUSES.includes(o.status)).length;
@@ -150,7 +152,7 @@ function OrderStats({ orders }: { orders: ClientOrder[] }) {
     {
       icon: Package,
       value: String(activeCount),
-      label: "En cours",
+      label: t("clientDashboard.orderStats.active"),
       color: "text-blue-700",
       bgColor: "bg-blue-50",
       borderColor: "border-blue-100",
@@ -158,7 +160,7 @@ function OrderStats({ orders }: { orders: ClientOrder[] }) {
     {
       icon: Clock,
       value: String(awaitingCount),
-      label: "En attente paiement",
+      label: t("clientDashboard.orderStats.awaitingPayment"),
       color: "text-amber-700",
       bgColor: "bg-amber-50",
       borderColor: "border-amber-100",
@@ -166,7 +168,7 @@ function OrderStats({ orders }: { orders: ClientOrder[] }) {
     {
       icon: Euro,
       value: fmt(amountPending),
-      label: "A payer",
+      label: t("clientDashboard.orderStats.toPay"),
       color: "text-rose-700",
       bgColor: "bg-rose-50",
       borderColor: "border-rose-100",
@@ -174,7 +176,7 @@ function OrderStats({ orders }: { orders: ClientOrder[] }) {
     {
       icon: CheckCircle2,
       value: String(deliveredCount),
-      label: "Livrees",
+      label: t("clientDashboard.orderStats.delivered"),
       color: "text-emerald-700",
       bgColor: "bg-emerald-50",
       borderColor: "border-emerald-100",
@@ -268,7 +270,7 @@ function OrderListView({ orders, isLoading, onSelect }: {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </button>
         ))}
       </div>
@@ -277,7 +279,7 @@ function OrderListView({ orders, isLoading, onSelect }: {
       {filtered.length === 0 ? (
         <div className="text-center py-10">
           <p className="text-sm font-body text-muted-foreground">
-            Aucune commande dans cette categorie.
+            {t("clientDashboard.emptyCategory")}
           </p>
         </div>
       ) : (
@@ -311,11 +313,11 @@ function OrderListView({ orders, isLoading, onSelect }: {
                   <div className="flex items-center gap-3 mt-1">
                     {order.partnerName && (
                       <span className="text-xs font-body text-muted-foreground">
-                        Fournisseur : {order.partnerName}
+                        {t("clientDashboard.supplier", { name: order.partnerName })}
                       </span>
                     )}
                     <span className="text-xs font-body text-muted-foreground/60">
-                      Commande le {fmtDate(order.createdAt)}
+                      {t("clientDashboard.orderedOn", { date: fmtDate(order.createdAt) })}
                     </span>
                   </div>
                 </div>
@@ -323,29 +325,29 @@ function OrderListView({ orders, isLoading, onSelect }: {
                 {/* Financial summary */}
                 <div className="flex items-center gap-4 pl-[42px] mb-3 text-xs">
                   <span className="font-display font-bold text-foreground">
-                    Total : {fmt(order.totalPrice)}
+                    {t("clientDashboard.total", { amount: fmt(order.totalPrice) })}
                   </span>
                   <span className="flex items-center gap-1">
-                    Acompte :
+                    {t("clientDashboard.deposit")}
                     {order.depositPaidAt ? (
                       <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold">
-                        <CheckCircle2 className="h-3 w-3" /> Paye
+                        <CheckCircle2 className="h-3 w-3" /> {t("clientDashboard.paid")}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-0.5 text-amber-600 font-semibold">
-                        <Clock className="h-3 w-3" /> En attente
+                        <Clock className="h-3 w-3" /> {t("clientDashboard.pendingPayment")}
                       </span>
                     )}
                   </span>
                   <span className="flex items-center gap-1">
-                    Solde :
+                    {t("clientDashboard.balance")}
                     {order.balancePaidAt ? (
                       <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold">
-                        <CheckCircle2 className="h-3 w-3" /> Paye
+                        <CheckCircle2 className="h-3 w-3" /> {t("clientDashboard.paid")}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-0.5 text-amber-600 font-semibold">
-                        <Clock className="h-3 w-3" /> En attente
+                        <Clock className="h-3 w-3" /> {t("clientDashboard.pendingPayment")}
                       </span>
                     )}
                   </span>
@@ -357,7 +359,7 @@ function OrderListView({ orders, isLoading, onSelect }: {
                     onClick={(e) => { e.stopPropagation(); onSelect(order.id); }}
                     className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-foreground hover:underline transition-colors"
                   >
-                    Voir le detail
+                    {t("clientDashboard.viewDetails")}
                     <ChevronRight className="h-3.5 w-3.5" />
                   </button>
 
@@ -368,7 +370,7 @@ function OrderListView({ orders, isLoading, onSelect }: {
                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[10px] font-display font-semibold uppercase tracking-wider bg-foreground text-background rounded-full hover:bg-foreground/90 transition-colors disabled:opacity-50"
                     >
                       <RefreshCw className={`h-3 w-3 ${isReordering ? "animate-spin" : ""}`} />
-                      Recommander
+                      {t("clientDashboard.reorder")}
                     </button>
                   )}
                 </div>
@@ -402,7 +404,13 @@ function OrderProgressBar({ status }: { status: string }) {
   const isCancelled = status === "cancelled";
   const progressPercent = isCancelled ? 0 : Math.round(((currentIdx + 1) / STATUS_STEPS.length) * 100);
 
-  const stepLabels = ["Confirme", "Acompte", "Production", "Expedie", "Livre"];
+  const stepLabels = [
+    t("clientDashboard.progressSteps.confirmed"),
+    t("clientDashboard.progressSteps.deposit"),
+    t("clientDashboard.progressSteps.production"),
+    t("clientDashboard.progressSteps.shipped"),
+    t("clientDashboard.progressSteps.delivered"),
+  ];
   const stepNumbers = ["\u2460", "\u2461", "\u2462", "\u2463", "\u2464"];
 
   return (
@@ -411,7 +419,7 @@ function OrderProgressBar({ status }: { status: string }) {
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs">
           <span className="font-display font-semibold text-foreground">
-            {progressPercent}% — {getStatusCfg(status).label}
+            {progressPercent}% — {t(getStatusCfg(status).labelKey)}
           </span>
         </div>
         <div className="w-full h-2.5 bg-muted/40 rounded-full overflow-hidden">
@@ -526,7 +534,7 @@ function EventTimeline({ events }: { events: { id: string; eventType: string; de
 
               <div className="min-w-0 pb-0.5">
                 <p className="text-[11px] font-body text-muted-foreground leading-snug">
-                  {new Date(event.createdAt).toLocaleString("fr-FR")}
+                  {new Date(event.createdAt).toLocaleString()}
                   {event.actor && <span className="ml-2 text-muted-foreground/50">({event.actor})</span>}
                 </p>
                 <p className={`text-sm font-body mt-0.5 leading-snug ${isLast ? "font-semibold text-foreground" : "text-foreground/80"}`}>
@@ -544,6 +552,7 @@ function EventTimeline({ events }: { events: { id: string; eventType: string; de
 // ── Copy button ──────────────────────────────────────────────────────────────
 
 function CopyBtn({ text }: { text: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (e: React.MouseEvent) => {
@@ -559,9 +568,9 @@ function CopyBtn({ text }: { text: string }) {
       className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-display font-semibold text-muted-foreground hover:text-foreground bg-muted/30 hover:bg-muted/50 rounded-md transition-colors"
     >
       {copied ? (
-        <><Check className="h-3 w-3 text-emerald-600" /> Copie !</>
+        <><Check className="h-3 w-3 text-emerald-600" /> {t("clientDashboard.copied")}</>
       ) : (
-        <><Copy className="h-3 w-3" /> Copier</>
+        <><Copy className="h-3 w-3" /> {t("clientDashboard.copy")}</>
       )}
     </button>
   );
@@ -615,7 +624,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
             className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour aux commandes
+            {t("clientDashboard.backToOrders")}
           </button>
 
           {REORDERABLE_STATUSES.includes(order.status) && (
@@ -625,7 +634,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
               className="inline-flex items-center gap-2 px-4 py-2 bg-foreground text-background rounded-xl text-xs font-display font-semibold hover:bg-foreground/90 transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isReordering ? "animate-spin" : ""}`} />
-              Recommander
+              {t("clientDashboard.reorder")}
             </button>
           )}
         </div>
@@ -637,8 +646,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
             {order.productName} <span className="text-muted-foreground font-normal">x {order.quantity}</span>
           </p>
           <p className="text-xs font-body text-muted-foreground mt-1">
-            {order.partnerName && <>Fournisseur : {order.partnerName} — </>}
-            Commande le {fmtDate(order.createdAt)}
+            {order.partnerName ? t("clientDashboard.supplierDetailSuffix", { supplier: order.partnerName, date: fmtDate(order.createdAt) }) : t("clientDashboard.orderedOnDetail", { date: fmtDate(order.createdAt) })}
           </p>
         </div>
 
@@ -646,7 +654,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
         {order.status === "cancelled" ? (
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
             <XCircle className="h-5 w-5 text-red-500" />
-            <span className="text-sm font-display font-semibold text-red-700">Commande annulee</span>
+            <span className="text-sm font-display font-semibold text-red-700">{t("clientDashboard.orderCancelled")}</span>
           </div>
         ) : (
           <OrderProgressBar status={order.status} />
@@ -659,14 +667,14 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
           <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
             <CreditCard className="h-4 w-4 text-emerald-700" />
           </div>
-          <h3 className="font-display font-bold text-sm text-foreground">Recapitulatif financier</h3>
+          <h3 className="font-display font-bold text-sm text-foreground">{t("clientDashboard.financialSummary")}</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Total */}
           <div className="rounded-xl border border-border p-4 bg-background">
             <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-              Total HT
+              {t("clientDashboard.totalExclTax")}
             </p>
             <p className="text-xl font-display font-bold text-foreground">
               {fmt(order.totalPrice)}
@@ -681,7 +689,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
                 : "bg-amber-50/50 border-amber-200"
             }`}>
               <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Acompte ({order.depositPercentage ?? 30}%)
+                {t("clientDashboard.depositPercent", { percent: order.depositPercentage ?? 30 })}
               </p>
               <p className="text-xl font-display font-bold text-foreground">
                 {fmt(order.depositAmount)}
@@ -689,12 +697,12 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
               {order.depositPaidAt ? (
                 <p className="text-[11px] font-display font-semibold text-emerald-700 mt-1 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" />
-                  Paye le {fmtDateShort(order.depositPaidAt)}
+                  {t("clientDashboard.paidOn", { date: fmtDateShort(order.depositPaidAt) })}
                 </p>
               ) : (
                 <p className="text-[11px] font-display font-semibold text-amber-700 mt-1 flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {order.depositDueDate ? `Du le ${fmtDateShort(order.depositDueDate)}` : "En attente"}
+                  {order.depositDueDate ? t("clientDashboard.dueOn", { date: fmtDateShort(order.depositDueDate) }) : t("clientDashboard.pendingPayment")}
                 </p>
               )}
             </div>
@@ -708,7 +716,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
                 : "bg-amber-50/50 border-amber-200"
             }`}>
               <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Solde
+                {t("clientDashboard.balanceLabel")}
               </p>
               <p className="text-xl font-display font-bold text-foreground">
                 {fmt(order.balanceAmount)}
@@ -716,12 +724,12 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
               {order.balancePaidAt ? (
                 <p className="text-[11px] font-display font-semibold text-emerald-700 mt-1 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" />
-                  Paye le {fmtDateShort(order.balancePaidAt)}
+                  {t("clientDashboard.paidOn", { date: fmtDateShort(order.balancePaidAt) })}
                 </p>
               ) : (
                 <p className="text-[11px] font-display font-semibold text-amber-700 mt-1 flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {order.balanceDueDate ? `Du le ${fmtDateShort(order.balanceDueDate)}` : "En attente"}
+                  {order.balanceDueDate ? t("clientDashboard.dueOn", { date: fmtDateShort(order.balanceDueDate) }) : t("clientDashboard.pendingPayment")}
                 </p>
               )}
             </div>
@@ -810,7 +818,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
               className="flex items-center justify-between w-full px-5 py-3.5 text-left hover:bg-muted/10 transition-colors"
             >
               <span className="text-sm font-display font-semibold text-foreground">
-                Payer par virement bancaire
+                {t("clientDashboard.payByBankTransfer")}
               </span>
               <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${bankTransferOpen ? "rotate-180" : ""}`} />
             </button>
@@ -839,19 +847,19 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
             <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
               <Truck className="h-4 w-4 text-purple-700" />
             </div>
-            <h3 className="font-display font-bold text-sm text-foreground">Suivi de livraison</h3>
+            <h3 className="font-display font-bold text-sm text-foreground">{t("clientDashboard.deliveryTracking")}</h3>
           </div>
 
           <div className="space-y-3">
             {order.shippingCarrier && (
               <div className="flex items-center justify-between">
-                <span className="text-xs font-body text-muted-foreground">Transporteur</span>
+                <span className="text-xs font-body text-muted-foreground">{t("clientDashboard.carrier")}</span>
                 <span className="text-sm font-display font-semibold text-foreground">{order.shippingCarrier}</span>
               </div>
             )}
             {order.trackingNumber && (
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-body text-muted-foreground">N° suivi</span>
+                <span className="text-xs font-body text-muted-foreground">{t("clientDashboard.trackingNumber")}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-mono font-semibold text-foreground">{order.trackingNumber}</span>
                   <CopyBtn text={order.trackingNumber} />
@@ -863,7 +871,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
                       className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-display font-semibold text-purple-700 bg-purple-100 hover:bg-purple-200 rounded-md transition-colors"
                     >
                       <ExternalLink className="h-3 w-3" />
-                      Suivre
+                      {t("clientDashboard.track")}
                     </a>
                   )}
                 </div>
@@ -871,13 +879,13 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
             )}
             {order.trackingLastEvent && (
               <div className="flex items-center justify-between">
-                <span className="text-xs font-body text-muted-foreground">Dernier evenement</span>
+                <span className="text-xs font-body text-muted-foreground">{t("clientDashboard.lastEvent")}</span>
                 <span className="text-sm font-body text-foreground">{order.trackingLastEvent}</span>
               </div>
             )}
             {order.estimatedDelivery && (
               <div className="flex items-center justify-between">
-                <span className="text-xs font-body text-muted-foreground">Livraison estimee</span>
+                <span className="text-xs font-body text-muted-foreground">{t("clientDashboard.estimatedDelivery")}</span>
                 <span className="text-sm font-display font-semibold text-foreground">
                   {fmtDate(order.estimatedDelivery)}
                 </span>
@@ -885,7 +893,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
             )}
             {order.trackingLastChecked && (
               <p className="text-[10px] font-body text-muted-foreground/60 pt-1">
-                Derniere mise a jour : {new Date(order.trackingLastChecked).toLocaleString("fr-FR")}
+                {t("clientDashboard.lastUpdate", { date: new Date(order.trackingLastChecked).toLocaleString() })}
               </p>
             )}
           </div>
@@ -896,27 +904,27 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border p-4">
           <Package className="h-4 w-4 text-muted-foreground mb-2" />
-          <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Quantite</p>
+          <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t("clientDashboard.quantity")}</p>
           <p className="text-lg font-display font-bold text-foreground">{order.quantity}</p>
         </div>
         {order.unitPrice != null && (
           <div className="rounded-xl border border-border p-4">
             <FileText className="h-4 w-4 text-muted-foreground mb-2" />
-            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Prix unitaire</p>
+            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t("clientDashboard.unitPrice")}</p>
             <p className="text-lg font-display font-bold text-foreground">{fmt(order.unitPrice)}</p>
           </div>
         )}
         {order.estimatedDelivery && (
           <div className="rounded-xl border border-border p-4">
             <CalendarDays className="h-4 w-4 text-muted-foreground mb-2" />
-            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Livraison estimee</p>
+            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t("clientDashboard.estimatedDeliveryCard")}</p>
             <p className="text-lg font-display font-bold text-foreground">{fmtDate(order.estimatedDelivery)}</p>
           </div>
         )}
         {order.invoiceNumber && (
           <div className="rounded-xl border border-border p-4">
             <FileText className="h-4 w-4 text-muted-foreground mb-2" />
-            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">N° facture</p>
+            <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{t("clientDashboard.invoiceNumber")}</p>
             <p className="text-lg font-mono font-bold text-foreground">{order.invoiceNumber}</p>
           </div>
         )}
@@ -925,7 +933,7 @@ function OrderDetailView({ orderId, onBack }: { orderId: string; onBack: () => v
       {/* Event timeline */}
       <div className="rounded-xl border border-border p-5">
         <p className="text-sm font-display font-bold text-foreground mb-4">
-          Historique
+          {t("clientDashboard.history")}
         </p>
         <EventTimeline events={events} />
       </div>

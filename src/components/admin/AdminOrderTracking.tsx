@@ -171,7 +171,7 @@ export default function AdminOrderTracking() {
                   body: "F\u00e9licitations ! Votre plan a \u00e9t\u00e9 automatiquement mis \u00e0 niveau vers Growth suite \u00e0 vos 3 premi\u00e8res commandes.",
                   type: "info",
                   link: "/account?tab=subscription",
-                } as Record<string, unknown>);
+                });
               }
 
               // Notify admin (in-app toast)
@@ -191,7 +191,7 @@ export default function AdminOrderTracking() {
                   body: `${partner.name} a \u00e9t\u00e9 automatiquement migr\u00e9 vers le plan Growth apr\u00e8s ${count} commandes confirm\u00e9es.`,
                   type: "info",
                   link: "/admin?tab=subscriptions",
-                } as Record<string, unknown>);
+                });
               }
 
               queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
@@ -296,7 +296,7 @@ export default function AdminOrderTracking() {
                         body: {
                           to: selected.client_email,
                           subject: "Terrassea — Votre commande a été livrée",
-                          body_html: `<p>Bonjour${selected.client_name ? ` ${selected.client_name}` : ""},</p><p>Votre commande pour <strong>${selected.product_name}</strong> a été livrée.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+                          body_html: `<p>Bonjour,</p><p>Votre commande pour <strong>${selected.product_name}</strong> a été livrée.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
                           body_text: `Bonjour, votre commande pour ${selected.product_name} a été livrée.`,
                         },
                       });

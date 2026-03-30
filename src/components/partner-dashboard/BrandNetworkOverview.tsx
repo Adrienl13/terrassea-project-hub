@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useConversations } from "@/hooks/useConversations";
 import {
   Globe, Users, Briefcase, TrendingUp, ArrowRight, MapPin, CheckCircle2,
-  Crown, Sparkles, MessageSquare, FolderOpen, Package, AlertTriangle,
+  Crown, Sparkles, MessageSquare, FolderOpen, Package, AlertTriangle, Zap,
 } from "lucide-react";
 
 interface BrandNetworkOverviewProps {
@@ -36,7 +36,7 @@ export default function BrandNetworkOverview({ partnerId, onNavigate }: BrandNet
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_briefs")
-        .select("id, status, country, budget_range, establishment_type, stars_or_class, quantity_estimate, created_at, routed_to_partner_id")
+        .select("id, status, country, budget_range, establishment_type, stars_or_class, quantity_estimate, created_at, routed_to_partner_id, is_auto_routed")
         .eq("brand_partner_id", partnerId)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -71,12 +71,17 @@ export default function BrandNetworkOverview({ partnerId, onNavigate }: BrandNet
   const productsCount = collectionsData?.products ?? 0;
   const collectionsCount = collectionsData?.collections ?? 0;
 
-  // Countries from briefs that don't have distributors
+  const autoRoutedLeads = briefs.filter((b) => b.is_auto_routed).length;
+
+  // Countries from briefs that have no distributor coverage
   const uncoveredCountries = new Set(
     briefs
-      .filter((b) => b.country && !b.routed_to_partner_id)
+      .filter((b) => b.country && !countriesCovered.has(b.country))
       .map((b) => b.country!)
   );
+  const uncoveredBriefCount = briefs.filter(
+    (b) => b.country && !countriesCovered.has(b.country)
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -116,6 +121,34 @@ export default function BrandNetworkOverview({ partnerId, onNavigate }: BrandNet
         </div>
       </div>
 
+      {/* ── Uncovered countries alert ─────────────────────────────────── */}
+      {uncoveredCountries.size > 0 && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-display font-bold text-amber-900">{t("network.uncoveredAlert", { count: uncoveredCountries.size })}</p>
+            <p className="text-[10px] font-body text-amber-700 mt-0.5">
+              {t("network.uncoveredAlertDesc", { count: uncoveredBriefCount })}
+            </p>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {[...uncoveredCountries].map((country) => (
+                <span key={country} className="text-[9px] font-display font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                  {country}
+                </span>
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigate("network")}
+            className="text-[10px] font-display font-semibold text-amber-700 hover:text-amber-900 flex items-center gap-1 transition-colors shrink-0"
+          >
+            {t("network.addDistributor")} <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
       {/* ── Country coverage + alerts ──────────────────────────────────── */}
       <div className="bg-white border border-purple-100 rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-purple-50">
@@ -150,7 +183,7 @@ export default function BrandNetworkOverview({ partnerId, onNavigate }: BrandNet
           <div className="p-5">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {distributors.map((d) => {
-                const partner = d.partner as { name: string; country: string | null } | null;
+                const partner = d.partner as unknown as { name: string; country: string | null } | null;
                 return (
                   <div key={d.id} className="flex items-center gap-2 p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
@@ -185,11 +218,19 @@ export default function BrandNetworkOverview({ partnerId, onNavigate }: BrandNet
             <Briefcase className="h-4 w-4 text-purple-500" />
             {t("network.routedLeads")}
           </h3>
-          {pendingLeads > 0 && (
-            <span className="text-[9px] font-display font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-              {t("network.pendingCount", { count: pendingLeads })}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {autoRoutedLeads > 0 && (
+              <span className="text-[9px] font-display font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <Zap className="h-2.5 w-2.5" />
+                {t("network.autoRoutedCount", { count: autoRoutedLeads })}
+              </span>
+            )}
+            {pendingLeads > 0 && (
+              <span className="text-[9px] font-display font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                {t("network.pendingCount", { count: pendingLeads })}
+              </span>
+            )}
+          </div>
         </div>
 
         {briefs.length === 0 ? (
@@ -232,7 +273,12 @@ export default function BrandNetworkOverview({ partnerId, onNavigate }: BrandNet
                     <span className="text-[10px] font-body text-muted-foreground">
                       {new Date(brief.created_at).toLocaleDateString()}
                     </span>
-                    {isRouted && <span className="text-[8px] font-display font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">{t("brief.statusRouted")}</span>}
+                    {isRouted && brief.is_auto_routed && (
+                      <span className="text-[8px] font-display font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center gap-0.5">
+                        <Zap className="h-2.5 w-2.5" />{t("network.autoRouted")}
+                      </span>
+                    )}
+                    {isRouted && !brief.is_auto_routed && <span className="text-[8px] font-display font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">{t("brief.statusRouted")}</span>}
                     {isPending && <span className="text-[8px] font-display font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">{t("brief.statusPending")}</span>}
                     {isAccepted && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />}
                   </div>

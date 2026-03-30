@@ -137,12 +137,7 @@ export function useSupplierCalls() {
   // Create a new call
   const createCallMutation = useMutation({
     mutationFn: async (
-      data: Omit<
-        Parameters<typeof supabase.from<"pro_service_requests">>[0] extends string
-          ? Record<string, unknown>
-          : Record<string, unknown>,
-        "architect_id"
-      > & {
+      data: {
         project_title: string;
         project_type: string;
         client_name: string;

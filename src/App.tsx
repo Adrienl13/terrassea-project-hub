@@ -94,8 +94,10 @@ const App = () => (
                   <Route path="/confidentialite" element={<Privacy />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-                <CookieBanner />
-                <ChatbotWidget />
+                </Suspense>
+                <Suspense fallback={null}>
+                  <CookieBanner />
+                  <ChatbotWidget />
                 </Suspense>
               </div>
             </BrowserRouter>

@@ -203,7 +203,7 @@ export default function PartnerLoyaltyProgram({ partnerId }: Props) {
                 </span>
               </p>
               <p className="text-xs opacity-70">
-                {t("partnerLoyalty.lifetimePoints", {
+                {(t as any)("partnerLoyalty.lifetimePoints", {
                   count: lifetimePoints.toLocaleString(),
                 })}
               </p>

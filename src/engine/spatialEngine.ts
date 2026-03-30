@@ -116,7 +116,7 @@ export function computeSpatialMetrics(
   densityOverride?: DensityLevel
 ): SpatialMetrics {
   const totalSeats = layout.totalSeats;
-  const spacePerSeat = totalSeats > 0 ? terraceArea / totalSeats : terraceArea;
+  const spacePerSeat = totalSeats > 0 ? terraceArea / totalSeats : 0;
   const densityLevel = densityOverride ?? getDensityLevel(spacePerSeat);
   const feasibility = getFeasibility(totalSeats, terraceArea);
   const occupiedSurface = getOccupiedSurface(layout.tableGroups, densityLevel);

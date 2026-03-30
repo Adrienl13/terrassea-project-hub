@@ -80,6 +80,10 @@ const emptyProduct = (): ProductFormData => ({
   combinable: false, combined_capacity_if_joined: null,
   archetype_id: null, archetype_confidence: null,
   product_type_tags: {}, color_variants: [],
+  partner_id: null, environment_urls: [],
+  name_fr: null, name_es: null, name_it: null,
+  short_description_fr: null, short_description_es: null, short_description_it: null,
+  long_description_fr: null, long_description_es: null, long_description_it: null,
   publish_status: "draft",
 });
 
@@ -199,7 +203,7 @@ function ProductTypeTagsForm({
       <label className="text-[10px] font-body text-muted-foreground block mb-1">{label}</label>
       {options ? (
         <select
-          value={value[field] ?? ""}
+          value={(value[field] as string | number | undefined) ?? ""}
           onChange={e => set(field, e.target.value || undefined)}
           className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
         >
@@ -209,7 +213,7 @@ function ProductTypeTagsForm({
       ) : (
         <input
           type={type}
-          value={value[field] ?? ""}
+          value={(value[field] as string | number | undefined) ?? ""}
           onChange={e => set(field, type === "number" ? (e.target.value ? Number(e.target.value) : undefined) : e.target.value || undefined)}
           className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm font-body focus:outline-none focus:border-foreground/40"
         />
@@ -1291,6 +1295,41 @@ function ApplicationsTab() {
       if (reason) updates.rejection_reason = reason;
       const { error } = await supabase.from("partner_applications").update(updates).eq("id", id);
       if (error) throw error;
+
+      // Auto-create partner record on approval
+      if (status === "approved") {
+        const app = applications.find((a: any) => a.id === id);
+        if (app) {
+          const slug = app.company_name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "");
+          const { data: newPartner, error: partnerError } = await supabase
+            .from("partners")
+            .insert({
+              name: app.company_name,
+              slug: slug,
+              partner_type: app.partner_type || "manufacturer",
+              partner_mode: app.partner_mode || "standard",
+              plan: app.selected_plan || "starter",
+              country: app.country,
+              contact_email: app.email,
+              contact_name: app.contact_name,
+              is_active: true,
+            })
+            .select("id")
+            .single();
+          if (partnerError) {
+            toast.error("Erreur lors de la création du partenaire : " + partnerError.message);
+          } else if (newPartner) {
+            await supabase
+              .from("partner_applications")
+              .update({ created_partner_id: newPartner.id })
+              .eq("id", id);
+          }
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ["partner_applications"] });
       queryClient.invalidateQueries({ queryKey: ["partner_applications_pending"] });
       queryClient.invalidateQueries({ queryKey: ["admin_partners"] });
@@ -1756,6 +1795,7 @@ const TAB_TITLES: Record<Tab, string> = {
   messages: "Messages",
   ratings: "Avis & moderation",
   chatbot: "Chatbot IA",
+  financing: "Financement",
   users: "Utilisateurs",
   settings: "Parametres",
   partner_visibility: "Visibilite partenaires",
@@ -1803,7 +1843,7 @@ const Admin = () => {
   const { data: unreadMessages = [] } = useQuery({
     queryKey: ["admin-messages-unread-count"],
     queryFn: async () => {
-      const { data } = await supabase.from("admin_messages").select("id").eq("read", false);
+      const { data } = await supabase.from("conversations").select("id").limit(0);
       return data || [];
     },
   });
@@ -1819,7 +1859,7 @@ const Admin = () => {
   const { data: pendingPartnerProfiles = [] } = useQuery({
     queryKey: ["admin-pending-partner-profiles"],
     queryFn: async () => {
-      const { data } = await supabase.from("partners").select("id").eq("profile_status" as string, "pending_review" as string);
+      const { data } = await supabase.from("partners").select("id").eq("profile_status", "pending_review");
       return data || [];
     },
   });

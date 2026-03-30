@@ -15,6 +15,8 @@ const MIN_COVERS_DISPLAY = 80;
 const MIN_BUDGET_DISPLAY = 30000;
 const MIN_COVERS_TOLERANCE = 72;   // 80 - 10%
 const MIN_BUDGET_TOLERANCE = 24000; // 30K - 20%
+const MIN_COVERS = MIN_COVERS_DISPLAY;
+const MIN_BUDGET = MIN_BUDGET_DISPLAY;
 
 function isQualified(covers: number | null, budget: string): boolean {
   const budgetNum = parseBudget(budget);
@@ -128,6 +130,7 @@ export default function ProServiceLanding() {
     try {
       await supabase.from("pro_service_requests").insert({
         project_title: `Pro Service — ${form.company || form.name}`,
+        project_type: form.establishmentType || "other",
         client_name: form.name, client_company: form.company,
         client_email: form.email, client_phone: form.phone,
         project_city: form.location, budget_range: form.budget, timeline: form.timeline,

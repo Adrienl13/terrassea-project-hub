@@ -3,23 +3,10 @@ import { X, Landmark, Send, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
-const REQUIRED_DOCUMENTS = [
-  "Kbis de moins de 3 mois",
-  "2 derniers bilans comptables",
-  "RIB professionnel",
-  "3 derniers mois de relevés de compte bancaire",
-  "Justificatif de domicile personnel",
-  "Contrat de location-gérance",
-];
-
-const DURATION_OPTIONS = [
-  { value: 12, label: "12 mois" },
-  { value: 24, label: "24 mois" },
-  { value: 36, label: "36 mois" },
-  { value: 48, label: "48 mois" },
-  { value: 60, label: "60 mois" },
-];
+const DOCUMENT_KEYS = ["doc1", "doc2", "doc3", "doc4", "doc5", "doc6"] as const;
+const DURATION_VALUES = [12, 24, 36, 48, 60] as const;
 
 const FINANCING_EMAIL = "financement@terrassea.com";
 
@@ -41,6 +28,9 @@ export default function FinancingRequestModal({
   projectRequestId,
 }: Props) {
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
+  const requiredDocuments = DOCUMENT_KEYS.map((key) => t(`financingModal.${key}`));
+  const durationOptions = DURATION_VALUES.map((v) => ({ value: v, label: t(`financingModal.duration${v}`) }));
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
@@ -61,7 +51,7 @@ export default function FinancingRequestModal({
 
   const handleSubmit = async () => {
     if (!form.name || !form.email || !form.siren) {
-      toast.error("Veuillez remplir les champs obligatoires (nom, email, SIREN)");
+      toast.error(t("financingModal.fillRequired"));
       return;
     }
     setSubmitting(true);
@@ -87,8 +77,10 @@ export default function FinancingRequestModal({
         for (const admin of admins || []) {
           await supabase.from("notifications").insert({
             user_id: admin.id,
-            title: "Nouvelle demande de financement",
-            body: `${form.name} (${form.company || "—"}) demande un financement de ${form.amount ? `€${Number(form.amount).toLocaleString("fr-FR")}` : "montant non précisé"}`,
+            title: t("financingModal.notifTitle"),
+            body: form.amount
+              ? t("financingModal.notifBody", { name: form.name, company: form.company || "—", amount: `€${Number(form.amount).toLocaleString()}` })
+              : t("financingModal.notifBodyNoAmount", { name: form.name, company: form.company || "—" }),
             type: "info",
             link: "/admin?tab=financing",
           });
@@ -97,7 +89,7 @@ export default function FinancingRequestModal({
 
       setSubmitted(true);
     } catch (err: any) {
-      toast.error(err.message || "Erreur lors de l'envoi de la demande");
+      toast.error(err.message || t("financingModal.errorGeneric"));
     } finally {
       setSubmitting(false);
     }
@@ -113,21 +105,21 @@ export default function FinancingRequestModal({
           <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="h-7 w-7 text-green-600" />
           </div>
-          <h3 className="font-display font-bold text-lg text-foreground mb-2">Demande envoyée</h3>
+          <h3 className="font-display font-bold text-lg text-foreground mb-2">{t("financingModal.successTitle")}</h3>
           <p className="text-sm font-body text-muted-foreground mb-4">
-            Notre équipe analyse votre éligibilité et reviendra vers vous sous 48h.
+            {t("financingModal.successBody")}
           </p>
 
           <div className="border border-border rounded-xl p-4 bg-card/50 text-left mb-6">
             <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              Documents à préparer
+              {t("financingModal.docsPrepareTitle")}
             </p>
             <p className="text-xs font-body text-muted-foreground mb-3">
-              Pour finaliser votre demande, merci de nous transmettre les documents suivants par email à{" "}
+              {t("financingModal.docsPrepareBody")}{" "}
               <a href={`mailto:${FINANCING_EMAIL}`} className="text-foreground font-semibold underline">{FINANCING_EMAIL}</a> :
             </p>
             <ul className="space-y-1.5">
-              {REQUIRED_DOCUMENTS.map((doc, i) => (
+              {requiredDocuments.map((doc, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="w-4 h-4 rounded-full bg-foreground/10 flex items-center justify-center shrink-0 mt-0.5">
                     <span className="text-[8px] font-display font-bold text-foreground">{i + 1}</span>
@@ -139,17 +131,17 @@ export default function FinancingRequestModal({
           </div>
 
           <a
-            href={`mailto:${FINANCING_EMAIL}?subject=Documents financement — ${form.company || form.name}&body=Bonjour,%0A%0AVeuillez trouver ci-joints les documents pour ma demande de financement.%0A%0ACordialement,%0A${form.name}`}
+            href={`mailto:${FINANCING_EMAIL}?subject=${encodeURIComponent(t("financingModal.emailSubject", { name: form.company || form.name }))}&body=${encodeURIComponent(t("financingModal.emailBody", { name: form.name }))}`}
             className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-primary-foreground font-display font-semibold text-sm rounded-full hover:opacity-90 transition-opacity mb-3"
           >
             <Send className="h-4 w-4" />
-            Envoyer mes documents par email
+            {t("financingModal.sendDocsEmail")}
           </a>
 
           <div>
             <button onClick={() => { setSubmitted(false); onClose(); }}
               className="text-xs font-body text-muted-foreground hover:text-foreground transition-colors mt-2">
-              Fermer
+              {t("financingModal.closeBtn")}
             </button>
           </div>
         </div>
@@ -167,8 +159,8 @@ export default function FinancingRequestModal({
               <Landmark className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
-              <h2 className="font-display font-bold text-base text-foreground">Demande de financement</h2>
-              <p className="text-[10px] font-body text-muted-foreground">Financez votre projet terrasse — réponse sous 48h</p>
+              <h2 className="font-display font-bold text-base text-foreground">{t("financingModal.title")}</h2>
+              <p className="text-[10px] font-body text-muted-foreground">{t("financingModal.subtitle")}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -181,9 +173,9 @@ export default function FinancingRequestModal({
           <div className="flex items-start gap-2.5 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
             <Landmark className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-display font-semibold text-emerald-800">Option de financement</p>
+              <p className="text-xs font-display font-semibold text-emerald-800">{t("financingModal.infoBannerTitle")}</p>
               <p className="text-[10px] font-body text-emerald-700 mt-0.5">
-                Cette demande est indépendante de votre commande. Elle n'est pas bloquante pour votre achat.
+                {t("financingModal.infoBannerBody")}
               </p>
             </div>
           </div>
@@ -191,40 +183,40 @@ export default function FinancingRequestModal({
           {/* Form fields */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Nom complet *</label>
+              <label className={labelClass}>{t("financingModal.fullName")}</label>
               <input type="text" value={form.name} onChange={set("name")} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Email *</label>
+              <label className={labelClass}>{t("financingModal.emailLabel")}</label>
               <input type="email" value={form.email} onChange={set("email")} className={inputClass} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Téléphone</label>
+              <label className={labelClass}>{t("financingModal.phoneLabel")}</label>
               <input type="tel" value={form.phone} onChange={set("phone")} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Entreprise</label>
+              <label className={labelClass}>{t("financingModal.companyLabel")}</label>
               <input type="text" value={form.company} onChange={set("company")} className={inputClass} />
             </div>
           </div>
 
           <div>
-            <label className={labelClass}>SIREN *</label>
-            <input type="text" value={form.siren} onChange={set("siren")} maxLength={9} className={inputClass} placeholder="9 chiffres" />
+            <label className={labelClass}>{t("financingModal.sirenLabel")}</label>
+            <input type="text" value={form.siren} onChange={set("siren")} maxLength={9} className={inputClass} placeholder={t("financingModal.sirenPlaceholder")} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Montant estimé (€)</label>
-              <input type="number" value={form.amount} onChange={set("amount")} className={inputClass} placeholder="ex. 15000" />
+              <label className={labelClass}>{t("financingModal.amountLabel")}</label>
+              <input type="number" value={form.amount} onChange={set("amount")} className={inputClass} placeholder={t("financingModal.amountPlaceholder")} />
             </div>
             <div>
-              <label className={labelClass}>Durée souhaitée</label>
+              <label className={labelClass}>{t("financingModal.durationLabel")}</label>
               <select value={form.duration} onChange={e => setForm(prev => ({ ...prev, duration: Number(e.target.value) }))} className={inputClass}>
-                {DURATION_OPTIONS.map(d => (
+                {durationOptions.map(d => (
                   <option key={d.value} value={d.value}>{d.label}</option>
                 ))}
               </select>
@@ -232,19 +224,19 @@ export default function FinancingRequestModal({
           </div>
 
           <div>
-            <label className={labelClass}>Description du projet (optionnel)</label>
+            <label className={labelClass}>{t("financingModal.descriptionLabel")}</label>
             <textarea value={form.description} onChange={set("description")} rows={2}
               className={`${inputClass} resize-none rounded-xl`}
-              placeholder="Type de terrasse, nombre de couverts, ouverture prévue..." />
+              placeholder={t("financingModal.descriptionPlaceholder")} />
           </div>
 
           {/* Documents reminder */}
           <div className="border border-border rounded-xl p-3 bg-card/50">
             <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-              Documents requis (à envoyer par email après la demande)
+              {t("financingModal.docsReminderTitle")}
             </p>
             <div className="grid grid-cols-2 gap-1">
-              {REQUIRED_DOCUMENTS.map((doc, i) => (
+              {requiredDocuments.map((doc, i) => (
                 <p key={i} className="text-[10px] font-body text-muted-foreground flex items-center gap-1.5">
                   <span className="w-1 h-1 rounded-full bg-muted-foreground shrink-0" />
                   {doc}
@@ -258,12 +250,12 @@ export default function FinancingRequestModal({
         <div className="flex items-center justify-end gap-3 p-5 border-t border-border">
           <button onClick={onClose}
             className="px-5 py-2.5 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground/30 transition-colors">
-            Annuler
+            {t("financingModal.cancel")}
           </button>
           <button onClick={handleSubmit} disabled={submitting}
             className="flex items-center gap-2 px-6 py-2.5 text-xs font-display font-bold bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-40 transition-all">
             <Send className="h-3.5 w-3.5" />
-            {submitting ? "Envoi en cours..." : "Envoyer ma demande"}
+            {submitting ? t("financingModal.submitting") : t("financingModal.submit")}
           </button>
         </div>
       </div>

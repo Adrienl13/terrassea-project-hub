@@ -11,12 +11,17 @@ import Header from "@/components/Header";
 type Mode = "login" | "register";
 type UserType = "client" | "partner" | "architect" | "designer";
 
+/** Ensure redirect target is a safe relative path (no open redirect). */
+const isSafeRedirect = (path: string): boolean =>
+  path.startsWith("/") && !path.startsWith("//") && !path.includes(":");
+
 const Auth = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isLoading: authLoading, isPasswordRecovery } = useAuth();
-  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || "/account";
+  const rawFrom = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+  const from = rawFrom && isSafeRedirect(rawFrom) ? rawFrom : "/account";
 
   // Redirect already-authenticated users (unless in password recovery flow)
   useEffect(() => {
@@ -64,7 +69,8 @@ const Auth = () => {
       const data = await res.json();
       setSirenValid(data?.results?.length > 0);
     } catch {
-      setSirenValid(true); // Fallback: accept if API unreachable
+      setSirenValid(false);
+      toast.error(t('auth.sirenServiceUnavailable', 'Le service de vérification SIREN est indisponible. Veuillez réessayer.'));
     } finally {
       setSirenChecking(false);
     }

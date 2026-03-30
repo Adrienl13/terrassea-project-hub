@@ -190,7 +190,7 @@ export default function ApiConnectionPanel({
     if (!connection) return;
     if (!confirm("Régénérer la clé API ? L'ancienne clé cessera de fonctionner immédiatement.")) return;
 
-    const { error } = await supabase.rpc("gen_random_uuid"); // just to test
+    const { error } = await supabase.rpc("gen_random_uuid" as any); // just to test
     // Actually update with a new key
     const { error: updateErr } = await supabase
       .from("partner_api_connections")

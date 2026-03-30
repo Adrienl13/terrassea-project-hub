@@ -238,7 +238,7 @@ const Products = () => {
 
     if (filters.features.length > 0)
       result = result.filter((p) =>
-        filters.features.every((f) => (p as Record<string, unknown>)[f] === true)
+        filters.features.every((f) => (p as unknown as Record<string, unknown>)[f] === true)
       );
 
     if (filters.stock.length > 0)
