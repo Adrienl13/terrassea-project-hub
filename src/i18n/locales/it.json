@@ -423,6 +423,21 @@
     "forNo2": "Sostituzione di alcuni pezzi singoli",
     "forNo2Sub": "→ Sfoglia il catalogo e richiedi un preventivo diretto"
   },
+  "proServiceGate": {
+    "title": "Pro Service",
+    "description": "Accedi a lead qualificati di progetti da hotel, ristoranti e beach club in tutta Europa. Vieni abbinato ai progetti giusti per il tuo catalogo.",
+    "feature1Title": "Lead qualificati",
+    "feature1Desc": "Ricevi brief di progetto corrispondenti al tuo catalogo e alla tua esperienza.",
+    "feature2Title": "Accesso prioritario",
+    "feature2Desc": "I partner Elite ricevono i lead 48 ore prima degli altri fornitori.",
+    "feature3Title": "Copertura europea",
+    "feature3Desc": "Progetti in Francia, Spagna, Italia, Grecia, Portogallo e altri.",
+    "feature4Title": "Connessione diretta",
+    "feature4Desc": "Connettiti direttamente con i proprietari dei progetti e invia proposte.",
+    "requirement": "Disponibile con il piano Elite",
+    "requirementDesc": "Passa al piano Elite per accedere ai lead Pro Service, ai posizionamenti prodotti in evidenza e alla visibilità prioritaria nei risultati di ricerca.",
+    "cta": "Vedi piani e aggiorna"
+  },
   "inspirations": {
     "badge": "Ispirazioni",
     "headline": "Trova lo stile del tuo spazio",
