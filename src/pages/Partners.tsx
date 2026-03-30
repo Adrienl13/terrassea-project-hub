@@ -11,7 +11,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import {
-  Building2, Factory, Store, Palette, Handshake,
+  Crown, Factory, Store, Palette, Handshake,
   ArrowRight, Star, Search, Lock, Package, Globe,
   ChevronRight, ImageOff, Heart,
 } from "lucide-react";
@@ -42,7 +42,7 @@ interface Partner {
 
 const CATEGORIES = [
   { key: "all",          labelKey: "partners.categoryAll",           icon: Handshake  },
-  { key: "brand",        labelKey: "partners.categoryBrands",        icon: Building2  },
+  { key: "brand",        labelKey: "partners.categoryBrands",        icon: Crown    },
   { key: "manufacturer", labelKey: "partners.categoryManufacturers", icon: Factory    },
   { key: "reseller",     labelKey: "partners.categoryResellers",     icon: Store      },
   { key: "designer",     labelKey: "partners.categoryDesigners",     icon: Palette    },
@@ -51,7 +51,7 @@ const CATEGORIES = [
 type CategoryKey = (typeof CATEGORIES)[number]["key"];
 
 const TYPE_CONFIG: Record<string, { labelKey: string; color: string; bg: string; initial_bg: string }> = {
-  brand:        { labelKey: "partners.typeBrand",        color: "#712B13", bg: "#F5C4B3", initial_bg: "#D4603A" },
+  brand:        { labelKey: "partners.typeBrand",        color: "#92400E", bg: "#FEF3C7", initial_bg: "#D97706" },
   manufacturer: { labelKey: "partners.typeManufacturer", color: "#0C447C", bg: "#B5D4F4", initial_bg: "#378ADD" },
   reseller:     { labelKey: "partners.typeReseller",     color: "#085041", bg: "#9FE1CB", initial_bg: "#1D9E75" },
   designer:     { labelKey: "partners.typeDesigner",     color: "#3C3489", bg: "#CECBF6", initial_bg: "#534AB7" },

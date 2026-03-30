@@ -21,7 +21,7 @@ import {
 // ═══════════════════════════════════════════════════════════
 
 const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; initial_bg: string }> = {
-  brand:        { label: "Brand",        color: "#712B13", bg: "#F5C4B3", initial_bg: "#D4603A" },
+  brand:        { label: "Brand",        color: "#92400E", bg: "#FEF3C7", initial_bg: "#D97706" },
   manufacturer: { label: "Manufacturer", color: "#0C447C", bg: "#B5D4F4", initial_bg: "#378ADD" },
   reseller:     { label: "Reseller",     color: "#085041", bg: "#9FE1CB", initial_bg: "#1D9E75" },
   designer:     { label: "Designer",     color: "#3C3489", bg: "#CECBF6", initial_bg: "#534AB7" },
