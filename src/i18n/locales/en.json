@@ -720,7 +720,14 @@
     "brandBriefs": "Incoming requests",
     "brandCollections": "Collections",
     "brandNetwork": "Distribution network",
-    "brandCatalogue": "Brand catalogue"
+    "brandCatalogue": "Brand catalogue",
+    "upgradeFeatured": "Featured Products",
+    "upgradeFeaturedDesc": "Boost your product visibility with featured placements. Upgrade to the Elite plan to unlock 15 featured product slots and a 15% visibility boost.",
+    "upgradeProLeads": "Pro Leads",
+    "upgradeProLeadsDesc": "Get priority access to qualified project leads from hotels, restaurants and beach clubs. Upgrade to the Elite plan to receive leads before other suppliers.",
+    "currentPlan": "Your current plan:",
+    "upgradeToElite": "Upgrade to Elite",
+    "backToDashboard": "← Back to dashboard"
   },
   "brandCatalogue": {
     "title": "Brand catalogue",

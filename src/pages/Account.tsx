@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox, Clock,
-  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag,
+  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag, Lock, ArrowRight,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -84,6 +84,65 @@ type Section =
   | "settings"
   | (string & {}); // allows dynamic sections like "project-detail:id"
 
+// ── Plan upgrade gate ────────────────────────────────────────────────────────
+
+function PlanUpgradeGate({ feature, currentPlan, onNavigate }: { feature: "featured" | "proleads"; currentPlan: string; onNavigate: (s: string) => void }) {
+  const { t } = useTranslation();
+  const config = {
+    featured: {
+      icon: Rocket,
+      titleKey: "account.upgradeFeatured",
+      titleDefault: "Featured Products",
+      descKey: "account.upgradeFeaturedDesc",
+      descDefault: "Boost your product visibility with featured placements. Upgrade to the Elite plan to unlock 15 featured product slots and a 15% visibility boost.",
+      color: "#7C3AED",
+    },
+    proleads: {
+      icon: Briefcase,
+      titleKey: "account.upgradeProLeads",
+      titleDefault: "Pro Leads",
+      descKey: "account.upgradeProLeadsDesc",
+      descDefault: "Get priority access to qualified project leads from hotels, restaurants and beach clubs. Upgrade to the Elite plan to receive leads before other suppliers.",
+      color: "#D97706",
+    },
+  }[feature];
+  const Icon = config.icon;
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center max-w-md mx-auto space-y-5">
+      <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: `${config.color}15` }}>
+        <Lock className="h-8 w-8" style={{ color: config.color }} />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-center gap-2">
+          <Icon className="h-5 w-5" style={{ color: config.color }} />
+          <h2 className="font-display text-xl font-bold text-foreground">
+            {t(config.titleKey, config.titleDefault)}
+          </h2>
+        </div>
+        <p className="text-sm font-body text-muted-foreground leading-relaxed">
+          {t(config.descKey, config.descDefault)}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-xs font-display font-semibold text-muted-foreground">
+        {t("account.currentPlan", "Your current plan:")} <span className="uppercase">{currentPlan}</span>
+      </div>
+      <Link
+        to="/become-partner"
+        className="inline-flex items-center gap-2 text-sm font-display font-semibold text-white rounded-full px-6 py-3 transition-opacity hover:opacity-90"
+        style={{ background: `linear-gradient(135deg, ${config.color}, ${config.color}DD)` }}
+      >
+        {t("account.upgradeToElite", "Upgrade to Elite")} <ArrowRight className="h-4 w-4" />
+      </Link>
+      <button
+        onClick={() => onNavigate("overview")}
+        className="text-xs font-body text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {t("account.backToDashboard", "← Back to dashboard")}
+      </button>
+    </div>
+  );
+}
+
 // ── Nav config per profile ────────────────────────────────────────────────────
 
 const NAV_CLIENT = [
@@ -103,8 +162,8 @@ const NAV_PARTNER_BASE = [
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "catalogue",    icon: Package,         labelKey: "account.catalogue" },
   { id: "arrivals",     icon: Truck,           labelKey: "account.arrivals" },
-  { id: "featured",     icon: Rocket,          labelKey: "account.featuredProducts", eliteOnly: true },
-  { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: true },
+  { id: "featured",     icon: Rocket,          labelKey: "account.featuredProducts", eliteOnly: false },
+  { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: false },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
   { id: "loyalty",      icon: Award,           labelKey: "account.loyalty" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
@@ -618,8 +677,12 @@ const Account = () => {
           case "catalogue":   return <><PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />{partnerId && <PartnerSubmissionFeedbackSection partnerId={partnerId} />}</>;
           case "brand-catalogue": return <BrandCatalogueSection partnerId={partnerId!} />;
           case "arrivals":    return <PartnerArrivalsSection partnerId={partnerId} />;
-          case "featured":    return <PartnerFeaturedSection plan={partnerPlan} partnerId={partnerId} />;
-          case "proleads":    return <PartnerProLeadsSection plan={partnerPlan} />;
+          case "featured":    return partnerPlan === "elite"
+            ? <PartnerFeaturedSection plan={partnerPlan} partnerId={partnerId} />
+            : <PlanUpgradeGate feature="featured" currentPlan={partnerPlan} onNavigate={handlePartnerNav} />;
+          case "proleads":    return partnerPlan === "elite"
+            ? <PartnerProLeadsSection plan={partnerPlan} />
+            : <PlanUpgradeGate feature="proleads" currentPlan={partnerPlan} onNavigate={handlePartnerNav} />;
           case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
           case "loyalty":     return partnerId ? <PartnerLoyaltyProgram partnerId={partnerId} /> : null;
           default:            return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;

@@ -720,7 +720,14 @@
     "brandBriefs": "Demandes entrantes",
     "brandCollections": "Collections",
     "brandNetwork": "Réseau de distribution",
-    "brandCatalogue": "Catalogue marque"
+    "brandCatalogue": "Catalogue marque",
+    "upgradeFeatured": "Produits mis en avant",
+    "upgradeFeaturedDesc": "Boostez la visibilité de vos produits avec des emplacements privilégiés. Passez au plan Elite pour débloquer 15 emplacements et un boost de visibilité de 15%.",
+    "upgradeProLeads": "Leads Pro",
+    "upgradeProLeadsDesc": "Accédez en priorité aux leads qualifiés de projets hôtels, restaurants et beach clubs. Passez au plan Elite pour recevoir les leads avant les autres fournisseurs.",
+    "currentPlan": "Votre plan actuel :",
+    "upgradeToElite": "Passer au plan Elite",
+    "backToDashboard": "← Retour au tableau de bord"
   },
   "brandCatalogue": {
     "title": "Catalogue marque",
