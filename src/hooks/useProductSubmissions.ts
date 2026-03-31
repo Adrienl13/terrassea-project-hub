@@ -588,13 +588,77 @@ export function useAdminSubmissions() {
 
       const pd = submission.product_data as Record<string, unknown>;
 
-      // Update existing product description if merged_description exists
-      if (submission.merged_description) {
+      // Update existing product: merged description + add color variant from submission
+      const COLOR_HEX: Record<string, string> = {
+        black: "#1A1A1A", white: "#FAFAFA", grey: "#9CA3AF", anthracite: "#374151",
+        green: "#2D5A27", blue: "#2563EB", red: "#DC2626", beige: "#D4C5A9",
+        brown: "#7C5C3C", cream: "#FFF8E7", sand: "#C2B280", ivory: "#FFFFF0",
+        rust: "#B7410E", natural: "#C4A882", taupe: "#483C32", navy: "#1B2A4A",
+        terracotta: "#CC6B49", olive: "#556B2F", charcoal: "#36454F", cognac: "#9A463D",
+      };
+
+      // Fetch existing product to merge color variants
+      const { data: existingProduct } = await supabase
+        .from("products")
+        .select("color_variants, available_colors, main_color, image_url")
+        .eq("id", submission.detected_duplicate_id)
+        .single();
+
+      if (existingProduct) {
+        const existingVariants: any[] = Array.isArray(existingProduct.color_variants) ? [...existingProduct.color_variants] : [];
+        const existingSlugs = new Set(existingVariants.map((v: any) => v.color_slug));
+
+        // Auto-generate variant for the existing product if it has none
+        if (existingVariants.length === 0 && existingProduct.main_color) {
+          const slug = existingProduct.main_color.toLowerCase().replace(/\s+/g, "-");
+          existingVariants.push({
+            color_slug: slug,
+            color_hex: COLOR_HEX[slug] || "#888888",
+            label_en: existingProduct.main_color.charAt(0).toUpperCase() + existingProduct.main_color.slice(1),
+            image_url: existingProduct.image_url || undefined,
+            available: true,
+          });
+          existingSlugs.add(slug);
+        }
+
+        // Add the new submission's color as a variant
+        const newColor = pd.main_color as string | null;
+        if (newColor) {
+          const newSlug = newColor.toLowerCase().replace(/\s+/g, "-");
+          if (!existingSlugs.has(newSlug)) {
+            // Upload submission image if base64
+            let newImageUrl = (pd.image_url as string) ?? ((pd.gallery_urls as string[])?.[0]) ?? null;
+            if (newImageUrl && newImageUrl.startsWith("data:image")) {
+              newImageUrl = await uploadBase64ToStorage(newImageUrl, (pd.name as string) || "merge", 0);
+            }
+            existingVariants.push({
+              color_slug: newSlug,
+              color_hex: COLOR_HEX[newSlug] || "#888888",
+              label_en: newColor.charAt(0).toUpperCase() + newColor.slice(1),
+              image_url: newImageUrl || undefined,
+              available: true,
+            });
+          }
+        }
+
+        const mergedColors = [...new Set([
+          ...(existingProduct.available_colors ?? []),
+          ...(existingProduct.main_color ? [existingProduct.main_color] : []),
+          ...(newColor ? [newColor] : []),
+        ])];
+
+        const updatePayload: Record<string, unknown> = {
+          color_variants: existingVariants,
+          available_colors: mergedColors,
+          is_canonical_instance: true,
+        };
+        if (submission.merged_description) {
+          updatePayload.long_description = submission.merged_description;
+        }
+
         await supabase
           .from("products")
-          .update({
-            long_description: submission.merged_description,
-          } as any)
+          .update(updatePayload as any)
           .eq("id", submission.detected_duplicate_id);
       }
 

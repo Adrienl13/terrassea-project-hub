@@ -124,11 +124,43 @@ export default function ProductMergeDialog({ initialSource, products, onClose }:
 
   const step: Step = !source ? "pick-source" : !target ? "pick-target" : "confirm";
 
-  // Preview merged color variants
+  // Auto-generate a ColorVariant from a product's main_color + image_url
+  const COLOR_HEX: Record<string, string> = {
+    black: "#1A1A1A", white: "#FAFAFA", grey: "#9CA3AF", anthracite: "#374151",
+    green: "#2D5A27", blue: "#2563EB", red: "#DC2626", beige: "#D4C5A9",
+    brown: "#7C5C3C", cream: "#FFF8E7", sand: "#C2B280", ivory: "#FFFFF0",
+    rust: "#B7410E", natural: "#C4A882", taupe: "#483C32", navy: "#1B2A4A",
+    terracotta: "#CC6B49", olive: "#556B2F", charcoal: "#36454F", cognac: "#9A463D",
+  };
+
+  const variantFromProduct = (p: DBProduct): ColorVariant | null => {
+    if (!p.main_color) return null;
+    const slug = p.main_color.toLowerCase().replace(/\s+/g, "-");
+    return {
+      color_slug: slug,
+      color_hex: COLOR_HEX[slug] || "#888888",
+      label_en: p.main_color.charAt(0).toUpperCase() + p.main_color.slice(1),
+      image_url: p.image_url || undefined,
+      available: true,
+    };
+  };
+
+  // Preview merged color variants — auto-generate from main_color if empty
   const mergedVariants = useMemo(() => {
     if (!target || !source) return [];
-    const targetVariants: ColorVariant[] = target.color_variants ?? [];
-    const sourceVariants: ColorVariant[] = source.color_variants ?? [];
+    let targetVariants: ColorVariant[] = [...(target.color_variants ?? [])];
+    const sourceVariants: ColorVariant[] = [...(source.color_variants ?? [])];
+
+    // Auto-generate variant from main_color + image_url if product has no variants
+    if (targetVariants.length === 0) {
+      const auto = variantFromProduct(target);
+      if (auto) targetVariants = [auto];
+    }
+    if (sourceVariants.length === 0) {
+      const auto = variantFromProduct(source);
+      if (auto) sourceVariants.push(auto);
+    }
+
     const existingSlugs = new Set(targetVariants.map(v => v.color_slug));
     return [
       ...targetVariants,
@@ -138,7 +170,11 @@ export default function ProductMergeDialog({ initialSource, products, onClose }:
 
   const mergedColors = useMemo(() => {
     if (!target || !source) return [];
-    return [...new Set([...(target.available_colors ?? []), ...(source.available_colors ?? [])])];
+    const colors = [...(target.available_colors ?? []), ...(source.available_colors ?? [])];
+    // Also include main_color if not already present
+    if (target.main_color && !colors.includes(target.main_color)) colors.push(target.main_color);
+    if (source.main_color && !colors.includes(source.main_color)) colors.push(source.main_color);
+    return [...new Set(colors)];
   }, [target, source]);
 
   const handleMerge = async () => {
