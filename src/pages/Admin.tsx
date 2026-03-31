@@ -930,7 +930,8 @@ function ProductsTab() {
   };
 
   const handleSave = async (data: ProductFormData) => {
-    const { id, publish_status, ...rest } = data;
+    // Strip computed/non-DB fields before sending to Supabase
+    const { id, publish_status, offers_count, created_at, updated_at, duplicate_of, is_canonical_instance, archetype_id, archetype_confidence, ...rest } = data as any;
     const dbData = {
       ...rest,
       color_variants:    rest.color_variants as unknown as Json,
