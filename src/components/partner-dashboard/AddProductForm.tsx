@@ -140,7 +140,7 @@ export default function AddProductForm({
   const envInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<ProductFormData>(() => {
-    if (editMode && editInitialData) {
+    if (editInitialData) {
       const d = editInitialData;
       return {
         name: d.name || "",
@@ -182,7 +182,7 @@ export default function AddProductForm({
     }
     return EMPTY_FORM;
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(editMode && editInitialData?.image_url ? editInitialData.image_url : null);
+  const [imagePreview, setImagePreview] = useState<string | null>(editInitialData?.image_url ? editInitialData.image_url : null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<{ file: File; preview: string }[]>([]);
   const [envFiles, setEnvFiles] = useState<{ file: File; preview: string }[]>([]);
@@ -560,7 +560,7 @@ export default function AddProductForm({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
-            <h2 className="font-display font-bold text-base text-foreground">{editMode ? "Modifier un produit" : "Ajouter un produit"}</h2>
+            <h2 className="font-display font-bold text-base text-foreground">{editMode ? "Modifier un produit" : editInitialData ? "Compléter le produit" : "Ajouter un produit"}</h2>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1.5">
                 <div className="w-20 h-1 bg-muted rounded-full overflow-hidden">
