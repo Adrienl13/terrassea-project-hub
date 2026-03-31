@@ -29,17 +29,15 @@ import spaceCamping from "@/assets/space-camping.jpg";
 // spaces and stats/steps are now translated inline via t()
 
 async function fetchPlatformStats() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sb = supabase as any;
-  const productsRes = await sb.from("products").select("id", { count: "exact", head: true }).eq("publish_status", "published");
-  const partnersRes = await sb.from("partners").select("id", { count: "exact", head: true }).eq("is_active", true);
-  const countriesRes = await sb.from("partners").select("country").eq("is_active", true);
-  const categoriesRes = await sb.from("products").select("category").eq("publish_status", "published");
+  const productsRes = await supabase.from("products").select("*", { count: "exact", head: true }).eq("publish_status", "published");
+  const partnersRes = await supabase.from("partners").select("*", { count: "exact", head: true }).eq("is_active", true);
+  const countriesRes = await supabase.from("partners").select("country").eq("is_active", true);
+  const categoriesRes = await supabase.from("products").select("category").eq("publish_status", "published");
   const distinctCountries = new Set<string>(
-    ((countriesRes.data ?? []) as { country: string | null }[]).map((r) => r.country).filter(Boolean) as string[]
+    (countriesRes.data ?? []).map((r) => r.country).filter(Boolean) as string[]
   );
   const distinctCategories = new Set<string>(
-    ((categoriesRes.data ?? []) as { category: string | null }[]).map((r) => r.category).filter(Boolean) as string[]
+    (categoriesRes.data ?? []).map((r) => r.category).filter(Boolean) as string[]
   );
   return {
     products: (productsRes.count ?? 0) as number,
