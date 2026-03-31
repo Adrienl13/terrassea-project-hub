@@ -1053,11 +1053,15 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         .eq("partner_id", partnerId!)
         .order("name");
       if (!data) return [];
-      return data.map((prod: any) => ({
+      return data.map((prod: any) => {
+        // Fallback: use first gallery image if image_url is empty
+        const galleryUrls = prod.gallery_urls ?? [];
+        const fallbackImage = galleryUrls.find((u: string) => u && (u.startsWith("http") || u.startsWith("data:image")));
+        return {
         offerId: prod.id,
         productId: prod.id,
         name: prod.name ?? "Unknown",
-        image: prod.image_url ?? undefined,
+        image: prod.image_url || fallbackImage || undefined,
         category: prod.category ?? undefined,
         price: prod.price_min ?? 0,
         commissionRate: config.commission,
@@ -1067,7 +1071,8 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         productData: prod,
         offerData: null,
         publishStatus: prod.publish_status ?? "draft",
-      } as ProductRowData));
+      } as ProductRowData;
+      });
     },
     enabled: !!partnerId,
   });
