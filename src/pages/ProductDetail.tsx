@@ -563,7 +563,7 @@ function RelatedCard({ product, onAdd }: { product: DBProduct; onAdd: () => void
           <img
             src={product.image_url || "/placeholder.svg"}
             alt={relatedName}
-            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-contain p-3 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
         </div>

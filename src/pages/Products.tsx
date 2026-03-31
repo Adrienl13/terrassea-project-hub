@@ -555,7 +555,7 @@ function ProductGridCard({ product, onAdd, isBrandProduct }: { product: DBProduc
           <img
             src={product.image_url || "/placeholder.svg"}
             alt={localName}
-            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-contain p-3 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
           <button
@@ -646,7 +646,7 @@ function ProductListCard({ product, onAdd, isBrandProduct }: { product: DBProduc
           <img
             src={product.image_url || "/placeholder.svg"}
             alt={localName}
-            className="w-full h-full object-contain p-1"
+            className="w-full h-full object-contain p-1 mix-blend-multiply"
             loading="lazy"
           />
         </div>

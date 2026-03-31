@@ -61,7 +61,7 @@ export default function ProductGallery({
         <img
           src={displayImage}
           alt={productName}
-          className="w-full h-full object-contain p-3 transition-all duration-300"
+          className="w-full h-full object-contain p-4 mix-blend-multiply transition-all duration-300"
         />
       </div>
 
