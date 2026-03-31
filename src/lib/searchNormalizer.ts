@@ -16,9 +16,13 @@ const MULTILANG_TERMS: Record<string, string> = {
   pliant: "folding", déporté: "cantilever", aluminium: "aluminium",
   bois: "wood", rotin: "rattan",
   // FR couleurs
-  noir: "black", blanc: "white", gris: "grey", vert: "green",
+  noir: "black", blanc: "white", gris: "grey", vert: "green", verte: "green",
   rouge: "red", bleu: "blue", beige: "beige", sable: "sand",
   rouille: "rust", crème: "cream", ivoire: "ivory",
+  anthracite: "anthracite", marron: "brown", brun: "brown",
+  // FR matériaux (compléments)
+  polypropylène: "polypropylene", résine: "resin", acier: "steel",
+  "résine tressée": "synthetic-rattan", textilène: "textilene", "rotin synthétique": "synthetic-rattan",
   // FR usage
   piscine: "pool", plage: "beach", restaurant: "restaurant",
   hôtel: "hotel", hotel: "hotel", terrasse: "terrace",
@@ -37,6 +41,7 @@ const MULTILANG_TERMS: Record<string, string> = {
   nero: "black", bianco: "white", grigio: "grey",
   verde: "green", rosso: "red", blu: "blue",
   sabbia: "sand", avorio: "ivory", ruggine: "rust",
+  marrone: "brown", antracite: "anthracite", crema: "cream",
   // IT usage
   piscina: "pool", spiaggia: "beach", ristorante: "restaurant",
   albergo: "hotel", terrazza: "terrace",
@@ -48,12 +53,14 @@ const MULTILANG_TERMS: Record<string, string> = {
   // ES matériaux
   cuerda: "rope", madera: "wood", aluminio: "aluminium",
   mimbre: "wicker",
-  // ES couleurs
+  // ES couleurs (verde/gris/piscina already mapped via IT)
   negro: "black", blanco: "white",
   rojo: "red", azul: "blue",
-  arena: "sand", marfil: "ivory",
+  arena: "sand", marfil: "ivory", marrón: "brown",
+  // ES matériaux
+  acero: "steel", polipropileno: "polypropylene", resina: "resin",
   // ES usage
-  playa: "beach", restaurante: "restaurant",
+  playa: "beach", restaurante: "restaurant", terraza: "terrace",
 };
 
 // Multi-word terms sorted longest-first for greedy matching
