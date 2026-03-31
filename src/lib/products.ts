@@ -190,6 +190,9 @@ export function enrichProductsWithOffers(
 
 // ── Fetch all products ────────────────────────────────────
 
+// Plans that allow brand_source display (Growth+)
+const BRAND_VISIBLE_PLANS = ["growth", "elite", "brand_member", "brand_network"];
+
 export async function fetchProducts(): Promise<DBProduct[]> {
   const [productsRes, offerStats] = await Promise.all([
     supabase
@@ -204,9 +207,31 @@ export async function fetchProducts(): Promise<DBProduct[]> {
 
   if (productsRes.error) throw productsRes.error;
 
+  // Fetch partner plans to gate brand_source visibility
+  const partnerIds = [...new Set((productsRes.data ?? []).map(p => p.partner_id).filter(Boolean))];
+  const partnerPlans = new Map<string, string>();
+  if (partnerIds.length > 0) {
+    const { data: partners } = await supabase
+      .from("partners")
+      .select("id, plan")
+      .in("id", partnerIds);
+    for (const p of partners ?? []) {
+      partnerPlans.set(p.id, p.plan || "starter");
+    }
+  }
+
   return (productsRes.data ?? []).map((raw) => {
     const stats   = offerStats.get(raw.id);
     const product = normalizeProduct(raw);
+
+    // Hide brand_source for Starter plan partners
+    if (product.partner_id) {
+      const plan = partnerPlans.get(product.partner_id) || "starter";
+      if (!BRAND_VISIBLE_PLANS.includes(plan)) {
+        product.brand_source = null;
+      }
+    }
+
     if (stats) {
       product.offers_count = stats.count;
       if (stats.minPrice != null && product.price_min == null) {
@@ -228,7 +253,24 @@ export async function fetchProductById(id: string): Promise<DBProduct | null> {
     .maybeSingle();
 
   if (error) throw error;
-  return data ? normalizeProduct(data) : null;
+  if (!data) return null;
+
+  const product = normalizeProduct(data);
+
+  // Hide brand_source for Starter plan partners
+  if (product.partner_id) {
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("plan")
+      .eq("id", product.partner_id)
+      .maybeSingle();
+    const plan = partner?.plan || "starter";
+    if (!BRAND_VISIBLE_PLANS.includes(plan)) {
+      product.brand_source = null;
+    }
+  }
+
+  return product;
 }
 
 // ── Fetch products by IDs ─────────────────────────────────
