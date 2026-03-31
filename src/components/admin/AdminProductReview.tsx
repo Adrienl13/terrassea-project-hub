@@ -442,6 +442,9 @@ export default function AdminProductReview() {
   const [showFeedbackForm, setShowFeedbackForm] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [confirmBulkAction, setConfirmBulkAction] = useState<"delete" | "offline" | null>(null);
 
   const {
     submissions,
@@ -489,6 +492,85 @@ export default function AdminProductReview() {
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de la suppression");
     }
+  };
+
+  // Bulk selection helpers
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(s => s.id)));
+    }
+  };
+  const selectedSubmissions = filtered.filter(s => selectedIds.has(s.id));
+  const selectedProductIds = [...new Set(
+    selectedSubmissions.map(s => (s as any).target_product_id).filter(Boolean) as string[]
+  )];
+
+  const handleBulkApprove = async () => {
+    setBulkLoading(true);
+    let ok = 0, fail = 0;
+    for (const s of selectedSubmissions) {
+      if (s.status !== "pending_review") continue;
+      try {
+        if ((s as any).submission_type === "edit" && (s as any).target_product_id) {
+          await approveEdit(s.id);
+        } else {
+          await approveAsNew(s.id);
+        }
+        ok++;
+      } catch { fail++; }
+    }
+    setSelectedIds(new Set());
+    setBulkLoading(false);
+    toast.success(`${ok} approuvé${ok > 1 ? "s" : ""}${fail ? `, ${fail} échoué${fail > 1 ? "s" : ""}` : ""}`);
+  };
+
+  const handleBulkReject = async () => {
+    setBulkLoading(true);
+    let ok = 0;
+    for (const s of selectedSubmissions) {
+      if (s.status !== "pending_review") continue;
+      try { await reject(s.id, "Rejet groupé"); ok++; } catch { /* skip */ }
+    }
+    setSelectedIds(new Set());
+    setBulkLoading(false);
+    toast.success(`${ok} rejeté${ok > 1 ? "s" : ""}`);
+  };
+
+  const handleBulkOffline = async () => {
+    setBulkLoading(true);
+    for (const pid of selectedProductIds) {
+      await supabase.from("products").update({ publish_status: "draft" }).eq("id", pid);
+    }
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-submissions"] });
+    setSelectedIds(new Set());
+    setConfirmBulkAction(null);
+    setBulkLoading(false);
+    toast.success(`${selectedProductIds.length} produit${selectedProductIds.length > 1 ? "s" : ""} mis hors ligne`);
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkLoading(true);
+    for (const pid of selectedProductIds) {
+      await supabase.from("product_offers").delete().eq("product_id", pid);
+      await supabase.from("product_submissions").delete().eq("target_product_id", pid);
+      await supabase.from("products").delete().eq("id", pid);
+    }
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-submissions"] });
+    setSelectedIds(new Set());
+    setConfirmBulkAction(null);
+    setBulkLoading(false);
+    toast.success(`${selectedProductIds.length} produit${selectedProductIds.length > 1 ? "s" : ""} supprimé${selectedProductIds.length > 1 ? "s" : ""}`);
   };
 
   const handleAction = async (action: () => Promise<void>, label: string) => {
@@ -559,6 +641,67 @@ export default function AdminProductReview() {
         })}
       </div>
 
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <div className="sticky top-0 z-20 flex flex-wrap items-center gap-3 px-4 py-3 bg-foreground text-primary-foreground rounded-xl shadow-lg">
+          <input type="checkbox" checked={selectedIds.size === filtered.length} onChange={toggleSelectAll} className="rounded" />
+          <span className="text-xs font-display font-bold">
+            {selectedIds.size} sélectionné{selectedIds.size > 1 ? "s" : ""}
+          </span>
+          <div className="h-4 w-px bg-primary-foreground/30" />
+
+          {selectedSubmissions.some(s => s.status === "pending_review") && (
+            <>
+              <button onClick={handleBulkApprove} disabled={bulkLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white disabled:opacity-50 transition-colors">
+                <CheckCircle2 className="h-3 w-3" /> Approuver tout
+              </button>
+              <button onClick={handleBulkReject} disabled={bulkLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-red-500 hover:bg-red-600 text-white disabled:opacity-50 transition-colors">
+                <XCircle className="h-3 w-3" /> Rejeter tout
+              </button>
+            </>
+          )}
+
+          {selectedProductIds.length > 0 && (
+            <>
+              {confirmBulkAction === "offline" ? (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/20">
+                  <span className="text-[10px] font-bold">Mettre {selectedProductIds.length} produit{selectedProductIds.length > 1 ? "s" : ""} hors ligne ?</span>
+                  <button onClick={handleBulkOffline} disabled={bulkLoading} className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded">Oui</button>
+                  <button onClick={() => setConfirmBulkAction(null)} className="text-[10px] font-bold hover:underline">Non</button>
+                </div>
+              ) : confirmBulkAction === "delete" ? (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/20">
+                  <AlertTriangle className="h-3 w-3" />
+                  <span className="text-[10px] font-bold">Supprimer {selectedProductIds.length} produit{selectedProductIds.length > 1 ? "s" : ""} définitivement ?</span>
+                  <button onClick={handleBulkDelete} disabled={bulkLoading} className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded">Oui</button>
+                  <button onClick={() => setConfirmBulkAction(null)} className="text-[10px] font-bold hover:underline">Non</button>
+                </div>
+              ) : (
+                <>
+                  <button onClick={() => setConfirmBulkAction("offline")} disabled={bulkLoading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50 transition-colors">
+                    <EyeOff className="h-3 w-3" /> Hors ligne
+                  </button>
+                  <button onClick={() => setConfirmBulkAction("delete")} disabled={bulkLoading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 transition-colors">
+                    <Trash2 className="h-3 w-3" /> Supprimer
+                  </button>
+                </>
+              )}
+            </>
+          )}
+
+          <button onClick={() => { setSelectedIds(new Set()); setConfirmBulkAction(null); }}
+            className="ml-auto text-[10px] font-display font-semibold hover:underline opacity-70 hover:opacity-100">
+            Désélectionner
+          </button>
+
+          {bulkLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+        </div>
+      )}
+
       {/* Loading */}
       {isLoading && (
         <div className="flex items-center justify-center py-16">
@@ -592,9 +735,18 @@ export default function AdminProductReview() {
               isExpanded ? "border-foreground/20 shadow-lg" : "border-border bg-card hover:border-foreground/10"
             }`}>
               {/* Card header — summary row */}
+              <div className="w-full flex items-center gap-4 px-5 py-4 text-left transition-colors">
+                {/* Selection checkbox */}
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(s.id)}
+                  onChange={(e) => { e.stopPropagation(); toggleSelect(s.id); }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="rounded border-border shrink-0"
+                />
               <button
                 onClick={() => setExpandedId(isExpanded ? null : s.id)}
-                className="w-full flex items-center gap-4 px-5 py-4 text-left transition-colors"
+                className="flex-1 flex items-center gap-4 text-left"
               >
                 {/* Product thumbnail */}
                 {pd.image_url ? (
@@ -636,6 +788,7 @@ export default function AdminProductReview() {
                   </div>
                 </div>
               </button>
+              </div>
 
               {/* Expanded detail panel */}
               {isExpanded && (
