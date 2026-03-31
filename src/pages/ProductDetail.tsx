@@ -90,6 +90,18 @@ const ProductDetail = () => {
     return cartItem?.layoutSuggestedQuantity ?? cartItem?.quantity ?? 1;
   }, [items, id]);
 
+  // Auto-select first color variant if product has variants and none selected
+  const effectiveVariant = useMemo(() => {
+    if (selectedVariant) return selectedVariant;
+    if (!product) return null;
+    const variants = product.color_variants ?? [];
+    if (variants.length > 0) {
+      const mainMatch = variants.find(v => v.color_slug === product.main_color);
+      return mainMatch?.color_slug ?? variants[0].color_slug;
+    }
+    return null;
+  }, [product, selectedVariant]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -140,17 +152,6 @@ const ProductDetail = () => {
   }
 
   const localName = ml(product, "name");
-
-  // Auto-select first color variant if product has variants and none selected
-  const effectiveVariant = useMemo(() => {
-    if (selectedVariant) return selectedVariant;
-    const variants = product.color_variants ?? [];
-    if (variants.length > 0) {
-      const mainMatch = variants.find(v => v.color_slug === product.main_color);
-      return mainMatch?.color_slug ?? variants[0].color_slug;
-    }
-    return null;
-  }, [product, selectedVariant]);
 
   // Determine displayed image based on selected color variant
   const activeVariant = product.color_variants.find((v) => v.color_slug === effectiveVariant);
