@@ -548,7 +548,7 @@ export default function AdminProductReview() {
           const pd = getProductData(s);
           const isExpanded = expandedId === s.id;
           const qualityReport = computeProductQuality(pd as Partial<DBProduct>);
-          const partnerName = (s as any).partner?.name ?? s.partner_id;
+          const partnerName = (s as any).partner?.name ?? "Partenaire inconnu";
           const submittedDate = s.created_at ? new Date(s.created_at).toLocaleDateString("fr-FR", {
             day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
           }) : "—";

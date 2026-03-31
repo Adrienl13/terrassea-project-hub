@@ -174,7 +174,7 @@ export function useAdminSubmissions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("product_submissions")
-        .select("*")
+        .select("*, partner:partner_id(name)")
         .order("created_at", { ascending: false })
         .limit(200);
 
@@ -202,9 +202,36 @@ export function useAdminSubmissions() {
 
       const pd = submission.product_data as Record<string, unknown>;
 
+      // Check submission is still pending (race condition protection)
+      const { data: currentSubmission } = await supabase
+        .from("product_submissions")
+        .select("status")
+        .eq("id", id)
+        .single();
+      if (currentSubmission?.status !== "pending_review") {
+        throw new Error("Cette soumission a déjà été traitée par un autre administrateur");
+      }
+
       // Validate required fields
       if (!pd.name || !pd.category) {
         throw new Error("Le produit soumis n'a pas de nom ou de catégorie");
+      }
+
+      // Convert base64 images to Storage URLs
+      let finalImageUrl = (pd.image_url as string) ?? null;
+      if (finalImageUrl && finalImageUrl.startsWith("data:image")) {
+        finalImageUrl = await uploadBase64ToStorage(finalImageUrl, (pd.name as string) || "product", 0);
+      }
+      const rawGallery = (pd.gallery_urls as string[]) ?? [];
+      const finalGallery: string[] = [];
+      for (let i = 0; i < rawGallery.length; i++) {
+        const url = rawGallery[i];
+        if (url.startsWith("data:image")) {
+          const uploaded = await uploadBase64ToStorage(url, (pd.name as string) || "product", i + 1);
+          if (uploaded) finalGallery.push(uploaded);
+        } else if (url.startsWith("http")) {
+          finalGallery.push(url);
+        }
       }
 
       // Explicitly map fields to avoid unknown JSONB keys in products table
@@ -221,8 +248,8 @@ export function useAdminSubmissions() {
         short_description: pd.short_description ?? null,
         long_description: pd.long_description ?? null,
         // Media
-        image_url: pd.image_url ?? null,
-        gallery_urls: pd.gallery_urls ?? [],
+        image_url: finalImageUrl,
+        gallery_urls: finalGallery,
         environment_urls: pd.environment_urls ?? [],
         // Pricing
         indicative_price: pd.indicative_price ?? null,
@@ -278,6 +305,19 @@ export function useAdminSubmissions() {
         warranty: pd.warranty ?? null,
         maintenance_info: pd.maintenance_info ?? null,
         documents: pd.documents ?? [],
+        // Multilingual fields
+        short_description_fr: pd.short_description_fr ?? null,
+        short_description_es: pd.short_description_es ?? null,
+        short_description_it: pd.short_description_it ?? null,
+        long_description_fr: pd.long_description_fr ?? null,
+        long_description_es: pd.long_description_es ?? null,
+        long_description_it: pd.long_description_it ?? null,
+        name_fr: pd.name_fr ?? null,
+        name_es: pd.name_es ?? null,
+        name_it: pd.name_it ?? null,
+        maintenance_info_fr: pd.maintenance_info_fr ?? null,
+        maintenance_info_es: pd.maintenance_info_es ?? null,
+        maintenance_info_it: pd.maintenance_info_it ?? null,
         // Scores — initialize with defaults
         data_quality_score: 0,
         popularity_score: 0.5,
@@ -307,6 +347,11 @@ export function useAdminSubmissions() {
           delivery_delay_days: pd.estimated_delivery_days || null,
           is_active: true,
           pricing_mode: "public",
+          currency: "EUR",
+          partner_ref: pd.supplier_internal || null,
+          partner_color_name: pd.main_color || null,
+          collection_name: pd.collection || null,
+          minimum_order: pd.minimum_order || null,
         } as any);
 
       if (offerError) {
@@ -353,6 +398,16 @@ export function useAdminSubmissions() {
       const submission = submissions.find((s) => s.id === id);
       if (!submission) throw new Error("Submission not found");
 
+      // Check submission is still pending (race condition protection)
+      const { data: currentEditSubmission } = await supabase
+        .from("product_submissions")
+        .select("status")
+        .eq("id", id)
+        .single();
+      if (currentEditSubmission?.status !== "pending_review") {
+        throw new Error("Cette soumission a déjà été traitée par un autre administrateur");
+      }
+
       const targetProductId = (submission as any).target_product_id;
       if (!targetProductId) throw new Error("Pas de produit cible pour cette modification");
 
@@ -398,14 +453,47 @@ export function useAdminSubmissions() {
         stock_status: pd.stock_status ?? null, stock_quantity: pd.stock_quantity ?? null,
         estimated_delivery_days: pd.estimated_delivery_days ?? null,
         country_of_manufacture: pd.country_of_manufacture ?? null, warranty: pd.warranty ?? null,
+        // Missing fields
+        indicative_price: pd.indicative_price ?? null,
+        product_family: pd.product_family ?? null,
+        collection: pd.collection ?? null,
+        brand_source: pd.brand_source ?? null,
+        supplier_internal: pd.supplier_internal ?? null,
+        table_shape: pd.table_shape ?? null,
+        default_seating_capacity: pd.default_seating_capacity ?? null,
+        recommended_seating_min: pd.recommended_seating_min ?? null,
+        recommended_seating_max: pd.recommended_seating_max ?? null,
+        combinable: pd.combinable ?? false,
+        combined_capacity_if_joined: pd.combined_capacity_if_joined ?? null,
+        requires_assembly: pd.requires_assembly ?? false,
+        customizable: pd.customizable ?? false,
+        dismountable: pd.dismountable ?? false,
+        maintenance_info: pd.maintenance_info ?? null,
+        documents: pd.documents ?? [],
+        availability_type: pd.availability_type ?? "available",
+        // Multilingual fields
+        short_description_fr: pd.short_description_fr ?? null,
+        short_description_es: pd.short_description_es ?? null,
+        short_description_it: pd.short_description_it ?? null,
+        long_description_fr: pd.long_description_fr ?? null,
+        long_description_es: pd.long_description_es ?? null,
+        long_description_it: pd.long_description_it ?? null,
+        name_fr: pd.name_fr ?? null,
+        name_es: pd.name_es ?? null,
+        name_it: pd.name_it ?? null,
+        maintenance_info_fr: pd.maintenance_info_fr ?? null,
+        maintenance_info_es: pd.maintenance_info_es ?? null,
+        maintenance_info_it: pd.maintenance_info_it ?? null,
         publish_status: "published",
       };
 
-      const { error: updateError } = await supabase
+      const { data: updated, error: updateError } = await supabase
         .from("products")
         .update(productUpdate)
-        .eq("id", targetProductId);
+        .eq("id", targetProductId)
+        .select("id");
       if (updateError) throw updateError;
+      if (!updated || updated.length === 0) throw new Error("Le produit cible n'existe plus. La modification n'a pas pu être appliquée.");
 
       // Mark submission as approved
       await supabase
@@ -427,6 +515,16 @@ export function useAdminSubmissions() {
       const submission = submissions.find((s) => s.id === id);
       if (!submission || !submission.detected_duplicate_id)
         throw new Error("Submission not found or no duplicate detected");
+
+      // Check submission is still pending (race condition protection)
+      const { data: currentMergeSubmission } = await supabase
+        .from("product_submissions")
+        .select("status")
+        .eq("id", id)
+        .single();
+      if (currentMergeSubmission?.status !== "pending_review") {
+        throw new Error("Cette soumission a déjà été traitée par un autre administrateur");
+      }
 
       const pd = submission.product_data as Record<string, unknown>;
 
