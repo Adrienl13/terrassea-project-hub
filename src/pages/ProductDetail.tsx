@@ -23,6 +23,7 @@ import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import AddToProjectModal from "@/components/architect-dashboard/AddToProjectModal";
 import { toast } from "sonner";
 
@@ -32,7 +33,7 @@ const ProductDetail = () => {
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
   const { isFavourite, toggleFavourite } = useFavourites();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
@@ -57,6 +58,17 @@ const ProductDetail = () => {
   });
 
   const { arrivals } = useProductArrivals(id);
+
+  const isAdmin = profile?.user_type === "admin";
+  const { data: currentPartner } = useQuery({
+    queryKey: ["my-partner-id", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("partners").select("id").eq("user_id", user!.id).maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id && profile?.user_type === "partner",
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Compute offer-based stats (hooks before early returns)
   const lowestOfferPrice = useMemo(() => {
@@ -98,6 +110,22 @@ const ProductDetail = () => {
   }
 
   if (!product) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="pt-24 px-6 container mx-auto text-center py-20">
+          <p className="text-muted-foreground font-body">{t('productDetail.productNotFound')}</p>
+          <Link to="/products" className="text-sm font-display font-semibold text-foreground underline mt-4 inline-block">
+            {t('productDetail.backToProducts')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Block draft products for non-admin / non-owner
+  const isProductOwner = !!(currentPartner?.id && product.partner_id && currentPartner.id === product.partner_id);
+  if (product.publish_status !== "published" && !isAdmin && !isProductOwner) {
     return (
       <div className="min-h-screen bg-background">
         <Header />

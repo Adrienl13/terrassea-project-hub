@@ -156,7 +156,7 @@ export default function ExcelImportModal({
   onSuccess: (count: number) => void;
 }) {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const config = PLAN_CONFIG[plan];
   const fileInputRef = useRef<HTMLInputElement>(null);
   const directFileInputRef = useRef<HTMLInputElement>(null);
@@ -724,25 +724,23 @@ export default function ExcelImportModal({
       partnerId = data?.id || null;
     }
     if (!partnerId) {
-      toast.warning("Aucun profil partenaire trouvé. Les produits seront importés sans propriétaire.");
+      toast.warning("Aucun profil partenaire trouvé.");
+      return;
     }
 
     setImporting(true);
     setStep("importing");
-    let imported = 0;
-    let updated = 0;
+    let submitted = 0;
     const failedNames: string[] = [];
 
     // Fetch existing products for this partner to detect duplicates by name
     const existingMap = new Map<string, string>();
-    if (partnerId) {
-      const { data: existing } = await supabase
-        .from("products")
-        .select("id, name")
-        .eq("partner_id", partnerId);
-      for (const e of existing || []) {
-        if (e.name) existingMap.set(e.name.toLowerCase().trim(), e.id);
-      }
+    const { data: existing } = await supabase
+      .from("products")
+      .select("id, name")
+      .eq("partner_id", partnerId);
+    for (const e of existing || []) {
+      if (e.name) existingMap.set(e.name.toLowerCase().trim(), e.id);
     }
 
     for (let idx = 0; idx < validProducts.length; idx++) {
@@ -836,21 +834,29 @@ export default function ExcelImportModal({
           product_type_tags: Object.keys(productTypeTags).length > 0 ? productTypeTags : null,
         };
 
-        // Check if product with same name already exists for this partner
+        // Check if product with same name already exists for this partner → edit submission
         const existingId = existingMap.get(p.name.toLowerCase().trim());
 
-        let error: any;
-        if (existingId) {
-          // UPDATE existing product
-          ({ error } = await supabase.from("products").update(productData).eq("id", existingId));
-          if (!error) updated++;
-        } else {
-          // INSERT new product
-          ({ error } = await supabase.from("products").insert({ ...productData, publish_status: "draft", partner_id: partnerId }));
-          if (!error) imported++;
-        }
+        const submissionPayload = {
+          partner_id: partnerId,
+          product_data: productData,
+          status: "pending_review",
+          submission_type: existingId ? "edit" : "new",
+          target_product_id: existingId || null,
+          similarity_score: null,
+          detected_duplicate_id: null,
+          merged_description: null,
+          admin_notes: null,
+        };
+
+        const { error } = await supabase
+          .from("product_submissions")
+          .insert(submissionPayload as any);
+
         if (error) {
           failedNames.push(p.name);
+        } else {
+          submitted++;
         }
       } catch {
         failedNames.push(p.name);
@@ -866,21 +872,39 @@ export default function ExcelImportModal({
       }
     }
 
+    // Send ONE admin notification summarizing the batch
+    if (submitted > 0) {
+      const partnerName = profile?.company ?? profile?.email ?? "Un partenaire";
+      const { data: admins } = await supabase
+        .from("user_profiles")
+        .select("id")
+        .eq("user_type", "admin")
+        .limit(50);
+
+      if (admins && admins.length > 0) {
+        const notifications = admins.map((admin) => ({
+          user_id: admin.id,
+          title: "Import CSV soumis",
+          body: `${partnerName} a soumis ${submitted} produit${submitted > 1 ? "s" : ""} via import CSV`,
+          type: "product_submission",
+          link: `/admin?tab=submissions`,
+        }));
+        await supabase.from("notifications").insert(notifications as any);
+      }
+    }
+
     setImporting(false);
-    const total = imported + updated;
-    if (total > 0) {
-      const parts: string[] = [];
-      if (imported > 0) parts.push(`${imported} créé${imported > 1 ? "s" : ""}`);
-      if (updated > 0) parts.push(`${updated} mis à jour`);
+    if (submitted > 0) {
+      const parts: string[] = [`${submitted} produit${submitted > 1 ? "s" : ""} soumis pour validation`];
       if (failedNames.length > 0) parts.push(`${failedNames.length} échoué${failedNames.length > 1 ? "s" : ""}`);
       if (failedNames.length > 0) {
         toast.warning(parts.join(", "));
       } else {
         toast.success(parts.join(", "));
       }
-      onSuccess(total);
+      onSuccess(submitted);
     } else {
-      toast.error("Aucun produit n'a pu être importé.");
+      toast.error("Aucun produit n'a pu être soumis.");
     }
   };
 

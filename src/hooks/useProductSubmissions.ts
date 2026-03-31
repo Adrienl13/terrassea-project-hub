@@ -287,11 +287,31 @@ export function useAdminSubmissions() {
         publish_status: "published",
       };
 
-      const { error: productError } = await supabase
+      const { data: newProduct, error: productError } = await supabase
         .from("products")
-        .insert(productInsert as any);
+        .insert(productInsert as any)
+        .select("id")
+        .single();
 
       if (productError) throw productError;
+
+      // Create product_offers entry linking the partner to the new product
+      const { error: offerError } = await supabase
+        .from("product_offers")
+        .insert({
+          partner_id: submission.partner_id,
+          product_id: newProduct.id,
+          price: pd.price_min || null,
+          stock_status: pd.stock_status || "available",
+          stock_quantity: pd.stock_quantity || null,
+          delivery_delay_days: pd.estimated_delivery_days || null,
+          is_active: true,
+          pricing_mode: "public",
+        } as any);
+
+      if (offerError) {
+        console.warn("Failed to create product_offer:", offerError.message);
+      }
 
       // Update submission status
       const { error: updateError } = await supabase
@@ -344,6 +364,7 @@ export function useAdminSubmissions() {
         stock_status: pd.stock_status ?? null, stock_quantity: pd.stock_quantity ?? null,
         estimated_delivery_days: pd.estimated_delivery_days ?? null,
         country_of_manufacture: pd.country_of_manufacture ?? null, warranty: pd.warranty ?? null,
+        publish_status: "published",
       };
 
       const { error: updateError } = await supabase
