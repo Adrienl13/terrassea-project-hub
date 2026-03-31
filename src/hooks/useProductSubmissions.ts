@@ -352,26 +352,29 @@ export function useAdminSubmissions() {
         publish_status: "published",
       };
 
-      const { error: productError } = await supabase
-        .from("products")
-        .insert([productInsert] as any);
-
-      if (productError) {
-        console.error("approveAsNew insert failed:", productError.message, productError.details, productError.hint);
-        throw productError;
+      // Use raw fetch to avoid supabase-js ON CONFLICT issue
+      const { data: { session } } = await supabase.auth.getSession();
+      const insertRes = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/products`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": `Bearer ${session?.access_token}`,
+            "Prefer": "return=representation",
+          },
+          body: JSON.stringify(productInsert),
+        }
+      );
+      if (!insertRes.ok) {
+        const errBody = await insertRes.text();
+        console.error("approveAsNew raw insert failed:", insertRes.status, errBody);
+        throw new Error(`Insert failed: ${errBody}`);
       }
-
-      // Retrieve the created product by name + partner_id (just inserted)
-      const { data: newProduct, error: fetchError } = await supabase
-        .from("products")
-        .select("id")
-        .eq("name", pd.name as string)
-        .eq("partner_id", submission.partner_id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (fetchError || !newProduct) {
+      const [insertedRow] = await insertRes.json();
+      const newProduct = insertedRow as { id: string };
+      if (!newProduct?.id) {
         throw new Error("Produit créé mais impossible de récupérer l'ID");
       }
 
