@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { applyCommission } from "@/lib/products";
 
 export interface ProductOffer {
   id: string;
@@ -24,6 +25,7 @@ export interface ProductOffer {
     city: string | null;
     logo_url: string | null;
     partner_mode: string | null;
+    plan?: string | null;
   };
 }
 
@@ -32,12 +34,20 @@ export async function fetchProductOffers(productId: string): Promise<ProductOffe
     .from("product_offers")
     .select(`
       *,
-      partner:partners (id, name, slug, partner_type, country, city, logo_url, partner_mode)
+      partner:partners (id, name, slug, partner_type, country, city, logo_url, partner_mode, plan)
     `)
     .eq("product_id", productId)
     .eq("is_active", true)
     .order("price", { ascending: true, nullsFirst: false });
 
   if (error) throw error;
-  return (data ?? []) as ProductOffer[];
+
+  // Apply commission to client-facing prices
+  return (data ?? []).map((offer: any) => {
+    const plan = offer.partner?.plan || "starter";
+    return {
+      ...offer,
+      price: offer.price != null ? applyCommission(offer.price, plan) : null,
+    } as ProductOffer;
+  });
 }

@@ -193,6 +193,20 @@ export function enrichProductsWithOffers(
 // Plans that allow brand_source display (Growth+)
 const BRAND_VISIBLE_PLANS = ["growth", "elite", "brand_member", "brand_network"];
 
+// Commission rates by partner plan — applied transparently to client-facing prices
+const PLAN_COMMISSION: Record<string, number> = {
+  starter: 8,
+  growth: 5,
+  elite: 3.5,
+  brand_member: 2,
+  brand_network: 1.5,
+};
+
+export function applyCommission(price: number, plan: string): number {
+  const rate = PLAN_COMMISSION[plan] ?? PLAN_COMMISSION.starter;
+  return Math.round((price * (1 + rate / 100)) * 100) / 100;
+}
+
 export async function fetchProducts(): Promise<DBProduct[]> {
   const [productsRes, offerStats] = await Promise.all([
     supabase
@@ -225,18 +239,28 @@ export async function fetchProducts(): Promise<DBProduct[]> {
     const stats   = offerStats.get(raw.id);
     const product = normalizeProduct(raw);
 
+    // Resolve partner plan
+    const plan = product.partner_id
+      ? partnerPlans.get(product.partner_id) || "starter"
+      : "starter";
+
     // Hide brand_source for Starter plan partners
-    if (product.partner_id) {
-      const plan = partnerPlans.get(product.partner_id) || "starter";
-      if (!BRAND_VISIBLE_PLANS.includes(plan)) {
-        product.brand_source = null;
-      }
+    if (product.partner_id && !BRAND_VISIBLE_PLANS.includes(plan)) {
+      product.brand_source = null;
+    }
+
+    // Apply commission to client-facing prices
+    if (product.price_min != null) {
+      product.price_min = applyCommission(product.price_min, plan);
+    }
+    if (product.price_max != null) {
+      product.price_max = applyCommission(product.price_max, plan);
     }
 
     if (stats) {
       product.offers_count = stats.count;
       if (stats.minPrice != null && product.price_min == null) {
-        product.price_min = stats.minPrice;
+        product.price_min = applyCommission(stats.minPrice, plan);
       }
     }
     return product;
@@ -268,6 +292,13 @@ export async function fetchProductById(id: string): Promise<DBProduct | null> {
     const plan = partner?.plan || "starter";
     if (!BRAND_VISIBLE_PLANS.includes(plan)) {
       product.brand_source = null;
+    }
+    // Apply commission to client-facing prices
+    if (product.price_min != null) {
+      product.price_min = applyCommission(product.price_min, plan);
+    }
+    if (product.price_max != null) {
+      product.price_max = applyCommission(product.price_max, plan);
     }
   }
 
