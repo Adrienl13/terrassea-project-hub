@@ -123,11 +123,13 @@ export default function AddProductForm({
   editMode = false,
   editProductId,
   editInitialData,
+  editSubmissionId,
 }: {
   plan: PartnerPlan;
   editMode?: boolean;
   editProductId?: string;
   editInitialData?: Record<string, any>;
+  editSubmissionId?: string;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -454,18 +456,32 @@ export default function AddProductForm({
         warranty: form.warranty || null,
       } as any;
 
+      // If editing an existing submission, update it in place instead of creating a new one
+      if (editSubmissionId) {
+        const { error: updateError } = await supabase
+          .from("product_submissions")
+          .update({ product_data: productPayload, updated_at: new Date().toISOString() } as any)
+          .eq("id", editSubmissionId);
+        if (updateError) throw updateError;
+        toast.success("Produit mis à jour", {
+          description: "Vos modifications ont été enregistrées. Le produit est en attente de validation.",
+        });
+        onSuccess();
+        return;
+      }
+
       const { duplicate } = await submitProduct(productPayload, editMode && editProductId ? {
         editMode: true,
         targetProductId: editProductId,
       } : undefined);
 
       toast.success(
-        editMode ? "Modification soumise" : "Product submitted for review",
+        editMode ? "Modification soumise" : "Produit soumis pour validation",
         {
           description: editMode
             ? "Votre modification sera visible après validation par l'équipe Terrassea."
             : duplicate
-            ? "A potential duplicate was detected — our team will review it."
+            ? "Un doublon potentiel a été détecté — notre équipe va vérifier."
             : "Il sera visible après validation par l'équipe Terrassea.",
         },
       );

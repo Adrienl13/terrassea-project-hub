@@ -1310,46 +1310,73 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
             <div className="space-y-2 mt-4">
               <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
                 <Clock className="h-3 w-3" />
-                Modifications soumises ({pendingSubmissions.length})
+                Produits soumis ({pendingSubmissions.length})
               </p>
               {pendingSubmissions.map((sub: any) => {
                 const pd = sub.product_data as Record<string, any> || {};
                 const isFeedback = sub.status === "feedback_sent";
                 const statusLabel = isFeedback ? "Retour admin" : sub.submission_type === "edit" ? "Modification en attente" : "En attente de validation";
                 const statusColor = isFeedback ? "text-blue-700 bg-blue-50 border-blue-200" : "text-amber-700 bg-amber-50 border-amber-200";
+                const thumbUrl = pd.image_url || (Array.isArray(pd.gallery_urls) && pd.gallery_urls.length > 0 ? pd.gallery_urls[0] : null);
+                const stockLabel = ({ available: "En stock", in_stock: "En stock", low_stock: "Stock faible", out_of_stock: "Rupture", on_order: "En commande", production: "En production" } as Record<string, string>)[pd.stock_status ?? ""] ?? pd.stock_status ?? null;
                 return (
-                  <div key={sub.id} className="border border-border rounded-xl bg-card">
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      {pd.image_url ? (
-                        <img src={pd.image_url as string} alt="" className="w-10 h-10 rounded-lg object-cover bg-muted" />
+                  <div key={sub.id} className="border border-border rounded-xl bg-card hover:border-foreground/20 transition-colors">
+                    <div
+                      className="flex items-center gap-3 px-4 py-3 cursor-pointer"
+                      onClick={() => setEditingSubmission({ id: sub.id, productData: pd, targetProductId: sub.target_product_id || undefined })}
+                    >
+                      {/* Thumbnail */}
+                      {thumbUrl ? (
+                        <img src={thumbUrl as string} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted border border-border shrink-0" />
                       ) : (
-                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                          <Package className="h-4 w-4 text-muted-foreground/40" />
+                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border shrink-0">
+                          <Package className="h-5 w-5 text-muted-foreground/30" />
                         </div>
                       )}
+
+                      {/* Product info */}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-display font-semibold text-foreground truncate">
                           {(pd.name as string) || "Produit sans nom"}
                         </p>
-                        <p className="text-[10px] font-body text-muted-foreground">
-                          Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR")}
-                          {sub.similarity_score && sub.similarity_score > 70 && (
-                            <span className="ml-2 text-amber-600">• Doublon potentiel ({sub.similarity_score}%)</span>
-                          )}
+                        <p className="text-[10px] font-body text-muted-foreground mt-0.5">
+                          {pd.category}{pd.subcategory ? ` → ${pd.subcategory}` : ""}
+                          {pd.main_color ? <span className="ml-1.5">· {pd.main_color}</span> : null}
+                          {pd.material_structure ? <span className="ml-1.5">· {pd.material_structure}</span> : null}
                         </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {pd.price_min != null && (
+                            <span className="text-[11px] font-display font-bold text-foreground">
+                              {pd.price_max ? `${pd.price_min}€ — ${pd.price_max}€` : `${pd.price_min}€`}
+                            </span>
+                          )}
+                          {stockLabel && (
+                            <span className={`text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full ${
+                              stockLabel === "En stock" ? "bg-green-50 text-green-700" :
+                              stockLabel === "Rupture" ? "bg-red-50 text-red-700" :
+                              "bg-amber-50 text-amber-700"
+                            }`}>
+                              {stockLabel}
+                            </span>
+                          )}
+                          <span className="text-[9px] font-body text-muted-foreground">
+                            Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR")}
+                          </span>
+                          {sub.similarity_score && sub.similarity_score > 70 && (
+                            <span className="text-[9px] text-amber-600 font-semibold">Doublon {sub.similarity_score}%</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+
+                      {/* Badge + actions */}
+                      <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
                         <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full border ${statusColor}`}>
                           {statusLabel}
                         </span>
                         <button
-                          onClick={() => setEditingSubmission({
-                            id: sub.id,
-                            productData: pd,
-                            targetProductId: sub.target_product_id || undefined,
-                          })}
+                          onClick={() => setEditingSubmission({ id: sub.id, productData: pd, targetProductId: sub.target_product_id || undefined })}
                           className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors"
-                          title="Modifier et re-soumettre"
+                          title="Compléter / Modifier"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
@@ -1367,7 +1394,8 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
                         </button>
                       </div>
                     </div>
-                    {/* Show admin feedback if available */}
+
+                    {/* Admin feedback panel */}
                     {isFeedback && sub.admin_feedback && (
                       <div className="px-4 pb-3 pt-0">
                         <div className="border border-blue-200 bg-blue-50/50 rounded-lg p-3 space-y-2">
@@ -1394,11 +1422,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
                             );
                           })}
                           <button
-                            onClick={() => setEditingSubmission({
-                              id: sub.id,
-                              productData: pd,
-                              targetProductId: sub.target_product_id || undefined,
-                            })}
+                            onClick={() => setEditingSubmission({ id: sub.id, productData: pd, targetProductId: sub.target_product_id || undefined })}
                             className="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-semibold rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                           >
                             <Pencil className="h-3 w-3" /> Corriger et re-soumettre
@@ -1496,7 +1520,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         </Suspense>
       )}
 
-      {/* Edit Submission Modal (re-submit after feedback or edit pending) */}
+      {/* Edit Submission Modal (complete/edit a pending submission in place) */}
       {editingSubmission && (
         <Suspense fallback={null}>
           <AddProductForm
@@ -1504,13 +1528,11 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
             editMode={!!editingSubmission.targetProductId}
             editProductId={editingSubmission.targetProductId}
             editInitialData={editingSubmission.productData}
+            editSubmissionId={editingSubmission.id}
             onClose={() => setEditingSubmission(null)}
-            onSuccess={async () => {
-              // Delete the old submission since submitProduct created a new one
-              await supabase.from("product_submissions").delete().eq("id", editingSubmission.id);
+            onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ["partner-pending-submissions"] });
               setEditingSubmission(null);
-              toast.success("Soumission corrigée et re-soumise pour validation.");
             }}
           />
         </Suspense>
