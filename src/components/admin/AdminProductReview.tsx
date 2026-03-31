@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useAdminSubmissions, type ProductSubmission } from "@/hooks/useProductSubmissions";
 import {
   Package, Clock, CheckCircle2, XCircle, AlertTriangle,
   Copy, ChevronDown, ChevronUp, RefreshCw, Loader2,
   Send, MessageSquare, Image, Ruler, Palette, Tag,
   Euro, Layers, Box, Shield, Globe, Truck, Weight,
-  ArrowRight, Eye, Sparkles, Info,
+  ArrowRight, Eye, Sparkles, Info, EyeOff, Trash2, AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { computeProductQuality, type QualityReport } from "@/lib/productQualityScore";
@@ -433,11 +435,13 @@ function DescriptionCard({ title, text, accent }: { title: string; text: string 
 
 export default function AdminProductReview() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [filterTab, setFilterTab] = useState<FilterTab>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [rejectionNotes, setRejectionNotes] = useState<Record<string, string>>({});
   const [showFeedbackForm, setShowFeedbackForm] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const {
     submissions,
@@ -456,6 +460,36 @@ export default function AdminProductReview() {
   });
 
   const pendingCount = submissions.filter((s) => s.status === "pending_review").length;
+
+  // Product management actions (offline / delete)
+  const handleSetOffline = async (productId: string, productName: string) => {
+    try {
+      const { error } = await supabase.from("products").update({ publish_status: "draft" }).eq("id", productId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-submissions"] });
+      toast.success(`"${productName}" mis hors ligne`);
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la mise hors ligne");
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    try {
+      // Delete offers first (FK constraint)
+      await supabase.from("product_offers").delete().eq("product_id", productId);
+      const { error } = await supabase.from("products").delete().eq("id", productId);
+      if (error) throw error;
+      // Also clean up related submissions
+      await supabase.from("product_submissions").delete().eq("target_product_id", productId);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-submissions"] });
+      setConfirmDeleteId(null);
+      toast.success(`"${productName}" supprimé définitivement`);
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la suppression");
+    }
+  };
 
   const handleAction = async (action: () => Promise<void>, label: string) => {
     try {
@@ -766,6 +800,51 @@ export default function AdminProductReview() {
                         {actionLoading === s.id && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
                       </div>
                     )}
+
+                    {/* Product management: offline / delete (for edits with target or approved submissions) */}
+                    {(() => {
+                      const targetId = (s as any).target_product_id;
+                      const productName = (s.product_data as any)?.name || "ce produit";
+                      if (!targetId) return null;
+                      return (
+                        <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-dashed border-border mt-3">
+                          <span className="text-[9px] font-display font-semibold text-muted-foreground uppercase tracking-wider mr-2">
+                            Gérer le produit
+                          </span>
+                          <button
+                            onClick={() => handleSetOffline(targetId, productName)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-semibold rounded-lg border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+                          >
+                            <EyeOff className="h-3 w-3" /> Mettre hors ligne
+                          </button>
+                          {confirmDeleteId === s.id ? (
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200">
+                              <AlertTriangle className="h-3 w-3 text-red-600" />
+                              <span className="text-[10px] font-display font-semibold text-red-700">Confirmer la suppression ?</span>
+                              <button
+                                onClick={() => handleDeleteProduct(targetId, productName)}
+                                className="text-[10px] font-display font-bold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded-md transition-colors"
+                              >
+                                Oui, supprimer
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="text-[10px] font-display font-semibold text-red-600 hover:text-red-800 transition-colors"
+                              >
+                                Annuler
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmDeleteId(s.id)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-semibold rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                            >
+                              <Trash2 className="h-3 w-3" /> Supprimer définitivement
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
