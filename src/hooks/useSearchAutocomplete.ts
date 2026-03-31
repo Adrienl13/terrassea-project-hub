@@ -89,6 +89,7 @@ export function useSearchAutocomplete(query: string) {
             .from("products")
             .select("id, name, category, image_url")
             .ilike("name", pattern)
+            .eq("publish_status", "published")
             .neq("availability_type", "discontinued")
             .limit(5),
           supabase

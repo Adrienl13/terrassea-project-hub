@@ -195,6 +195,7 @@ export async function fetchProducts(): Promise<DBProduct[]> {
     supabase
       .from("products")
       .select("*")
+      .eq("publish_status", "published")
       .neq("availability_type", "discontinued")
       .order("priority_score", { ascending: false })
       .limit(2000),
