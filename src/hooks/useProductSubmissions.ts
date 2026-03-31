@@ -331,6 +331,23 @@ export function useAdminSubmissions() {
   );
 
   // Approve an edit — update the existing product with new data
+  // Upload base64/blob images to Storage, return public URL
+  const uploadBase64ToStorage = async (dataUrl: string, productName: string, index: number): Promise<string | null> => {
+    if (!dataUrl) return null;
+    if (dataUrl.startsWith("http")) return dataUrl; // already a URL
+    if (!dataUrl.startsWith("data:image")) return null; // not an image
+    try {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const ext = blob.type.split("/")[1]?.replace("jpeg", "jpg") || "jpg";
+      const slug = productName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+      const path = `products/${slug}-${Date.now()}-${index}.${ext}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, blob, { contentType: blob.type, upsert: true });
+      if (error) return null;
+      return supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+    } catch { return null; }
+  };
+
   const approveEdit = useCallback(
     async (id: string) => {
       const submission = submissions.find((s) => s.id === id);
@@ -341,11 +358,28 @@ export function useAdminSubmissions() {
 
       const pd = submission.product_data as Record<string, unknown>;
 
+      // Convert base64 images to Storage URLs
+      let finalImageUrl = (pd.image_url as string) ?? null;
+      if (finalImageUrl && finalImageUrl.startsWith("data:image")) {
+        finalImageUrl = await uploadBase64ToStorage(finalImageUrl, (pd.name as string) || "product", 0);
+      }
+      const rawGallery = (pd.gallery_urls as string[]) ?? [];
+      const finalGallery: string[] = [];
+      for (let i = 0; i < rawGallery.length; i++) {
+        const url = rawGallery[i];
+        if (url.startsWith("data:image")) {
+          const uploaded = await uploadBase64ToStorage(url, (pd.name as string) || "product", i + 1);
+          if (uploaded) finalGallery.push(uploaded);
+        } else if (url.startsWith("http")) {
+          finalGallery.push(url);
+        }
+      }
+
       // Build update payload (same fields as approveAsNew, minus scores/partner_id)
       const productUpdate: Record<string, unknown> = {
         name: pd.name, category: pd.category, subcategory: pd.subcategory ?? null,
         short_description: pd.short_description ?? null, long_description: pd.long_description ?? null,
-        image_url: pd.image_url ?? null, gallery_urls: pd.gallery_urls ?? [],
+        image_url: finalImageUrl, gallery_urls: finalGallery,
         environment_urls: pd.environment_urls ?? [],
         price_min: pd.price_min ?? null, price_max: pd.price_max ?? null,
         main_color: pd.main_color ?? null, secondary_color: pd.secondary_color ?? null,

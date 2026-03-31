@@ -295,7 +295,7 @@ export async function fetchTagDefinitions(
 export function normalizeProduct(raw: Record<string, any>): DBProduct {
   // Fallback: use first gallery image as main image if image_url is missing
   const galleryUrls = raw.gallery_urls ?? [];
-  const validGalleryUrl = galleryUrls.find((u: string) => u && u.startsWith("http"));
+  const validGalleryUrl = galleryUrls.find((u: string) => u && (u.startsWith("http") || u.startsWith("data:image")));
   const image_url = raw.image_url || validGalleryUrl || null;
 
   return ({
