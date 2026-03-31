@@ -293,8 +293,14 @@ export async function fetchTagDefinitions(
 // ── Normalize raw Supabase row → DBProduct ─────────────────
 
 export function normalizeProduct(raw: Record<string, any>): DBProduct {
+  // Fallback: use first gallery image as main image if image_url is missing
+  const galleryUrls = raw.gallery_urls ?? [];
+  const validGalleryUrl = galleryUrls.find((u: string) => u && u.startsWith("http"));
+  const image_url = raw.image_url || validGalleryUrl || null;
+
   return ({
     ...raw,
+    image_url,
     style_tags:      raw.style_tags      ?? [],
     ambience_tags:   raw.ambience_tags   ?? [],
     palette_tags:    raw.palette_tags    ?? [],
