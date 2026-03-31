@@ -730,7 +730,20 @@ export default function ExcelImportModal({
     setImporting(true);
     setStep("importing");
     let imported = 0;
+    let updated = 0;
     const failedNames: string[] = [];
+
+    // Fetch existing products for this partner to detect duplicates by name
+    const existingMap = new Map<string, string>();
+    if (partnerId) {
+      const { data: existing } = await supabase
+        .from("products")
+        .select("id, name")
+        .eq("partner_id", partnerId);
+      for (const e of existing || []) {
+        if (e.name) existingMap.set(e.name.toLowerCase().trim(), e.id);
+      }
+    }
 
     for (let idx = 0; idx < validProducts.length; idx++) {
       const p = validProducts[idx];
@@ -776,7 +789,7 @@ export default function ExcelImportModal({
         const csvGallery = (p.gallery_urls || []).filter(u => !u.startsWith("blob:"));
         const finalGallery = [...galleryUrls, ...csvGallery];
 
-        const { error } = await supabase.from("products").insert({
+        const productData: Record<string, any> = {
           name: p.name,
           category: p.category,
           subcategory: p.subcategory || null,
@@ -821,13 +834,23 @@ export default function ExcelImportModal({
           image_url: finalImageUrl,
           gallery_urls: finalGallery.length > 0 ? finalGallery : [],
           product_type_tags: Object.keys(productTypeTags).length > 0 ? productTypeTags : null,
-          publish_status: "draft",
-          partner_id: partnerId,
-        });
+        };
+
+        // Check if product with same name already exists for this partner
+        const existingId = existingMap.get(p.name.toLowerCase().trim());
+
+        let error: any;
+        if (existingId) {
+          // UPDATE existing product
+          ({ error } = await supabase.from("products").update(productData).eq("id", existingId));
+          if (!error) updated++;
+        } else {
+          // INSERT new product
+          ({ error } = await supabase.from("products").insert({ ...productData, publish_status: "draft", partner_id: partnerId }));
+          if (!error) imported++;
+        }
         if (error) {
           failedNames.push(p.name);
-        } else {
-          imported++;
         }
       } catch {
         failedNames.push(p.name);
@@ -844,11 +867,18 @@ export default function ExcelImportModal({
     }
 
     setImporting(false);
-    if (imported > 0) {
+    const total = imported + updated;
+    if (total > 0) {
+      const parts: string[] = [];
+      if (imported > 0) parts.push(`${imported} créé${imported > 1 ? "s" : ""}`);
+      if (updated > 0) parts.push(`${updated} mis à jour`);
+      if (failedNames.length > 0) parts.push(`${failedNames.length} échoué${failedNames.length > 1 ? "s" : ""}`);
       if (failedNames.length > 0) {
-        toast.warning(`${imported} importé${imported > 1 ? "s" : ""}, ${failedNames.length} échoué${failedNames.length > 1 ? "s" : ""} : ${failedNames.slice(0, 3).join(", ")}${failedNames.length > 3 ? "..." : ""}`);
+        toast.warning(parts.join(", "));
+      } else {
+        toast.success(parts.join(", "));
       }
-      onSuccess(imported);
+      onSuccess(total);
     } else {
       toast.error("Aucun produit n'a pu être importé.");
     }
