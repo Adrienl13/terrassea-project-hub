@@ -141,14 +141,25 @@ const ProductDetail = () => {
 
   const localName = ml(product, "name");
 
+  // Auto-select first color variant if product has variants and none selected
+  const effectiveVariant = useMemo(() => {
+    if (selectedVariant) return selectedVariant;
+    const variants = product.color_variants ?? [];
+    if (variants.length > 0) {
+      const mainMatch = variants.find(v => v.color_slug === product.main_color);
+      return mainMatch?.color_slug ?? variants[0].color_slug;
+    }
+    return null;
+  }, [product, selectedVariant]);
+
   // Determine displayed image based on selected color variant
-  const activeVariant = product.color_variants.find((v) => v.color_slug === selectedVariant);
+  const activeVariant = product.color_variants.find((v) => v.color_slug === effectiveVariant);
   const handleAdd = () => {
     if (isArchitect) {
       setProjectModalOpen(true);
       return;
     }
-    addItem(product, undefined, undefined, undefined, selectedVariant ?? undefined);
+    addItem(product, undefined, undefined, undefined, effectiveVariant ?? undefined);
     toast.success(`${localName} ${t('success.addedToProject').toLowerCase()}`);
   };
 
@@ -260,7 +271,7 @@ const ProductDetail = () => {
                     <div className="mt-3">
                       <ColorVariantSelector
                         variants={product.color_variants}
-                        selectedColor={selectedVariant}
+                        selectedColor={effectiveVariant}
                         onSelectColor={setSelectedVariant}
                         size="md"
                       />
@@ -434,7 +445,7 @@ const ProductDetail = () => {
         {/* Vendor offers */}
         <section className="px-6 mt-4">
           <div className="container mx-auto">
-            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} selectedColor={selectedVariant} />
+            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} selectedColor={effectiveVariant} />
           </div>
         </section>
 
