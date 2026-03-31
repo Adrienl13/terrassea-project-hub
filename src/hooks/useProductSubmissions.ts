@@ -352,31 +352,13 @@ export function useAdminSubmissions() {
         publish_status: "published",
       };
 
-      // Use raw fetch to avoid supabase-js ON CONFLICT issue
-      const { data: { session } } = await supabase.auth.getSession();
-      const insertRes = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/products`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Authorization": `Bearer ${session?.access_token}`,
-            "Prefer": "return=representation",
-          },
-          body: JSON.stringify(productInsert),
-        }
-      );
-      if (!insertRes.ok) {
-        const errBody = await insertRes.text();
-        console.error("approveAsNew raw insert failed:", insertRes.status, errBody);
-        throw new Error(`Insert failed: ${errBody}`);
-      }
-      const [insertedRow] = await insertRes.json();
-      const newProduct = insertedRow as { id: string };
-      if (!newProduct?.id) {
-        throw new Error("Produit créé mais impossible de récupérer l'ID");
-      }
+      const { data: newProduct, error: productError } = await supabase
+        .from("products")
+        .insert(productInsert as any)
+        .select("id")
+        .single();
+
+      if (productError) throw productError;
 
       // Create product_offers entry linking the partner to the new product
       const { error: offerError } = await supabase
