@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchProducts, type DBProduct } from "@/lib/products";
 import { findSimilarProducts, type SimilarityResult } from "@/engine/similarityEngine";
+import { computeProductQuality } from "@/lib/productQualityScore";
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -184,13 +185,21 @@ export function useAdminSubmissions() {
     staleTime: 1000 * 30,
   });
 
-  const invalidate = () =>
+  const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["admin-product-submissions"] });
+    queryClient.invalidateQueries({ queryKey: ["partner-products"] });
+    queryClient.invalidateQueries({ queryKey: ["partner-pending-submissions"] });
+    queryClient.invalidateQueries({ queryKey: ["partner-submissions-feedback"] });
+    queryClient.invalidateQueries({ queryKey: ["partner-products-count"] });
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+    queryClient.invalidateQueries({ queryKey: ["product-offers"] });
+  };
 
   const notifyPartner = async (partnerId: string, title: string, body: string) => {
-    const { data: profile } = await supabase.from("user_profiles").select("id").eq("id", partnerId).maybeSingle();
-    if (profile) {
-      await supabase.from("notifications").insert({ user_id: profile.id, title, body, type: "info", link: "/account?tab=products" });
+    // partnerId is from partners table — resolve to auth user_id for notifications
+    const { data: partner } = await supabase.from("partners").select("user_id").eq("id", partnerId).maybeSingle();
+    if (partner?.user_id) {
+      await supabase.from("notifications").insert({ user_id: partner.user_id, title, body, type: "info", link: "/account?tab=products" });
     }
   };
 
@@ -318,8 +327,8 @@ export function useAdminSubmissions() {
         maintenance_info_fr: pd.maintenance_info_fr ?? null,
         maintenance_info_es: pd.maintenance_info_es ?? null,
         maintenance_info_it: pd.maintenance_info_it ?? null,
-        // Scores — initialize with defaults
-        data_quality_score: 0,
+        // Scores — compute quality from product data
+        data_quality_score: computeProductQuality(pd as Partial<DBProduct>).score / 100,
         popularity_score: 0.5,
         priority_score: 0.5,
         // Owner & status
@@ -358,10 +367,14 @@ export function useAdminSubmissions() {
         console.warn("Failed to create product_offer:", offerError.message);
       }
 
-      // Update submission status
+      // Update submission status with approved_product_id
       const { error: updateError } = await supabase
         .from("product_submissions")
-        .update({ status: "approved", updated_at: new Date().toISOString() } as any)
+        .update({
+          status: "approved",
+          approved_product_id: newProduct.id,
+          updated_at: new Date().toISOString(),
+        } as any)
         .eq("id", id);
 
       if (updateError) throw updateError;
@@ -370,7 +383,7 @@ export function useAdminSubmissions() {
       const productName = pd.name ?? "votre produit";
       await notifyPartner(submission.partner_id, "Produit approuvé", `Votre produit ${productName} a été approuvé et publié`);
 
-      await invalidate();
+      invalidate();
     },
     [submissions, queryClient]
   );
@@ -495,6 +508,24 @@ export function useAdminSubmissions() {
       if (updateError) throw updateError;
       if (!updated || updated.length === 0) throw new Error("Le produit cible n'existe plus. La modification n'a pas pu être appliquée.");
 
+      // Update product_offers for this partner + product (price, stock, delivery)
+      const offerUpdate: Record<string, unknown> = {};
+      if (pd.price_min !== undefined) offerUpdate.price = pd.price_min ?? null;
+      if (pd.stock_status !== undefined) offerUpdate.stock_status = pd.stock_status ?? null;
+      if (pd.stock_quantity !== undefined) offerUpdate.stock_quantity = pd.stock_quantity ?? null;
+      if (pd.estimated_delivery_days !== undefined) offerUpdate.delivery_delay_days = pd.estimated_delivery_days ?? null;
+      if (pd.supplier_internal !== undefined) offerUpdate.partner_ref = pd.supplier_internal ?? null;
+      if (pd.main_color !== undefined) offerUpdate.partner_color_name = pd.main_color ?? null;
+      if (pd.collection !== undefined) offerUpdate.collection_name = pd.collection ?? null;
+
+      if (Object.keys(offerUpdate).length > 0) {
+        await supabase
+          .from("product_offers")
+          .update(offerUpdate)
+          .eq("product_id", targetProductId)
+          .eq("partner_id", submission.partner_id);
+      }
+
       // Mark submission as approved
       await supabase
         .from("product_submissions")
@@ -503,8 +534,7 @@ export function useAdminSubmissions() {
 
       const productName = (pd.name as string) ?? "votre produit";
       await notifyPartner(submission.partner_id, "Modification approuvée", `Les modifications de ${productName} ont été publiées`);
-      await invalidate();
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      invalidate();
     },
     [submissions, queryClient]
   );
@@ -578,7 +608,7 @@ export function useAdminSubmissions() {
       const productName = pd.name ?? "votre produit";
       await notifyPartner(submission.partner_id, "Produit fusionné", `Votre produit ${productName} a été approuvé et fusionné avec un produit existant`);
 
-      await invalidate();
+      invalidate();
     },
     [submissions, queryClient]
   );
@@ -605,7 +635,7 @@ export function useAdminSubmissions() {
         await notifyPartner(submission.partner_id, "Produit rejeté", `Votre produit ${productName} a été rejeté${reason}`);
       }
 
-      await invalidate();
+      invalidate();
     },
     [submissions, queryClient]
   );
@@ -654,7 +684,7 @@ export function useAdminSubmissions() {
 
       if (updateError) throw updateError;
 
-      await invalidate();
+      invalidate();
     },
     [submissions, queryClient]
   );

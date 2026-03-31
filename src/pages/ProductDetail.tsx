@@ -209,7 +209,7 @@ const ProductDetail = () => {
               <ArrowLeft className="h-3 w-3" /> {t('nav.products')}
             </Link>
             <ChevronRight className="h-3 w-3" />
-            <span className="capitalize">{product.category}</span>
+            <Link to={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-foreground transition-colors capitalize">{product.category}</Link>
             <ChevronRight className="h-3 w-3" />
             <span className="text-foreground">{localName}</span>
           </nav>
@@ -272,7 +272,7 @@ const ProductDetail = () => {
                         ? `${t('productDetail.startingFrom')} €${lowestOfferPrice.toFixed(2)}`
                         : product.indicative_price || t('productDetail.onRequest')}
                     </span>
-                    <StockBadge status={product.stock_status} />
+                    <StockBadge status={offers.length > 0 ? (offers[0].stock_status ?? product.stock_status) : product.stock_status} />
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground font-body">
                     {offersCount > 0 && (
@@ -506,16 +506,19 @@ function SpecRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+const STOCK_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
+  available: { bg: "bg-green-50", text: "text-green-700", label: "En stock" },
+  in_stock: { bg: "bg-green-50", text: "text-green-700", label: "En stock" },
+  low_stock: { bg: "bg-amber-50", text: "text-amber-700", label: "Stock faible" },
+  production: { bg: "bg-blue-50", text: "text-blue-700", label: "En production" },
+  on_order: { bg: "bg-muted", text: "text-muted-foreground", label: "En commande" },
+  out_of_stock: { bg: "bg-red-50", text: "text-red-700", label: "Rupture de stock" },
+  to_confirm: { bg: "bg-muted", text: "text-muted-foreground", label: "À confirmer" },
+};
+
 function StockBadge({ status }: { status: string | null }) {
   const s = status || "available";
-  const config: Record<string, { bg: string; text: string; label: string }> = {
-    available: { bg: "bg-green-50", text: "text-green-700", label: "In stock" },
-    low_stock: { bg: "bg-amber-50", text: "text-amber-700", label: "Low stock" },
-    production: { bg: "bg-blue-50", text: "text-blue-700", label: "Production" },
-    on_order: { bg: "bg-muted", text: "text-muted-foreground", label: "On order" },
-    to_confirm: { bg: "bg-muted", text: "text-muted-foreground", label: "To confirm" },
-  };
-  const c = config[s] || config.available;
+  const c = STOCK_CONFIG[s] || STOCK_CONFIG.available;
   return (
     <span className={`inline-flex text-[10px] font-body px-2 py-0.5 rounded-full ${c.bg} ${c.text}`}>
       {c.label}

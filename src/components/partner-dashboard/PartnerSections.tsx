@@ -23,7 +23,7 @@ import {
   Plus, Upload, Image, Paperclip, Send, Search,
   Users, Sparkles, Award, FileSpreadsheet,
   Rocket, GripVertical, Briefcase, MapPin, Calendar,
-  Building2, EyeOff, Handshake, Target, ThumbsUp, ThumbsDown, Info, Pencil, ImagePlus,
+  Building2, EyeOff, Handshake, Target, ThumbsUp, ThumbsDown, Info, Pencil, ImagePlus, Trash2,
 } from "lucide-react";
 
 const ExcelImportModal = lazy(() => import("./ExcelImportModal"));
@@ -272,7 +272,7 @@ function ProductRow({
   onPhotos: (p: ProductRowData) => void;
   hasPendingEdit?: boolean;
 }) {
-  const { name, image, price, commissionRate, views, quotes, stock } = product;
+  const { name, image, price, commissionRate, stock } = product;
   const commissionAmount = price * (commissionRate / 100);
   const clientPrice = price + commissionAmount;
 
@@ -312,10 +312,10 @@ function ProductRow({
       </div>
       <div className="flex items-center gap-3 shrink-0">
         <div className="flex items-center gap-4 text-[10px] font-body text-muted-foreground">
-          <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {views}</span>
-          <span className="flex items-center gap-1"><FileText className="h-3 w-3" /> {quotes}</span>
           <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-display font-semibold ${
-            stock === "En stock" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+            stock === "En stock" ? "bg-green-50 text-green-700" :
+            stock === "Rupture" ? "bg-red-50 text-red-700" :
+            "bg-amber-50 text-amber-700"
           }`}>
             {stock}
           </span>
@@ -1027,12 +1027,14 @@ export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
 export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = true }: { plan: PartnerPlan; partnerId?: string | null; profileCompleted?: boolean }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const config = PLAN_CONFIG[plan];
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [showExcelImport, setShowExcelImport] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductRowData | null>(null);
+  const [editingSubmission, setEditingSubmission] = useState<{ id: string; productData: Record<string, any>; targetProductId?: string } | null>(null);
   const [showGallery, setShowGallery] = useState(false);
   const [linkingPhotos, setLinkingPhotos] = useState<ProductRowData | null>(null);
   const [catalogueTab, setCatalogueTab] = useState<"published" | "pending">("published");
@@ -1075,7 +1077,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         commissionRate: config.commission,
         views: 0,
         quotes: 0,
-        stock: prod.stock_status ?? "—",
+        stock: ({ available: "En stock", in_stock: "En stock", low_stock: "Stock faible", out_of_stock: "Rupture", on_order: "En commande", production: "En production" } as Record<string, string>)[prod.stock_status ?? ""] ?? prod.stock_status ?? "—",
         productData: prod,
         offerData: null,
         publishStatus: prod.publish_status ?? "draft",
@@ -1312,31 +1314,98 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
               </p>
               {pendingSubmissions.map((sub: any) => {
                 const pd = sub.product_data as Record<string, any> || {};
-                const statusLabel = sub.status === "feedback_sent" ? "Retour admin" : "Modification en attente";
-                const statusColor = sub.status === "feedback_sent" ? "text-blue-700 bg-blue-50 border-blue-200" : "text-amber-700 bg-amber-50 border-amber-200";
+                const isFeedback = sub.status === "feedback_sent";
+                const statusLabel = isFeedback ? "Retour admin" : sub.submission_type === "edit" ? "Modification en attente" : "En attente de validation";
+                const statusColor = isFeedback ? "text-blue-700 bg-blue-50 border-blue-200" : "text-amber-700 bg-amber-50 border-amber-200";
                 return (
-                  <div key={sub.id} className="flex items-center gap-3 px-4 py-3 border border-border rounded-xl bg-card">
-                    {pd.image_url ? (
-                      <img src={pd.image_url as string} alt="" className="w-10 h-10 rounded-lg object-cover bg-muted" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                        <Package className="h-4 w-4 text-muted-foreground/40" />
+                  <div key={sub.id} className="border border-border rounded-xl bg-card">
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      {pd.image_url ? (
+                        <img src={pd.image_url as string} alt="" className="w-10 h-10 rounded-lg object-cover bg-muted" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                          <Package className="h-4 w-4 text-muted-foreground/40" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-display font-semibold text-foreground truncate">
+                          {(pd.name as string) || "Produit sans nom"}
+                        </p>
+                        <p className="text-[10px] font-body text-muted-foreground">
+                          Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR")}
+                          {sub.similarity_score && sub.similarity_score > 70 && (
+                            <span className="ml-2 text-amber-600">• Doublon potentiel ({sub.similarity_score}%)</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full border ${statusColor}`}>
+                          {statusLabel}
+                        </span>
+                        <button
+                          onClick={() => setEditingSubmission({
+                            id: sub.id,
+                            productData: pd,
+                            targetProductId: sub.target_product_id || undefined,
+                          })}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors"
+                          title="Modifier et re-soumettre"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm("Supprimer cette soumission ?")) return;
+                            await supabase.from("product_submissions").delete().eq("id", sub.id);
+                            queryClient.invalidateQueries({ queryKey: ["partner-pending-submissions"] });
+                            toast.success("Soumission supprimée");
+                          }}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    {/* Show admin feedback if available */}
+                    {isFeedback && sub.admin_feedback && (
+                      <div className="px-4 pb-3 pt-0">
+                        <div className="border border-blue-200 bg-blue-50/50 rounded-lg p-3 space-y-2">
+                          <p className="text-[10px] font-display font-semibold text-blue-700 uppercase tracking-wider flex items-center gap-1">
+                            <MessageSquare className="h-3 w-3" /> Retour de l'équipe Terrassea
+                          </p>
+                          {(sub.admin_feedback as Record<string, any>).general_comment && (
+                            <p className="text-xs font-body text-blue-800">
+                              {(sub.admin_feedback as Record<string, any>).general_comment}
+                            </p>
+                          )}
+                          {["photos", "description", "specs", "pricing"].map((key) => {
+                            const section = (sub.admin_feedback as Record<string, any>)?.[key];
+                            if (!section || section.status === "ok") return null;
+                            return (
+                              <div key={key} className="text-[10px] font-body text-blue-700">
+                                <span className="font-semibold capitalize">{key === "specs" ? "Spécifications" : key === "pricing" ? "Tarification" : key === "photos" ? "Photos" : "Description"}</span>
+                                {" : "}
+                                <span className={section.status === "missing" ? "text-red-600" : "text-amber-600"}>
+                                  {section.status === "missing" ? "Manquant" : "À améliorer"}
+                                </span>
+                                {section.comment && <> — {section.comment}</>}
+                              </div>
+                            );
+                          })}
+                          <button
+                            onClick={() => setEditingSubmission({
+                              id: sub.id,
+                              productData: pd,
+                              targetProductId: sub.target_product_id || undefined,
+                            })}
+                            className="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-semibold rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                          >
+                            <Pencil className="h-3 w-3" /> Corriger et re-soumettre
+                          </button>
+                        </div>
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-display font-semibold text-foreground truncate">
-                        {(pd.name as string) || "Produit sans nom"}
-                      </p>
-                      <p className="text-[10px] font-body text-muted-foreground">
-                        Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR")}
-                        {sub.similarity_score && sub.similarity_score > 70 && (
-                          <span className="ml-2 text-amber-600">• Doublon potentiel ({sub.similarity_score}%)</span>
-                        )}
-                      </p>
-                    </div>
-                    <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full border ${statusColor}`}>
-                      {statusLabel}
-                    </span>
                   </div>
                 );
               })}
@@ -1422,6 +1491,26 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
             onSuccess={() => {
               setEditingProduct(null);
               toast.success("Modification soumise pour validation par l'équipe Terrassea.");
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Edit Submission Modal (re-submit after feedback or edit pending) */}
+      {editingSubmission && (
+        <Suspense fallback={null}>
+          <AddProductForm
+            plan={plan}
+            editMode={!!editingSubmission.targetProductId}
+            editProductId={editingSubmission.targetProductId}
+            editInitialData={editingSubmission.productData}
+            onClose={() => setEditingSubmission(null)}
+            onSuccess={async () => {
+              // Delete the old submission since submitProduct created a new one
+              await supabase.from("product_submissions").delete().eq("id", editingSubmission.id);
+              queryClient.invalidateQueries({ queryKey: ["partner-pending-submissions"] });
+              setEditingSubmission(null);
+              toast.success("Soumission corrigée et re-soumise pour validation.");
             }}
           />
         </Suspense>

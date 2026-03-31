@@ -199,6 +199,7 @@ export async function fetchProducts(): Promise<DBProduct[]> {
       .from("products")
       .select("*")
       .eq("publish_status", "published")
+      .is("duplicate_of", null)
       .neq("availability_type", "discontinued")
       .order("priority_score", { ascending: false })
       .limit(2000),
@@ -281,6 +282,8 @@ export async function fetchProductsByIds(ids: string[]): Promise<DBProduct[]> {
     .from("products")
     .select("*")
     .in("id", ids)
+    .eq("publish_status", "published")
+    .is("duplicate_of", null)
     .neq("availability_type", "discontinued");
 
   if (error) throw error;
@@ -296,6 +299,8 @@ export async function fetchProductsByArchetype(
     .from("products")
     .select("*")
     .eq("archetype_id", archetypeId)
+    .eq("publish_status", "published")
+    .is("duplicate_of", null)
     .neq("availability_type", "discontinued")
     .order("data_quality_score", { ascending: false });
 

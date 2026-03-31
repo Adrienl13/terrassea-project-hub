@@ -36,7 +36,10 @@ export function useProducts(searchTerm?: string, categoryFilter?: string) {
         const { data: fullProducts, error: fullError } = await supabase
           .from("products")
           .select("*")
-          .in("id", matchedIds);
+          .in("id", matchedIds)
+          .eq("publish_status", "published")
+          .is("duplicate_of", null)
+          .neq("availability_type", "discontinued");
         if (fullError) throw fullError;
 
         // Enrich with offer stats
@@ -73,6 +76,7 @@ export function useProducts(searchTerm?: string, categoryFilter?: string) {
             .from("products")
             .select("*")
             .eq("publish_status", "published")
+            .is("duplicate_of", null)
             .neq("availability_type", "discontinued")
             .ilike("category", `%${categoryFilter}%`)
             .order("priority_score", { ascending: false }),

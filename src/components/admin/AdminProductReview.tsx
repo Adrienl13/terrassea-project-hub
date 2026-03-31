@@ -8,12 +8,11 @@ import {
   Copy, ChevronDown, ChevronUp, RefreshCw, Loader2,
   Send, MessageSquare, Image, Ruler, Palette, Tag,
   Euro, Layers, Box, Shield, Globe, Truck, Weight,
-  ArrowRight, Eye, Sparkles, Info, EyeOff, Trash2, AlertTriangle,
+  ArrowRight, Eye, Sparkles, Info, EyeOff, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { computeProductQuality, type QualityReport } from "@/lib/productQualityScore";
 import type { DBProduct } from "@/lib/products";
-import { supabase } from "@/integrations/supabase/client";
 
 // ── Feedback types ──
 
@@ -148,13 +147,17 @@ function FeedbackForm({ submissionId, partnerId, onSent }: { submissionId: strin
         .eq("id", submissionId);
       if (error) throw error;
 
-      await supabase.from("notifications").insert({
-        user_id: partnerId,
-        title: "Retour sur votre soumission produit",
-        body: feedback.general_comment || "Un administrateur a examiné votre soumission. Consultez le retour.",
-        type: "product_feedback",
-        link: "/account?section=catalogue",
-      });
+      // Resolve partner table ID to auth user_id for notification
+      const { data: partnerRow } = await supabase.from("partners").select("user_id").eq("id", partnerId).maybeSingle();
+      if (partnerRow?.user_id) {
+        await supabase.from("notifications").insert({
+          user_id: partnerRow.user_id,
+          title: "Retour sur votre soumission produit",
+          body: feedback.general_comment || "Un administrateur a examiné votre soumission. Consultez le retour.",
+          type: "product_feedback",
+          link: "/account?section=catalogue",
+        });
+      }
 
       toast.success("Retour envoyé au partenaire");
       onSent();
@@ -352,7 +355,7 @@ function ProductDetailCard({ pd, title }: { pd: Record<string, any>; title: stri
         <InfoRow icon={Weight} label="Poids" value={pd.weight_kg ? `${pd.weight_kg} kg` : null} />
         <InfoRow icon={Euro} label="Prix indicatif" value={pd.indicative_price} />
         <InfoRow icon={Euro} label="Fourchette prix" value={
-          pd.price_min ? `${pd.price_min}€ — ${pd.price_max ?? "?"}€` : null
+          pd.price_min ? (pd.price_max ? `${pd.price_min}€ — ${pd.price_max}€` : `À partir de ${pd.price_min}€`) : null
         } />
         <InfoRow icon={Truck} label="Délai livraison" value={pd.estimated_delivery_days ? `${pd.estimated_delivery_days} jours` : null} />
         <InfoRow icon={Globe} label="Pays fabrication" value={pd.country_of_manufacture} />
@@ -470,7 +473,8 @@ export default function AdminProductReview() {
       const { error } = await supabase.from("products").update({ publish_status: "draft" }).eq("id", productId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-product-submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["partner-products"] });
       toast.success(`"${productName}" mis hors ligne`);
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de la mise hors ligne");
@@ -486,7 +490,8 @@ export default function AdminProductReview() {
       // Also clean up related submissions
       await supabase.from("product_submissions").delete().eq("target_product_id", productId);
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-product-submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["partner-products"] });
       setConfirmDeleteId(null);
       toast.success(`"${productName}" supprimé définitivement`);
     } catch (err: any) {
@@ -551,7 +556,8 @@ export default function AdminProductReview() {
       await supabase.from("products").update({ publish_status: "draft" }).eq("id", pid);
     }
     queryClient.invalidateQueries({ queryKey: ["products"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-submissions"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-product-submissions"] });
+    queryClient.invalidateQueries({ queryKey: ["partner-products"] });
     setSelectedIds(new Set());
     setConfirmBulkAction(null);
     setBulkLoading(false);
@@ -566,7 +572,8 @@ export default function AdminProductReview() {
       await supabase.from("products").delete().eq("id", pid);
     }
     queryClient.invalidateQueries({ queryKey: ["products"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-submissions"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-product-submissions"] });
+    queryClient.invalidateQueries({ queryKey: ["partner-products"] });
     setSelectedIds(new Set());
     setConfirmBulkAction(null);
     setBulkLoading(false);
@@ -853,7 +860,12 @@ export default function AdminProductReview() {
                       <FeedbackForm
                         submissionId={s.id}
                         partnerId={s.partner_id}
-                        onSent={() => setShowFeedbackForm(null)}
+                        onSent={() => {
+                          setShowFeedbackForm(null);
+                          queryClient.invalidateQueries({ queryKey: ["admin-product-submissions"] });
+                          queryClient.invalidateQueries({ queryKey: ["partner-pending-submissions"] });
+                          queryClient.invalidateQueries({ queryKey: ["partner-submissions-feedback"] });
+                        }}
                       />
                     ) : (
                       <button

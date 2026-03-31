@@ -44,7 +44,7 @@ type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscrip
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
 const CATEGORIES = [
-  "Chairs", "Armchairs", "Tables", "Bar Stools", "Parasols",
+  "Chairs", "Armchairs", "Tables", "Bar Stools", "Stools", "Parasols",
   "Lounge Seating", "Sun Loungers", "Benches", "Coffee Tables",
   "High Tables", "Sofas", "Accessories",
 ];
@@ -562,9 +562,10 @@ function ProductForm({
               <div>
                 <label className={labelClass}>Partenaire</label>
                 <select
-                  value={partnersList.find(p => p.slug === form.supplier_internal)?.id ?? ""}
+                  value={form.partner_id ?? ""}
                   onChange={e => {
                     const partner = partnersList.find(p => p.id === e.target.value);
+                    set("partner_id", partner ? partner.id : null);
                     set("supplier_internal", partner ? partner.slug : "");
                   }}
                   className={inputClass}
@@ -947,6 +948,19 @@ function ProductsTab() {
       if (id) {
         const { error } = await supabase.from("products").update(dbData).eq("id", id);
         if (error) throw error;
+
+        // Sync price/stock to product_offers for this product's partner
+        if (data.partner_id) {
+          const offerSync: Record<string, unknown> = {};
+          if (data.price_min !== undefined) offerSync.price = data.price_min;
+          if (data.stock_status !== undefined) offerSync.stock_status = data.stock_status;
+          if (data.stock_quantity !== undefined) offerSync.stock_quantity = data.stock_quantity;
+          if (data.estimated_delivery_days !== undefined) offerSync.delivery_delay_days = data.estimated_delivery_days;
+          if (Object.keys(offerSync).length > 0) {
+            await supabase.from("product_offers").update(offerSync)
+              .eq("product_id", id).eq("partner_id", data.partner_id);
+          }
+        }
         toast.success("Produit mis a jour");
       } else {
         const { error } = await supabase.from("products").insert(dbData);
@@ -954,6 +968,8 @@ function ProductsTab() {
         toast.success("Produit cree");
       }
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["partner-products"] });
+      queryClient.invalidateQueries({ queryKey: ["product-offers"] });
       setEditing(null);
     } catch (err: any) {
       toast.error(err.message || "Echec de l'enregistrement");
@@ -971,13 +987,13 @@ function ProductsTab() {
       // Notify the partner who owns this product
       const product = products.find((p: any) => p.id === productId);
       if (product?.partner_id) {
-        const { data: partnerProfile } = await supabase.from("user_profiles").select("id").eq("id", product.partner_id).maybeSingle();
-        if (partnerProfile) {
+        const { data: partnerRow } = await supabase.from("partners").select("user_id").eq("id", product.partner_id).maybeSingle();
+        if (partnerRow?.user_id) {
           const body = newStatus === "published"
             ? `Votre produit ${product.name} a été publié`
             : `Votre produit ${product.name} a été rejeté`;
           await supabase.from("notifications").insert({
-            user_id: partnerProfile.id,
+            user_id: partnerRow.user_id,
             title: newStatus === "published" ? "Produit publié" : "Produit rejeté",
             body,
             type: "info",
