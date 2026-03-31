@@ -173,6 +173,8 @@ export default function ExcelImportModal({
   // Photo matching
   const [unmatchedPhotos, setUnmatchedPhotos] = useState<File[]>([]);
   const [manualAssign, setManualAssign] = useState<string | null>(null);
+  // Preview filters
+  const [filterCat, setFilterCat] = useState<string | null>(null);
 
   // ── File handling ──
 
@@ -1081,7 +1083,19 @@ export default function ExcelImportModal({
           )}
 
           {/* ── Step: Preview ── */}
-          {step === "preview" && (
+          {step === "preview" && (() => {
+            const noImageCount = products.filter(p => !p.image_url).length;
+            const noPriceCount = products.filter(p => p.price_min == null).length;
+            const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+            const filteredProducts = filterCat ? products.filter(p => p.category === filterCat) : products;
+            const allTags = (p: AIProduct) => [
+              ...(p.style_tags || []),
+              ...(p.material_tags || []),
+              ...(p.use_case_tags || []),
+              ...(p.ambience_tags || []),
+            ];
+
+            return (
             <div className="space-y-4">
               {/* Column mapping summary */}
               {Object.keys(columnMapping).length > 0 && (
@@ -1101,100 +1115,225 @@ export default function ExcelImportModal({
                 </div>
               )}
 
-              {/* Summary */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-display font-semibold text-foreground">
-                    {products.length} produit{products.length > 1 ? "s" : ""} enrichi{products.length > 1 ? "s" : ""}
-                  </p>
-                  <p className="text-[10px] font-body text-muted-foreground">Fichier : {fileName}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {validCount > 0 && (
-                    <span className="flex items-center gap-1 text-[9px] font-display font-semibold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">
-                      <CheckCircle2 className="h-2.5 w-2.5" /> {validCount} valide{validCount > 1 ? "s" : ""}
-                    </span>
-                  )}
-                  {invalidCount > 0 && (
-                    <span className="flex items-center gap-1 text-[9px] font-display font-semibold bg-red-50 text-red-600 px-2 py-0.5 rounded-full">
-                      <XCircle className="h-2.5 w-2.5" /> {invalidCount} erreur{invalidCount > 1 ? "s" : ""}
-                    </span>
-                  )}
-                </div>
+              {/* Stats bar */}
+              <div className="flex flex-wrap gap-2">
+                <span className="text-[10px] font-display font-semibold px-3 py-1.5 rounded-full bg-foreground/5 text-foreground">
+                  {products.length} produit{products.length > 1 ? "s" : ""}
+                </span>
+                {validCount > 0 && (
+                  <span className="flex items-center gap-1 text-[10px] font-display font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700">
+                    <CheckCircle2 className="h-3 w-3" /> {validCount} valide{validCount > 1 ? "s" : ""}
+                  </span>
+                )}
+                {invalidCount > 0 && (
+                  <span className="flex items-center gap-1 text-[10px] font-display font-semibold px-3 py-1.5 rounded-full bg-red-50 text-red-600">
+                    <XCircle className="h-3 w-3" /> {invalidCount} erreur{invalidCount > 1 ? "s" : ""}
+                  </span>
+                )}
+                {noImageCount > 0 && (
+                  <span className="flex items-center gap-1 text-[10px] font-display font-semibold px-3 py-1.5 rounded-full bg-amber-50 text-amber-700">
+                    <ImageIcon className="h-3 w-3" /> {noImageCount} sans image
+                  </span>
+                )}
+                {noPriceCount > 0 && (
+                  <span className="text-[10px] font-display font-semibold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">
+                    {noPriceCount} sans prix
+                  </span>
+                )}
               </div>
 
-              {/* Product cards */}
-              <div className="border border-border rounded-sm overflow-hidden max-h-[45vh] overflow-y-auto divide-y divide-border">
-                {products.map(p => {
-                  const comm = p.price_min ? p.price_min * (config.commission / 100) : 0;
-                  const clientPrice = p.price_min ? p.price_min + comm : null;
-                  return (
-                    <div key={p.id} className={`p-3 ${!p.valid ? "bg-red-50/50" : "hover:bg-card/50"}`}>
-                      <div className="flex items-start gap-3">
-                        {/* Image preview */}
-                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
-                          {p.image_url ? (
-                            <img src={p.image_url} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <ImageIcon className="h-4 w-4 text-muted-foreground/30" />
-                          )}
-                        </div>
+              {/* Category filter tabs */}
+              {categories.length > 1 && (
+                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                  <button
+                    onClick={() => setFilterCat(null)}
+                    className={`shrink-0 text-[10px] font-display font-semibold px-3 py-1 rounded-full border transition-colors ${
+                      filterCat === null
+                        ? "bg-foreground text-primary-foreground border-foreground"
+                        : "bg-background text-muted-foreground border-border hover:border-foreground/40"
+                    }`}
+                  >
+                    Tous ({products.length})
+                  </button>
+                  {categories.map(cat => {
+                    const count = products.filter(p => p.category === cat).length;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setFilterCat(filterCat === cat ? null : cat)}
+                        className={`shrink-0 text-[10px] font-display font-semibold px-3 py-1 rounded-full border transition-colors ${
+                          filterCat === cat
+                            ? "bg-foreground text-primary-foreground border-foreground"
+                            : "bg-background text-muted-foreground border-border hover:border-foreground/40"
+                        }`}
+                      >
+                        {cat} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
-                        {/* Product info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            {p.valid ? <CheckCircle2 className="h-3 w-3 text-green-600 shrink-0" /> : <XCircle className="h-3 w-3 text-red-500 shrink-0" />}
-                            <p className="text-xs font-display font-semibold text-foreground truncate">{p.name || "—"}</p>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                            <span className="text-[9px] font-display font-semibold bg-foreground/5 px-1.5 py-0.5 rounded text-muted-foreground">{p.category || "—"}</span>
-                            {p.material_structure && <span className="text-[9px] font-body text-muted-foreground">{p.material_structure}</span>}
-                            {p.main_color && <span className="text-[9px] font-body text-muted-foreground">· {p.main_color}</span>}
-                            {p.dimensions_length_cm && p.dimensions_width_cm && (
-                              <span className="text-[9px] font-body text-muted-foreground">
-                                · {p.dimensions_length_cm}×{p.dimensions_width_cm}{p.dimensions_height_cm ? `×${p.dimensions_height_cm}` : ""} cm
-                              </span>
-                            )}
-                          </div>
-                          {/* Tags */}
-                          {(p.style_tags?.length || 0) > 0 && (
-                            <div className="flex flex-wrap gap-0.5 mt-1">
-                              {p.style_tags!.slice(0, 4).map(tag => (
-                                <span key={tag} className="text-[8px] font-body text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded">{tag}</span>
-                              ))}
-                              {(p.material_tags || []).slice(0, 2).map(tag => (
-                                <span key={tag} className="text-[8px] font-body text-blue-700 bg-blue-50 px-1 py-0.5 rounded">{tag}</span>
-                              ))}
-                            </div>
-                          )}
-                          {!p.valid && <p className="text-[8px] text-red-500 mt-0.5">{p.errors.join(", ")}</p>}
-                        </div>
+              {/* Table */}
+              <div className="border border-border rounded-sm overflow-hidden">
+                <div className="max-h-[50vh] overflow-y-auto">
+                  <table className="w-full text-left">
+                    {/* Sticky header */}
+                    <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm">
+                      <tr className="text-[9px] font-display font-semibold text-muted-foreground uppercase tracking-wider">
+                        <th className="px-3 py-2 w-8"></th>
+                        <th className="px-2 py-2">Nom</th>
+                        <th className="px-2 py-2">Catégorie</th>
+                        <th className="px-2 py-2 hidden sm:table-cell">Matériau</th>
+                        <th className="px-2 py-2 hidden md:table-cell">Couleur</th>
+                        <th className="px-2 py-2 text-right">Prix</th>
+                        <th className="px-2 py-2 hidden lg:table-cell">Dimensions</th>
+                        <th className="px-2 py-2 hidden xl:table-cell">Tags</th>
+                        <th className="px-2 py-2 w-8"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {filteredProducts.map(p => {
+                        const tags = allTags(p);
+                        const visibleTags = tags.slice(0, 3);
+                        const overflowCount = tags.length - visibleTags.length;
 
-                        {/* Price + actions */}
-                        <div className="text-right shrink-0">
-                          {p.price_min != null ? (
-                            <>
-                              <p className="text-xs font-display font-bold text-foreground">€{p.price_min}</p>
-                              {clientPrice != null && (
-                                <p className="text-[9px] font-body text-amber-600">→ €{clientPrice.toFixed(0)}</p>
+                        return (
+                          <tr key={p.id} className={`group ${!p.valid ? "bg-red-50/60" : "hover:bg-card/50"}`}>
+                            {/* Status icon */}
+                            <td className="px-3 py-2 align-top">
+                              {p.valid
+                                ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                                : <XCircle className="h-3.5 w-3.5 text-red-500" />
+                              }
+                            </td>
+
+                            {/* Name */}
+                            <td className="px-2 py-2 align-top max-w-[160px]">
+                              <p className="text-xs font-display font-bold text-foreground truncate">{p.name || "—"}</p>
+                              {!p.valid && (
+                                <p className="text-[8px] font-body text-red-500 mt-0.5 leading-tight">{p.errors.join(", ")}</p>
                               )}
-                            </>
-                          ) : (
-                            <p className="text-[9px] font-body text-muted-foreground">—</p>
-                          )}
-                          <button onClick={() => removeProduct(p.id)} className="text-muted-foreground hover:text-red-500 mt-1 transition-colors">
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                            </td>
+
+                            {/* Category */}
+                            <td className="px-2 py-2 align-top">
+                              {p.category ? (
+                                <span className="inline-block text-[9px] font-display font-semibold bg-foreground/5 px-1.5 py-0.5 rounded text-muted-foreground whitespace-nowrap">
+                                  {p.category}
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-body text-muted-foreground/50">—</span>
+                              )}
+                            </td>
+
+                            {/* Material */}
+                            <td className="px-2 py-2 align-top hidden sm:table-cell">
+                              <span className="text-[10px] font-body text-muted-foreground">
+                                {p.material_structure || "—"}
+                              </span>
+                            </td>
+
+                            {/* Color */}
+                            <td className="px-2 py-2 align-top hidden md:table-cell">
+                              {p.main_color ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span
+                                    className="inline-block w-2.5 h-2.5 rounded-full border border-border shrink-0"
+                                    style={{
+                                      backgroundColor: /^#|^rgb/i.test(p.main_color)
+                                        ? p.main_color
+                                        : {
+                                            white: "#ffffff", black: "#1a1a1a", grey: "#9ca3af", gray: "#9ca3af",
+                                            red: "#ef4444", blue: "#3b82f6", green: "#22c55e", yellow: "#eab308",
+                                            orange: "#f97316", brown: "#92400e", beige: "#d4b896", cream: "#fffdd0",
+                                            navy: "#1e3a5f", teak: "#b8860b", anthracite: "#383838", taupe: "#8b8589",
+                                            natural: "#deb887", sand: "#c2b280", charcoal: "#36454f", ivory: "#fffff0",
+                                            terracotta: "#e2725b", olive: "#808000", rust: "#b7410e", slate: "#708090",
+                                            blanc: "#ffffff", noir: "#1a1a1a", gris: "#9ca3af", rouge: "#ef4444",
+                                            bleu: "#3b82f6", vert: "#22c55e", jaune: "#eab308", marron: "#92400e",
+                                          }[p.main_color.toLowerCase()] || "#d4d4d8",
+                                    }}
+                                  />
+                                  <span className="text-[10px] font-body text-muted-foreground truncate max-w-[60px]">
+                                    {p.main_color}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-[9px] font-body text-muted-foreground/50">—</span>
+                              )}
+                            </td>
+
+                            {/* Price */}
+                            <td className="px-2 py-2 align-top text-right">
+                              {p.price_min != null ? (
+                                <span className="text-xs font-display font-bold text-foreground">€{p.price_min}</span>
+                              ) : (
+                                <span className="text-[9px] font-body text-muted-foreground/50">—</span>
+                              )}
+                            </td>
+
+                            {/* Dimensions */}
+                            <td className="px-2 py-2 align-top hidden lg:table-cell">
+                              {p.dimensions_length_cm || p.dimensions_width_cm || p.dimensions_height_cm ? (
+                                <span className="text-[10px] font-body text-muted-foreground whitespace-nowrap">
+                                  {[p.dimensions_length_cm, p.dimensions_width_cm, p.dimensions_height_cm]
+                                    .filter(d => d != null)
+                                    .join("×")}{" "}
+                                  cm
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-body text-muted-foreground/50">—</span>
+                              )}
+                            </td>
+
+                            {/* Tags */}
+                            <td className="px-2 py-2 align-top hidden xl:table-cell">
+                              {tags.length > 0 ? (
+                                <div className="flex flex-wrap gap-0.5">
+                                  {visibleTags.map(tag => (
+                                    <span key={tag} className="text-[8px] font-body text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded whitespace-nowrap">
+                                      {tag}
+                                    </span>
+                                  ))}
+                                  {overflowCount > 0 && (
+                                    <span className="text-[8px] font-body text-muted-foreground bg-foreground/5 px-1.5 py-0.5 rounded">
+                                      +{overflowCount}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-[9px] font-body text-muted-foreground/50">—</span>
+                              )}
+                            </td>
+
+                            {/* Delete */}
+                            <td className="px-2 py-2 align-top">
+                              <button
+                                onClick={() => removeProduct(p.id)}
+                                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-all"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+
+              {/* Filtered count hint */}
+              {filterCat && (
+                <p className="text-[9px] font-body text-muted-foreground">
+                  {filteredProducts.length} produit{filteredProducts.length > 1 ? "s" : ""} dans « {filterCat} »
+                </p>
+              )}
 
               {/* Actions */}
               <div className="flex items-center justify-between pt-2">
-                <button onClick={() => { setStep("upload"); setProducts([]); setColumnMapping({}); }}
+                <button onClick={() => { setStep("upload"); setProducts([]); setColumnMapping({}); setFilterCat(null); }}
                   className="px-4 py-2 text-xs font-display font-semibold border border-border rounded-full hover:border-foreground transition-colors">
                   ← Changer de fichier
                 </button>
@@ -1211,7 +1350,8 @@ export default function ExcelImportModal({
                 </div>
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* ── Step: Photos ── */}
           {step === "photos" && (
