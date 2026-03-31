@@ -199,7 +199,7 @@ function SupplierAvatar({ index, isAdmin, offer }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, arrivals = [], selectedColor = null }: VendorOffersProps) => {
+const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin = false, arrivals = [], selectedColor = null }: VendorOffersProps) => {
   const { t } = useTranslation();
   const [quantity, setQuantity] = useState(defaultQuantity);
   const { addItem, selectSupplier } = useProjectCart();
@@ -210,6 +210,16 @@ const VendorOffers = ({ offers, product, defaultQuantity = 1, isAdmin = false, a
   const [quoteModalOffer, setQuoteModalOffer] = useState<ProductOffer | null>(null);
   const [projectBriefOffer, setProjectBriefOffer] = useState<ProductOffer | null>(null);
   const getPartnerTypeLabel = usePartnerTypeLabel();
+
+  // Filter offers by selected color variant when applicable
+  const offers = useMemo(() => {
+    if (!selectedColor) return allOffers;
+    const colorFiltered = allOffers.filter(o =>
+      o.partner_color_name?.toLowerCase() === selectedColor.toLowerCase()
+    );
+    // If no offers match the color, show all (backward compat for products without color offers)
+    return colorFiltered.length > 0 ? colorFiltered : allOffers;
+  }, [allOffers, selectedColor]);
 
   const getOfferArrivals = (partnerId: string) =>
     arrivals.filter((a) => a.partnerId === partnerId);

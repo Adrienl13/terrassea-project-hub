@@ -16,6 +16,7 @@ export interface ProductOffer {
   is_active: boolean | null;
   pricing_mode: string | null;
   collection_name: string | null;
+  partner_color_name: string | null;
   partner?: {
     id: string;
     name: string;

@@ -189,10 +189,18 @@ export default function ProductMergeDialog({ initialSource, products, onClose }:
       if (updateErr) throw updateErr;
 
       if (keepOffers) {
-        const { error: offerErr } = await supabase.from("product_offers")
-          .update({ product_id: target.id })
+        // Set color name on target's existing offers if not set
+        if (target.main_color) {
+          await supabase.from("product_offers")
+            .update({ partner_color_name: target.main_color })
+            .eq("product_id", target.id)
+            .is("partner_color_name", null);
+        }
+        // Transfer source offers to target with source color name
+        const colorName = source.main_color || null;
+        await supabase.from("product_offers")
+          .update({ product_id: target.id, partner_color_name: colorName })
           .eq("product_id", source.id);
-        if (offerErr) throw offerErr;
       }
 
       if (deleteSource) {
