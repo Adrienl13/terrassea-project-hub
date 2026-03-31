@@ -9,7 +9,7 @@ import {
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
   CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge, Landmark, Crown,
-  EyeOff, Trash2,
+  EyeOff, Trash2, ArrowUpDown, ChevronRight,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -880,6 +880,10 @@ function ProductsTab() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [showMerge, setShowMerge] = useState(false);
   const [mergeInitialSource, setMergeInitialSource] = useState<DBProduct | null>(null);
+  const [sortField, setSortField] = useState<"name" | "category" | "price_min" | "publish_status">("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 50;
 
   const filtered = products.filter(p => {
     const matchText = p.name.toLowerCase().includes(filter.toLowerCase()) ||
@@ -888,6 +892,41 @@ function ProductsTab() {
     const matchStatus = statusFilter === "all" || p.publish_status === statusFilter;
     return matchText && matchCat && matchStatus;
   });
+
+  // Reset page when filters change
+  useEffect(() => { setPage(0); }, [filter, catFilter, statusFilter]);
+
+  const sorted = [...filtered].sort((a, b) => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    switch (sortField) {
+      case "name": return dir * a.name.localeCompare(b.name);
+      case "category": return dir * a.category.localeCompare(b.category);
+      case "price_min": return dir * ((a.price_min ?? 0) - (b.price_min ?? 0));
+      case "publish_status": return dir * (a.publish_status ?? "draft").localeCompare(b.publish_status ?? "draft");
+      default: return 0;
+    }
+  });
+
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+  const paginatedProducts = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const toggleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDir(d => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+    setPage(0);
+  };
+
+  const getProductImage = (product: DBProduct) => {
+    if (product.image_url) return product.image_url;
+    const firstGallery = (product.gallery_urls ?? []).find(
+      u => u.startsWith("http") || u.startsWith("data:image")
+    );
+    return firstGallery || null;
+  };
 
   const handleSave = async (data: ProductFormData) => {
     const { id, publish_status, ...rest } = data;
@@ -1173,130 +1212,157 @@ function ProductsTab() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map(product => {
-            const price = product.price_min ? `${product.price_min.toLocaleString("fr-FR")}€` : product.indicative_price || null;
-            const qualityPct = Math.round(product.data_quality_score * 100);
-            const qualityColor = qualityPct >= 80 ? "text-green-600" : qualityPct >= 50 ? "text-amber-600" : "text-red-500";
+        <div className="border border-border rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-foreground/5 border-b border-border text-left">
+                  <th className="w-10 px-3 py-3">
+                    <input type="checkbox" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleSelectAll} className="rounded cursor-pointer" />
+                  </th>
+                  <th className="w-12 px-2 py-3"></th>
+                  <th className="px-3 py-3 text-[10px] font-display font-bold uppercase tracking-wider text-muted-foreground cursor-pointer select-none" onClick={() => toggleSort("name")}>
+                    <span className="inline-flex items-center gap-1">Nom {sortField === "name" ? (sortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-30" />}</span>
+                  </th>
+                  <th className="px-3 py-3 text-[10px] font-display font-bold uppercase tracking-wider text-muted-foreground cursor-pointer select-none" onClick={() => toggleSort("category")}>
+                    <span className="inline-flex items-center gap-1">Categorie {sortField === "category" ? (sortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-30" />}</span>
+                  </th>
+                  <th className="px-3 py-3 text-[10px] font-display font-bold uppercase tracking-wider text-muted-foreground">Couleur</th>
+                  <th className="px-3 py-3 text-[10px] font-display font-bold uppercase tracking-wider text-muted-foreground cursor-pointer select-none" onClick={() => toggleSort("price_min")}>
+                    <span className="inline-flex items-center gap-1">Prix {sortField === "price_min" ? (sortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-30" />}</span>
+                  </th>
+                  <th className="px-3 py-3 text-[10px] font-display font-bold uppercase tracking-wider text-muted-foreground">Qualite</th>
+                  <th className="px-3 py-3 text-[10px] font-display font-bold uppercase tracking-wider text-muted-foreground cursor-pointer select-none" onClick={() => toggleSort("publish_status")}>
+                    <span className="inline-flex items-center gap-1">Statut {sortField === "publish_status" ? (sortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-30" />}</span>
+                  </th>
+                  <th className="px-3 py-3 text-[10px] font-display font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {paginatedProducts.map(product => {
+                  const price = product.price_min ? `${product.price_min.toLocaleString("fr-FR")}€` : product.indicative_price || null;
+                  const qualityPct = Math.round(product.data_quality_score * 100);
+                  const qualityColor = qualityPct >= 80 ? "text-green-600" : qualityPct >= 50 ? "text-amber-600" : "text-red-500";
+                  const imgSrc = getProductImage(product);
 
-            return (
-              <div key={product.id} className={`border rounded-2xl bg-card overflow-hidden hover:border-foreground/15 hover:shadow-md transition-all group ${selectedIds.has(product.id) ? "border-foreground/40 ring-2 ring-foreground/10" : "border-border"}`}>
-                {/* Image */}
-                <div className="relative aspect-[4/3] bg-foreground/5 overflow-hidden">
-                  {/* Selection checkbox */}
-                  <div className="absolute top-3 right-12 z-10">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(product.id)}
-                      onChange={() => toggleSelect(product.id)}
-                      className="w-4 h-4 rounded border-white/80 bg-white/80 backdrop-blur-sm cursor-pointer"
-                    />
-                  </div>
-                  {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="h-10 w-10 text-muted-foreground/20" />
-                    </div>
-                  )}
-                  {/* Status badge overlay */}
-                  <div className="absolute top-3 left-3">
-                    <span className={`text-[10px] font-display font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm ${
-                      product.publish_status === "published" ? "bg-green-500/90 text-white" :
-                      product.publish_status === "pending_review" ? "bg-amber-500/90 text-white" :
-                      product.publish_status === "rejected" ? "bg-red-500/90 text-white" :
-                      "bg-black/50 text-white"
-                    }`}>
-                      {statusLabels[product.publish_status] || "Brouillon"}
-                    </span>
-                  </div>
-                  {/* Quality score overlay */}
-                  <div className="absolute top-3 right-3">
-                    <span className={`text-[10px] font-display font-bold px-2 py-1 rounded-lg bg-white/90 backdrop-blur-sm ${qualityColor}`}>
-                      {qualityPct}%
-                    </span>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="min-w-0">
-                      <h3 className="font-display text-sm font-bold text-foreground truncate">{product.name}</h3>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] font-display font-semibold text-muted-foreground bg-foreground/5 px-2 py-0.5 rounded-md">
+                  return (
+                    <tr key={product.id} className={`hover:bg-foreground/[0.02] transition-colors ${selectedIds.has(product.id) ? "bg-foreground/[0.04]" : ""}`}>
+                      {/* Checkbox */}
+                      <td className="px-3 py-2.5">
+                        <input type="checkbox" checked={selectedIds.has(product.id)} onChange={() => toggleSelect(product.id)} className="rounded cursor-pointer" />
+                      </td>
+                      {/* Image */}
+                      <td className="px-2 py-2.5">
+                        {imgSrc ? (
+                          <img src={imgSrc} alt={product.name} className="w-9 h-9 rounded-lg object-cover" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-lg bg-foreground/5 flex items-center justify-center">
+                            <Package className="h-4 w-4 text-muted-foreground/30" />
+                          </div>
+                        )}
+                      </td>
+                      {/* Name */}
+                      <td className="px-3 py-2.5 max-w-[240px]">
+                        <div className="font-display text-sm font-bold text-foreground truncate">{product.name}</div>
+                        {product.brand_source && (
+                          <div className="text-[10px] font-body text-muted-foreground truncate">{product.brand_source}</div>
+                        )}
+                      </td>
+                      {/* Category */}
+                      <td className="px-3 py-2.5">
+                        <span className="text-[10px] font-display font-semibold text-muted-foreground bg-foreground/5 px-2 py-0.5 rounded-md whitespace-nowrap">
                           {product.category}
                         </span>
-                        {product.main_color && (
-                          <span className="text-[10px] font-body text-muted-foreground">{product.main_color}</span>
+                      </td>
+                      {/* Color */}
+                      <td className="px-3 py-2.5">
+                        {product.main_color ? (
+                          <span className="text-[11px] font-body text-muted-foreground whitespace-nowrap">{product.main_color}</span>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground/40">—</span>
                         )}
-                      </div>
-                      {/* Color variant pastilles */}
-                      {(product.color_variants ?? []).length > 0 && (
-                        <div className="flex items-center gap-0.5 mt-1">
-                          {(product.color_variants as ColorVariant[]).slice(0, 6).map((v, i) => (
-                            <div key={i} className="w-3.5 h-3.5 rounded-full border border-border shadow-sm" style={{ backgroundColor: v.color_hex }} title={v.label_en} />
-                          ))}
-                          {(product.color_variants as ColorVariant[]).length > 6 && (
-                            <span className="text-[8px] font-body text-muted-foreground ml-0.5">+{(product.color_variants as ColorVariant[]).length - 6}</span>
+                      </td>
+                      {/* Price */}
+                      <td className="px-3 py-2.5">
+                        {price ? (
+                          <span className="text-sm font-display font-bold text-foreground whitespace-nowrap">{price}</span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground/40">—</span>
+                        )}
+                      </td>
+                      {/* Quality */}
+                      <td className="px-3 py-2.5">
+                        <span className={`text-[11px] font-display font-bold ${qualityColor}`}>{qualityPct}%</span>
+                      </td>
+                      {/* Status */}
+                      <td className="px-3 py-2.5">
+                        <span className={`text-[10px] font-display font-bold px-2 py-0.5 rounded-md whitespace-nowrap ${
+                          product.publish_status === "published" ? "bg-green-100 text-green-700" :
+                          product.publish_status === "pending_review" ? "bg-amber-100 text-amber-700" :
+                          product.publish_status === "rejected" ? "bg-red-100 text-red-700" :
+                          "bg-foreground/5 text-muted-foreground"
+                        }`}>
+                          {statusLabels[product.publish_status] || "Brouillon"}
+                        </span>
+                      </td>
+                      {/* Actions */}
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-1 justify-end">
+                          {product.publish_status === "pending_review" && (
+                            <>
+                              <button onClick={() => handlePublishAction(product.id, "published")}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center bg-green-600 text-white hover:bg-green-700 transition-colors"
+                                title="Publier">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                              </button>
+                              <button onClick={() => handlePublishAction(product.id, "rejected")}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center bg-red-600 text-white hover:bg-red-700 transition-colors"
+                                title="Rejeter">
+                                <XCircle className="h-3.5 w-3.5" />
+                              </button>
+                            </>
                           )}
+                          <button onClick={() => setEditing({ ...product })}
+                            className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                            title="Modifier">
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                          <button onClick={() => { setMergeInitialSource(product); setShowMerge(true); }}
+                            className="w-7 h-7 rounded-lg border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:border-blue-300 flex items-center justify-center transition-colors"
+                            title="Fusionner">
+                            <Merge className="h-3 w-3" />
+                          </button>
+                          <button onClick={() => setConfirmDeleteId(product.id)} disabled={deleting === product.id}
+                            className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-red-500 hover:border-red-300 transition-colors disabled:opacity-50"
+                            title="Supprimer">
+                            <X className="h-3 w-3" />
+                          </button>
                         </div>
-                      )}
-                    </div>
-                    {price && (
-                      <span className="text-sm font-display font-bold text-foreground shrink-0">{price}</span>
-                    )}
-                  </div>
-
-                  {/* Tags preview */}
-                  {product.style_tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {product.style_tags.slice(0, 3).map(t => (
-                        <span key={t} className="text-[9px] font-body text-muted-foreground bg-foreground/5 px-1.5 py-0.5 rounded">{t}</span>
-                      ))}
-                      {product.style_tags.length > 3 && (
-                        <span className="text-[9px] font-body text-muted-foreground">+{product.style_tags.length - 3}</span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Actions row */}
-                  <div className="flex items-center gap-2 pt-3 border-t border-border">
-                    {product.publish_status === "pending_review" && (
-                      <>
-                        <button onClick={() => handlePublishAction(product.id, "published")}
-                          className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">
-                          <CheckCircle2 className="h-3 w-3" /> Publier
-                        </button>
-                        <button onClick={() => handlePublishAction(product.id, "rejected")}
-                          className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
-                          <XCircle className="h-3 w-3" /> Rejeter
-                        </button>
-                      </>
-                    )}
-                    <div className="flex items-center gap-1 ml-auto">
-                      <button onClick={() => { setMergeInitialSource(product); setShowMerge(true); }}
-                        className="flex items-center gap-1 px-2.5 h-8 rounded-lg border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:border-blue-300 transition-colors"
-                        title="Fusionner avec un autre produit">
-                        <Merge className="h-3 w-3" />
-                        <span className="text-[9px] font-display font-bold">Fusionner</span>
-                      </button>
-                      <button onClick={() => setEditing({ ...product })}
-                        className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-                        title="Modifier">
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={() => setConfirmDeleteId(product.id)} disabled={deleting === product.id}
-                        className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-red-500 hover:border-red-300 transition-colors disabled:opacity-50"
-                        title="Supprimer">
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {/* Pagination bar */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-foreground/[0.02]">
+              <span className="text-xs font-body text-muted-foreground">
+                {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, sorted.length)} sur {sorted.length}
+              </span>
+              <div className="flex gap-1">
+                <button disabled={page === 0} onClick={() => setPage(p => p - 1)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  <ChevronLeft className="h-3 w-3" /> Precedent
+                </button>
+                <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  Suivant <ChevronRight className="h-3 w-3" />
+                </button>
               </div>
-            );
-          })}
+            </div>
+          )}
         </div>
       )}
 
