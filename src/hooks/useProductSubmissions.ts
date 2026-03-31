@@ -84,7 +84,7 @@ export function useProductSubmission() {
           .maybeSingle();
         const resolvedPartnerId = partnerRow?.id ?? user.id;
 
-        // 5. Insert into product_submissions
+        // 5. Upsert into product_submissions (replace existing pending edit for same product)
         const isEdit = options?.editMode && options?.targetProductId;
         const submissionPayload = {
           partner_id: resolvedPartnerId,
@@ -97,6 +97,16 @@ export function useProductSubmission() {
           submission_type: isEdit ? "edit" : "new",
           target_product_id: isEdit ? options.targetProductId : null,
         };
+
+        // If editing, replace any existing pending submission for the same target product
+        if (isEdit) {
+          await supabase
+            .from("product_submissions")
+            .delete()
+            .eq("partner_id", resolvedPartnerId)
+            .eq("target_product_id", options.targetProductId!)
+            .eq("status", "pending_review");
+        }
 
         const { data: submission, error: insertError } = await supabase
           .from("product_submissions")
