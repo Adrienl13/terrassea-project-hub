@@ -551,11 +551,11 @@ function ProductGridCard({ product, onAdd, isBrandProduct }: { product: DBProduc
       className="group"
     >
       <Link to={`/products/${product.id}`} className="block">
-        <div className="aspect-[4/5] overflow-hidden bg-card rounded-sm mb-3 relative">
+        <div className="aspect-[4/5] overflow-hidden bg-white rounded-sm mb-3 relative">
           <img
             src={product.image_url || "/placeholder.svg"}
             alt={localName}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
           <button
@@ -642,11 +642,11 @@ function ProductListCard({ product, onAdd, isBrandProduct }: { product: DBProduc
       className="flex gap-4 p-4 border border-border rounded-sm hover:border-foreground/20 transition-colors group"
     >
       <Link to={`/products/${product.id}`} className="flex-shrink-0">
-        <div className="w-24 h-24 overflow-hidden bg-card rounded-sm">
+        <div className="w-24 h-24 overflow-hidden bg-white rounded-sm">
           <img
             src={product.image_url || "/placeholder.svg"}
             alt={localName}
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain p-1"
             loading="lazy"
           />
         </div>

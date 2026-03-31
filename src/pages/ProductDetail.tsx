@@ -559,11 +559,11 @@ function RelatedCard({ product, onAdd }: { product: DBProduct; onAdd: () => void
       className="group"
     >
       <Link to={`/products/${product.id}`}>
-        <div className="aspect-[4/5] overflow-hidden bg-card rounded-sm mb-3">
+        <div className="aspect-[4/5] overflow-hidden bg-white rounded-sm mb-3">
           <img
             src={product.image_url || "/placeholder.svg"}
             alt={relatedName}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
           />
         </div>
