@@ -9,6 +9,7 @@ import {
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
   CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge, Landmark, Crown,
+  EyeOff, Trash2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -951,6 +952,47 @@ function ProductsTab() {
   };
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [confirmBulkAction, setConfirmBulkAction] = useState<"delete" | "offline" | "publish" | null>(null);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  };
+  const toggleSelectAll = () => {
+    setSelectedIds(selectedIds.size === filtered.length ? new Set() : new Set(filtered.map(p => p.id)));
+  };
+
+  const handleBulkPublish = async () => {
+    setBulkLoading(true);
+    const ids = [...selectedIds];
+    for (const id of ids) await supabase.from("products").update({ publish_status: "published" }).eq("id", id);
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+    setSelectedIds(new Set()); setConfirmBulkAction(null); setBulkLoading(false);
+    toast.success(`${ids.length} produit${ids.length > 1 ? "s" : ""} publié${ids.length > 1 ? "s" : ""}`);
+  };
+
+  const handleBulkOffline = async () => {
+    setBulkLoading(true);
+    const ids = [...selectedIds];
+    for (const id of ids) await supabase.from("products").update({ publish_status: "draft" }).eq("id", id);
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+    setSelectedIds(new Set()); setConfirmBulkAction(null); setBulkLoading(false);
+    toast.success(`${ids.length} produit${ids.length > 1 ? "s" : ""} mis hors ligne`);
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkLoading(true);
+    const ids = [...selectedIds];
+    for (const id of ids) {
+      await supabase.from("product_offers").delete().eq("product_id", id);
+      await supabase.from("product_submissions").delete().eq("target_product_id", id);
+      await supabase.from("products").delete().eq("id", id);
+    }
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+    setSelectedIds(new Set()); setConfirmBulkAction(null); setBulkLoading(false);
+    toast.success(`${ids.length} produit${ids.length > 1 ? "s" : ""} supprimé${ids.length > 1 ? "s" : ""}`);
+  };
 
   const handleDelete = async (id: string) => {
     setDeleting(id);
@@ -1064,6 +1106,59 @@ function ProductsTab() {
         ))}
       </div>
 
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <div className="sticky top-0 z-20 flex flex-wrap items-center gap-3 px-4 py-3 bg-foreground text-primary-foreground rounded-xl shadow-lg">
+          <input type="checkbox" checked={selectedIds.size === filtered.length} onChange={toggleSelectAll} className="rounded" />
+          <span className="text-xs font-display font-bold">
+            {selectedIds.size} sélectionné{selectedIds.size > 1 ? "s" : ""}
+          </span>
+          <div className="h-4 w-px bg-primary-foreground/30" />
+
+          {confirmBulkAction === "publish" ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/20">
+              <span className="text-[10px] font-bold">Publier {selectedIds.size} produit{selectedIds.size > 1 ? "s" : ""} ?</span>
+              <button onClick={handleBulkPublish} disabled={bulkLoading} className="text-[10px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded">Oui</button>
+              <button onClick={() => setConfirmBulkAction(null)} className="text-[10px] font-bold hover:underline">Non</button>
+            </div>
+          ) : confirmBulkAction === "offline" ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/20">
+              <span className="text-[10px] font-bold">Mettre {selectedIds.size} produit{selectedIds.size > 1 ? "s" : ""} hors ligne ?</span>
+              <button onClick={handleBulkOffline} disabled={bulkLoading} className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded">Oui</button>
+              <button onClick={() => setConfirmBulkAction(null)} className="text-[10px] font-bold hover:underline">Non</button>
+            </div>
+          ) : confirmBulkAction === "delete" ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/20">
+              <AlertTriangle className="h-3 w-3" />
+              <span className="text-[10px] font-bold">Supprimer {selectedIds.size} produit{selectedIds.size > 1 ? "s" : ""} définitivement ?</span>
+              <button onClick={handleBulkDelete} disabled={bulkLoading} className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded">Oui</button>
+              <button onClick={() => setConfirmBulkAction(null)} className="text-[10px] font-bold hover:underline">Non</button>
+            </div>
+          ) : (
+            <>
+              <button onClick={() => setConfirmBulkAction("publish")} disabled={bulkLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white disabled:opacity-50 transition-colors">
+                <CheckCircle2 className="h-3 w-3" /> Publier
+              </button>
+              <button onClick={() => setConfirmBulkAction("offline")} disabled={bulkLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50 transition-colors">
+                <EyeOff className="h-3 w-3" /> Hors ligne
+              </button>
+              <button onClick={() => setConfirmBulkAction("delete")} disabled={bulkLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-display font-bold rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 transition-colors">
+                <Trash2 className="h-3 w-3" /> Supprimer
+              </button>
+            </>
+          )}
+
+          <button onClick={() => { setSelectedIds(new Set()); setConfirmBulkAction(null); }}
+            className="ml-auto text-[10px] font-display font-semibold hover:underline opacity-70 hover:opacity-100">
+            Désélectionner
+          </button>
+          {bulkLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
@@ -1085,9 +1180,18 @@ function ProductsTab() {
             const qualityColor = qualityPct >= 80 ? "text-green-600" : qualityPct >= 50 ? "text-amber-600" : "text-red-500";
 
             return (
-              <div key={product.id} className="border border-border rounded-2xl bg-card overflow-hidden hover:border-foreground/15 hover:shadow-md transition-all group">
+              <div key={product.id} className={`border rounded-2xl bg-card overflow-hidden hover:border-foreground/15 hover:shadow-md transition-all group ${selectedIds.has(product.id) ? "border-foreground/40 ring-2 ring-foreground/10" : "border-border"}`}>
                 {/* Image */}
                 <div className="relative aspect-[4/3] bg-foreground/5 overflow-hidden">
+                  {/* Selection checkbox */}
+                  <div className="absolute top-3 right-12 z-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(product.id)}
+                      onChange={() => toggleSelect(product.id)}
+                      className="w-4 h-4 rounded border-white/80 bg-white/80 backdrop-blur-sm cursor-pointer"
+                    />
+                  </div>
                   {product.image_url ? (
                     <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
