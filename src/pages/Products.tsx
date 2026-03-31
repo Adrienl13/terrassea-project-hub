@@ -187,11 +187,20 @@ const Products = () => {
       const hasTableBases = filters.categories.includes("Table Bases");
       const hasTabletops = filters.categories.includes("Tabletops");
 
+      const hasArmchairs = filters.categories.includes("Armchairs");
+      const catsWithoutArmchairs = normalCats.filter(c => c !== "Armchairs");
+
       result = result.filter((p) => {
         // Check normal category match
-        const normalMatch = normalCats.length > 0 && normalCats.some(
+        const normalMatch = catsWithoutArmchairs.length > 0 && catsWithoutArmchairs.some(
           (c) => p.category.toLowerCase() === c.toLowerCase() ||
             p.subcategory?.toLowerCase() === c.toLowerCase()
+        );
+        // Armchairs = chairs with arms
+        const armchairMatch = hasArmchairs && (
+          p.category.toLowerCase() === "armchairs" ||
+          (p.category.toLowerCase() === "chairs" && p.product_type_tags?.arm_type &&
+            ["full-arms", "low-arms", "integrated"].includes(p.product_type_tags.arm_type as string))
         );
         // Check Table Bases
         const baseMatch = hasTableBases && (
@@ -203,7 +212,7 @@ const Products = () => {
           p.subcategory?.toLowerCase().includes("top") ||
           p.product_type_tags?.table_type === "top-only"
         );
-        return normalMatch || baseMatch || topMatch;
+        return normalMatch || armchairMatch || baseMatch || topMatch;
       });
     }
 
@@ -239,6 +248,11 @@ const Products = () => {
     if (filters.features.length > 0)
       result = result.filter((p) =>
         filters.features.every((f) => (p as unknown as Record<string, unknown>)[f] === true)
+      );
+
+    if (filters.armTypes.length > 0)
+      result = result.filter((p) =>
+        filters.armTypes.includes(p.product_type_tags?.arm_type ?? "no-arms")
       );
 
     if (filters.stock.length > 0)

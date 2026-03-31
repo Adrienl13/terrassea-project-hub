@@ -16,6 +16,7 @@ export interface FilterState {
   styles: string[];
   colors: string[];
   features: string[];
+  armTypes: string[];
   stock: string[];
   brandPartners: string[];
   priceRange: [number, number];
@@ -28,10 +29,18 @@ export const EMPTY_FILTERS: FilterState = {
   styles: [],
   colors: [],
   features: [],
+  armTypes: [],
   stock: [],
   brandPartners: [],
   priceRange: [0, 500],
 };
+
+export const ARM_TYPE_OPTIONS = [
+  { key: "no-arms", labelKey: "filters.arm_noArms" },
+  { key: "low-arms", labelKey: "filters.arm_lowArms" },
+  { key: "full-arms", labelKey: "filters.arm_fullArms" },
+  { key: "integrated", labelKey: "filters.arm_integrated" },
+];
 
 export const CATEGORY_OPTIONS = [
   "Chairs", "Armchairs", "Stools", "Tables", "Table Bases", "Tabletops",
@@ -277,6 +286,19 @@ export default function ProductFilterSidebar({
                 options={FEATURE_OPTIONS}
                 selected={filters.features}
                 onToggle={(key) => update({ features: toggle(filters.features, key) })}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="armTypes" className="border-border">
+            <AccordionTrigger className="text-xs font-display font-bold uppercase tracking-wider text-foreground hover:no-underline py-3">
+              {t('filters.armType', 'Accoudoirs')}
+            </AccordionTrigger>
+            <AccordionContent>
+              <KeyLabelCheckboxGroup
+                options={ARM_TYPE_OPTIONS}
+                selected={filters.armTypes}
+                onToggle={(key) => update({ armTypes: toggle(filters.armTypes, key) })}
               />
             </AccordionContent>
           </AccordionItem>

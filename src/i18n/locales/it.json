@@ -2186,7 +2186,12 @@
     "stock_production": "Produzione rapida",
     "stock_onOrder": "In ordine",
     "stock_toConfirm": "Da confermare",
-    "brandPartner": "Marchio partner"
+    "brandPartner": "Marchio partner",
+    "armType": "Braccioli",
+    "arm_noArms": "Senza braccioli",
+    "arm_lowArms": "Braccioli bassi",
+    "arm_fullArms": "Con braccioli",
+    "arm_integrated": "Braccioli integrati"
   },
   "resources": {
     "title": "La Guida Esperta",

@@ -2186,7 +2186,12 @@
     "stock_production": "Producción rápida",
     "stock_onOrder": "En pedido",
     "stock_toConfirm": "Por confirmar",
-    "brandPartner": "Marca asociada"
+    "brandPartner": "Marca asociada",
+    "armType": "Reposabrazos",
+    "arm_noArms": "Sin reposabrazos",
+    "arm_lowArms": "Reposabrazos bajos",
+    "arm_fullArms": "Con reposabrazos",
+    "arm_integrated": "Reposabrazos integrados"
   },
   "resources": {
     "title": "La Guía Experta",

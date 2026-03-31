@@ -2186,7 +2186,12 @@
     "stock_production": "Production rapide",
     "stock_onOrder": "En commande",
     "stock_toConfirm": "À confirmer",
-    "brandPartner": "Marque partenaire"
+    "brandPartner": "Marque partenaire",
+    "armType": "Accoudoirs",
+    "arm_noArms": "Sans accoudoirs",
+    "arm_lowArms": "Accoudoirs bas",
+    "arm_fullArms": "Avec accoudoirs",
+    "arm_integrated": "Accoudoirs intégrés"
   },
   "resources": {
     "title": "Le Guide Expert",

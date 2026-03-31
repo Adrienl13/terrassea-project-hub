@@ -4,6 +4,7 @@ import type { FilterState } from "./ProductFilterSidebar";
 import {
   FEATURE_OPTIONS,
   STOCK_OPTIONS,
+  ARM_TYPE_OPTIONS,
   CATEGORY_LABEL_KEYS,
   USAGE_LABEL_KEYS,
   MATERIAL_LABEL_KEYS,
@@ -50,6 +51,11 @@ export default function ActiveFilters({ filters, onChange, onClearAll }: ActiveF
     const feat = FEATURE_OPTIONS.find((f) => f.key === v);
     const label = feat ? t(feat.labelKey) : v;
     chips.push({ label, onRemove: () => remove("features", v) });
+  });
+  filters.armTypes.forEach((v) => {
+    const opt = ARM_TYPE_OPTIONS.find((a) => a.key === v);
+    const label = opt ? t(opt.labelKey) : v;
+    chips.push({ label, onRemove: () => remove("armTypes", v) });
   });
   filters.stock.forEach((v) => {
     const opt = STOCK_OPTIONS.find((s) => s.key === v);
