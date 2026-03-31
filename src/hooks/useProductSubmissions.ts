@@ -358,7 +358,10 @@ export function useAdminSubmissions() {
         .select("id")
         .single();
 
-      if (productError) throw productError;
+      if (productError) {
+        console.error("approveAsNew insert failed:", productError.message, productError.details, productError.hint);
+        throw productError;
+      }
 
       // Create product_offers entry linking the partner to the new product
       const { error: offerError } = await supabase
