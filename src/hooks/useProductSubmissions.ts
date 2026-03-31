@@ -352,15 +352,27 @@ export function useAdminSubmissions() {
         publish_status: "published",
       };
 
-      const { data: newProduct, error: productError } = await supabase
+      const { error: productError } = await supabase
         .from("products")
-        .insert(productInsert as any)
-        .select("id")
-        .single();
+        .insert([productInsert] as any);
 
       if (productError) {
         console.error("approveAsNew insert failed:", productError.message, productError.details, productError.hint);
         throw productError;
+      }
+
+      // Retrieve the created product by name + partner_id (just inserted)
+      const { data: newProduct, error: fetchError } = await supabase
+        .from("products")
+        .select("id")
+        .eq("name", pd.name as string)
+        .eq("partner_id", submission.partner_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (fetchError || !newProduct) {
+        throw new Error("Produit créé mais impossible de récupérer l'ID");
       }
 
       // Create product_offers entry linking the partner to the new product
