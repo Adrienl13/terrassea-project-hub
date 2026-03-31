@@ -366,17 +366,17 @@ export function useAdminSubmissions() {
         .insert({
           partner_id: submission.partner_id,
           product_id: newProduct.id,
-          price: pd.price_min || null,
-          stock_status: pd.stock_status || "available",
-          stock_quantity: pd.stock_quantity || null,
-          delivery_delay_days: pd.estimated_delivery_days || null,
+          price: pd.price_min ?? null,
+          stock_status: pd.stock_status ?? "available",
+          stock_quantity: pd.stock_quantity ?? null,
+          delivery_delay_days: pd.estimated_delivery_days ?? null,
           is_active: true,
           pricing_mode: "public",
           currency: "EUR",
-          partner_ref: pd.supplier_internal || null,
-          partner_color_name: pd.main_color || null,
-          collection_name: pd.collection || null,
-          minimum_order: pd.minimum_order || null,
+          partner_ref: pd.supplier_internal ?? null,
+          partner_color_name: pd.main_color ?? null,
+          collection_name: pd.collection ?? null,
+          minimum_order: pd.minimum_order ?? null,
         } as any);
 
       if (offerError) {
