@@ -242,6 +242,22 @@ export function useAdminSubmissions() {
           finalGallery.push(url);
         }
       }
+      // Fallback: use first gallery image as main image if image_url is missing
+      if (!finalImageUrl && finalGallery.length > 0) {
+        finalImageUrl = finalGallery[0];
+      }
+      // Process environment_urls (also may contain base64)
+      const rawEnvNew = (pd.environment_urls as string[]) ?? [];
+      const finalEnvNew: string[] = [];
+      for (let i = 0; i < rawEnvNew.length; i++) {
+        const url = rawEnvNew[i];
+        if (url.startsWith("data:image")) {
+          const uploaded = await uploadBase64ToStorage(url, (pd.name as string) || "env", i + 20);
+          if (uploaded) finalEnvNew.push(uploaded);
+        } else if (url.startsWith("http")) {
+          finalEnvNew.push(url);
+        }
+      }
 
       // Explicitly map fields to avoid unknown JSONB keys in products table
       const productInsert: Record<string, unknown> = {
@@ -259,7 +275,7 @@ export function useAdminSubmissions() {
         // Media
         image_url: finalImageUrl,
         gallery_urls: finalGallery,
-        environment_urls: pd.environment_urls ?? [],
+        environment_urls: finalEnvNew,
         // Pricing
         indicative_price: pd.indicative_price ?? null,
         price_min: pd.price_min ?? null,
@@ -442,13 +458,27 @@ export function useAdminSubmissions() {
           finalGallery.push(url);
         }
       }
+      if (!finalImageUrl && finalGallery.length > 0) {
+        finalImageUrl = finalGallery[0];
+      }
+      const rawEnvEdit = (pd.environment_urls as string[]) ?? [];
+      const finalEnvEdit: string[] = [];
+      for (let i = 0; i < rawEnvEdit.length; i++) {
+        const url = rawEnvEdit[i];
+        if (url.startsWith("data:image")) {
+          const uploaded = await uploadBase64ToStorage(url, (pd.name as string) || "env", i + 20);
+          if (uploaded) finalEnvEdit.push(uploaded);
+        } else if (url.startsWith("http")) {
+          finalEnvEdit.push(url);
+        }
+      }
 
       // Build update payload (same fields as approveAsNew, minus scores/partner_id)
       const productUpdate: Record<string, unknown> = {
         name: pd.name, category: pd.category, subcategory: pd.subcategory ?? null,
         short_description: pd.short_description ?? null, long_description: pd.long_description ?? null,
         image_url: finalImageUrl, gallery_urls: finalGallery,
-        environment_urls: pd.environment_urls ?? [],
+        environment_urls: finalEnvEdit,
         price_min: pd.price_min ?? null, price_max: pd.price_max ?? null,
         main_color: pd.main_color ?? null, secondary_color: pd.secondary_color ?? null,
         available_colors: pd.available_colors ?? [], color_variants: pd.color_variants ?? [],
