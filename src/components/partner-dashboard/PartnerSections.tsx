@@ -265,11 +265,12 @@ interface ProductRowData {
 }
 
 function ProductRow({
-  product, onEdit, onPhotos,
+  product, onEdit, onPhotos, hasPendingEdit,
 }: {
   product: ProductRowData;
   onEdit: (p: ProductRowData) => void;
   onPhotos: (p: ProductRowData) => void;
+  hasPendingEdit?: boolean;
 }) {
   const { name, image, price, commissionRate, views, quotes, stock } = product;
   const commissionAmount = price * (commissionRate / 100);
@@ -294,6 +295,9 @@ function ProductRow({
           )}
           {(!product.publishStatus || product.publishStatus === "draft") && (
             <span className="ml-1.5 text-[8px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Draft</span>
+          )}
+          {hasPendingEdit && (
+            <span className="ml-1.5 text-[8px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">Modification en attente</span>
           )}
         </p>
         <div className="flex items-center gap-2 mt-0.5">
@@ -325,10 +329,14 @@ function ProductRow({
         </button>
         <button
           onClick={() => onEdit(product)}
-          className="flex items-center gap-1 px-2.5 py-1.5 text-[9px] font-display font-semibold border border-border rounded-lg hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-colors"
-          title="Modifier ce produit"
+          className={`flex items-center gap-1 px-2.5 py-1.5 text-[9px] font-display font-semibold border rounded-lg transition-colors ${
+            hasPendingEdit
+              ? "border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100"
+              : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+          }`}
+          title={hasPendingEdit ? "Remplacer la modification en attente" : "Modifier ce produit"}
         >
-          <Pencil className="h-3 w-3" /> Modifier
+          <Pencil className="h-3 w-3" /> {hasPendingEdit ? "Re-modifier" : "Modifier"}
         </button>
       </div>
     </div>
@@ -1083,7 +1091,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
     queryFn: async () => {
       const { data } = await supabase
         .from("product_submissions")
-        .select("id, product_data, status, created_at, admin_feedback, similarity_score")
+        .select("id, product_data, status, created_at, admin_feedback, similarity_score, target_product_id, submission_type")
         .eq("partner_id", partnerId!)
         .in("status", ["pending_review", "feedback_sent"])
         .order("created_at", { ascending: false });
@@ -1095,6 +1103,13 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   const allProducts = dbProducts;
   const publishedProducts = allProducts.filter(p => p.publishStatus === "published");
   const draftProducts = allProducts.filter(p => !p.publishStatus || p.publishStatus === "draft");
+
+  // Track which products have a pending edit submission
+  const pendingEditProductIds = new Set(
+    pendingSubmissions
+      .filter((s: any) => s.submission_type === "edit" && s.target_product_id)
+      .map((s: any) => s.target_product_id as string)
+  );
   const publishedCount = publishedProducts.length;
   const draftCount = draftProducts.length;
 
@@ -1231,6 +1246,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
                   product={p}
                   onEdit={setEditingProduct}
                   onPhotos={setLinkingPhotos}
+                  hasPendingEdit={pendingEditProductIds.has(p.productId)}
                 />
               ))}
             </div>
@@ -1280,6 +1296,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
                     product={p}
                     onEdit={setEditingProduct}
                     onPhotos={setLinkingPhotos}
+                    hasPendingEdit={pendingEditProductIds.has(p.productId)}
                   />
                 ))}
               </div>
