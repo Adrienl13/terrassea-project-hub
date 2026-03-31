@@ -46,6 +46,7 @@ type StockStatusKey = "available" | "low_stock" | "production" | "on_order" | "o
 
 const STOCK_DOT: Record<string, string> = {
   available: "bg-green-500",
+  in_stock: "bg-green-500",
   low_stock: "bg-amber-500",
   production: "bg-blue-500",
   on_order: "bg-muted-foreground",
@@ -54,6 +55,7 @@ const STOCK_DOT: Record<string, string> = {
 
 const STOCK_I18N_KEY: Record<string, string> = {
   available: "vendorOffers.inStock",
+  in_stock: "vendorOffers.inStock",
   low_stock: "vendorOffers.lowStock",
   production: "vendorOffers.production",
   on_order: "vendorOffers.onOrder",

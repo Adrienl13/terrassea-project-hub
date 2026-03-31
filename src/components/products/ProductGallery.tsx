@@ -57,11 +57,11 @@ export default function ProductGallery({
   return (
     <div>
       {/* Main image */}
-      <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4">
+      <div className="aspect-[4/5] overflow-hidden bg-card rounded-sm mb-4">
         <img
           src={displayImage}
           alt={productName}
-          className="w-full h-full object-cover transition-all duration-300"
+          className="w-full h-full object-contain transition-all duration-300"
         />
       </div>
 
