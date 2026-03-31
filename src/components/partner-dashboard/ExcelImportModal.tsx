@@ -840,7 +840,7 @@ export default function ExcelImportModal({
         const submissionPayload = {
           partner_id: partnerId,
           product_data: productData,
-          status: "pending_review",
+          status: "draft",
           submission_type: existingId ? "edit" : "new",
           target_product_id: existingId || null,
           similarity_score: null,
@@ -872,30 +872,11 @@ export default function ExcelImportModal({
       }
     }
 
-    // Send ONE admin notification summarizing the batch
-    if (submitted > 0) {
-      const partnerName = profile?.company ?? profile?.email ?? "Un partenaire";
-      const { data: admins } = await supabase
-        .from("user_profiles")
-        .select("id")
-        .eq("user_type", "admin")
-        .limit(50);
-
-      if (admins && admins.length > 0) {
-        const notifications = admins.map((admin) => ({
-          user_id: admin.id,
-          title: "Import CSV soumis",
-          body: `${partnerName} a soumis ${submitted} produit${submitted > 1 ? "s" : ""} via import CSV`,
-          type: "product_submission",
-          link: `/admin?tab=submissions`,
-        }));
-        await supabase.from("notifications").insert(notifications as any);
-      }
-    }
+    // No admin notification — drafts stay private until partner submits for review
 
     setImporting(false);
     if (submitted > 0) {
-      const parts: string[] = [`${submitted} produit${submitted > 1 ? "s" : ""} soumis pour validation`];
+      const parts: string[] = [`${submitted} produit${submitted > 1 ? "s" : ""} importé${submitted > 1 ? "s" : ""} en brouillon`];
       if (failedNames.length > 0) parts.push(`${failedNames.length} échoué${failedNames.length > 1 ? "s" : ""}`);
       if (failedNames.length > 0) {
         toast.warning(parts.join(", "));

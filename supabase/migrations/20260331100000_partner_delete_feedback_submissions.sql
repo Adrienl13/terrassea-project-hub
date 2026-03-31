@@ -13,7 +13,7 @@ CREATE POLICY "Partners delete own pending or feedback submissions"
   ON public.product_submissions
   FOR DELETE
   USING (
-    status IN ('pending_review', 'feedback_sent')
+    status IN ('draft', 'pending_review', 'feedback_sent')
     AND EXISTS (
       SELECT 1 FROM partners
       WHERE partners.id = product_submissions.partner_id

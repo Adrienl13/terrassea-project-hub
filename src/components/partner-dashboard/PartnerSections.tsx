@@ -1028,6 +1028,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
   const config = PLAN_CONFIG[plan];
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -1037,7 +1038,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   const [editingSubmission, setEditingSubmission] = useState<{ id: string; productData: Record<string, any>; targetProductId?: string } | null>(null);
   const [showGallery, setShowGallery] = useState(false);
   const [linkingPhotos, setLinkingPhotos] = useState<ProductRowData | null>(null);
-  const [catalogueTab, setCatalogueTab] = useState<"published" | "pending">("published");
+  const [catalogueTab, setCatalogueTab] = useState<"published" | "pending" | "drafts">("published");
 
   // Read subscription overrides for this partner
   const { data: subOverrides } = useQuery({
@@ -1087,7 +1088,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
     enabled: !!partnerId,
   });
 
-  // Pending product submissions for this partner
+  // Pending product submissions for this partner (sent to admin)
   const { data: pendingSubmissions = [] } = useQuery({
     queryKey: ["partner-pending-submissions", partnerId],
     queryFn: async () => {
@@ -1102,23 +1103,37 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
     enabled: !!partnerId,
   });
 
+  // Draft submissions (not yet submitted to admin)
+  const { data: draftSubmissions = [] } = useQuery({
+    queryKey: ["partner-draft-submissions", partnerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("product_submissions")
+        .select("id, product_data, status, created_at, submission_type, target_product_id")
+        .eq("partner_id", partnerId!)
+        .eq("status", "draft")
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!partnerId,
+  });
+
   const allProducts = dbProducts;
   const publishedProducts = allProducts.filter(p => p.publishStatus === "published");
-  const draftProducts = allProducts.filter(p => !p.publishStatus || p.publishStatus === "draft");
 
   // Track which products have a pending edit submission
   const pendingEditProductIds = new Set(
-    pendingSubmissions
+    [...pendingSubmissions, ...draftSubmissions]
       .filter((s: any) => s.submission_type === "edit" && s.target_product_id)
       .map((s: any) => s.target_product_id as string)
   );
   const publishedCount = publishedProducts.length;
-  const draftCount = draftProducts.length;
+  const pendingCount = pendingSubmissions.length;
+  const draftsCount = draftSubmissions.length;
 
-  const activeTabProducts = catalogueTab === "published" ? publishedProducts : draftProducts;
   const products = searchTerm
-    ? activeTabProducts.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : activeTabProducts;
+    ? publishedProducts.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : publishedProducts;
 
   const productsCount = allProducts.length;
   const maxProducts = effectiveMaxProducts;
@@ -1183,7 +1198,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
-          {t('pd.catalogue.tabPublished', 'En ligne')}
+          En ligne
           <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">{publishedCount}</span>
         </button>
         <button
@@ -1194,8 +1209,19 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
-          {t('pd.catalogue.tabPending', 'En attente')}
-          <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">{draftCount + pendingSubmissions.length}</span>
+          En attente
+          {pendingCount > 0 && <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">{pendingCount}</span>}
+        </button>
+        <button
+          onClick={() => setCatalogueTab("drafts")}
+          className={`px-4 py-2.5 text-xs font-display font-semibold border-b-2 transition-colors ${
+            catalogueTab === "drafts"
+              ? "border-blue-600 text-blue-700"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Brouillons
+          {draftsCount > 0 && <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">{draftsCount}</span>}
         </button>
       </div>
 
@@ -1259,58 +1285,27 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
       {/* ── "En attente" tab ── */}
       {catalogueTab === "pending" && (
         <>
-          {/* Sub-section: Draft products */}
-          <div className="space-y-2">
-            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
-              <Package className="h-3 w-3" />
-              Produits importés ({draftCount})
+          <div className="flex items-start gap-3 px-4 py-3 rounded-sm border border-amber-200 bg-amber-50/50">
+            <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" />
+            <p className="text-[10px] font-body leading-relaxed text-amber-700">
+              Ces produits ont été soumis pour validation. L'équipe Terrassea les examinera prochainement.
             </p>
-            <div className="flex items-start gap-3 px-4 py-3 rounded-sm border border-amber-200 bg-amber-50/50">
-              <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" />
-              <p className="text-[10px] font-body leading-relaxed text-amber-700">
-                {t('pd.catalogue.pendingInfo', 'Ces produits seront visibles après validation par l\'équipe Terrassea')}
-              </p>
-            </div>
-            {products.length === 0 && !searchTerm ? (
-              <div className="border border-border rounded-sm px-4 py-6 text-center">
-                <Package className="h-5 w-5 text-muted-foreground/20 mx-auto mb-2" />
-                <p className="text-xs font-body text-muted-foreground">
-                  {t('pd.catalogue.noDrafts', 'Aucun produit en attente')}
-                </p>
-              </div>
-            ) : products.length === 0 && searchTerm ? (
-              <div className="border border-border rounded-sm px-4 py-6 text-center">
-                <p className="text-xs font-body text-muted-foreground">
-                  {t('pd.catalogue.noSearch', 'Aucun produit ne correspond à votre recherche')}
-                </p>
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="text-[10px] font-display font-semibold text-foreground underline mt-2"
-                >
-                  {t('pd.catalogue.clearSearch', 'Effacer la recherche')}
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {products.map((p) => (
-                  <ProductRow
-                    key={p.offerId}
-                    product={p}
-                    onEdit={setEditingProduct}
-                    onPhotos={setLinkingPhotos}
-                    hasPendingEdit={pendingEditProductIds.has(p.productId)}
-                  />
-                ))}
-              </div>
-            )}
           </div>
-
-          {/* Sub-section: Pending submissions */}
-          {pendingSubmissions.length > 0 && (
-            <div className="space-y-2 mt-4">
+          {pendingSubmissions.length === 0 ? (
+            <div className="border border-border rounded-sm px-4 py-8 text-center">
+              <Clock className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
+              <p className="text-xs font-body text-muted-foreground">Aucun produit en attente de validation</p>
+              {draftsCount > 0 && (
+                <button onClick={() => setCatalogueTab("drafts")} className="text-[10px] font-display font-semibold text-blue-600 underline mt-2">
+                  Voir vos {draftsCount} brouillon{draftsCount > 1 ? "s" : ""}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
               <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
                 <Clock className="h-3 w-3" />
-                Produits soumis ({pendingSubmissions.length})
+                En attente de validation ({pendingSubmissions.length})
               </p>
               {pendingSubmissions.map((sub: any) => {
                 const pd = sub.product_data as Record<string, any> || {};
@@ -1438,6 +1433,151 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         </>
       )}
 
+      {/* ── "Brouillons" tab ── */}
+      {catalogueTab === "drafts" && (
+        <>
+          <div className="flex items-start gap-3 px-4 py-3 rounded-sm border border-blue-200 bg-blue-50/50">
+            <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-blue-600" />
+            <p className="text-[10px] font-body leading-relaxed text-blue-700">
+              Complétez vos produits puis cliquez « Soumettre pour validation » quand ils sont prêts.
+            </p>
+          </div>
+          {draftSubmissions.length === 0 ? (
+            <div className="border border-border rounded-sm px-4 py-8 text-center">
+              <Package className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
+              <p className="text-xs font-body text-muted-foreground">Aucun brouillon</p>
+              <p className="text-[10px] font-body text-muted-foreground mt-1">Importez des produits via Excel / CSV pour commencer</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {/* Bulk submit button */}
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
+                  <Package className="h-3 w-3" />
+                  Brouillons ({draftSubmissions.length})
+                </p>
+                <button
+                  onClick={async () => {
+                    if (!confirm(`Soumettre ${draftSubmissions.length} produit${draftSubmissions.length > 1 ? "s" : ""} pour validation ?`)) return;
+                    const ids = draftSubmissions.map((s: any) => s.id);
+                    const { error } = await supabase
+                      .from("product_submissions")
+                      .update({ status: "pending_review", updated_at: new Date().toISOString() } as any)
+                      .in("id", ids);
+                    if (error) { toast.error("Erreur lors de la soumission"); return; }
+
+                    // Notify admins
+                    const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin").limit(50);
+                    if (admins && admins.length > 0) {
+                      const partnerName = profile?.company ?? profile?.email ?? "Un partenaire";
+                      await supabase.from("notifications").insert(
+                        admins.map(a => ({ user_id: a.id, title: "Produits soumis", body: `${partnerName} a soumis ${ids.length} produit${ids.length > 1 ? "s" : ""} pour validation`, type: "product_submission", link: "/admin?tab=submissions" })) as any
+                      );
+                    }
+
+                    queryClient.invalidateQueries({ queryKey: ["partner-draft-submissions"] });
+                    queryClient.invalidateQueries({ queryKey: ["partner-pending-submissions"] });
+                    toast.success(`${ids.length} produit${ids.length > 1 ? "s" : ""} soumis pour validation`);
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2 text-[10px] font-display font-semibold bg-amber-600 text-white rounded-full hover:bg-amber-700 transition-colors"
+                >
+                  <Send className="h-3 w-3" /> Tout soumettre pour validation
+                </button>
+              </div>
+
+              {draftSubmissions.map((sub: any) => {
+                const pd = sub.product_data as Record<string, any> || {};
+                const thumbUrl = pd.image_url || (Array.isArray(pd.gallery_urls) && pd.gallery_urls.length > 0 ? pd.gallery_urls[0] : null);
+                const stockLabel = ({ available: "En stock", in_stock: "En stock", low_stock: "Stock faible", out_of_stock: "Rupture", on_order: "En commande", production: "En production" } as Record<string, string>)[pd.stock_status ?? ""] ?? null;
+                return (
+                  <div key={sub.id} className="border border-border rounded-xl bg-card hover:border-blue-300 transition-colors">
+                    <div
+                      className="flex items-center gap-3 px-4 py-3 cursor-pointer"
+                      onClick={() => setEditingSubmission({ id: sub.id, productData: pd, targetProductId: sub.target_product_id || undefined })}
+                    >
+                      {thumbUrl ? (
+                        <img src={thumbUrl as string} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted border border-border shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border shrink-0">
+                          <Package className="h-5 w-5 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-display font-semibold text-foreground truncate">
+                          {(pd.name as string) || "Produit sans nom"}
+                        </p>
+                        <p className="text-[10px] font-body text-muted-foreground mt-0.5">
+                          {pd.category}{pd.subcategory ? ` → ${pd.subcategory}` : ""}
+                          {pd.main_color ? <span className="ml-1.5">· {pd.main_color}</span> : null}
+                          {pd.material_structure ? <span className="ml-1.5">· {pd.material_structure}</span> : null}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {pd.price_min != null && (
+                            <span className="text-[11px] font-display font-bold text-foreground">
+                              {pd.price_max ? `${pd.price_min}€ — ${pd.price_max}€` : `${pd.price_min}€`}
+                            </span>
+                          )}
+                          {stockLabel && (
+                            <span className="text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">
+                              {stockLabel}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
+                        <span className="text-[9px] font-display font-semibold px-2 py-0.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700">
+                          Brouillon
+                        </span>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Soumettre "${pd.name}" pour validation ?`)) return;
+                            await supabase.from("product_submissions").update({ status: "pending_review", updated_at: new Date().toISOString() } as any).eq("id", sub.id);
+                            // Notify admins
+                            const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin").limit(50);
+                            if (admins && admins.length > 0) {
+                              const pName = profile?.company ?? "Un partenaire";
+                              await supabase.from("notifications").insert(
+                                admins.map(a => ({ user_id: a.id, title: "Produit soumis", body: `${pName} a soumis "${pd.name}" pour validation`, type: "product_submission", link: "/admin?tab=submissions" })) as any
+                              );
+                            }
+                            queryClient.invalidateQueries({ queryKey: ["partner-draft-submissions"] });
+                            queryClient.invalidateQueries({ queryKey: ["partner-pending-submissions"] });
+                            toast.success(`"${pd.name}" soumis pour validation`);
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[9px] font-display font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                          title="Soumettre pour validation"
+                        >
+                          <Send className="h-3 w-3" /> Soumettre
+                        </button>
+                        <button
+                          onClick={() => setEditingSubmission({ id: sub.id, productData: pd, targetProductId: sub.target_product_id || undefined })}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors"
+                          title="Compléter / Modifier"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm("Supprimer ce brouillon ?")) return;
+                            await supabase.from("product_submissions").delete().eq("id", sub.id);
+                            queryClient.invalidateQueries({ queryKey: ["partner-draft-submissions"] });
+                            toast.success("Brouillon supprimé");
+                          }}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
       {/* Import actions */}
       <div className="flex items-center gap-3 flex-wrap">
         <button
@@ -1532,6 +1672,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
             onClose={() => setEditingSubmission(null)}
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ["partner-pending-submissions"] });
+              queryClient.invalidateQueries({ queryKey: ["partner-draft-submissions"] });
               setEditingSubmission(null);
             }}
           />
