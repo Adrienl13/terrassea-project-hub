@@ -1471,7 +1471,14 @@
       "apiSync": "Sync API in tempo reale",
       "added": "Prodotto aggiunto!",
       "imported": "{{count}} prodotto/i importato/i!",
-      "profileRequired": "Completa il tuo profilo partner per aggiungere prodotti"
+      "profileRequired": "Completa il tuo profilo partner per aggiungere prodotti",
+      "tabPublished": "Online",
+      "tabPending": "In attesa",
+      "draftBadge": "Bozza",
+      "onlineBadge": "Online",
+      "pendingInfo": "Questi prodotti saranno visibili dopo la validazione del team Terrassea",
+      "noPublished": "Nessun prodotto online",
+      "noDrafts": "Nessun prodotto in attesa"
     },
     "feedback": {
       "title": "Feedback admin sulle sottomissioni",

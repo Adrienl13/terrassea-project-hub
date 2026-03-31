@@ -1471,7 +1471,14 @@
       "apiSync": "Real-time API sync",
       "added": "Product added!",
       "imported": "{{count}} product(s) imported successfully!",
-      "profileRequired": "Complete your partner profile to add products"
+      "profileRequired": "Complete your partner profile to add products",
+      "tabPublished": "Online",
+      "tabPending": "Pending",
+      "draftBadge": "Draft",
+      "onlineBadge": "Online",
+      "pendingInfo": "These products will be visible after validation by the Terrassea team",
+      "noPublished": "No products online yet",
+      "noDrafts": "No pending products"
     },
     "feedback": {
       "title": "Admin feedback on submissions",

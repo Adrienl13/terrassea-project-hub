@@ -1471,7 +1471,14 @@
       "apiSync": "Sync API temps réel",
       "added": "Produit ajouté !",
       "imported": "{{count}} produit(s) importé(s) avec succès !",
-      "profileRequired": "Completez votre fiche partenaire pour ajouter des produits"
+      "profileRequired": "Completez votre fiche partenaire pour ajouter des produits",
+      "tabPublished": "En ligne",
+      "tabPending": "En attente",
+      "draftBadge": "Brouillon",
+      "onlineBadge": "En ligne",
+      "pendingInfo": "Ces produits seront visibles après validation par l'équipe Terrassea",
+      "noPublished": "Aucun produit en ligne",
+      "noDrafts": "Aucun produit en attente"
     },
     "feedback": {
       "title": "Retours admin sur les soumissions",

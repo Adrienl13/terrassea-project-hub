@@ -1471,7 +1471,14 @@
       "apiSync": "Sync API en tiempo real",
       "added": "¡Producto añadido!",
       "imported": "{{count}} producto(s) importado(s)",
-      "profileRequired": "Complete su perfil de socio para agregar productos"
+      "profileRequired": "Complete su perfil de socio para agregar productos",
+      "tabPublished": "En línea",
+      "tabPending": "Pendiente",
+      "draftBadge": "Borrador",
+      "onlineBadge": "En línea",
+      "pendingInfo": "Estos productos serán visibles tras la validación del equipo Terrassea",
+      "noPublished": "Ningún producto en línea",
+      "noDrafts": "Ningún producto pendiente"
     },
     "feedback": {
       "title": "Comentarios del admin sobre envios",

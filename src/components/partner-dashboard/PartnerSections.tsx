@@ -260,7 +260,8 @@ interface ProductRowData {
   stock: string;
   // Full product data for edit
   productData?: Record<string, any>;
-  offerData?: Record<string, any>;
+  offerData?: Record<string, any> | null;
+  publishStatus?: string;
 }
 
 function ProductRow({
@@ -286,7 +287,15 @@ function ProductRow({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-display font-semibold text-foreground truncate">{name}</p>
+        <p className="text-xs font-display font-semibold text-foreground truncate">
+          {name}
+          {product.publishStatus === "published" && (
+            <span className="ml-1.5 text-[8px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">En ligne</span>
+          )}
+          {(!product.publishStatus || product.publishStatus === "draft") && (
+            <span className="ml-1.5 text-[8px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Draft</span>
+          )}
+        </p>
         <div className="flex items-center gap-2 mt-0.5">
           <p className="text-[10px] font-body text-foreground font-medium">€{price.toFixed(0)} HT</p>
           <span className="text-[9px] font-body text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">
@@ -1018,6 +1027,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   const [editingProduct, setEditingProduct] = useState<ProductRowData | null>(null);
   const [showGallery, setShowGallery] = useState(false);
   const [linkingPhotos, setLinkingPhotos] = useState<ProductRowData | null>(null);
+  const [catalogueTab, setCatalogueTab] = useState<"published" | "pending">("published");
 
   // Read subscription overrides for this partner
   const { data: subOverrides } = useQuery({
@@ -1033,42 +1043,31 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   });
   const effectiveMaxProducts = subOverrides?.max_products ?? config.maxProducts;
 
-  // Real product offers from DB — fetch full product data for editing
+  // Products directly owned by this partner
   const { data: dbProducts = [] } = useQuery<ProductRowData[]>({
     queryKey: ["partner-products", partnerId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("product_offers")
-        .select("id, price, stock_status, stock_quantity, product_id, delivery_delay_days, purchase_type")
-        .eq("partner_id", partnerId!)
-        .eq("is_active", true);
-      if (!data || data.length === 0) return [];
-
-      // Fetch FULL product details for editing
-      const productIds = data.map((d) => d.product_id);
-      const { data: products } = await supabase
         .from("products")
         .select("*")
-        .in("id", productIds);
-
-      const productMap = new Map((products || []).map((p: any) => [p.id, p]));
-      return data.map((offer) => {
-        const prod = productMap.get(offer.product_id) || {};
-        return {
-          offerId: offer.id,
-          productId: offer.product_id,
-          name: prod.name ?? "Unknown product",
-          image: prod.image_url ?? undefined,
-          category: prod.category ?? undefined,
-          price: offer.price ?? 0,
-          commissionRate: config.commission,
-          views: 0,
-          quotes: 0,
-          stock: offer.stock_status === "in_stock" ? "En stock" : offer.stock_status === "low_stock" ? "Stock faible" : (offer.stock_status ?? "—"),
-          productData: prod,
-          offerData: offer,
-        } as ProductRowData;
-      });
+        .eq("partner_id", partnerId!)
+        .order("name");
+      if (!data) return [];
+      return data.map((prod: any) => ({
+        offerId: prod.id,
+        productId: prod.id,
+        name: prod.name ?? "Unknown",
+        image: prod.image_url ?? undefined,
+        category: prod.category ?? undefined,
+        price: prod.price_min ?? 0,
+        commissionRate: config.commission,
+        views: 0,
+        quotes: 0,
+        stock: prod.stock_status ?? "—",
+        productData: prod,
+        offerData: null,
+        publishStatus: prod.publish_status ?? "draft",
+      } as ProductRowData));
     },
     enabled: !!partnerId,
   });
@@ -1089,10 +1088,15 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   });
 
   const allProducts = dbProducts;
+  const publishedProducts = allProducts.filter(p => p.publishStatus === "published");
+  const draftProducts = allProducts.filter(p => !p.publishStatus || p.publishStatus === "draft");
+  const publishedCount = publishedProducts.length;
+  const draftCount = draftProducts.length;
 
+  const activeTabProducts = catalogueTab === "published" ? publishedProducts : draftProducts;
   const products = searchTerm
-    ? allProducts.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : allProducts;
+    ? activeTabProducts.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : activeTabProducts;
 
   const productsCount = allProducts.length;
   const maxProducts = effectiveMaxProducts;
@@ -1147,6 +1151,32 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         </div>
       )}
 
+      {/* Tab navigation */}
+      <div className="flex gap-1 border-b border-border mb-4">
+        <button
+          onClick={() => setCatalogueTab("published")}
+          className={`px-4 py-2.5 text-xs font-display font-semibold border-b-2 transition-colors ${
+            catalogueTab === "published"
+              ? "border-emerald-600 text-emerald-700"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {t('pd.catalogue.tabPublished', 'En ligne')}
+          <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">{publishedCount}</span>
+        </button>
+        <button
+          onClick={() => setCatalogueTab("pending")}
+          className={`px-4 py-2.5 text-xs font-display font-semibold border-b-2 transition-colors ${
+            catalogueTab === "pending"
+              ? "border-amber-600 text-amber-700"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {t('pd.catalogue.tabPending', 'En attente')}
+          <span className="ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">{draftCount + pendingSubmissions.length}</span>
+        </button>
+      </div>
+
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -1158,46 +1188,6 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         />
       </div>
 
-      {/* Pending submissions */}
-      {pendingSubmissions.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
-            <Clock className="h-3 w-3" />
-            {pendingSubmissions.length} produit{pendingSubmissions.length > 1 ? "s" : ""} en attente de validation
-          </p>
-          {pendingSubmissions.map((sub: any) => {
-            const pd = sub.product_data as Record<string, any> || {};
-            const statusLabel = sub.status === "feedback_sent" ? "Retour admin" : "En attente";
-            const statusColor = sub.status === "feedback_sent" ? "text-blue-700 bg-blue-50 border-blue-200" : "text-amber-700 bg-amber-50 border-amber-200";
-            return (
-              <div key={sub.id} className="flex items-center gap-3 px-4 py-3 border border-border rounded-xl bg-card">
-                {pd.image_url ? (
-                  <img src={pd.image_url as string} alt="" className="w-10 h-10 rounded-lg object-cover bg-muted" />
-                ) : (
-                  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Package className="h-4 w-4 text-muted-foreground/40" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-display font-semibold text-foreground truncate">
-                    {(pd.name as string) || "Produit sans nom"}
-                  </p>
-                  <p className="text-[10px] font-body text-muted-foreground">
-                    Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR")}
-                    {sub.similarity_score && sub.similarity_score > 70 && (
-                      <span className="ml-2 text-amber-600">• Doublon potentiel ({sub.similarity_score}%)</span>
-                    )}
-                  </p>
-                </div>
-                <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full border ${statusColor}`}>
-                  {statusLabel}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
       {/* Commission info box */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-sm border" style={{ background: config.bg, borderColor: config.border }}>
         <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" style={{ color: config.color }} />
@@ -1208,33 +1198,129 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         </div>
       </div>
 
-      {/* Product list */}
-      {products.length === 0 ? (
-        <div className="border border-border rounded-sm px-4 py-8 text-center">
-          <Package className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
-          <p className="text-xs font-body text-muted-foreground">
-            {searchTerm ? "Aucun produit ne correspond à votre recherche" : "Aucun produit dans votre catalogue"}
-          </p>
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="text-[10px] font-display font-semibold text-foreground underline mt-2"
-            >
-              Effacer la recherche
-            </button>
+      {/* ── "En ligne" tab ── */}
+      {catalogueTab === "published" && (
+        <>
+          {products.length === 0 ? (
+            <div className="border border-border rounded-sm px-4 py-8 text-center">
+              <Package className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
+              <p className="text-xs font-body text-muted-foreground">
+                {searchTerm
+                  ? t('pd.catalogue.noSearch', 'Aucun produit ne correspond à votre recherche')
+                  : t('pd.catalogue.noPublished', 'Aucun produit en ligne')}
+              </p>
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="text-[10px] font-display font-semibold text-foreground underline mt-2"
+                >
+                  {t('pd.catalogue.clearSearch', 'Effacer la recherche')}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {products.map((p) => (
+                <ProductRow
+                  key={p.offerId}
+                  product={p}
+                  onEdit={setEditingProduct}
+                  onPhotos={setLinkingPhotos}
+                />
+              ))}
+            </div>
           )}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {products.map((p) => (
-            <ProductRow
-              key={p.offerId}
-              product={p}
-              onEdit={setEditingProduct}
-              onPhotos={setLinkingPhotos}
-            />
-          ))}
-        </div>
+        </>
+      )}
+
+      {/* ── "En attente" tab ── */}
+      {catalogueTab === "pending" && (
+        <>
+          {/* Sub-section: Draft products */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+              <Package className="h-3 w-3" />
+              Produits importés ({draftCount})
+            </p>
+            <div className="flex items-start gap-3 px-4 py-3 rounded-sm border border-amber-200 bg-amber-50/50">
+              <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" />
+              <p className="text-[10px] font-body leading-relaxed text-amber-700">
+                {t('pd.catalogue.pendingInfo', 'Ces produits seront visibles après validation par l\'équipe Terrassea')}
+              </p>
+            </div>
+            {products.length === 0 && !searchTerm ? (
+              <div className="border border-border rounded-sm px-4 py-6 text-center">
+                <Package className="h-5 w-5 text-muted-foreground/20 mx-auto mb-2" />
+                <p className="text-xs font-body text-muted-foreground">
+                  {t('pd.catalogue.noDrafts', 'Aucun produit en attente')}
+                </p>
+              </div>
+            ) : products.length === 0 && searchTerm ? (
+              <div className="border border-border rounded-sm px-4 py-6 text-center">
+                <p className="text-xs font-body text-muted-foreground">
+                  {t('pd.catalogue.noSearch', 'Aucun produit ne correspond à votre recherche')}
+                </p>
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="text-[10px] font-display font-semibold text-foreground underline mt-2"
+                >
+                  {t('pd.catalogue.clearSearch', 'Effacer la recherche')}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {products.map((p) => (
+                  <ProductRow
+                    key={p.offerId}
+                    product={p}
+                    onEdit={setEditingProduct}
+                    onPhotos={setLinkingPhotos}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Sub-section: Pending submissions */}
+          {pendingSubmissions.length > 0 && (
+            <div className="space-y-2 mt-4">
+              <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                <Clock className="h-3 w-3" />
+                Modifications soumises ({pendingSubmissions.length})
+              </p>
+              {pendingSubmissions.map((sub: any) => {
+                const pd = sub.product_data as Record<string, any> || {};
+                const statusLabel = sub.status === "feedback_sent" ? "Retour admin" : "Modification en attente";
+                const statusColor = sub.status === "feedback_sent" ? "text-blue-700 bg-blue-50 border-blue-200" : "text-amber-700 bg-amber-50 border-amber-200";
+                return (
+                  <div key={sub.id} className="flex items-center gap-3 px-4 py-3 border border-border rounded-xl bg-card">
+                    {pd.image_url ? (
+                      <img src={pd.image_url as string} alt="" className="w-10 h-10 rounded-lg object-cover bg-muted" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                        <Package className="h-4 w-4 text-muted-foreground/40" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-display font-semibold text-foreground truncate">
+                        {(pd.name as string) || "Produit sans nom"}
+                      </p>
+                      <p className="text-[10px] font-body text-muted-foreground">
+                        Soumis le {new Date(sub.created_at).toLocaleDateString("fr-FR")}
+                        {sub.similarity_score && sub.similarity_score > 70 && (
+                          <span className="ml-2 text-amber-600">• Doublon potentiel ({sub.similarity_score}%)</span>
+                        )}
+                      </p>
+                    </div>
+                    <span className={`text-[9px] font-display font-semibold px-2 py-0.5 rounded-full border ${statusColor}`}>
+                      {statusLabel}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {/* Import actions */}
