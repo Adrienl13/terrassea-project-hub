@@ -18,14 +18,25 @@ interface AIProduct {
   category: string;
   subcategory?: string | null;
   short_description?: string | null;
+  short_description_fr?: string | null;
+  short_description_it?: string | null;
+  short_description_es?: string | null;
   long_description?: string | null;
   material_structure?: string | null;
   material_seat?: string | null;
+  frame_material_tags?: string[];
+  seat_type_tags?: string[];
+  fabric_material_tags?: string[];
+  top_material_tags?: string[];
+  cushion_type_tags?: string[];
   main_color?: string | null;
   secondary_color?: string | null;
   available_colors?: string[];
+  palette_tags?: string[];
   style_tags?: string[];
   ambience_tags?: string[];
+  silhouette_tags?: string[];
+  comfort_tier?: string | null;
   material_tags?: string[];
   use_case_tags?: string[];
   technical_tags?: string[];
@@ -36,6 +47,7 @@ interface AIProduct {
   dimensions_height_cm?: number | null;
   seat_height_cm?: number | null;
   weight_kg?: number | null;
+  height_type?: string | null;
   is_outdoor?: boolean;
   is_stackable?: boolean;
   is_chr_heavy_use?: boolean;
@@ -48,8 +60,19 @@ interface AIProduct {
   warranty?: string | null;
   stock_status?: string | null;
   stock_quantity?: number | null;
+  estimated_delivery_days?: number | null;
   collection?: string | null;
   brand_source?: string | null;
+  // Category-specific fields (packed into product_type_tags JSONB)
+  parasol_type?: string | null;
+  parasol_shape?: string | null;
+  parasol_size?: string | null;
+  parasol_opening?: string | null;
+  parasol_fabric_tag?: string | null;
+  lounger_type?: string | null;
+  bench_type?: string | null;
+  sofa_type?: string | null;
+  base_type?: string | null;
   // UI state
   image_url?: string | null;
   gallery_urls?: string[];
@@ -249,9 +272,88 @@ export default function ExcelImportModal({
       headerMap[h.trim().toLowerCase()] = i;
     });
 
+    // Case-insensitive column lookup with common alias support
+    const colAliases: Record<string, string[]> = {
+      name: ["name", "nom", "product_name", "nom_produit"],
+      category: ["category", "catégorie", "categorie", "cat"],
+      subcategory: ["subcategory", "sous_catégorie", "sous_categorie", "sub_category", "sous-catégorie"],
+      collection: ["collection"],
+      brand_source: ["brand_source", "brand", "marque"],
+      short_description: ["short_description", "description", "desc", "description_courte"],
+      short_description_fr: ["short_description_fr", "description_fr"],
+      short_description_it: ["short_description_it", "description_it"],
+      short_description_es: ["short_description_es", "description_es"],
+      long_description: ["long_description", "description_longue", "long_desc"],
+      material_structure: ["material_structure", "matériau_structure", "materiau_structure", "frame_material"],
+      material_seat: ["material_seat", "matériau_assise", "materiau_assise", "seat_material"],
+      frame_material_tags: ["frame_material_tags", "frame_tags"],
+      seat_type_tags: ["seat_type_tags", "seat_tags"],
+      fabric_material_tags: ["fabric_material_tags", "fabric_tags"],
+      top_material_tags: ["top_material_tags", "top_tags"],
+      cushion_type_tags: ["cushion_type_tags", "cushion_tags"],
+      main_color: ["main_color", "couleur_principale", "couleur", "color"],
+      secondary_color: ["secondary_color", "couleur_secondaire"],
+      available_colors: ["available_colors", "couleurs_disponibles", "colors"],
+      palette_tags: ["palette_tags", "palette"],
+      style_tags: ["style_tags", "style", "styles"],
+      ambience_tags: ["ambience_tags", "ambiance", "ambience"],
+      silhouette_tags: ["silhouette_tags", "silhouette"],
+      comfort_tier: ["comfort_tier", "comfort"],
+      use_case_tags: ["use_case_tags", "use_case", "usage"],
+      price_min: ["price_min", "prix_min", "prix_ht", "prix", "price"],
+      price_max: ["price_max", "prix_max"],
+      dimensions_length_cm: ["dimensions_length_cm", "longueur_cm", "longueur", "length_cm", "length"],
+      dimensions_width_cm: ["dimensions_width_cm", "largeur_cm", "largeur", "width_cm", "width"],
+      dimensions_height_cm: ["dimensions_height_cm", "hauteur_cm", "hauteur", "height_cm", "height"],
+      seat_height_cm: ["seat_height_cm", "hauteur_assise_cm", "hauteur_assise", "seat_height"],
+      weight_kg: ["weight_kg", "poids_kg", "poids", "weight"],
+      height_type: ["height_type", "type_hauteur"],
+      is_outdoor: ["is_outdoor", "extérieur", "exterieur", "outdoor"],
+      is_stackable: ["is_stackable", "empilable", "stackable"],
+      is_chr_heavy_use: ["is_chr_heavy_use", "chr", "heavy_use", "usage_intensif"],
+      uv_resistant: ["uv_resistant", "résistant_uv", "resistant_uv", "uv"],
+      weather_resistant: ["weather_resistant", "résistant_intempéries", "resistant_intemperies", "weather"],
+      fire_retardant: ["fire_retardant", "ignifuge", "fire"],
+      lightweight: ["lightweight", "léger", "leger", "light"],
+      easy_maintenance: ["easy_maintenance", "entretien_facile", "maintenance"],
+      technical_tags: ["technical_tags", "technical", "technique"],
+      stock_status: ["stock_status", "stock", "disponibilité", "disponibilite"],
+      stock_quantity: ["stock_quantity", "quantité", "quantite", "quantity", "qty"],
+      estimated_delivery_days: ["estimated_delivery_days", "delivery_days", "délai_livraison", "delai_livraison", "delivery"],
+      country_of_manufacture: ["country_of_manufacture", "pays_fabrication", "pays", "country", "origine"],
+      warranty: ["warranty", "garantie"],
+      image_url: ["image_url", "image", "photo", "photo_url"],
+      gallery_urls: ["gallery_urls", "gallery", "photos", "galerie"],
+      parasol_type: ["parasol_type", "type_parasol"],
+      parasol_shape: ["parasol_shape", "forme_parasol"],
+      parasol_size: ["parasol_size", "taille_parasol"],
+      parasol_opening: ["parasol_opening", "ouverture_parasol"],
+      parasol_fabric_tag: ["parasol_fabric_tag", "tissu_parasol"],
+      lounger_type: ["lounger_type", "type_bain_de_soleil", "type_transat"],
+      bench_type: ["bench_type", "type_banc"],
+      sofa_type: ["sofa_type", "type_canapé", "type_canape"],
+      base_type: ["base_type", "type_base", "type_pied"],
+    };
+
     const col = (row: string[], key: string): string | undefined => {
-      const idx = headerMap[key];
-      return idx !== undefined ? row[idx]?.trim() || undefined : undefined;
+      // Try direct match first
+      const directIdx = headerMap[key];
+      if (directIdx !== undefined) {
+        const val = row[directIdx]?.trim();
+        return val || undefined;
+      }
+      // Try aliases
+      const aliases = colAliases[key];
+      if (aliases) {
+        for (const alias of aliases) {
+          const idx = headerMap[alias];
+          if (idx !== undefined) {
+            const val = row[idx]?.trim();
+            return val || undefined;
+          }
+        }
+      }
+      return undefined;
     };
 
     const dataRows = rows.slice(1).filter(r => r.some(c => c !== ""));
@@ -272,18 +374,31 @@ export default function ExcelImportModal({
         name,
         category,
         subcategory: col(row, "subcategory") || null,
+        collection: col(row, "collection") || null,
+        brand_source: col(row, "brand_source") || null,
         short_description: col(row, "short_description") || null,
-        long_description: null,
+        short_description_fr: col(row, "short_description_fr") || null,
+        short_description_it: col(row, "short_description_it") || null,
+        short_description_es: col(row, "short_description_es") || null,
+        long_description: col(row, "long_description") || null,
         material_structure: col(row, "material_structure") || null,
         material_seat: col(row, "material_seat") || null,
+        frame_material_tags: parseArrayField(col(row, "frame_material_tags")),
+        seat_type_tags: parseArrayField(col(row, "seat_type_tags")),
+        fabric_material_tags: parseArrayField(col(row, "fabric_material_tags")),
+        top_material_tags: parseArrayField(col(row, "top_material_tags")),
+        cushion_type_tags: parseArrayField(col(row, "cushion_type_tags")),
         main_color: col(row, "main_color") || null,
-        secondary_color: null,
+        secondary_color: col(row, "secondary_color") || null,
         available_colors: parseArrayField(col(row, "available_colors")),
+        palette_tags: parseArrayField(col(row, "palette_tags")),
         style_tags: parseArrayField(col(row, "style_tags")),
-        ambience_tags: [],
+        ambience_tags: parseArrayField(col(row, "ambience_tags")),
+        silhouette_tags: parseArrayField(col(row, "silhouette_tags")),
+        comfort_tier: col(row, "comfort_tier") || null,
         material_tags: [],
-        use_case_tags: [],
-        technical_tags: [],
+        use_case_tags: parseArrayField(col(row, "use_case_tags")),
+        technical_tags: parseArrayField(col(row, "technical_tags")),
         price_min: parseNum(col(row, "price_min")),
         price_max: parseNum(col(row, "price_max")),
         dimensions_length_cm: parseNum(col(row, "dimensions_length_cm")),
@@ -291,22 +406,32 @@ export default function ExcelImportModal({
         dimensions_height_cm: parseNum(col(row, "dimensions_height_cm")),
         seat_height_cm: parseNum(col(row, "seat_height_cm")),
         weight_kg: parseNum(col(row, "weight_kg")),
+        height_type: col(row, "height_type") || null,
         is_outdoor: col(row, "is_outdoor") !== undefined ? parseBool(col(row, "is_outdoor")) : true,
         is_stackable: parseBool(col(row, "is_stackable")),
-        is_chr_heavy_use: false,
-        uv_resistant: false,
-        weather_resistant: false,
-        fire_retardant: false,
-        lightweight: false,
-        easy_maintenance: false,
+        is_chr_heavy_use: parseBool(col(row, "is_chr_heavy_use")),
+        uv_resistant: parseBool(col(row, "uv_resistant")),
+        weather_resistant: parseBool(col(row, "weather_resistant")),
+        fire_retardant: parseBool(col(row, "fire_retardant")),
+        lightweight: parseBool(col(row, "lightweight")),
+        easy_maintenance: parseBool(col(row, "easy_maintenance")),
         country_of_manufacture: col(row, "country_of_manufacture") || null,
         warranty: col(row, "warranty") || null,
         stock_status: col(row, "stock_status") || null,
-        stock_quantity: null,
-        collection: col(row, "collection") || null,
-        brand_source: col(row, "brand_source") || null,
-        image_url: null,
-        gallery_urls: [],
+        stock_quantity: parseNum(col(row, "stock_quantity")),
+        estimated_delivery_days: parseNum(col(row, "estimated_delivery_days")),
+        image_url: col(row, "image_url") || null,
+        gallery_urls: parseArrayField(col(row, "gallery_urls")),
+        // Category-specific fields
+        parasol_type: col(row, "parasol_type") || null,
+        parasol_shape: col(row, "parasol_shape") || null,
+        parasol_size: col(row, "parasol_size") || null,
+        parasol_opening: col(row, "parasol_opening") || null,
+        parasol_fabric_tag: col(row, "parasol_fabric_tag") || null,
+        lounger_type: col(row, "lounger_type") || null,
+        bench_type: col(row, "bench_type") || null,
+        sofa_type: col(row, "sofa_type") || null,
+        base_type: col(row, "base_type") || null,
         valid: !!name && !!category,
         errors,
       };
@@ -331,8 +456,40 @@ export default function ExcelImportModal({
   };
 
   const downloadDirectTemplate = () => {
-    const headers = ["name","category","subcategory","short_description","material_structure","material_seat","main_color","available_colors","style_tags","price_min","price_max","dimensions_length_cm","dimensions_width_cm","dimensions_height_cm","seat_height_cm","weight_kg","is_outdoor","is_stackable","collection","brand_source","stock_status","country_of_manufacture","warranty"];
-    const example = ["Chaise Riviera","Chairs","Dining Chair","Chaise empilable en aluminium","Aluminium","Textilene","anthracite","anthracite|white|taupe","modern|mediterranean","89","","56","58","84","45","3.8","true","true","Riviera","","available","Italy","2 ans"];
+    const headers = [
+      "name","category","subcategory","collection","brand_source",
+      "short_description","short_description_fr","short_description_it","short_description_es",
+      "long_description","material_structure","material_seat",
+      "frame_material_tags","seat_type_tags","fabric_material_tags","top_material_tags","cushion_type_tags",
+      "main_color","secondary_color","available_colors","palette_tags",
+      "style_tags","ambience_tags","silhouette_tags","comfort_tier","use_case_tags",
+      "price_min","price_max",
+      "dimensions_length_cm","dimensions_width_cm","dimensions_height_cm","seat_height_cm","weight_kg",
+      "height_type","is_outdoor","is_stackable","is_chr_heavy_use",
+      "uv_resistant","weather_resistant","fire_retardant","lightweight","easy_maintenance",
+      "technical_tags","stock_status","stock_quantity","estimated_delivery_days",
+      "country_of_manufacture","warranty",
+      "image_url","gallery_urls",
+      "parasol_type","parasol_shape","parasol_size","parasol_opening","parasol_fabric_tag",
+      "lounger_type","bench_type","sofa_type","base_type",
+    ];
+    const example = [
+      "Chaise Riviera","Chairs","Dining Chair","Riviera","",
+      "Stackable alu & textilene chair","Chaise empilable alu et textilène","Sedia impilabile in alluminio","Silla apilable de aluminio",
+      "","Aluminium","Textilene",
+      "alu-powder","mesh","","","",
+      "anthracite","","anthracite|white|taupe","",
+      "modern|mediterranean","relaxed|bright","4-leg","functional","garden-restaurant|boutique-hotel",
+      "89","129",
+      "56","58","84","45","3.8",
+      "dining","TRUE","TRUE","TRUE",
+      "TRUE","TRUE","FALSE","TRUE","TRUE",
+      "stackable|weather-resistant|uv-resistant","available","","",
+      "Italy","2 ans",
+      "","",
+      "","","","","",
+      "","","","",
+    ];
     const csv = [headers.join(";"), example.join(";")].join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -591,17 +748,49 @@ export default function ExcelImportModal({
           }
         }
 
+        // Build product_type_tags JSONB from category-specific fields
+        const productTypeTags: Record<string, unknown> = {};
+        if (p.parasol_type) productTypeTags.parasol_type = p.parasol_type;
+        if (p.parasol_shape) productTypeTags.parasol_shape = p.parasol_shape;
+        if (p.parasol_size) productTypeTags.parasol_size = p.parasol_size;
+        if (p.parasol_opening) productTypeTags.parasol_opening = p.parasol_opening;
+        if (p.parasol_fabric_tag) productTypeTags.parasol_fabric_tag = p.parasol_fabric_tag;
+        if (p.lounger_type) productTypeTags.lounger_type = p.lounger_type;
+        if (p.bench_type) productTypeTags.bench_type = p.bench_type;
+        if (p.sofa_type) productTypeTags.sofa_type = p.sofa_type;
+        if (p.base_type) productTypeTags.base_type = p.base_type;
+        if (p.comfort_tier) productTypeTags.comfort_tier = p.comfort_tier;
+        if (p.height_type) productTypeTags.height_type = p.height_type;
+        if (p.silhouette_tags && p.silhouette_tags.length > 0) productTypeTags.silhouette = p.silhouette_tags;
+        if (p.frame_material_tags && p.frame_material_tags.length > 0) productTypeTags.frame_material = p.frame_material_tags;
+        if (p.seat_type_tags && p.seat_type_tags.length > 0) productTypeTags.seat_type = p.seat_type_tags;
+        if (p.fabric_material_tags && p.fabric_material_tags.length > 0) productTypeTags.fabric_material = p.fabric_material_tags;
+        if (p.top_material_tags && p.top_material_tags.length > 0) productTypeTags.top_material = p.top_material_tags;
+        if (p.cushion_type_tags && p.cushion_type_tags.length > 0) productTypeTags.cushion_type = p.cushion_type_tags;
+
+        // Resolve final image_url: prefer uploaded blob, fall back to CSV-provided URL
+        const finalImageUrl = imageUrl || (p.image_url && !p.image_url.startsWith("blob:") ? p.image_url : null);
+        // Merge gallery: uploaded blobs + CSV-provided non-blob URLs
+        const csvGallery = (p.gallery_urls || []).filter(u => !u.startsWith("blob:"));
+        const finalGallery = [...galleryUrls, ...csvGallery];
+
         const { error } = await supabase.from("products").insert({
           name: p.name,
           category: p.category,
           subcategory: p.subcategory || null,
+          collection: p.collection || null,
+          brand_source: p.brand_source || null,
           short_description: p.short_description || null,
+          short_description_fr: p.short_description_fr || null,
+          short_description_it: p.short_description_it || null,
+          short_description_es: p.short_description_es || null,
           long_description: p.long_description || null,
           material_structure: p.material_structure || null,
           material_seat: p.material_seat || null,
           main_color: p.main_color || null,
           secondary_color: p.secondary_color || null,
           available_colors: p.available_colors || [],
+          palette_tags: p.palette_tags && p.palette_tags.length > 0 ? p.palette_tags : [],
           style_tags: p.style_tags || [],
           ambience_tags: p.ambience_tags || [],
           material_tags: p.material_tags || [],
@@ -626,10 +815,10 @@ export default function ExcelImportModal({
           warranty: p.warranty || null,
           stock_status: p.stock_status || null,
           stock_quantity: p.stock_quantity,
-          collection: p.collection || null,
-          brand_source: p.brand_source || null,
-          image_url: imageUrl,
-          gallery_urls: galleryUrls.length > 0 ? galleryUrls : [],
+          estimated_delivery_days: p.estimated_delivery_days,
+          image_url: finalImageUrl,
+          gallery_urls: finalGallery.length > 0 ? finalGallery : [],
+          product_type_tags: Object.keys(productTypeTags).length > 0 ? productTypeTags : null,
           publish_status: "draft",
           partner_id: partnerId,
         });
