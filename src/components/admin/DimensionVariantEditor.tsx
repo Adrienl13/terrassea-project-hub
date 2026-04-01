@@ -9,16 +9,39 @@ const STOCK_OPTIONS = [
 ];
 
 const PRESET_SIZES = [
-  { tag: "60x60", label: "60×60 cm", seats: 2 },
-  { tag: "70x70", label: "70×70 cm", seats: 2 },
-  { tag: "80x80", label: "80×80 cm", seats: 4 },
-  { tag: "120x70", label: "120×70 cm", seats: 4 },
-  { tag: "120x80", label: "120×80 cm", seats: 6 },
-  { tag: "160x80", label: "160×80 cm", seats: 6 },
-  { tag: "200x90", label: "200×90 cm", seats: 8 },
-  { tag: "o60", label: "Ø60 cm", seats: 2 },
-  { tag: "o80", label: "Ø80 cm", seats: 4 },
-  { tag: "o120", label: "Ø120 cm", seats: 6 },
+  // Carrées
+  { tag: "60x60", label: "60×60 cm", seats: 2, group: "Carrées" },
+  { tag: "70x70", label: "70×70 cm", seats: 2, group: "Carrées" },
+  { tag: "80x80", label: "80×80 cm", seats: 4, group: "Carrées" },
+  { tag: "90x90", label: "90×90 cm", seats: 4, group: "Carrées" },
+  // Rectangulaires
+  { tag: "110x70", label: "110×70 cm", seats: 4, group: "Rectangulaires" },
+  { tag: "120x70", label: "120×70 cm", seats: 4, group: "Rectangulaires" },
+  { tag: "120x80", label: "120×80 cm", seats: 6, group: "Rectangulaires" },
+  { tag: "140x80", label: "140×80 cm", seats: 6, group: "Rectangulaires" },
+  { tag: "160x80", label: "160×80 cm", seats: 6, group: "Rectangulaires" },
+  { tag: "160x90", label: "160×90 cm", seats: 6, group: "Rectangulaires" },
+  { tag: "180x90", label: "180×90 cm", seats: 8, group: "Rectangulaires" },
+  { tag: "200x90", label: "200×90 cm", seats: 8, group: "Rectangulaires" },
+  { tag: "200x100", label: "200×100 cm", seats: 8, group: "Rectangulaires" },
+  { tag: "220x100", label: "220×100 cm", seats: 10, group: "Rectangulaires" },
+  { tag: "240x100", label: "240×100 cm", seats: 10, group: "Rectangulaires" },
+  { tag: "300x100", label: "300×100 cm", seats: 12, group: "Rectangulaires" },
+  // Rondes
+  { tag: "o60", label: "Ø60 cm", seats: 2, group: "Rondes" },
+  { tag: "o70", label: "Ø70 cm", seats: 2, group: "Rondes" },
+  { tag: "o80", label: "Ø80 cm", seats: 4, group: "Rondes" },
+  { tag: "o90", label: "Ø90 cm", seats: 4, group: "Rondes" },
+  { tag: "o100", label: "Ø100 cm", seats: 4, group: "Rondes" },
+  { tag: "o120", label: "Ø120 cm", seats: 6, group: "Rondes" },
+  { tag: "o150", label: "Ø150 cm", seats: 8, group: "Rondes" },
+  // Hautes (bar / mange-debout)
+  { tag: "60x60h", label: "60×60 cm (haute)", seats: 2, group: "Hautes" },
+  { tag: "70x70h", label: "70×70 cm (haute)", seats: 2, group: "Hautes" },
+  { tag: "80x80h", label: "80×80 cm (haute)", seats: 4, group: "Hautes" },
+  { tag: "120x60h", label: "120×60 cm (haute)", seats: 4, group: "Hautes" },
+  { tag: "o60h", label: "Ø60 cm (haute)", seats: 2, group: "Hautes" },
+  { tag: "o80h", label: "Ø80 cm (haute)", seats: 4, group: "Hautes" },
 ];
 
 interface Props {
@@ -94,22 +117,27 @@ export default function DimensionVariantEditor({ variants, onChange }: Props) {
         <div className="border border-dashed border-border rounded-xl p-4 space-y-3">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Package className="h-4 w-4" />
-            <p className="text-[10px] font-display font-semibold">Tailles prédéfinies</p>
+            <p className="text-[10px] font-display font-semibold">Tailles prédéfinies — cliquez pour ajouter</p>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {PRESET_SIZES.map(p => (
-              <button
-                key={p.tag}
-                type="button"
-                onClick={() => addPreset(p)}
-                className="text-[10px] font-body px-2.5 py-1 rounded-lg border border-border hover:border-foreground/30 hover:bg-card transition-colors"
-              >
-                {p.label} <span className="text-muted-foreground">({p.seats}pl.)</span>
-              </button>
-            ))}
-          </div>
+          {(["Carrées", "Rectangulaires", "Rondes", "Hautes"] as const).map(group => (
+            <div key={group}>
+              <p className="text-[9px] font-display font-semibold text-muted-foreground uppercase tracking-wider mb-1">{group}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_SIZES.filter(p => p.group === group).map(p => (
+                  <button
+                    key={p.tag}
+                    type="button"
+                    onClick={() => addPreset(p)}
+                    className="text-[10px] font-body px-2.5 py-1 rounded-lg border border-border hover:border-foreground/30 hover:bg-card transition-colors"
+                  >
+                    {p.label} <span className="text-muted-foreground">({p.seats}pl.)</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
           <p className="text-[9px] font-body text-muted-foreground italic">
-            Cliquez pour ajouter, ou utilisez le bouton "Ajouter une taille" pour créer des dimensions personnalisées.
+            Ou utilisez le bouton "Ajouter une taille" pour des dimensions personnalisées.
           </p>
         </div>
       )}

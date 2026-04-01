@@ -268,7 +268,7 @@ function ProductTypeTagsForm({
         <Field label="Table type *" field="table_type"
           options={["complete","base-only","top-only"]} />
         <Field label="Dimension tag *" field="dimension_tag"
-          options={["60x60","70x70","80x80","120x70","120x80","160x80","200x90","o60","o80","o120","70x70h","80x80h","120x60h","o60h","o80h"]} />
+          options={["60x60","70x70","80x80","90x90","110x70","120x70","120x80","140x80","160x80","160x90","180x90","200x90","200x100","220x100","240x100","300x100","o60","o70","o80","o90","o100","o120","o150","60x60h","70x70h","80x80h","120x60h","o60h","o80h"]} />
         <Field label="Shape" field="shape"
           options={["square","rectangular","round","oval"]} />
         <Field label="Height type" field="height_type"
