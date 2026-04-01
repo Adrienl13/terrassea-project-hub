@@ -265,8 +265,6 @@ export default function ExcelImportModal({
       return;
     }
 
-    const rawHeaders = rows[0];
-
     // Normalize header: strip accents, lowercase, replace spaces/dashes with underscores
     const normalizeHeader = (h: string): string =>
       h.trim().toLowerCase()
@@ -274,6 +272,25 @@ export default function ExcelImportModal({
         .replace(/[^a-z0-9]+/g, "_")
         .replace(/^_|_$/g, "");
 
+    // Known header tokens — if a row contains 2+ of these, it's the header row
+    const HEADER_SIGNALS = new Set([
+      "name", "nom", "product_name", "nom_produit", "designation", "libelle", "reference", "article", "produit",
+      "category", "categorie", "cat", "type", "familia", "categoria",
+      "price", "prix", "price_min", "prix_min", "prix_ht", "tarif", "prezzo", "precio",
+      "description", "desc", "short_description", "description_courte",
+      "material", "materiau", "matiere", "material_structure", "couleur", "color", "main_color",
+      "dimensions", "longueur", "largeur", "hauteur", "weight", "poids",
+      "stock", "warranty", "garantie", "country", "pays",
+    ]);
+
+    // Auto-detect header row: find the first row with 2+ recognized column names
+    let headerRowIdx = 0;
+    for (let r = 0; r < Math.min(rows.length, 5); r++) {
+      const matchCount = rows[r].filter(cell => HEADER_SIGNALS.has(normalizeHeader(cell))).length;
+      if (matchCount >= 2) { headerRowIdx = r; break; }
+    }
+
+    const rawHeaders = rows[headerRowIdx];
     const headerMap: Record<string, number> = {};
     rawHeaders.forEach((h, i) => {
       const norm = normalizeHeader(h);
@@ -362,14 +379,18 @@ export default function ExcelImportModal({
     };
 
     // Check which critical columns were detected
-    const detectedName = col(rows[1] || [], "name") !== undefined || rawHeaders.some(h => colAliases.name.some(a => normalizeHeader(h) === normalizeHeader(a)));
-    const detectedCategory = col(rows[1] || [], "category") !== undefined || rawHeaders.some(h => colAliases.category.some(a => normalizeHeader(h) === normalizeHeader(a)));
+    const detectedName = rawHeaders.some(h => colAliases.name.some(a => normalizeHeader(h) === normalizeHeader(a)));
+    const detectedCategory = rawHeaders.some(h => colAliases.category.some(a => normalizeHeader(h) === normalizeHeader(a)));
     if (!detectedName || !detectedCategory) {
       const detected = rawHeaders.slice(0, 10).map(h => `"${h.trim()}"`).join(", ");
-      toast.error(`Colonnes "name" et/ou "category" non détectées. Colonnes trouvées : ${detected}…`, { duration: 8000 });
+      toast.error(`Colonnes "name" et/ou "category" non détectées. En-têtes trouvés ligne ${headerRowIdx + 1} : ${detected}…`, { duration: 8000 });
     }
 
-    const dataRows = rows.slice(1).filter(r => r.some(c => c !== ""));
+    if (headerRowIdx > 0) {
+      toast.info(`${headerRowIdx} ligne(s) de titre ignorée(s) — en-têtes détectés à la ligne ${headerRowIdx + 1}.`, { duration: 5000 });
+    }
+
+    const dataRows = rows.slice(headerRowIdx + 1).filter(r => r.some(c => c !== ""));
     if (dataRows.length === 0) {
       toast.error(t("ei.errors.none", "Aucun produit trouvé dans le fichier."));
       return;
