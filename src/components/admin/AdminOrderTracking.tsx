@@ -146,7 +146,7 @@ export default function AdminOrderTracking() {
               await supabase.from("partner_subscriptions").update({
                 plan: "growth",
                 updated_at: new Date().toISOString(),
-              } as any).eq("partner_id", partnerId);
+              }).eq("partner_id", partnerId);
 
               // Notify partner (find user profile via partner's contact_email)
               const partnerEmail = partner.contact_email;
@@ -186,7 +186,7 @@ export default function AdminOrderTracking() {
                     body: `${partner.name} a \u00e9t\u00e9 automatiquement migr\u00e9 vers le plan Growth apr\u00e8s ${count} commandes confirm\u00e9es.`,
                     type: "info",
                     link: "/admin?tab=subscriptions",
-                  })) as any
+                  }))
                 );
               }
 

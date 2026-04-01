@@ -222,6 +222,15 @@ export default function AdminPartners() {
     setView("list");
   };
 
+  // Shared helper: notify a partner by looking up their user profile from contact_email
+  const notifyPartner = async (contactEmail: string | null, title: string, body: string) => {
+    if (!contactEmail) return;
+    const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", contactEmail).maybeSingle();
+    if (partnerUser) {
+      await supabase.from("notifications").insert({ user_id: partnerUser.id, title, body, type: "info", link: "/account" });
+    }
+  };
+
   const handleApprove = async (partner: Partner) => {
     setReviewAction(true);
     const { error } = await supabase.from("partners").update({
@@ -233,18 +242,7 @@ export default function AdminPartners() {
 
     if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
 
-    // Notify partner
-    const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", partner.contact_email).maybeSingle();
-    if (partnerUser) {
-      await supabase.from("notifications").insert({
-        user_id: partnerUser.id,
-        title: t("adminPartners.notifApprovedTitle"),
-        body: t("adminPartners.notifApprovedBody"),
-        type: "info",
-        link: "/account",
-      });
-    }
-
+    await notifyPartner(partner.contact_email, t("adminPartners.notifApprovedTitle"), t("adminPartners.notifApprovedBody"));
     toast.success(t("adminPartners.partnerApproved"));
     invalidatePartnerCaches();
     setReviewAction(false);
@@ -262,17 +260,7 @@ export default function AdminPartners() {
 
     if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
 
-    const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", partner.contact_email).maybeSingle();
-    if (partnerUser) {
-      await supabase.from("notifications").insert({
-        user_id: partnerUser.id,
-        title: t("adminPartners.notifChangesTitle"),
-        body: t("adminPartners.notifChangesBody", { comment: reviewComment.trim() }),
-        type: "info",
-        link: "/account",
-      });
-    }
-
+    await notifyPartner(partner.contact_email, t("adminPartners.notifChangesTitle"), t("adminPartners.notifChangesBody", { comment: reviewComment.trim() }));
     toast.success(t("adminPartners.changesRequestSent"));
     setReviewComment("");
     invalidatePartnerCaches();
@@ -290,17 +278,7 @@ export default function AdminPartners() {
 
     if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
 
-    const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", partner.contact_email).maybeSingle();
-    if (partnerUser) {
-      await supabase.from("notifications").insert({
-        user_id: partnerUser.id,
-        title: t("adminPartners.notifRejectedTitle"),
-        body: t("adminPartners.notifRejectedBody", { comment: reviewComment.trim() }),
-        type: "info",
-        link: "/account",
-      });
-    }
-
+    await notifyPartner(partner.contact_email, t("adminPartners.notifRejectedTitle"), t("adminPartners.notifRejectedBody", { comment: reviewComment.trim() }));
     toast.success(t("adminPartners.partnerRejected"));
     setReviewComment("");
     invalidatePartnerCaches();

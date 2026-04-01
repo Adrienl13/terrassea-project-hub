@@ -209,19 +209,19 @@ export function usePaymentFlow() {
           partner_conditions: partnerConditions,
           payment_method: "bank_transfer",
           status: "pending_deposit",
-        } as any)
-        .select()
+        })
+        .select("id")
         .single();
 
       if (orderErr || !order) throw new Error(orderErr?.message ?? "Failed to create order");
 
       // 5. Insert order_event
       await supabase.from("order_events").insert({
-        order_id: (order as any).id,
+        order_id: order.id,
         event_type: "order_created",
         description: `Order created from quote ${quoteRequestId}. Payment reference: ${paymentReference}`,
         actor: user?.id ?? "system",
-      } as any);
+      });
 
       // 6. Send payment instructions email via Edge Function
       const lang = localStorage.getItem("i18nextLng") ?? "en";
@@ -257,15 +257,16 @@ export function usePaymentFlow() {
           body: `Your order for ${quote.product_name} has been created. Please proceed with the deposit payment.`,
           type: "order_update",
           link: `/account?tab=orders`,
-        } as any);
+        });
       }
 
       // 8. Notify partner that their quote was accepted and order created
+      const partnerJoin = quote.partner as { name?: string; contact_email?: string } | null;
       if (quote.partner_id) {
         const { data: partnerProfile } = await supabase
           .from("user_profiles")
           .select("id")
-          .eq("email", (quote.partner as any)?.contact_email ?? "")
+          .eq("email", partnerJoin?.contact_email ?? "")
           .maybeSingle();
 
         if (partnerProfile?.id) {
@@ -275,15 +276,15 @@ export function usePaymentFlow() {
             body: `Votre devis pour ${quote.product_name} (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté. Une commande a été créée.`,
             type: "order_update",
             link: `/account?tab=quotes`,
-          } as any);
+          });
         }
 
         // Send email to partner
         try {
           await supabase.functions.invoke("send-notification-email", {
             body: {
-              to: (quote.partner as any)?.contact_email,
-              subject: `Devis accepté — commande #${(order as any).id?.slice(0, 8)}`,
+              to: partnerJoin?.contact_email,
+              subject: `Devis accepté — commande #${order.id?.slice(0, 8)}`,
               body_html: `<p>Votre devis pour <strong>${quote.product_name}</strong> (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté par le client.</p><p>Une commande a été créée. Le client procède au paiement de l'acompte.</p>`,
               body_text: `Votre devis pour ${quote.product_name} (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté. Une commande a été créée.`,
             },
@@ -294,7 +295,7 @@ export function usePaymentFlow() {
       }
 
       // 9. Return the order
-      return order as any;
+      return order;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-orders"] });
@@ -328,7 +329,7 @@ export function usePaymentFlow() {
         event_type: "deposit_confirmed",
         description: "Deposit payment confirmed. Production can begin.",
         actor: user?.id ?? "system",
-      } as any);
+      });
 
       // 3. Notify client
       const { data: order } = await supabase
@@ -344,7 +345,7 @@ export function usePaymentFlow() {
           body: `Your deposit for ${order.product_name} has been confirmed. Production is starting.`,
           type: "order_update",
           link: `/account?tab=orders`,
-        } as any);
+        });
       }
     },
     onSuccess: () => {
@@ -377,7 +378,7 @@ export function usePaymentFlow() {
         event_type: "balance_confirmed",
         description: "Balance payment confirmed. Order is fully paid.",
         actor: user?.id ?? "system",
-      } as any);
+      });
 
       // 3. Notify client
       const { data: order } = await supabase
@@ -393,7 +394,7 @@ export function usePaymentFlow() {
           body: `Your balance payment for ${order.product_name} has been confirmed. Your order is fully paid.`,
           type: "order_update",
           link: `/account?tab=orders`,
-        } as any);
+        });
       }
     },
     onSuccess: () => {
