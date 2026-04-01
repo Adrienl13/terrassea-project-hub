@@ -311,6 +311,7 @@ function ProductDetailCard({ pd, title }: { pd: Record<string, any>; title: stri
   const styleTags = (pd.style_tags || []) as string[];
   const materialTags = (pd.material_tags || []) as string[];
   const colorVariants = (pd.available_colors || pd.color_variants || []) as string[];
+  const dimensionVariants = (pd.dimension_variants || []) as { dimension_tag: string; label?: string; seats?: number; price?: number }[];
 
   return (
     <div className="space-y-5">
@@ -415,6 +416,20 @@ function ProductDetailCard({ pd, title }: { pd: Record<string, any>; title: stri
             <div>
               <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-wider mb-1">Variantes couleur</p>
               <div className="flex flex-wrap gap-1">{colorVariants.map((c, i) => <TagPill key={i}>{String(c)}</TagPill>)}</div>
+            </div>
+          )}
+          {dimensionVariants.length > 0 && (
+            <div>
+              <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-wider mb-1">Variantes dimensions</p>
+              <div className="flex flex-wrap gap-1.5">
+                {dimensionVariants.map((dv, i) => (
+                  <span key={i} className="text-[10px] font-body px-2.5 py-1 rounded-lg border border-border bg-card">
+                    <span className="font-display font-semibold">{dv.label || dv.dimension_tag?.replace(/x/g, "×")}</span>
+                    {dv.seats != null && <span className="text-muted-foreground ml-1">({dv.seats} pl.)</span>}
+                    {dv.price != null && <span className="text-[#D4603A] font-semibold ml-1">€{dv.price}</span>}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>

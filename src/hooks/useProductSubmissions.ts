@@ -293,6 +293,7 @@ export function useAdminSubmissions() {
         secondary_color: pd.secondary_color ?? null,
         available_colors: pd.available_colors ?? [],
         color_variants: pd.color_variants ?? [],
+        dimension_variants: pd.dimension_variants ?? [],
         // Materials
         material_structure: pd.material_structure ?? null,
         material_seat: pd.material_seat ?? null,
@@ -368,27 +369,51 @@ export function useAdminSubmissions() {
 
       if (productError) throw productError;
 
-      // Create product_offers entry linking the partner to the new product
-      const { error: offerError } = await supabase
-        .from("product_offers")
-        .insert({
-          partner_id: submission.partner_id,
-          product_id: newProduct.id,
-          price: pd.price_min ?? null,
-          stock_status: pd.stock_status ?? "available",
-          stock_quantity: pd.stock_quantity ?? null,
-          delivery_delay_days: pd.estimated_delivery_days ?? null,
-          is_active: true,
-          pricing_mode: "public",
-          currency: "EUR",
-          partner_ref: pd.supplier_internal ?? null,
-          partner_color_name: pd.main_color ?? null,
-          collection_name: pd.collection ?? null,
-          minimum_order: pd.minimum_order ?? null,
-        } as any);
-
-      if (offerError) {
-        console.warn("Failed to create product_offer:", offerError.message);
+      // Create product_offers — one per dimension variant (tables) or one standard offer
+      const dimVariants = (pd.dimension_variants as any[]) ?? [];
+      if (dimVariants.length > 0) {
+        // Tables with multiple dimensions: create one offer per variant
+        for (const dv of dimVariants) {
+          const { error: offerError } = await supabase
+            .from("product_offers")
+            .insert({
+              partner_id: submission.partner_id,
+              product_id: newProduct.id,
+              price: dv.price ?? pd.price_min ?? null,
+              stock_status: pd.stock_status ?? "available",
+              stock_quantity: pd.stock_quantity ?? null,
+              delivery_delay_days: pd.estimated_delivery_days ?? null,
+              is_active: true,
+              pricing_mode: "public",
+              currency: "EUR",
+              partner_ref: pd.supplier_internal ?? null,
+              partner_color_name: pd.main_color ?? null,
+              collection_name: pd.collection ?? null,
+              minimum_order: pd.minimum_order ?? null,
+              dimension_tag: dv.dimension_tag ?? null,
+            } as any);
+          if (offerError) console.warn("Failed to create offer for dimension", dv.dimension_tag, offerError.message);
+        }
+      } else {
+        // Standard product (chairs, etc.): single offer
+        const { error: offerError } = await supabase
+          .from("product_offers")
+          .insert({
+            partner_id: submission.partner_id,
+            product_id: newProduct.id,
+            price: pd.price_min ?? null,
+            stock_status: pd.stock_status ?? "available",
+            stock_quantity: pd.stock_quantity ?? null,
+            delivery_delay_days: pd.estimated_delivery_days ?? null,
+            is_active: true,
+            pricing_mode: "public",
+            currency: "EUR",
+            partner_ref: pd.supplier_internal ?? null,
+            partner_color_name: pd.main_color ?? null,
+            collection_name: pd.collection ?? null,
+            minimum_order: pd.minimum_order ?? null,
+          } as any);
+        if (offerError) console.warn("Failed to create product_offer:", offerError.message);
       }
 
       // Update submission status with approved_product_id
@@ -490,6 +515,7 @@ export function useAdminSubmissions() {
         price_min: pd.price_min ?? null, price_max: pd.price_max ?? null,
         main_color: pd.main_color ?? null, secondary_color: pd.secondary_color ?? null,
         available_colors: pd.available_colors ?? [], color_variants: pd.color_variants ?? [],
+        dimension_variants: pd.dimension_variants ?? [],
         material_structure: pd.material_structure ?? null, material_seat: pd.material_seat ?? null,
         dimensions_length_cm: pd.dimensions_length_cm ?? null, dimensions_width_cm: pd.dimensions_width_cm ?? null,
         dimensions_height_cm: pd.dimensions_height_cm ?? null, seat_height_cm: pd.seat_height_cm ?? null,
