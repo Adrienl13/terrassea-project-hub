@@ -23,6 +23,7 @@ interface VendorOffersProps {
   isAdmin?: boolean;
   arrivals?: ProductArrival[];
   selectedColor?: string | null;
+  selectedDimension?: string | null;
 }
 
 // ── Country flags ─────────────────────────────────────────────────────────────
@@ -199,7 +200,7 @@ function SupplierAvatar({ index, isAdmin, offer }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin = false, arrivals = [], selectedColor = null }: VendorOffersProps) => {
+const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin = false, arrivals = [], selectedColor = null, selectedDimension = null }: VendorOffersProps) => {
   const { t } = useTranslation();
   const [quantity, setQuantity] = useState(defaultQuantity);
   const { addItem, selectSupplier } = useProjectCart();
@@ -211,15 +212,26 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
   const [projectBriefOffer, setProjectBriefOffer] = useState<ProductOffer | null>(null);
   const getPartnerTypeLabel = usePartnerTypeLabel();
 
-  // Filter offers by selected color variant when applicable
+  // Filter offers by selected color and/or dimension variant
   const offers = useMemo(() => {
-    if (!selectedColor) return allOffers;
-    const colorFiltered = allOffers.filter(o =>
-      o.partner_color_name?.toLowerCase() === selectedColor.toLowerCase()
-    );
-    // If no offers match the color, show all (backward compat for products without color offers)
-    return colorFiltered.length > 0 ? colorFiltered : allOffers;
-  }, [allOffers, selectedColor]);
+    let filtered = allOffers;
+
+    if (selectedColor) {
+      const colorFiltered = filtered.filter(o =>
+        o.partner_color_name?.toLowerCase() === selectedColor.toLowerCase()
+      );
+      if (colorFiltered.length > 0) filtered = colorFiltered;
+    }
+
+    if (selectedDimension) {
+      const dimFiltered = filtered.filter(o =>
+        o.dimension_tag?.toLowerCase() === selectedDimension.toLowerCase()
+      );
+      if (dimFiltered.length > 0) filtered = dimFiltered;
+    }
+
+    return filtered;
+  }, [allOffers, selectedColor, selectedDimension]);
 
   const getOfferArrivals = (partnerId: string) =>
     arrivals.filter((a) => a.partnerId === partnerId);

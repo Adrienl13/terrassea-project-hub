@@ -9,6 +9,15 @@ export interface ColorVariant {
   available:  boolean;
 }
 
+// ── Dimension variant (tables with multiple sizes) ──────
+export interface DimensionVariant {
+  dimension_tag: string;   // e.g. "80x80", "120x70"
+  label:         string;   // e.g. "80×80 cm — 4 couverts"
+  seats:         number;   // seating capacity for this size
+  price:         number;   // price for this dimension
+  available?:    boolean;  // stock availability (default true)
+}
+
 // ── Product-type specific tags (JSONB) ────────────────────
 export interface ProductTypeTags {
   silhouette?:     string;
@@ -97,7 +106,8 @@ export interface DBProduct {
   main_color:      string | null;
   secondary_color: string | null;
   available_colors: string[];
-  color_variants:  ColorVariant[];
+  color_variants:     ColorVariant[];
+  dimension_variants:  DimensionVariant[];
   dimensions_length_cm: number | null;
   dimensions_width_cm:  number | null;
   dimensions_height_cm: number | null;
@@ -399,8 +409,9 @@ export function normalizeProduct(raw: Record<string, any>): DBProduct {
     gallery_urls:    raw.gallery_urls    ?? [],
     environment_urls: raw.environment_urls ?? [],
     documents:       raw.documents       ?? [],
-    color_variants:  raw.color_variants  ?? [],
-    product_type_tags: raw.product_type_tags ?? {},
+    color_variants:     raw.color_variants     ?? [],
+    dimension_variants: raw.dimension_variants ?? [],
+    product_type_tags:  raw.product_type_tags  ?? {},
     is_outdoor:       raw.is_outdoor        ?? false,
     is_stackable:     raw.is_stackable      ?? false,
     is_chr_heavy_use: raw.is_chr_heavy_use  ?? false,

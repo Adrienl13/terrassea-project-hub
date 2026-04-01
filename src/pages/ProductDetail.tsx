@@ -4,6 +4,7 @@ import { ml } from "@/lib/i18nFields";
 import SEO from "@/components/SEO";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
 import ColorVariantSelector from "@/components/products/ColorVariantSelector";
+import DimensionVariantSelector from "@/components/products/DimensionVariantSelector";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -37,6 +38,7 @@ const ProductDetail = () => {
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+  const [selectedDimension, setSelectedDimension] = useState<string | null>(null);
   const isArchitect = profile?.user_type === "architect";
 
   const { data: product, isLoading } = useQuery({
@@ -278,11 +280,26 @@ const ProductDetail = () => {
                       />
                     </div>
                   )}
+                  {product.dimension_variants.length > 1 && (
+                    <div className="mt-3">
+                      <DimensionVariantSelector
+                        variants={product.dimension_variants}
+                        selectedDimension={selectedDimension}
+                        onSelectDimension={setSelectedDimension}
+                      />
+                    </div>
+                  )}
                    <div className="flex items-center gap-3 mt-3">
                     <span className="text-lg font-display font-bold text-foreground">
-                      {lowestOfferPrice !== null
-                        ? `${t('productDetail.startingFrom')} €${lowestOfferPrice.toFixed(2)}`
-                        : product.indicative_price || t('productDetail.onRequest')}
+                      {(() => {
+                        // Show selected dimension price if available
+                        const dimVariant = selectedDimension
+                          ? product.dimension_variants.find(v => v.dimension_tag === selectedDimension)
+                          : null;
+                        if (dimVariant) return `€${dimVariant.price.toFixed(2)}`;
+                        if (lowestOfferPrice !== null) return `${t('productDetail.startingFrom')} €${lowestOfferPrice.toFixed(2)}`;
+                        return product.indicative_price || t('productDetail.onRequest');
+                      })()}
                     </span>
                     <StockBadge status={offers.length > 0 ? (offers[0].stock_status ?? product.stock_status) : product.stock_status} />
                   </div>
@@ -446,7 +463,7 @@ const ProductDetail = () => {
         {/* Vendor offers */}
         <section className="px-6 mt-4">
           <div className="container mx-auto">
-            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} selectedColor={effectiveVariant} />
+            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} selectedColor={effectiveVariant} selectedDimension={selectedDimension} />
           </div>
         </section>
 

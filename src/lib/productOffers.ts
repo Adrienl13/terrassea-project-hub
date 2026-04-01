@@ -17,6 +17,7 @@ export interface ProductOffer {
   pricing_mode: string | null;
   collection_name: string | null;
   partner_color_name: string | null;
+  dimension_tag: string | null;
   partner?: {
     id: string;
     name: string;
