@@ -966,6 +966,18 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
       toast.success(t("clientDashboard.quoteAccepted"));
       queryClient.invalidateQueries({ queryKey: ["client-quotes"] });
 
+      // Auto-create order from accepted quote (non-blocking)
+      supabase.functions.invoke("auto-workflow", {
+        body: { action: "auto_create_order", quoteRequestId: quoteId },
+      }).then((res) => {
+        if (res.data && !res.data.skipped) {
+          toast.success("Commande créée automatiquement", {
+            description: "Vous recevrez les instructions de paiement par email.",
+          });
+          queryClient.invalidateQueries({ queryKey: ["client-orders"] });
+        }
+      }).catch((err) => console.error("auto_create_order failed:", err));
+
       // Notify admins
       try {
         const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
@@ -979,7 +991,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
           });
         }
       } catch {
-        // Non-blocking: admin notification failed silently
+        // Non-blocking
       }
     } catch (err) {
       console.error(err);
