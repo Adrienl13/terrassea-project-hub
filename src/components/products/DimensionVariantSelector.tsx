@@ -25,6 +25,11 @@ export default function DimensionVariantSelector({
           const isSelected = selectedDimension === v.dimension_tag;
           const isUnavailable = v.available === false;
 
+          const stockLabel = v.stock_status === "low_stock" ? "Stock faible"
+            : v.stock_status === "out_of_stock" ? "Rupture"
+            : v.stock_status === "made_to_order" ? "Sur commande"
+            : null;
+
           return (
             <button
               key={v.dimension_tag}
@@ -52,6 +57,15 @@ export default function DimensionVariantSelector({
                 <span className="text-[11px] font-display font-semibold text-[#D4603A]">
                   {v.price.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                 </span>
+                {stockLabel && (
+                  <span className={`text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full ${
+                    v.stock_status === "out_of_stock" ? "bg-red-50 text-red-600" :
+                    v.stock_status === "low_stock" ? "bg-amber-50 text-amber-600" :
+                    "bg-blue-50 text-blue-600"
+                  }`}>
+                    {stockLabel}
+                  </span>
+                )}
               </div>
             </button>
           );

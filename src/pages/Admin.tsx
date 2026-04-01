@@ -32,8 +32,9 @@ import AdminChatbotStats from "@/components/admin/AdminChatbotStats";
 import AdminFinancing from "@/components/admin/AdminFinancing";
 import AdminBrandManagement from "@/components/admin/AdminBrandManagement";
 import ColorVariantEditor from "@/components/admin/ColorVariantEditor";
+import DimensionVariantEditor from "@/components/admin/DimensionVariantEditor";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
-import type { ColorVariant } from "@/lib/products";
+import type { ColorVariant, DimensionVariant } from "@/lib/products";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
@@ -80,7 +81,7 @@ const emptyProduct = (): ProductFormData => ({
   recommended_seating_min: null, recommended_seating_max: null,
   combinable: false, combined_capacity_if_joined: null,
   archetype_id: null, archetype_confidence: null,
-  product_type_tags: {}, color_variants: [],
+  product_type_tags: {}, color_variants: [], dimension_variants: [],
   partner_id: null, environment_urls: [],
   name_fr: null, name_es: null, name_it: null,
   short_description_fr: null, short_description_es: null, short_description_it: null,
@@ -732,15 +733,41 @@ function ProductForm({
       {section === "pricing" && (
         <div className="space-y-6">
           <SectionHeader icon={CreditCard} title="Prix & Stock" description="Tarification, disponibilité et scores de visibilité" />
+
+          {/* Dimension variants editor — for tables */}
+          {(form.category || "").toLowerCase().includes("table") && (
+            <div className="border border-border rounded-2xl p-5 bg-card/30">
+              <DimensionVariantEditor
+                variants={(form.dimension_variants || []) as DimensionVariant[]}
+                onChange={(variants) => {
+                  const prices = variants.filter(v => v.price > 0).map(v => v.price);
+                  setForm(prev => ({
+                    ...prev,
+                    dimension_variants: variants,
+                    // Auto-sync price_min/max from variants
+                    ...(prices.length > 0 ? {
+                      price_min: Math.min(...prices),
+                      price_max: Math.max(...prices),
+                    } : {}),
+                  }));
+                }}
+              />
+            </div>
+          )}
+
           <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
-            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Tarification</p>
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
+              Tarification{(form.dimension_variants as DimensionVariant[] | undefined)?.length ? " (référence — auto-calculé depuis les variantes)" : ""}
+            </p>
             <div className="grid grid-cols-2 gap-4">
               {renderInput("Prix min (€)", "price_min", "number")}
               {renderInput("Prix max (€)", "price_max", "number")}
             </div>
           </div>
           <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
-            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Disponibilité</p>
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
+              Disponibilité{(form.dimension_variants as DimensionVariant[] | undefined)?.length ? " (globale — le stock par taille est dans les variantes)" : ""}
+            </p>
             <div className="grid grid-cols-2 gap-4">
               {renderSelect("Type de disponibilité", "availability_type", AVAILABILITY_OPTIONS)}
               {renderSelect("Statut stock", "stock_status", STOCK_STATUS_OPTIONS)}

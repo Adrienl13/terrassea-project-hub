@@ -11,11 +11,13 @@ export interface ColorVariant {
 
 // ── Dimension variant (tables with multiple sizes) ──────
 export interface DimensionVariant {
-  dimension_tag: string;   // e.g. "80x80", "120x70"
-  label:         string;   // e.g. "80×80 cm — 4 couverts"
-  seats:         number;   // seating capacity for this size
-  price:         number;   // price for this dimension
-  available?:    boolean;  // stock availability (default true)
+  dimension_tag: string;        // e.g. "80x80", "120x70"
+  label:         string;        // e.g. "80×80 cm — 4 couverts"
+  seats:         number;        // seating capacity for this size
+  price:         number;        // price for this dimension
+  available?:    boolean;       // stock availability (default true)
+  stock_status?: string;        // "in_stock", "low_stock", "out_of_stock", "made_to_order"
+  stock_quantity?: number | null; // per-variant stock count
 }
 
 // ── Product-type specific tags (JSONB) ────────────────────
