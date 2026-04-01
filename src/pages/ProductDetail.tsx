@@ -301,7 +301,12 @@ const ProductDetail = () => {
                         return product.indicative_price || t('productDetail.onRequest');
                       })()}
                     </span>
-                    <StockBadge status={offers.length > 0 ? (offers[0].stock_status ?? product.stock_status) : product.stock_status} />
+                    <StockBadge status={
+                      selectedDimension
+                        ? (product.dimension_variants?.find((v: any) => v.dimension_tag === selectedDimension)?.stock_status
+                          ?? product.stock_status)
+                        : (offers.length > 0 ? (offers[0].stock_status ?? product.stock_status) : product.stock_status)
+                    } />
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground font-body">
                     {offersCount > 0 && (

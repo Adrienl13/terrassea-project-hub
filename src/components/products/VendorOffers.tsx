@@ -229,11 +229,17 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
       const dimFiltered = filtered.filter(o =>
         o.dimension_tag?.toLowerCase() === selectedDimension.toLowerCase()
       );
-      if (dimFiltered.length > 0) filtered = dimFiltered;
+      // Strict filter: only show matching offers (don't fall back to all)
+      filtered = dimFiltered;
     }
 
     return filtered;
   }, [allOffers, selectedColor, selectedDimension]);
+
+  // Selected dimension variant info (for fallback display when no offers match)
+  const selectedVariant = selectedDimension
+    ? product.dimension_variants?.find((v: any) => v.dimension_tag === selectedDimension)
+    : null;
 
   const getOfferArrivals = (partnerId: string) =>
     arrivals.filter((a) => a.partnerId === partnerId);
@@ -278,7 +284,59 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
     return { lowestTotal, fastestDelivery, bestStockIndex };
   }, [offers, quantity]);
 
-  if (offers.length === 0) return null;
+  if (offers.length === 0) {
+    // When a dimension is selected but no offers match, show variant info + quote CTA
+    if (selectedVariant) {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-sm font-display font-bold text-foreground">{t("vendorOffers.title", "Offres fournisseurs")}</h3>
+          <div className="border border-border rounded-xl p-5 text-center space-y-3">
+            <p className="text-sm font-display font-semibold text-foreground">
+              {selectedVariant.label || selectedVariant.dimension_tag?.replace(/x/g, "×")}
+            </p>
+            <div className="flex items-center justify-center gap-4 text-xs font-body text-muted-foreground">
+              <span>{selectedVariant.seats} {selectedVariant.seats > 1 ? "places" : "place"}</span>
+              <span className="text-base font-display font-bold text-foreground">
+                {selectedVariant.price?.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })} HT
+              </span>
+              {selectedVariant.stock_status && (
+                <span className={`text-[10px] font-display font-semibold px-2 py-0.5 rounded-full ${
+                  selectedVariant.stock_status === "out_of_stock" ? "bg-red-50 text-red-600" :
+                  selectedVariant.stock_status === "low_stock" ? "bg-amber-50 text-amber-600" :
+                  selectedVariant.stock_status === "made_to_order" ? "bg-blue-50 text-blue-600" :
+                  "bg-green-50 text-green-600"
+                }`}>
+                  {selectedVariant.stock_status === "out_of_stock" ? "Rupture" :
+                   selectedVariant.stock_status === "low_stock" ? "Stock faible" :
+                   selectedVariant.stock_status === "made_to_order" ? "Sur commande" :
+                   "En stock"}
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] font-body text-muted-foreground">
+              Pas d'offre spécifique pour cette taille — demandez un devis personnalisé.
+            </p>
+            <button
+              onClick={() => setQuoteModalOffer(allOffers[0] || null)}
+              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Demander un devis
+            </button>
+          </div>
+          {quoteModalOffer && (
+            <QuoteRequestModal
+              open
+              product={product}
+              offers={[quoteModalOffer]}
+              onClose={() => setQuoteModalOffer(null)}
+            />
+          )}
+        </div>
+      );
+    }
+    return null;
+  }
 
   const buildSupplier = (offer: ProductOffer, index: number): SelectedSupplier => ({
     offerId: offer.id,
