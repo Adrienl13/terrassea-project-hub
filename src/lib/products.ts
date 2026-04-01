@@ -202,8 +202,8 @@ const PLAN_COMMISSION: Record<string, number> = {
   brand_network: 1.5,
 };
 
-export function applyCommission(price: number, plan: string): number {
-  const rate = PLAN_COMMISSION[plan] ?? PLAN_COMMISSION.starter;
+export function applyCommission(price: number, plan: string, overrideRate?: number | null): number {
+  const rate = overrideRate ?? PLAN_COMMISSION[plan] ?? PLAN_COMMISSION.starter;
   return Math.round((price * (1 + rate / 100)) * 100) / 100;
 }
 
@@ -222,16 +222,22 @@ export async function fetchProducts(): Promise<DBProduct[]> {
 
   if (productsRes.error) throw productsRes.error;
 
-  // Fetch partner plans to gate brand_source visibility
+  // Fetch partner plans + subscription commission overrides
   const partnerIds = [...new Set((productsRes.data ?? []).map(p => p.partner_id).filter(Boolean))];
   const partnerPlans = new Map<string, string>();
+  const partnerCommissions = new Map<string, number | null>();
   if (partnerIds.length > 0) {
-    const { data: partners } = await supabase
-      .from("partners")
-      .select("id, plan")
-      .in("id", partnerIds);
+    const [{ data: partners }, { data: subs }] = await Promise.all([
+      supabase.from("partners").select("id, plan").in("id", partnerIds),
+      supabase.from("partner_subscriptions").select("partner_id, commission_rate").in("partner_id", partnerIds),
+    ]);
     for (const p of partners ?? []) {
       partnerPlans.set(p.id, p.plan || "starter");
+    }
+    for (const s of subs ?? []) {
+      if (s.commission_rate != null) {
+        partnerCommissions.set(s.partner_id, Number(s.commission_rate));
+      }
     }
   }
 
@@ -239,28 +245,31 @@ export async function fetchProducts(): Promise<DBProduct[]> {
     const stats   = offerStats.get(raw.id);
     const product = normalizeProduct(raw);
 
-    // Resolve partner plan
+    // Resolve partner plan and commission rate
     const plan = product.partner_id
       ? partnerPlans.get(product.partner_id) || "starter"
       : "starter";
+    const commissionRate = product.partner_id
+      ? partnerCommissions.get(product.partner_id) ?? null
+      : null;
 
     // Hide brand_source for Starter plan partners
     if (product.partner_id && !BRAND_VISIBLE_PLANS.includes(plan)) {
       product.brand_source = null;
     }
 
-    // Apply commission to client-facing prices
+    // Apply commission to client-facing prices (subscription override > plan default)
     if (product.price_min != null) {
-      product.price_min = applyCommission(product.price_min, plan);
+      product.price_min = applyCommission(product.price_min, plan, commissionRate);
     }
     if (product.price_max != null) {
-      product.price_max = applyCommission(product.price_max, plan);
+      product.price_max = applyCommission(product.price_max, plan, commissionRate);
     }
 
     if (stats) {
       product.offers_count = stats.count;
       if (stats.minPrice != null && product.price_min == null) {
-        product.price_min = applyCommission(stats.minPrice, plan);
+        product.price_min = applyCommission(stats.minPrice, plan, commissionRate);
       }
     }
     return product;
@@ -282,23 +291,24 @@ export async function fetchProductById(id: string): Promise<DBProduct | null> {
 
   const product = normalizeProduct(data);
 
-  // Hide brand_source for Starter plan partners
+  // Hide brand_source for Starter plan partners + apply commission
   if (product.partner_id) {
-    const { data: partner } = await supabase
-      .from("partners")
-      .select("plan")
-      .eq("id", product.partner_id)
-      .maybeSingle();
+    const [{ data: partner }, { data: sub }] = await Promise.all([
+      supabase.from("partners").select("plan").eq("id", product.partner_id).maybeSingle(),
+      supabase.from("partner_subscriptions").select("commission_rate").eq("partner_id", product.partner_id).maybeSingle(),
+    ]);
     const plan = partner?.plan || "starter";
+    const commissionRate = sub?.commission_rate != null ? Number(sub.commission_rate) : null;
+
     if (!BRAND_VISIBLE_PLANS.includes(plan)) {
       product.brand_source = null;
     }
-    // Apply commission to client-facing prices
+    // Apply commission (subscription override > plan default)
     if (product.price_min != null) {
-      product.price_min = applyCommission(product.price_min, plan);
+      product.price_min = applyCommission(product.price_min, plan, commissionRate);
     }
     if (product.price_max != null) {
-      product.price_max = applyCommission(product.price_max, plan);
+      product.price_max = applyCommission(product.price_max, plan, commissionRate);
     }
   }
 

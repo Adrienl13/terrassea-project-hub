@@ -43,12 +43,26 @@ export async function fetchProductOffers(productId: string): Promise<ProductOffe
 
   if (error) throw error;
 
-  // Apply commission to client-facing prices
+  // Fetch subscription commission overrides for all partners in offers
+  const partnerIds = [...new Set((data ?? []).map((o: any) => o.partner_id).filter(Boolean))];
+  const commissionMap = new Map<string, number | null>();
+  if (partnerIds.length > 0) {
+    const { data: subs } = await supabase
+      .from("partner_subscriptions")
+      .select("partner_id, commission_rate")
+      .in("partner_id", partnerIds);
+    for (const s of subs ?? []) {
+      if (s.commission_rate != null) commissionMap.set(s.partner_id, Number(s.commission_rate));
+    }
+  }
+
+  // Apply commission (subscription override > plan default)
   return (data ?? []).map((offer: any) => {
     const plan = offer.partner?.plan || "starter";
+    const overrideRate = commissionMap.get(offer.partner_id) ?? null;
     return {
       ...offer,
-      price: offer.price != null ? applyCommission(offer.price, plan) : null,
+      price: offer.price != null ? applyCommission(offer.price, plan, overrideRate) : null,
     } as ProductOffer;
   });
 }
