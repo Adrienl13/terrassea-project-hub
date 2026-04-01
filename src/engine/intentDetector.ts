@@ -106,9 +106,11 @@ const TERM_TO_COLOR_SLUG: Record<string, string> = {
   beige: "beige", cream: "cream", green: "green", sage: "sage",
   olive: "olive", red: "red", rust: "rust", gold: "gold",
   bronze: "bronze", teak: "teak", walnut: "walnut",
-  brown: "dark-brown", taupe: "taupe", silver: "silver",
+  brown: "brown", taupe: "taupe", silver: "silver",
   copper: "copper", yellow: "yellow", mustard: "mustard",
-  ivory: "ivory",
+  ivory: "ivory", camel: "camel", tan: "camel",
+  orange: "orange", coral: "coral", turquoise: "turquoise",
+  pink: "pink", lavender: "lavender", lilac: "lavender",
   // FR
   bleu: "blue", bleue: "blue", marine: "navy",
   blanc: "white", blanche: "white",
@@ -116,18 +118,28 @@ const TERM_TO_COLOR_SLUG: Record<string, string> = {
   gris: "grey", grise: "grey",
   vert: "green", verte: "green",
   rouge: "red", rouille: "rust",
-  sable: "sand", naturel: "natural",
+  sable: "sand", naturel: "natural", naturelle: "natural",
+  marron: "brown", brun: "brown", brune: "brown",
+  corail: "coral", rose: "pink",
+  lavande: "lavender",
   // IT
   blu: "blue", bianco: "white", nero: "black",
   grigio: "grey", verde: "green", rosso: "red",
   sabbia: "sand", avorio: "ivory", ruggine: "rust",
+  marrone: "brown", arancione: "orange",
+  corallo: "coral", rosa: "pink", turchese: "turquoise",
+  naturale: "natural", cammello: "camel", lavanda: "lavender",
   // ES
   azul: "blue", blanco: "white", negro: "black",
-  rojo: "red",
+  rojo: "red", verde: "green",
   arena: "sand", marfil: "ivory", óxido: "rust",
+  marrón: "brown", naranja: "orange",
+  turquesa: "turquoise", rosado: "pink",
   // DE
   blau: "blue", weiß: "white", weiss: "white",
   schwarz: "black", grau: "grey", grün: "green",
+  braun: "brown", rot: "red", gelb: "yellow",
+  türkis: "turquoise",
 };
 
 // Style/material terms → style_tags slugs

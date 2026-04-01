@@ -128,9 +128,16 @@ export default function AdminPartners() {
   const { data: productCounts = {} } = useQuery<Record<string, number>>({
     queryKey: ["admin_partner_product_counts"],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("supplier_internal");
+      const { data } = await supabase
+        .from("products")
+        .select("partner_id, partners!inner(slug)")
+        .not("partner_id", "is", null)
+        .eq("publish_status", "published");
       const counts: Record<string, number> = {};
-      (data || []).forEach((p: any) => { if (p.supplier_internal) counts[p.supplier_internal] = (counts[p.supplier_internal] || 0) + 1; });
+      (data || []).forEach((p: any) => {
+        const slug = p.partners?.slug;
+        if (slug) counts[slug] = (counts[slug] || 0) + 1;
+      });
       return counts;
     },
   });

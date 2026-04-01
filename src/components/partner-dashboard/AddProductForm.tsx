@@ -23,7 +23,6 @@ interface AIAnalysis {
   secondary_color?: string;
   style_tags?: string[];
   ambience_tags?: string[];
-  material_tags?: string[];
   use_case_tags?: string[];
   is_outdoor?: boolean;
   is_stackable?: boolean;
@@ -59,7 +58,7 @@ interface ProductFormData {
   material_seat: string;
   style_tags: string[];
   ambience_tags: string[];
-  material_tags: string[];
+
   use_case_tags: string[];
   dimensions_length_cm: number | null;
   dimensions_width_cm: number | null;
@@ -84,7 +83,7 @@ const EMPTY_FORM: ProductFormData = {
   name: "", category: "", subcategory: "", short_description: "", long_description: "",
   image_url: "", gallery_urls: [], environment_urls: [], price_min: null, price_max: null,
   main_color: "", secondary_color: "", material_structure: "", material_seat: "",
-  style_tags: [], ambience_tags: [], material_tags: [], use_case_tags: [],
+  style_tags: [], ambience_tags: [], use_case_tags: [],
   dimensions_length_cm: null, dimensions_width_cm: null, dimensions_height_cm: null,
   seat_height_cm: null, weight_kg: null,
   is_outdoor: true, is_stackable: false, is_chr_heavy_use: false,
@@ -103,8 +102,13 @@ const CATEGORIES = [
 ];
 
 const COLOR_OPTIONS = [
-  "white", "black", "grey", "anthracite", "natural-wood", "beige",
-  "terracotta", "blue", "green", "taupe", "brown", "cream", "red", "yellow",
+  "white", "black", "grey", "anthracite", "brown", "natural", "beige", "cream",
+  "taupe", "camel", "sand", "teak", "walnut",
+  "blue", "navy", "petrol", "turquoise",
+  "green", "sage", "olive",
+  "terracotta", "rust", "orange", "coral",
+  "red", "bordeaux", "pink", "blush", "lavender",
+  "yellow", "mustard", "gold",
 ];
 
 const STOCK_OPTIONS = [
@@ -161,7 +165,7 @@ export default function AddProductForm({
         material_seat: d.material_seat || "",
         style_tags: d.style_tags || [],
         ambience_tags: d.ambience_tags || [],
-        material_tags: d.material_tags || [],
+
         use_case_tags: d.use_case_tags || [],
         dimensions_length_cm: d.dimensions_length_cm ?? null,
         dimensions_width_cm: d.dimensions_width_cm ?? null,
@@ -361,7 +365,7 @@ export default function AddProductForm({
       secondary_color: ai.secondary_color || prev.secondary_color,
       style_tags: ai.style_tags?.length ? ai.style_tags : prev.style_tags,
       ambience_tags: ai.ambience_tags?.length ? ai.ambience_tags : prev.ambience_tags,
-      material_tags: ai.material_tags?.length ? ai.material_tags : prev.material_tags,
+
       use_case_tags: ai.use_case_tags?.length ? ai.use_case_tags : prev.use_case_tags,
       is_outdoor: ai.is_outdoor ?? prev.is_outdoor,
       is_stackable: ai.is_stackable ?? prev.is_stackable,
@@ -435,7 +439,7 @@ export default function AddProductForm({
         material_seat: form.material_seat || null,
         style_tags: form.style_tags.length > 0 ? form.style_tags : null,
         ambience_tags: form.ambience_tags.length > 0 ? form.ambience_tags : null,
-        material_tags: form.material_tags.length > 0 ? form.material_tags : null,
+
         use_case_tags: form.use_case_tags.length > 0 ? form.use_case_tags : null,
         dimensions_length_cm: form.dimensions_length_cm,
         dimensions_width_cm: form.dimensions_width_cm,
@@ -852,6 +856,10 @@ export default function AddProductForm({
                 {renderInput("Sous-catégorie", "subcategory", "text", false, "Ex: dining-chair, bar-stool")}
                 {renderSelect("Couleur principale", "main_color", COLOR_OPTIONS.map(c => ({ value: c, label: c })))}
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                {renderSelect("Couleur secondaire (optionnel)", "secondary_color",
+                  [{ value: "", label: "— Aucune —" }, ...COLOR_OPTIONS.map(c => ({ value: c, label: c }))])}
+              </div>
               <div>
                 <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
                   Description courte
@@ -889,9 +897,9 @@ export default function AddProductForm({
                 >
                   Tags & classifications
                   {expandedTags ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                  {(form.style_tags.length + form.use_case_tags.length + form.material_tags.length) > 0 && (
+                  {(form.style_tags.length + form.use_case_tags.length) > 0 && (
                     <span className="text-[9px] font-body text-muted-foreground">
-                      ({form.style_tags.length + form.use_case_tags.length + form.material_tags.length} tags)
+                      ({form.style_tags.length + form.use_case_tags.length} tags)
                     </span>
                   )}
                 </button>
@@ -899,7 +907,6 @@ export default function AddProductForm({
                   <div className="space-y-3 pl-1">
                     <TagEditor label="Style" tags={form.style_tags} onChange={v => set("style_tags", v)} />
                     <TagEditor label="Ambiance" tags={form.ambience_tags} onChange={v => set("ambience_tags", v)} />
-                    <TagEditor label="Matériaux" tags={form.material_tags} onChange={v => set("material_tags", v)} />
                     <TagEditor label="Cas d'usage" tags={form.use_case_tags} onChange={v => set("use_case_tags", v)} />
                   </div>
                 )}

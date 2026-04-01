@@ -80,69 +80,6 @@ export type Database = {
         }
         Relationships: []
       }
-      brand_distributors: {
-        Row: {
-          id: string
-          brand_id: string
-          distributor_id: string
-          country_code: string
-          is_exclusive: boolean | null
-          is_active: boolean | null
-          priority: number | null
-          allow_price_override: boolean | null
-          collections: string[] | null
-          commission_override: number | null
-          revenue_share_brand: number | null
-          revenue_share_distributor: number | null
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          brand_id: string
-          distributor_id: string
-          country_code: string
-          is_exclusive?: boolean | null
-          is_active?: boolean | null
-          priority?: number | null
-          allow_price_override?: boolean | null
-          collections?: string[] | null
-          commission_override?: number | null
-          revenue_share_brand?: number | null
-          revenue_share_distributor?: number | null
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          brand_id?: string
-          distributor_id?: string
-          country_code?: string
-          is_exclusive?: boolean | null
-          is_active?: boolean | null
-          priority?: number | null
-          allow_price_override?: boolean | null
-          collections?: string[] | null
-          commission_override?: number | null
-          revenue_share_brand?: number | null
-          revenue_share_distributor?: number | null
-          created_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "brand_distributors_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "partners"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "brand_distributors_distributor_id_fkey"
-            columns: ["distributor_id"]
-            isOneToOne: false
-            referencedRelation: "partners"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       board_items: {
         Row: {
           board_id: string
@@ -180,6 +117,54 @@ export type Database = {
             columns: ["board_id"]
             isOneToOne: false
             referencedRelation: "material_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_distributors: {
+        Row: {
+          brand_id: string
+          country_code: string
+          created_at: string | null
+          distributor_id: string
+          id: string
+          is_active: boolean | null
+          is_exclusive: boolean | null
+          priority: number | null
+        }
+        Insert: {
+          brand_id: string
+          country_code: string
+          created_at?: string | null
+          distributor_id: string
+          id?: string
+          is_active?: boolean | null
+          is_exclusive?: boolean | null
+          priority?: number | null
+        }
+        Update: {
+          brand_id?: string
+          country_code?: string
+          created_at?: string | null
+          distributor_id?: string
+          id?: string
+          is_active?: boolean | null
+          is_exclusive?: boolean | null
+          priority?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_distributors_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_distributors_distributor_id_fkey"
+            columns: ["distributor_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]
@@ -1421,7 +1406,9 @@ export type Database = {
           commission_rate: number | null
           confirmed_orders_count: number | null
           created_at: string | null
+          engagement_months: number | null
           id: string
+          max_featured: number | null
           max_products: number | null
           partner_id: string | null
           plan: string | null
@@ -1436,7 +1423,9 @@ export type Database = {
           commission_rate?: number | null
           confirmed_orders_count?: number | null
           created_at?: string | null
+          engagement_months?: number | null
           id?: string
+          max_featured?: number | null
           max_products?: number | null
           partner_id?: string | null
           plan?: string | null
@@ -1451,7 +1440,9 @@ export type Database = {
           commission_rate?: number | null
           confirmed_orders_count?: number | null
           created_at?: string | null
+          engagement_months?: number | null
           id?: string
+          max_featured?: number | null
           max_products?: number | null
           partner_id?: string | null
           plan?: string | null
@@ -1476,7 +1467,6 @@ export type Database = {
           admin_notes: string | null
           admin_visibility_override: boolean | null
           application_id: string | null
-          brand_features: Json | null
           certifications: string[] | null
           city: string | null
           contact_email: string | null
@@ -1496,11 +1486,10 @@ export type Database = {
           hero_image_url: string | null
           id: string
           is_active: boolean | null
-          is_featured: boolean | null
           is_public: boolean | null
           logo_url: string | null
           name: string
-          partner_mode: string | null
+          partner_mode: string
           partner_type: string | null
           plan: string | null
           priority_order: number | null
@@ -1525,7 +1514,6 @@ export type Database = {
           admin_notes?: string | null
           admin_visibility_override?: boolean | null
           application_id?: string | null
-          brand_features?: Json | null
           certifications?: string[] | null
           city?: string | null
           contact_email?: string | null
@@ -1545,11 +1533,10 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
-          is_featured?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name: string
-          partner_mode?: string | null
+          partner_mode?: string
           partner_type?: string | null
           plan?: string | null
           priority_order?: number | null
@@ -1574,7 +1561,6 @@ export type Database = {
           admin_notes?: string | null
           admin_visibility_override?: boolean | null
           application_id?: string | null
-          brand_features?: Json | null
           certifications?: string[] | null
           city?: string | null
           contact_email?: string | null
@@ -1594,11 +1580,10 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
-          is_featured?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name?: string
-          partner_mode?: string | null
+          partner_mode?: string
           partner_type?: string | null
           plan?: string | null
           priority_order?: number | null
@@ -2085,10 +2070,9 @@ export type Database = {
           partner_id: string
           partner_ref: string | null
           price: number | null
-          pricing_mode: string | null
+          pricing_mode: string
           product_id: string
           purchase_type: string | null
-          source_offer_id: string | null
           stock_quantity: number | null
           stock_status: string | null
           updated_at: string | null
@@ -2106,10 +2090,9 @@ export type Database = {
           partner_id: string
           partner_ref?: string | null
           price?: number | null
-          pricing_mode?: string | null
+          pricing_mode?: string
           product_id: string
           purchase_type?: string | null
-          source_offer_id?: string | null
           stock_quantity?: number | null
           stock_status?: string | null
           updated_at?: string | null
@@ -2127,10 +2110,9 @@ export type Database = {
           partner_id?: string
           partner_ref?: string | null
           price?: number | null
-          pricing_mode?: string | null
+          pricing_mode?: string
           product_id?: string
           purchase_type?: string | null
-          source_offer_id?: string | null
           stock_quantity?: number | null
           stock_status?: string | null
           updated_at?: string | null
@@ -2150,125 +2132,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "product_offers_source_offer_id_fkey"
-            columns: ["source_offer_id"]
-            isOneToOne: false
-            referencedRelation: "product_offers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      project_briefs: {
-        Row: {
-          id: string
-          brand_partner_id: string
-          product_id: string | null
-          client_user_id: string | null
-          routed_to_partner_id: string | null
-          establishment_type: string | null
-          stars_or_class: string | null
-          capacity: number | null
-          country: string | null
-          collections_interest: string[] | null
-          quantity_estimate: number | null
-          budget_range: string | null
-          timeline: string | null
-          project_type: string | null
-          first_name: string | null
-          last_name: string | null
-          email: string | null
-          company: string | null
-          siren: string | null
-          message: string | null
-          qualification_score: number | null
-          status: string | null
-          is_auto_routed: boolean | null
-          created_at: string
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          brand_partner_id: string
-          product_id?: string | null
-          client_user_id?: string | null
-          routed_to_partner_id?: string | null
-          establishment_type?: string | null
-          stars_or_class?: string | null
-          capacity?: number | null
-          country?: string | null
-          collections_interest?: string[] | null
-          quantity_estimate?: number | null
-          budget_range?: string | null
-          timeline?: string | null
-          project_type?: string | null
-          first_name?: string | null
-          last_name?: string | null
-          email?: string | null
-          company?: string | null
-          siren?: string | null
-          message?: string | null
-          qualification_score?: number | null
-          status?: string | null
-          is_auto_routed?: boolean | null
-          created_at?: string
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          brand_partner_id?: string
-          product_id?: string | null
-          client_user_id?: string | null
-          routed_to_partner_id?: string | null
-          establishment_type?: string | null
-          stars_or_class?: string | null
-          capacity?: number | null
-          country?: string | null
-          collections_interest?: string[] | null
-          quantity_estimate?: number | null
-          budget_range?: string | null
-          timeline?: string | null
-          project_type?: string | null
-          first_name?: string | null
-          last_name?: string | null
-          email?: string | null
-          company?: string | null
-          siren?: string | null
-          message?: string | null
-          qualification_score?: number | null
-          status?: string | null
-          is_auto_routed?: boolean | null
-          created_at?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "project_briefs_brand_partner_id_fkey"
-            columns: ["brand_partner_id"]
-            isOneToOne: false
-            referencedRelation: "partners"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_briefs_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_briefs_routed_to_partner_id_fkey"
-            columns: ["routed_to_partner_id"]
-            isOneToOne: false
-            referencedRelation: "partners"
-            referencedColumns: ["id"]
-          },
         ]
       }
       product_submissions: {
         Row: {
           admin_feedback: Json | null
           admin_notes: string | null
+          approved_product_id: string | null
           created_at: string | null
           detected_duplicate_id: string | null
           existing_description: string | null
@@ -2290,6 +2160,7 @@ export type Database = {
         Insert: {
           admin_feedback?: Json | null
           admin_notes?: string | null
+          approved_product_id?: string | null
           created_at?: string | null
           detected_duplicate_id?: string | null
           existing_description?: string | null
@@ -2311,6 +2182,7 @@ export type Database = {
         Update: {
           admin_feedback?: Json | null
           admin_notes?: string | null
+          approved_product_id?: string | null
           created_at?: string | null
           detected_duplicate_id?: string | null
           existing_description?: string | null
@@ -2330,6 +2202,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "product_submissions_approved_product_id_fkey"
+            columns: ["approved_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_submissions_detected_duplicate_id_fkey"
             columns: ["detected_duplicate_id"]
@@ -2680,6 +2559,109 @@ export type Database = {
             columns: ["zone_id"]
             isOneToOne: false
             referencedRelation: "project_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_briefs: {
+        Row: {
+          brand_partner_id: string
+          budget_range: string | null
+          capacity: number | null
+          client_user_id: string | null
+          collections_interest: string[] | null
+          company: string | null
+          country: string | null
+          created_at: string | null
+          email: string | null
+          establishment_type: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          message: string | null
+          product_id: string | null
+          project_type: string | null
+          qualification_score: number | null
+          quantity_estimate: number | null
+          routed_to_partner_id: string | null
+          siren: string | null
+          stars_or_class: string | null
+          status: string | null
+          timeline: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          brand_partner_id: string
+          budget_range?: string | null
+          capacity?: number | null
+          client_user_id?: string | null
+          collections_interest?: string[] | null
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          establishment_type?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          message?: string | null
+          product_id?: string | null
+          project_type?: string | null
+          qualification_score?: number | null
+          quantity_estimate?: number | null
+          routed_to_partner_id?: string | null
+          siren?: string | null
+          stars_or_class?: string | null
+          status?: string | null
+          timeline?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          brand_partner_id?: string
+          budget_range?: string | null
+          capacity?: number | null
+          client_user_id?: string | null
+          collections_interest?: string[] | null
+          company?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          establishment_type?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          message?: string | null
+          product_id?: string | null
+          project_type?: string | null
+          qualification_score?: number | null
+          quantity_estimate?: number | null
+          routed_to_partner_id?: string | null
+          siren?: string | null
+          stars_or_class?: string | null
+          status?: string | null
+          timeline?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_briefs_brand_partner_id_fkey"
+            columns: ["brand_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_briefs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_briefs_routed_to_partner_id_fkey"
+            columns: ["routed_to_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]
@@ -3636,18 +3618,107 @@ export type Database = {
           search_query: string
         }
         Returns: {
+          ambience_tags: string[] | null
+          archetype_confidence: number | null
+          archetype_id: string | null
+          availability_type: string | null
+          available_colors: string[] | null
+          brand_source: string | null
           category: string
+          collection: string | null
+          color_variants: Json | null
+          combinable: boolean | null
+          combined_capacity_if_joined: number | null
+          country_of_manufacture: string | null
+          created_at: string | null
+          customizable: boolean | null
+          data_quality_score: number | null
+          default_seating_capacity: number | null
+          dimensions_height_cm: number | null
+          dimensions_length_cm: number | null
+          dimensions_width_cm: number | null
+          dismountable: boolean | null
+          documents: Json | null
+          duplicate_of: string | null
+          easy_maintenance: boolean | null
+          environment_urls: string[] | null
+          estimated_delivery_days: number | null
+          fire_retardant: boolean | null
+          gallery_urls: string[] | null
           id: string
-          image_urls: string[]
-          main_color: string
+          image_url: string | null
+          indicative_price: string | null
+          is_canonical_instance: boolean | null
+          is_chr_heavy_use: boolean | null
+          is_outdoor: boolean | null
+          is_stackable: boolean | null
+          lightweight: boolean | null
+          long_description: string | null
+          long_description_es: string | null
+          long_description_fr: string | null
+          long_description_it: string | null
+          main_color: string | null
+          maintenance_info: string | null
+          maintenance_info_es: string | null
+          maintenance_info_fr: string | null
+          maintenance_info_it: string | null
+          material_seat: string | null
+          material_structure: string | null
+          material_tags: string[] | null
           name: string
-          price_indicator: string
-          publish_status: string
-          relevance_score: number
+          name_es: string | null
+          name_fr: string | null
+          name_it: string | null
+          palette_tags: string[] | null
+          partner_id: string | null
+          popularity_score: number | null
+          price_max: number | null
+          price_min: number | null
+          priority_score: number | null
+          product_family: string | null
+          product_type_tags: Json | null
+          publish_status: string | null
+          recommended_seating_max: number | null
+          recommended_seating_min: number | null
+          requires_assembly: boolean | null
+          seat_height_cm: number | null
+          secondary_color: string | null
+          short_description: string | null
+          short_description_es: string | null
+          short_description_fr: string | null
+          short_description_it: string | null
+          stock_quantity: number | null
+          stock_status: string | null
+          style_tags: string[] | null
+          subcategory: string | null
+          supplier_internal: string | null
+          table_shape: string | null
+          technical_tags: string[] | null
+          updated_at: string | null
+          use_case_tags: string[] | null
+          uv_resistant: boolean | null
+          warranty: string | null
+          weather_resistant: boolean | null
+          weight_kg: number | null
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       generate_partner_slug: { Args: { company: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      reserve_preorder: {
+        Args: {
+          p_arrival_item_id: string
+          p_product_id: string
+          p_quantity: number
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       search_products_multilang: {
         Args: {
           category_filter?: string

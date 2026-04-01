@@ -122,12 +122,14 @@ const COLOR_SLUG_TO_HEX: Record<string, string> = {
   natural:    "#C4B8A8",
   beige:      "#D4C5A9",
   champagne:  "#D4C9A8",
+  camel:      "#C4A060",
   taupe:      "#A69B8E",
   grey:       "#888888",
   graphite:   "#666666",
   charcoal:   "#444444",
   anthracite: "#333333",
   black:      "#1A1A1A",
+  brown:      "#8B6B4A",
   teak:       "#8B7355",
   walnut:     "#6B5040",
   "dark-brown": "#4A3020",
@@ -135,18 +137,23 @@ const COLOR_SLUG_TO_HEX: Record<string, string> = {
   terracotta: "#D4603A",
   rust:       "#C04828",
   copper:     "#B07040",
-  "red":      "#C03020",
+  orange:     "#E07020",
+  coral:      "#E87060",
+  red:        "#C03020",
   bordeaux:   "#7A1828",
+  pink:       "#E890A0",
+  blush:      "#E8B0A8",
+  lavender:   "#9890C0",
   mustard:    "#C49820",
   gold:       "#C4956A",
   yellow:     "#E8C840",
   olive:      "#6B7B5E",
   sage:       "#8B9B7E",
   green:      "#4A6B4A",
+  turquoise:  "#40B0B0",
   navy:       "#1A3A5A",
   petrol:     "#1A4A5A",
   blue:       "#4A6BA8",
-  blush:      "#E8B0A8",
   silver:     "#B8C0C8",
   bronze:     "#8B6B4A",
 };
@@ -158,16 +165,25 @@ const HEX_TO_PALETTE_TAGS: Record<string, string[]> = {
   "#F5E6D3": ["natural", "white"],
   "#E8DDD3": ["natural", "white"],
   "#8B7355": ["wood", "natural"],
+  "#8B6B4A": ["wood", "natural"],       // brown
   "#A69B8E": ["natural"],
+  "#C4A060": ["warm", "natural"],       // camel
   "#1A1A1A": ["black"],
   "#333333": ["black"],
   "#888888": ["cool"],
   "#4A90A4": ["cool", "navy"],
+  "#40B0B0": ["cool"],                  // turquoise
   "#6B7B5E": ["green"],
+  "#4A6B4A": ["green"],                 // green
   "#FFFFFF": ["white"],
   "#F5F0EB": ["white", "natural"],
   "#D4C5A9": ["natural"],
   "#C4B8A8": ["natural"],
+  "#E07020": ["warm", "terracotta"],    // orange
+  "#E87060": ["warm", "terracotta"],    // coral
+  "#E890A0": ["cool"],                  // pink
+  "#E8B0A8": ["cool"],                  // blush
+  "#9890C0": ["cool"],                  // lavender
 };
 
 function deriveConceptPalette(
@@ -180,12 +196,15 @@ function deriveConceptPalette(
   const realHex: string[] = [];
   const realNames: string[] = [];
   for (const p of selectedProducts) {
-    if (!p.main_color) continue;
-    const hex = COLOR_SLUG_TO_HEX[p.main_color.toLowerCase()];
-    if (!hex || seen.has(hex)) continue;
-    seen.add(hex);
-    realHex.push(hex);
-    realNames.push(p.main_color.charAt(0).toUpperCase() + p.main_color.slice(1).replace(/-/g, " "));
+    // Include both main and secondary colors in concept palette
+    const productColors = [p.main_color, p.secondary_color].filter(Boolean) as string[];
+    for (const color of productColors) {
+      const hex = COLOR_SLUG_TO_HEX[color.toLowerCase()];
+      if (!hex || seen.has(hex)) continue;
+      seen.add(hex);
+      realHex.push(hex);
+      realNames.push(color.charAt(0).toUpperCase() + color.slice(1).replace(/-/g, " "));
+    }
   }
 
   // Strategy: template palette is the BASE (defines concept identity),
@@ -529,20 +548,22 @@ const COLOR_FAMILIES: Record<string, string> = {
   white: "light", cream: "light", ivory: "light", "off-white": "light",
   // Warm neutrals
   beige: "warm-neutral", sand: "warm-neutral", taupe: "warm-neutral", champagne: "warm-neutral",
+  natural: "warm-neutral", camel: "warm-neutral",
   // Cool neutrals
   grey: "cool-neutral", silver: "cool-neutral",
   // Woods
-  teak: "wood", walnut: "wood", "dark-brown": "wood", chocolate: "wood",
+  brown: "wood", teak: "wood", walnut: "wood", "dark-brown": "wood", chocolate: "wood",
   // Earths
   terracotta: "earth", rust: "earth", copper: "earth", bronze: "earth",
   // Nature
   green: "nature", sage: "nature", olive: "nature",
   // Cool tones
-  blue: "cool-tone", navy: "cool-tone", "petrol-blue": "cool-tone",
+  blue: "cool-tone", navy: "cool-tone", petrol: "cool-tone", turquoise: "cool-tone",
   // Warm tones
   red: "warm-tone", mustard: "warm-tone", gold: "warm-tone", yellow: "warm-tone",
+  orange: "warm-tone", coral: "warm-tone", bordeaux: "warm-tone",
   // Pastels
-  "blush-pink": "pastel", bordeaux: "warm-tone",
+  blush: "pastel", pink: "pastel", lavender: "pastel",
 };
 
 // Families that harmonize well together
@@ -562,20 +583,13 @@ const CLASHING_PAIRS: [string, string][] = [
   ["earth", "cool-tone"],
 ];
 
-function colorHarmonyScore(productColor: string | null, conceptColors: string[]): number {
-  if (!productColor) return 0;
+function colorHarmonyScoreSingle(productColor: string, conceptFamilies: string[]): number {
   const productFamily = COLOR_FAMILIES[productColor.toLowerCase()];
   if (!productFamily) return 0;
 
-  const conceptFamilies = conceptColors
-    .map(c => COLOR_FAMILIES[c.toLowerCase()])
-    .filter((f): f is string => !!f);
-
-  if (conceptFamilies.length === 0) return 0;
-
   let score = 0;
   for (const cf of conceptFamilies) {
-    if (cf === productFamily) { score += 1.5; continue; } // same family = good
+    if (cf === productFamily) { score += 1.5; continue; }
     const isHarmonious = HARMONIOUS_PAIRS.some(
       ([a, b]) => (a === productFamily && b === cf) || (b === productFamily && a === cf)
     );
@@ -587,6 +601,27 @@ function colorHarmonyScore(productColor: string | null, conceptColors: string[])
   }
 
   return score;
+}
+
+function colorHarmonyScore(productColor: string | null, conceptColors: string[], secondaryColor?: string | null): number {
+  if (!productColor) return 0;
+
+  const conceptFamilies = conceptColors
+    .map(c => COLOR_FAMILIES[c.toLowerCase()])
+    .filter((f): f is string => !!f);
+  if (conceptFamilies.length === 0) return 0;
+
+  // Score main color
+  const mainScore = colorHarmonyScoreSingle(productColor, conceptFamilies);
+
+  // Score secondary color if present — take the best of both
+  if (secondaryColor) {
+    const secScore = colorHarmonyScoreSingle(secondaryColor, conceptFamilies);
+    // Bicolor: main color dominates (100%), secondary adds 50% of its score
+    return mainScore + secScore * 0.5;
+  }
+
+  return mainScore;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1113,16 +1148,20 @@ function scoreProduct(
     if (params.ambience.includes(tag))      score += W.ambience * 0.6;
   }
 
-  // FIX A — Palette: compare product main_color vs concept hex
-  if (product.main_color) {
-    const productHex = COLOR_SLUG_TO_HEX[product.main_color.toLowerCase()];
-    if (productHex) {
-      const inConceptPalette = concept.colorHex.includes(productHex);
-      const paletteTagsForHex = HEX_TO_PALETTE_TAGS[productHex] || [];
-      const matchesUserPalette = paletteTagsForHex.some(t => params.colorPalette.includes(t));
-      if (inConceptPalette)   score += W.conceptPalette;
-      if (matchesUserPalette) score += W.palette;
-      // Penalize clear color clash
+  // FIX A — Palette: compare product colors vs concept hex (main + secondary)
+  const colorsToScore = [product.main_color, product.secondary_color].filter(Boolean) as string[];
+  for (const colorSlug of colorsToScore) {
+    const productHex = COLOR_SLUG_TO_HEX[colorSlug.toLowerCase()];
+    if (!productHex) continue;
+    const isMain = colorSlug === product.main_color;
+    const weight = isMain ? 1.0 : 0.5; // secondary contributes 50%
+    const inConceptPalette = concept.colorHex.includes(productHex);
+    const paletteTagsForHex = HEX_TO_PALETTE_TAGS[productHex] || [];
+    const matchesUserPalette = paletteTagsForHex.some(t => params.colorPalette.includes(t));
+    if (inConceptPalette)   score += W.conceptPalette * weight;
+    if (matchesUserPalette) score += W.palette * weight;
+    // Penalize clear color clash (main color only)
+    if (isMain) {
       const clashMap: Record<string, string[]> = {
         "#1A1A1A": ["natural","warm","terracotta"],
         "#D4603A": ["black","cool"],
@@ -1195,7 +1234,7 @@ function scoreProduct(
 
   // Color harmony — advanced palette compatibility
   const conceptColorSlugs = concept.colorNames.map(c => c.toLowerCase().replace(/\s+/g, "-"));
-  score += colorHarmonyScore(product.main_color, conceptColorSlugs);
+  score += colorHarmonyScore(product.main_color, conceptColorSlugs, product.secondary_color);
 
   // Popularity (kept low to not override quality signals)
   score += product.popularity_score * W.popularity;
@@ -1452,24 +1491,16 @@ function selectProductsForConcept(
 
 function computeCohesionScore(selected: DBProduct[]): number {
   if (selected.length < 2) return 0;
-  const colors = selected
-    .map(p => p.main_color?.toLowerCase())
-    .filter((c): c is string => !!c);
+  // Collect all colors (main + secondary) for cohesion analysis
+  const colors: string[] = [];
+  for (const p of selected) {
+    if (p.main_color) colors.push(p.main_color.toLowerCase());
+    if (p.secondary_color) colors.push(p.secondary_color.toLowerCase());
+  }
   if (colors.length < 2) return 0;
 
-  // Group colors by family
-  const FAMILY: Record<string, string> = {
-    black: "dark", anthracite: "dark", charcoal: "dark", graphite: "dark",
-    white: "light", cream: "light", ivory: "light", "off-white": "light",
-    beige: "warm-neutral", sand: "warm-neutral", taupe: "warm-neutral",
-    grey: "cool-neutral", silver: "cool-neutral",
-    teak: "wood", walnut: "wood", "dark-brown": "wood",
-    terracotta: "earth", rust: "earth", copper: "earth", bronze: "earth",
-    green: "nature", sage: "nature", olive: "nature",
-    blue: "cool", navy: "cool", "petrol-blue": "cool",
-  };
-
-  const families = colors.map(c => FAMILY[c] || c);
+  // Use the shared COLOR_FAMILIES mapping
+  const families = colors.map(c => COLOR_FAMILIES[c] || c);
   const familyCounts: Record<string, number> = {};
   for (const f of families) familyCounts[f] = (familyCounts[f] || 0) + 1;
 

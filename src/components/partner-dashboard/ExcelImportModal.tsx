@@ -24,15 +24,12 @@ interface AIProduct {
   long_description?: string | null;
   material_structure?: string | null;
   material_seat?: string | null;
-  frame_material_tags?: string[];
-  seat_type_tags?: string[];
   fabric_material_tags?: string[];
   top_material_tags?: string[];
   cushion_type_tags?: string[];
   main_color?: string | null;
   secondary_color?: string | null;
   available_colors?: string[];
-  palette_tags?: string[];
   style_tags?: string[];
   ambience_tags?: string[];
   silhouette_tags?: string[];
@@ -288,15 +285,12 @@ export default function ExcelImportModal({
       long_description: ["long_description", "description_longue", "long_desc"],
       material_structure: ["material_structure", "matériau_structure", "materiau_structure", "frame_material"],
       material_seat: ["material_seat", "matériau_assise", "materiau_assise", "seat_material"],
-      frame_material_tags: ["frame_material_tags", "frame_tags"],
-      seat_type_tags: ["seat_type_tags", "seat_tags"],
       fabric_material_tags: ["fabric_material_tags", "fabric_tags"],
       top_material_tags: ["top_material_tags", "top_tags"],
       cushion_type_tags: ["cushion_type_tags", "cushion_tags"],
       main_color: ["main_color", "couleur_principale", "couleur", "color"],
       secondary_color: ["secondary_color", "couleur_secondaire"],
       available_colors: ["available_colors", "couleurs_disponibles", "colors"],
-      palette_tags: ["palette_tags", "palette"],
       style_tags: ["style_tags", "style", "styles"],
       ambience_tags: ["ambience_tags", "ambiance", "ambience"],
       silhouette_tags: ["silhouette_tags", "silhouette"],
@@ -318,7 +312,6 @@ export default function ExcelImportModal({
       fire_retardant: ["fire_retardant", "ignifuge", "fire"],
       lightweight: ["lightweight", "léger", "leger", "light"],
       easy_maintenance: ["easy_maintenance", "entretien_facile", "maintenance"],
-      technical_tags: ["technical_tags", "technical", "technique"],
       stock_status: ["stock_status", "stock", "disponibilité", "disponibilite"],
       stock_quantity: ["stock_quantity", "quantité", "quantite", "quantity", "qty"],
       estimated_delivery_days: ["estimated_delivery_days", "delivery_days", "délai_livraison", "delai_livraison", "delivery"],
@@ -385,22 +378,19 @@ export default function ExcelImportModal({
         long_description: col(row, "long_description") || null,
         material_structure: col(row, "material_structure") || null,
         material_seat: col(row, "material_seat") || null,
-        frame_material_tags: parseArrayField(col(row, "frame_material_tags")),
-        seat_type_tags: parseArrayField(col(row, "seat_type_tags")),
         fabric_material_tags: parseArrayField(col(row, "fabric_material_tags")),
         top_material_tags: parseArrayField(col(row, "top_material_tags")),
         cushion_type_tags: parseArrayField(col(row, "cushion_type_tags")),
         main_color: col(row, "main_color") || null,
         secondary_color: col(row, "secondary_color") || null,
         available_colors: parseArrayField(col(row, "available_colors")),
-        palette_tags: parseArrayField(col(row, "palette_tags")),
         style_tags: parseArrayField(col(row, "style_tags")),
         ambience_tags: parseArrayField(col(row, "ambience_tags")),
         silhouette_tags: parseArrayField(col(row, "silhouette_tags")),
         comfort_tier: col(row, "comfort_tier") || null,
         material_tags: [],
         use_case_tags: parseArrayField(col(row, "use_case_tags")),
-        technical_tags: parseArrayField(col(row, "technical_tags")),
+        technical_tags: [],
         price_min: parseNum(col(row, "price_min")),
         price_max: parseNum(col(row, "price_max")),
         dimensions_length_cm: parseNum(col(row, "dimensions_length_cm")),
@@ -462,14 +452,14 @@ export default function ExcelImportModal({
       "name","category","subcategory","collection","brand_source",
       "short_description","short_description_fr","short_description_it","short_description_es",
       "long_description","material_structure","material_seat",
-      "frame_material_tags","seat_type_tags","fabric_material_tags","top_material_tags","cushion_type_tags",
-      "main_color","secondary_color","available_colors","palette_tags",
+      "fabric_material_tags","top_material_tags","cushion_type_tags",
+      "main_color","secondary_color","available_colors",
       "style_tags","ambience_tags","silhouette_tags","comfort_tier","use_case_tags",
       "price_min","price_max",
       "dimensions_length_cm","dimensions_width_cm","dimensions_height_cm","seat_height_cm","weight_kg",
       "height_type","is_outdoor","is_stackable","is_chr_heavy_use",
       "uv_resistant","weather_resistant","fire_retardant","lightweight","easy_maintenance",
-      "technical_tags","stock_status","stock_quantity","estimated_delivery_days",
+      "stock_status","stock_quantity","estimated_delivery_days",
       "country_of_manufacture","warranty",
       "image_url","gallery_urls",
       "parasol_type","parasol_shape","parasol_size","parasol_opening","parasol_fabric_tag",
@@ -479,14 +469,14 @@ export default function ExcelImportModal({
       "Chaise Riviera","Chairs","Dining Chair","Riviera","",
       "Stackable alu & textilene chair","Chaise empilable alu et textilène","Sedia impilabile in alluminio","Silla apilable de aluminio",
       "","Aluminium","Textilene",
-      "alu-powder","mesh","","","",
-      "anthracite","","anthracite|white|taupe","",
+      "","","",
+      "anthracite","","anthracite|white|taupe",
       "modern|mediterranean","relaxed|bright","4-leg","functional","garden-restaurant|boutique-hotel",
       "89","129",
       "56","58","84","45","3.8",
       "dining","TRUE","TRUE","TRUE",
       "TRUE","TRUE","FALSE","TRUE","TRUE",
-      "stackable|weather-resistant|uv-resistant","available","","",
+      "available","","",
       "Italy","2 ans",
       "","",
       "","","","","",
@@ -567,9 +557,7 @@ export default function ExcelImportModal({
           available_colors: p.available_colors || [],
           style_tags: p.style_tags || [],
           ambience_tags: p.ambience_tags || [],
-          material_tags: p.material_tags || [],
           use_case_tags: p.use_case_tags || [],
-          technical_tags: p.technical_tags || [],
           price_min: p.price_min ?? null,
           price_max: p.price_max ?? null,
           dimensions_length_cm: p.dimensions_length_cm ?? null,
@@ -775,8 +763,6 @@ export default function ExcelImportModal({
         if (p.comfort_tier) productTypeTags.comfort_tier = p.comfort_tier;
         if (p.height_type) productTypeTags.height_type = p.height_type;
         if (p.silhouette_tags && p.silhouette_tags.length > 0) productTypeTags.silhouette = p.silhouette_tags;
-        if (p.frame_material_tags && p.frame_material_tags.length > 0) productTypeTags.frame_material = p.frame_material_tags;
-        if (p.seat_type_tags && p.seat_type_tags.length > 0) productTypeTags.seat_type = p.seat_type_tags;
         if (p.fabric_material_tags && p.fabric_material_tags.length > 0) productTypeTags.fabric_material = p.fabric_material_tags;
         if (p.top_material_tags && p.top_material_tags.length > 0) productTypeTags.top_material = p.top_material_tags;
         if (p.cushion_type_tags && p.cushion_type_tags.length > 0) productTypeTags.cushion_type = p.cushion_type_tags;
@@ -803,12 +789,9 @@ export default function ExcelImportModal({
           main_color: p.main_color || null,
           secondary_color: p.secondary_color || null,
           available_colors: p.available_colors || [],
-          palette_tags: p.palette_tags && p.palette_tags.length > 0 ? p.palette_tags : [],
           style_tags: p.style_tags || [],
           ambience_tags: p.ambience_tags || [],
-          material_tags: p.material_tags || [],
           use_case_tags: p.use_case_tags || [],
-          technical_tags: p.technical_tags || [],
           price_min: p.price_min,
           price_max: p.price_max,
           dimensions_length_cm: p.dimensions_length_cm,
@@ -1125,7 +1108,6 @@ export default function ExcelImportModal({
             const filteredProducts = filterCat ? products.filter(p => p.category === filterCat) : products;
             const allTags = (p: AIProduct) => [
               ...(p.style_tags || []),
-              ...(p.material_tags || []),
               ...(p.use_case_tags || []),
               ...(p.ambience_tags || []),
             ];
