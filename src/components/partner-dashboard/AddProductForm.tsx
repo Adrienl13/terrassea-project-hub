@@ -923,22 +923,75 @@ export default function AddProductForm({
           {/* ── Caractéristiques techniques ── */}
           {section === "specs" && (
             <div className="space-y-5">
-              <p className="text-xs font-display font-semibold text-foreground">Dimensions</p>
+              {/* ── Category-specific fields ── */}
+              {(form.category === "seating") && (
+                <>
+                  <p className="text-xs font-display font-semibold text-foreground">Spécifications — Assises</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {renderSelect("Silhouette", "material_structure", ["bistrot","4-leg","sled","cantilever","lounge","shell","cross-back","folding","stacking"].map(v => ({ value: v, label: v })))}
+                    {renderSelect("Type d'assise", "material_seat", ["pp-shell","rope-woven","textilène","coussin","teck-massif","alu-massif","rotin-tressé","lattes-bois","mesh","tissu-stretch"].map(v => ({ value: v, label: v })))}
+                  </div>
+                </>
+              )}
+
+              {(form.category === "tables") && (
+                <>
+                  <p className="text-xs font-display font-semibold text-foreground">Spécifications — Tables</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {renderSelect("Type de table", "material_structure", ["complete","plateau-seul","piètement-seul"].map(v => ({ value: v, label: v === "complete" ? "Table complète" : v === "plateau-seul" ? "Plateau seul" : "Piètement seul" })))}
+                    {renderSelect("Forme", "material_seat", ["carré","rectangulaire","rond","ovale"].map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })))}
+                  </div>
+                </>
+              )}
+
+              {(form.category === "parasols") && (
+                <>
+                  <p className="text-xs font-display font-semibold text-foreground">Spécifications — Parasols</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {renderSelect("Type", "material_structure", ["mât-central","déporté","mural","voile","pergola"].map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })))}
+                    {renderSelect("Forme", "material_seat", ["rond","carré","rectangulaire","hexagonal"].map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })))}
+                  </div>
+                </>
+              )}
+
+              {(form.category === "loungers") && (
+                <>
+                  <p className="text-xs font-display font-semibold text-foreground">Spécifications — Bains de soleil</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {renderSelect("Matériau structure", "material_structure", ["aluminium","acier","teck","résine-hdpe"].map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })))}
+                    {renderSelect("Type de coussin", "material_seat", ["quick-dry","déhoussable","waterproof","intégré","sunbrella","sans"].map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })))}
+                  </div>
+                </>
+              )}
+
+              {(form.category === "sofas") && (
+                <>
+                  <p className="text-xs font-display font-semibold text-foreground">Spécifications — Canapés</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {renderSelect("Matériau structure", "material_structure", ["aluminium","teck","résine-hdpe","acier"].map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })))}
+                    {renderSelect("Type d'assise", "material_seat", ["coussin","rope-woven","textilène","intégré"].map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })))}
+                  </div>
+                </>
+              )}
+
+              {/* ── Dimensions (all categories) ── */}
+              <p className="text-xs font-display font-semibold text-foreground pt-2">Dimensions</p>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {renderInput("Longueur", "dimensions_length_cm", "number", false, "—", "cm")}
                 {renderInput("Largeur", "dimensions_width_cm", "number", false, "—", "cm")}
                 {renderInput("Hauteur", "dimensions_height_cm", "number", false, "—", "cm")}
-                {renderInput("Haut. assise", "seat_height_cm", "number", false, "—", "cm")}
+                {form.category === "seating" && renderInput("Haut. assise", "seat_height_cm", "number", false, "—", "cm")}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {renderInput("Poids", "weight_kg", "number", false, "—", "kg")}
                 {renderInput("Pays de fabrication", "country_of_manufacture", "text", false, "Ex: Italie, Espagne")}
               </div>
 
+              {/* ── Properties (adaptive) ── */}
               <p className="text-xs font-display font-semibold text-foreground pt-2">Propriétés</p>
               <div className="grid grid-cols-2 gap-3">
                 {renderToggle("Usage extérieur", "is_outdoor")}
-                {renderToggle("Empilable", "is_stackable")}
+                {form.category === "seating" && renderToggle("Empilable", "is_stackable")}
                 {renderToggle("Usage CHR intensif", "is_chr_heavy_use")}
                 {renderToggle("Résistant aux intempéries", "weather_resistant")}
                 {renderToggle("Résistant UV", "uv_resistant")}
@@ -1111,9 +1164,15 @@ export default function AddProductForm({
                 onClick={() => {
                   const order = ["photo", "basics", "specs", "pricing"] as const;
                   const idx = order.indexOf(section);
+                  // Gate: require category before advancing past basics
+                  if (section === "basics" && !form.category) {
+                    toast.error("Veuillez sélectionner une catégorie avant de continuer");
+                    return;
+                  }
                   if (idx < order.length - 1) setSection(order[idx + 1]);
                 }}
-                className="flex items-center gap-2 px-5 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                disabled={section === "basics" && !form.category}
+                className="flex items-center gap-2 px-5 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-40 transition-opacity"
               >
                 Suivant
               </button>
