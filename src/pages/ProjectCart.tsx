@@ -237,6 +237,101 @@ const ProjectCart = () => {
       insert(cartItems);
       if (ciError) throw ciError;
 
+      // ── Create individual quote_requests for each cart item ──
+      // This connects the project flow to the partner quote workflow
+      const notifiedPartnerIds = new Set<string>();
+
+      for (const item of items) {
+        const product = item.product;
+        const supplier = item.selectedSupplier;
+        // Find the best offer if no supplier was pre-selected
+        let partnerId = supplier?.partnerId || null;
+        let partnerName = supplier?.partnerName || null;
+        let offerId = supplier?.offerId || null;
+        let unitPrice = supplier?.price || product.price_min || null;
+
+        // If no supplier pre-selected, find best offer for this product
+        if (!partnerId) {
+          try {
+            const { data: bestOffer } = await supabase
+              .from("product_offers")
+              .select("id, partner_id, price, partners(name)")
+              .eq("product_id", product.id)
+              .eq("is_active", true)
+              .not("price", "is", null)
+              .order("price", { ascending: true })
+              .limit(1)
+              .maybeSingle();
+            if (bestOffer) {
+              partnerId = bestOffer.partner_id;
+              partnerName = (bestOffer.partners as any)?.name || null;
+              offerId = bestOffer.id;
+              unitPrice = bestOffer.price;
+            }
+          } catch {
+            // Non-blocking: best offer lookup failed
+          }
+        }
+
+        try {
+          await supabase.from("quote_requests").insert({
+            project_request_id: pr.id,
+            product_id: product.id,
+            product_name: product.name,
+            offer_id: offerId,
+            partner_id: partnerId,
+            partner_name: partnerName,
+            quantity: item.quantity,
+            first_name: formData.name.split(" ")[0],
+            last_name: formData.name.split(" ").slice(1).join(" ") || null,
+            email: formData.email,
+            company: formData.company || sirenResult?.companyName || null,
+            siren: formData.siren,
+            client_first_name: formData.name.split(" ")[0],
+            client_city: formData.city || sirenResult?.address || null,
+            client_user_id: user?.id || null,
+            unit_price: unitPrice,
+            total_price: unitPrice ? unitPrice * item.quantity : null,
+            status: "pending",
+          });
+        } catch (err) {
+          console.error("Failed to create quote_request for", product.name, err);
+        }
+
+        // Notify the assigned partner (once per partner, not per item)
+        if (partnerId && !notifiedPartnerIds.has(partnerId)) {
+          notifiedPartnerIds.add(partnerId);
+          try {
+            const { data: partnerUser } = await supabase
+              .from("partners")
+              .select("user_id")
+              .eq("id", partnerId)
+              .maybeSingle();
+            if (partnerUser?.user_id) {
+              const partnerItemCount = items.filter(
+                i => (i.selectedSupplier?.partnerId || partnerId) === partnerId
+              ).length;
+              await supabase.from("notifications").insert({
+                user_id: partnerUser.user_id,
+                title: "Nouvelle demande de devis",
+                body: `${formData.name} — ${partnerItemCount} produit(s) pour ${formData.company || "un projet"}`,
+                type: "info",
+                link: "/account?tab=quotes",
+              });
+            }
+          } catch {
+            // Non-blocking
+          }
+        }
+      }
+
+      // Update project status to "sourcing"
+      try {
+        await supabase.from("project_requests").update({ status: "sourcing" }).eq("id", pr.id);
+      } catch {
+        // Non-blocking
+      }
+
       localStorage.removeItem("terrassea_cart_form");
       localStorage.removeItem("terrassea_cart_items");
       localStorage.removeItem("terrassea_cart_notes");
@@ -258,7 +353,7 @@ const ProjectCart = () => {
           });
         }
       } catch {
-        // Non-blocking: admin notification failed silently
+        // Non-blocking
       }
 
       // Send confirmation email (non-blocking)
@@ -272,7 +367,7 @@ const ProjectCart = () => {
           },
         });
       } catch {
-        // Non-blocking: confirmation email failed silently
+        // Non-blocking
       }
     } catch (err) {
       console.error(err);
