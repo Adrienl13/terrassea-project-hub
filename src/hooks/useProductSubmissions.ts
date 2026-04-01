@@ -226,6 +226,14 @@ export function useAdminSubmissions() {
         throw new Error("Le produit soumis n'a pas de nom ou de catégorie");
       }
 
+      // Normalize category slugs to standard labels
+      const CATEGORY_NORMALIZE: Record<string, string> = {
+        seating: "Chairs", chairs: "Chairs", stools: "Bar Stools", "bar stools": "Bar Stools",
+        tables: "Tables", parasols: "Parasols", armchairs: "Armchairs",
+      };
+      const rawCat = (pd.category as string).trim();
+      pd.category = CATEGORY_NORMALIZE[rawCat.toLowerCase()] ?? rawCat;
+
       // Convert base64 images to Storage URLs
       let finalImageUrl = (pd.image_url as string) ?? null;
       if (finalImageUrl && finalImageUrl.startsWith("data:image")) {
