@@ -244,8 +244,8 @@ function ProductTypeTagsForm({
           options={["alu-powder","alu-raw","teak-fsc","acacia","pp-gf","pp-standard","steel-epoxy","steel-raw","cast-iron","resin-hdpe","rattan-nat","oak","fiberglass","bamboo","hdpe"]} />
         <Field label="Seat type" field="seat_type"
           options={["pp-shell","rope-woven","textilene","cushion","integrated-cush","solid-teak","solid-alu","rattan-woven","wood-slats","mesh","perforated-alu","fabric-stretch"]} />
-        <Field label="Arm type" field="arm_type"
-          options={["no-arms","low-arms","full-arms","integrated"]} />
+        <Field label="Accoudoirs" field="arm_type"
+          options={["no-arms","with-arms"]} />
         <Field label="Back height" field="back_height"
           options={["no-back","low","mid","high"]} />
         <Field label="Comfort tier" field="comfort_tier"
