@@ -734,6 +734,8 @@ export function ClientProjectDetail({
           <div className="space-y-2">
             {products.map((product) => {
               const relatedQuote = relatedQuotes.find(
+                (q) => q.productId === product.productId
+              ) || relatedQuotes.find(
                 (q) => q.productName === product.name
               );
               const isExpanded = expandedProduct === product.id;
@@ -873,29 +875,55 @@ export function ClientProjectDetail({
         </div>
       )}
 
-      {/* ── Related quotes ──────────────────────────────────────── */}
-      {relatedQuotes.length > 0 && (
-        <div>
-          <p className="font-display font-bold text-sm text-foreground mb-3">{t("cd.detail.relatedQuotes")}</p>
+      {/* ── Quote requests summary ─────────────────────────────── */}
+      <div>
+        <p className="font-display font-bold text-sm text-foreground mb-3">
+          {t("cd.detail.relatedQuotes", "Demandes de devis")} ({relatedQuotes.length})
+        </p>
+        {relatedQuotes.length === 0 ? (
+          <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-amber-50/50 border border-amber-100">
+            <Clock className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[11px] font-display font-semibold text-amber-800">{t("cd.detail.noQuotesYet", "Devis en cours de création")}</p>
+              <p className="text-[10px] font-body text-amber-700">{t("cd.detail.noQuotesHint", "Nos partenaires vont recevoir votre demande et vous répondre sous 48h.")}</p>
+            </div>
+          </div>
+        ) : (
           <div className="space-y-2">
             {relatedQuotes.map((q) => (
-              <div key={q.id} className="flex items-center justify-between px-4 py-3 border border-border rounded-lg">
-                <div>
-                  <p className="text-xs font-display font-semibold text-foreground">{q.productName}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <MaskedSupplierTag quote={q} />
-                    <span className="text-[10px] font-body text-muted-foreground">{q.quantity} pcs</span>
+              <button
+                key={q.id}
+                onClick={() => onNavigate?.("quotes")}
+                className="w-full text-left border border-border rounded-lg hover:border-foreground/15 transition-colors overflow-hidden"
+              >
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-display font-bold text-foreground truncate">{q.productName}</p>
+                      <StatusBadge status={q.status} />
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <MaskedSupplierTag quote={q} />
+                      <span className="text-[10px] font-body text-muted-foreground">·</span>
+                      <span className="text-[10px] font-body text-muted-foreground">{q.quantity} pcs</span>
+                      <span className="text-[10px] font-body text-muted-foreground">·</span>
+                      <span className="text-[10px] font-body text-muted-foreground">{q.date}</span>
+                    </div>
                   </div>
+                  <div className="text-right shrink-0">
+                    {q.totalPrice ? (
+                      <p className="text-xs font-display font-semibold text-foreground">€{q.totalPrice.toLocaleString()}</p>
+                    ) : (
+                      <p className="text-[10px] font-body text-muted-foreground italic">{t("cd.detail.awaitingQuote", "En attente")}</p>
+                    )}
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-display font-semibold">€{(q.totalPrice || 0).toLocaleString()}</span>
-                  <StatusBadge status={q.status} />
-                </div>
-              </div>
+              </button>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Help tip */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-blue-50/50 border border-blue-100">
