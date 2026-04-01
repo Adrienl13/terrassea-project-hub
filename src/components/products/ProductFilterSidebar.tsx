@@ -37,9 +37,7 @@ export const EMPTY_FILTERS: FilterState = {
 
 export const ARM_TYPE_OPTIONS = [
   { key: "no-arms", labelKey: "filters.arm_noArms" },
-  { key: "low-arms", labelKey: "filters.arm_lowArms" },
-  { key: "full-arms", labelKey: "filters.arm_fullArms" },
-  { key: "integrated", labelKey: "filters.arm_integrated" },
+  { key: "with-arms", labelKey: "filters.arm_withArms" },
 ];
 
 export const CATEGORY_OPTIONS = [

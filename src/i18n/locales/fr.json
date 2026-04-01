@@ -2189,9 +2189,7 @@
     "brandPartner": "Marque partenaire",
     "armType": "Accoudoirs",
     "arm_noArms": "Sans accoudoirs",
-    "arm_lowArms": "Accoudoirs bas",
-    "arm_fullArms": "Avec accoudoirs",
-    "arm_integrated": "Accoudoirs intégrés"
+    "arm_withArms": "Avec accoudoirs"
   },
   "resources": {
     "title": "Le Guide Expert",

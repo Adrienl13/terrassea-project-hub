@@ -2188,10 +2188,8 @@
     "stock_toConfirm": "To confirm",
     "brandPartner": "Brand Partner",
     "armType": "Armrests",
-    "arm_noArms": "No armrests",
-    "arm_lowArms": "Low armrests",
-    "arm_fullArms": "With armrests",
-    "arm_integrated": "Integrated armrests"
+    "arm_noArms": "Without armrests",
+    "arm_withArms": "With armrests"
   },
   "resources": {
     "title": "The Expert Guide",

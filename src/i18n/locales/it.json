@@ -2189,9 +2189,7 @@
     "brandPartner": "Marchio partner",
     "armType": "Braccioli",
     "arm_noArms": "Senza braccioli",
-    "arm_lowArms": "Braccioli bassi",
-    "arm_fullArms": "Con braccioli",
-    "arm_integrated": "Braccioli integrati"
+    "arm_withArms": "Con braccioli"
   },
   "resources": {
     "title": "La Guida Esperta",

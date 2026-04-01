@@ -258,9 +258,11 @@ const Products = () => {
       );
 
     if (filters.armTypes.length > 0)
-      result = result.filter((p) =>
-        filters.armTypes.includes(p.product_type_tags?.arm_type ?? "no-arms")
-      );
+      result = result.filter((p) => {
+        const arm = p.product_type_tags?.arm_type as string | undefined;
+        const hasArms = arm && arm !== "no-arms";
+        return filters.armTypes.includes(hasArms ? "with-arms" : "no-arms");
+      });
 
     if (filters.stock.length > 0)
       result = result.filter((p) =>

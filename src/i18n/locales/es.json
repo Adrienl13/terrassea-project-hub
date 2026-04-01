@@ -2189,9 +2189,7 @@
     "brandPartner": "Marca asociada",
     "armType": "Reposabrazos",
     "arm_noArms": "Sin reposabrazos",
-    "arm_lowArms": "Reposabrazos bajos",
-    "arm_fullArms": "Con reposabrazos",
-    "arm_integrated": "Reposabrazos integrados"
+    "arm_withArms": "Con reposabrazos"
   },
   "resources": {
     "title": "La Guía Experta",
