@@ -41,7 +41,7 @@ export const ARM_TYPE_OPTIONS = [
 ];
 
 export const CATEGORY_OPTIONS = [
-  "Chairs", "Armchairs", "Stools", "Tables", "Table Bases", "Tabletops",
+  "Chairs", "Armchairs", "Bar Stools", "Tables", "Table Bases", "Tabletops",
   "Coffee Tables", "High Tables", "Sofas", "Sun Loungers", "Parasols", "Benches",
 ];
 
@@ -96,7 +96,7 @@ export const SORT_OPTIONS = [
 export const CATEGORY_LABEL_KEYS: Record<string, string> = {
   "Chairs": "filters.cat_chairs",
   "Armchairs": "filters.cat_armchairs",
-  "Stools": "filters.cat_stools",
+  "Bar Stools": "filters.cat_barStools",
   "Tables": "filters.cat_tables",
   "Table Bases": "filters.cat_tableBases",
   "Tabletops": "filters.cat_tabletops",

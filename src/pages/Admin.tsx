@@ -44,7 +44,7 @@ type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscrip
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
 const CATEGORIES = [
-  "Chairs", "Armchairs", "Tables", "Bar Stools", "Stools", "Parasols",
+  "Chairs", "Armchairs", "Tables", "Bar Stools", "Parasols",
   "Lounge Seating", "Sun Loungers", "Benches", "Coffee Tables",
   "High Tables", "Sofas", "Accessories",
 ];
