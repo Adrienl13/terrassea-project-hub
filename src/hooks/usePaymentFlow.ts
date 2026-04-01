@@ -6,6 +6,7 @@ import {
   generateInvoiceNumber,
   generatePaymentInstructions,
 } from "@/lib/paymentUtils";
+import { COMMISSION_BY_PLAN } from "@/lib/partnerConstants";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -125,7 +126,6 @@ export function usePaymentFlow() {
             commissionRate = Number(sub.commission_rate);
           } else {
             // Last resort: plan-based hardcoded fallback
-            const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, brand_member: 2, brand_network: 1.5 };
             const { data: partnerRow } = await supabase
               .from("partners")
               .select("plan")

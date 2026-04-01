@@ -6,6 +6,7 @@ import {
   Minus, Plus, Zap, AlertTriangle, CheckCircle2, XCircle, Clock, Shield,
 } from "lucide-react";
 import type { ProductOffer } from "@/lib/productOffers";
+import { normalizePartnerType } from "@/lib/partnerConstants";
 import type { DBProduct } from "@/lib/products";
 import type { ProductArrival } from "@/hooks/useArrivals";
 import { useProjectCart, type SelectedSupplier } from "@/contexts/ProjectCartContext";
@@ -167,10 +168,11 @@ function usePartnerTypeLabel() {
   const { t } = useTranslation();
   return (type: string | null | undefined): string => {
     if (!type) return "";
-    const lower = type.toLowerCase();
-    if (lower === "manufacturer") return t("vendorOffers.manufacturer");
-    if (lower === "brand") return t("vendorOffers.brand");
-    if (lower === "reseller" || lower === "distributor" || lower === "retailer" || lower === "wholesaler") return t("vendorOffers.reseller");
+    const normalized = normalizePartnerType(type);
+    if (normalized === "manufacturer") return t("vendorOffers.manufacturer");
+    if (normalized === "brand") return t("vendorOffers.brand");
+    if (normalized === "reseller" || normalized === "distributor") return t("vendorOffers.reseller");
+    if (normalized === "designer") return t("vendorOffers.designer", "Designer");
     return type;
   };
 }

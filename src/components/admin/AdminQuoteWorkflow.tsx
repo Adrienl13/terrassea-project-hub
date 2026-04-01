@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePaymentFlow } from "@/hooks/usePaymentFlow";
+import { COMMISSION_BY_PLAN } from "@/lib/partnerConstants";
 import {
   Search, Eye, ArrowLeft, FileText, Clock, CheckCircle2,
   XCircle, Package, MapPin, Building2, PenTool, Download,
@@ -127,10 +128,10 @@ export default function AdminQuoteWorkflow() {
       // Priority 2: subscription override
       if (subRes.data?.commission_rate != null) return mkResult(Number(subRes.data.commission_rate), "plan");
 
-      // Priority 3: hardcoded plan-based fallback
-      const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, brand_member: 2, brand_network: 1.5 };
+      // Priority 3: plan-based fallback from shared constants
       const plan = partnerRes.data?.plan;
-      const rate = plan && COMMISSION_BY_PLAN[plan] !== undefined ? COMMISSION_BY_PLAN[plan] : 8;
+      const commMap = COMMISSION_BY_PLAN as Record<string, number>;
+      const rate = plan && commMap[plan] !== undefined ? commMap[plan] : 8;
       return mkResult(rate, "plan_fallback");
     },
     enabled: !!selectedQuote?.partner_id,

@@ -77,7 +77,7 @@ const PLANS = [
   { id: "elite", label: "Elite", icon: Crown, color: "#D4603A", commission: "3%" },
 ];
 
-const PARTNER_TYPES = ["manufacturer", "brand", "reseller", "designer"];
+import { PARTNER_TYPES } from "@/lib/partnerConstants";
 
 const COUNTRIES = [
   { code: "FR", name: "France" }, { code: "IT", name: "Italie" }, { code: "ES", name: "Espagne" },

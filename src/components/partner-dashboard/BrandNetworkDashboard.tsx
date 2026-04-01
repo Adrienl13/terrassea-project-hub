@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MapPin, Briefcase, Plus, Trash2, Shield, Globe, TrendingUp, Users, Crown, Sparkles } from "lucide-react";
+import { DISTRIBUTOR_ELIGIBLE_TYPES } from "@/lib/partnerConstants";
 
 interface BrandNetworkDashboardProps {
   partnerId: string;
@@ -92,7 +93,7 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
       const { data, error } = await supabase
         .from("partners")
         .select("id, name, country")
-        .in("partner_type", ["reseller", "distributor", "wholesaler"])
+        .in("partner_type", DISTRIBUTOR_ELIGIBLE_TYPES)
         .eq("is_active", true)
         .order("name");
       if (error) throw error;

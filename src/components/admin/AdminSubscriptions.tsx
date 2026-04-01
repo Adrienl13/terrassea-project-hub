@@ -99,6 +99,14 @@ export default function AdminSubscriptions() {
   };
 
   const changePlan = async (partnerId: string, newPlan: string) => {
+    // Brand-only plans require partner_type = "brand"
+    if (newPlan === "brand_member" || newPlan === "brand_network") {
+      const partner = partners.find((p: any) => p.id === partnerId);
+      if (partner?.partner_type !== "brand") {
+        toast.error(`Le plan ${newPlan} est réservé aux partenaires de type "brand". Ce partenaire est "${partner?.partner_type || "non défini"}".`);
+        return;
+      }
+    }
     // Updating partners.plan triggers sync_partner_subscription_on_plan_change()
     // which auto-syncs partner_subscriptions + visibility_level
     const { error } = await supabase.from("partners").update({ plan: newPlan, partner_mode: MODE_FOR_PLAN[newPlan] || "standard" }).eq("id", partnerId);

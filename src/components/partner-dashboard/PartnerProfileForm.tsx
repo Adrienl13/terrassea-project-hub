@@ -8,7 +8,7 @@ import {
   Building2, Globe, MapPin, FileText, Upload, Save, CheckCircle2, Loader2,
 } from "lucide-react";
 
-const PARTNER_TYPES = ["manufacturer", "brand", "reseller", "distributor"];
+import { PARTNER_TYPES } from "@/lib/partnerConstants";
 
 const COUNTRIES = [
   { code: "FR", name: "France" }, { code: "IT", name: "Italie" }, { code: "ES", name: "Espagne" },
