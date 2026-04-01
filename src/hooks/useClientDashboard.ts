@@ -42,6 +42,8 @@ export interface ClientQuote {
   id: string;
   productId: string | null;
   productName: string;
+  productImage: string | null;
+  productCategory: string | null;
   supplierAlias: string;
   supplierReal: string;
   supplierVerified: boolean;
@@ -158,7 +160,7 @@ async function fetchClientProjects(userEmail: string): Promise<ClientProject[]> 
 async function fetchClientQuotes(userEmail: string): Promise<ClientQuote[]> {
   const { data: quotes, error } = await supabase
     .from("quote_requests")
-    .select("*, project:project_request_id(project_name), order:orders!quote_request_id(deposit_paid_at)")
+    .select("*, project:project_request_id(project_name), order:orders!quote_request_id(deposit_paid_at), product:product_id(image_url, category)")
     .eq("email", userEmail)
     .order("created_at", { ascending: false });
 
@@ -168,6 +170,8 @@ async function fetchClientQuotes(userEmail: string): Promise<ClientQuote[]> {
     id: q.id,
     productId: q.product_id,
     productName: q.product_name || "—",
+    productImage: q.product?.image_url || null,
+    productCategory: q.product?.category || null,
     supplierAlias: q.partner_name || `Partenaire ${String.fromCharCode(65 + i)}`,
     supplierReal: q.partner_name || "—",
     supplierVerified: true,

@@ -897,6 +897,10 @@ export function ClientProjectDetail({
                 className="w-full text-left border border-border rounded-lg hover:border-foreground/15 transition-colors overflow-hidden"
               >
                 <div className="flex items-center gap-3 px-4 py-3">
+                  {/* Product thumbnail */}
+                  <div className="w-11 h-11 rounded-lg overflow-hidden border border-border shrink-0 bg-gray-50">
+                    <img src={q.productImage || "/placeholder.svg"} alt={q.productName} className="w-full h-full object-cover" />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-xs font-display font-bold text-foreground truncate">{q.productName}</p>
@@ -1010,12 +1014,24 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
         </button>
 
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="font-display font-bold text-lg text-foreground">{activeQuote.productName}</h2>
-            <p className="text-xs font-body text-muted-foreground mt-0.5">{activeQuote.projectName}</p>
+        <div className="flex items-start gap-4">
+          {activeQuote.productImage && (
+            <div className="w-16 h-16 rounded-lg overflow-hidden border border-border shrink-0 bg-gray-50">
+              <img src={activeQuote.productImage} alt={activeQuote.productName} className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="font-display font-bold text-lg text-foreground">{activeQuote.productName}</h2>
+                <p className="text-xs font-body text-muted-foreground mt-0.5">
+                  {activeQuote.productCategory && <span>{activeQuote.productCategory} · </span>}
+                  {activeQuote.projectName}
+                </p>
+              </div>
+              <StatusBadge status={activeQuote.status} />
+            </div>
           </div>
-          <StatusBadge status={activeQuote.status} />
         </div>
 
         {/* Supplier info (masked or revealed) */}
@@ -1221,8 +1237,12 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
             <div
               key={q.id}
               onClick={() => setSelectedQuote(q.id)}
-              className="flex items-center justify-between px-4 py-4 border border-border rounded-xl hover:border-foreground/20 transition-colors cursor-pointer group"
+              className="flex items-center gap-3 px-4 py-4 border border-border rounded-xl hover:border-foreground/20 transition-colors cursor-pointer group"
             >
+              {/* Product thumbnail */}
+              <div className="w-12 h-12 rounded-lg overflow-hidden border border-border shrink-0 bg-gray-50">
+                <img src={q.productImage || "/placeholder.svg"} alt={q.productName} className="w-full h-full object-cover" />
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-sm font-display font-semibold text-foreground group-hover:text-[#D4603A] transition-colors">{q.productName}</p>
