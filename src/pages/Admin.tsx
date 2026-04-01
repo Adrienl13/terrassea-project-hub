@@ -2004,63 +2004,63 @@ const Admin = () => {
     navigate("/");
   };
 
-  const { data: pendingApps = [] } = useQuery({
+  const { data: pendingAppsCount = 0 } = useQuery({
     queryKey: ["partner_applications_pending"],
     queryFn: async () => {
-      const { data } = await supabase.from("partner_applications").select("id").eq("status", "pending");
-      return data || [];
+      const { count } = await supabase.from("partner_applications").select("*", { count: "exact", head: true }).eq("status", "pending");
+      return count ?? 0;
     },
   });
 
-  const { data: pendingQuotes = [] } = useQuery({
+  const { data: pendingQuotesCount = 0 } = useQuery({
     queryKey: ["admin-quotes-pending-count"],
     queryFn: async () => {
-      const { data } = await supabase.from("quote_requests").select("id").eq("status", "pending");
-      return data || [];
+      const { count } = await supabase.from("quote_requests").select("*", { count: "exact", head: true }).eq("status", "pending");
+      return count ?? 0;
     },
   });
 
-  const { data: activeOrders = [] } = useQuery({
+  const { data: activeOrdersCount = 0 } = useQuery({
     queryKey: ["admin-orders-active-count"],
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("id").not("status", "in", '("completed","cancelled","refunded")');
-      return data || [];
+      const { count } = await supabase.from("orders").select("*", { count: "exact", head: true }).not("status", "in", '("completed","cancelled","refunded")');
+      return count ?? 0;
     },
   });
 
-  const { data: unreadMessages = [] } = useQuery({
+  const { data: unreadMessagesCount = 0 } = useQuery({
     queryKey: ["admin-messages-unread-count"],
     queryFn: async () => {
-      const { data } = await supabase.from("conversations").select("id").limit(0);
-      return data || [];
+      const { count } = await supabase.from("conversations").select("*", { count: "exact", head: true });
+      return count ?? 0;
     },
   });
 
-  const { data: pendingSubmissions = [] } = useQuery({
+  const { data: pendingSubmissionsCount = 0 } = useQuery({
     queryKey: ["admin-submissions-pending-count"],
     queryFn: async () => {
-      const { data } = await supabase.from("product_submissions").select("id").eq("status", "pending_review");
-      return data || [];
+      const { count } = await supabase.from("product_submissions").select("*", { count: "exact", head: true }).eq("status", "pending_review");
+      return count ?? 0;
     },
   });
 
-  const { data: pendingPartnerProfiles = [] } = useQuery({
+  const { data: pendingPartnerProfilesCount = 0 } = useQuery({
     queryKey: ["admin-pending-partner-profiles"],
     queryFn: async () => {
-      const { data } = await supabase.from("partners").select("id").eq("profile_status", "pending_review");
-      return data || [];
+      const { count } = await supabase.from("partners").select("*", { count: "exact", head: true }).eq("profile_status", "pending_review");
+      return count ?? 0;
     },
   });
 
   const pendingReviewCount = products.filter(p => p.publish_status === "pending_review").length;
 
   const badges: Record<string, number> = {
-    quotes: pendingQuotes.length,
-    orders: activeOrders.length,
+    quotes: pendingQuotesCount,
+    orders: activeOrdersCount,
     products: pendingReviewCount,
-    submissions: pendingSubmissions.length,
-    messages: unreadMessages.length,
-    partners: pendingPartnerProfiles.length,
+    submissions: pendingSubmissionsCount,
+    messages: unreadMessagesCount,
+    partners: pendingPartnerProfilesCount,
   };
 
   const handleTabChange = (newTab: Tab) => {
@@ -2159,7 +2159,7 @@ const Admin = () => {
             <h1 className="font-display text-lg font-bold text-foreground">{TAB_TITLES[tab]}</h1>
             <p className="text-[10px] font-body text-muted-foreground mt-0.5">
               Administration Terrassea &middot; {products.length} produits
-              {pendingApps.length > 0 && ` · ${pendingApps.length} candidature${pendingApps.length > 1 ? "s" : ""} en attente`}
+              {pendingAppsCount > 0 && ` · ${pendingAppsCount} candidature${pendingAppsCount > 1 ? "s" : ""} en attente`}
             </p>
           </div>
           <div className="hidden sm:flex items-center gap-2">

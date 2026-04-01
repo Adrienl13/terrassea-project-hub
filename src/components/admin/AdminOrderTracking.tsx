@@ -64,7 +64,7 @@ export default function AdminOrderTracking() {
     queryFn: async () => {
       const { data } = await supabase
         .from("order_events")
-        .select("*")
+        .select("id, event_type, description, actor, created_at")
         .eq("order_id", selectedId)
         .order("created_at", { ascending: false });
       return data || [];

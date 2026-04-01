@@ -70,6 +70,7 @@ interface AIProduct {
   bench_type?: string | null;
   sofa_type?: string | null;
   base_type?: string | null;
+  dimension_variants?: { dimension_tag: string; label: string; seats: number; price: number; available?: boolean }[];
   // UI state
   image_url?: string | null;
   gallery_urls?: string[];
@@ -258,6 +259,21 @@ export default function ExcelImportModal({
     return isNaN(n) ? null : n;
   };
 
+  // Parse dimension_variants: "80x80:4:180|120x70:6:280" → array of {dimension_tag, label, seats, price}
+  const parseDimensionVariants = (val: string | undefined) => {
+    if (!val) return undefined;
+    const parts = val.split("|").map(s => s.trim()).filter(Boolean);
+    if (parts.length === 0) return undefined;
+    return parts.map(part => {
+      const [tag, seatsStr, priceStr] = part.split(":");
+      const dimension_tag = (tag || "").trim();
+      const seats = parseInt(seatsStr) || 2;
+      const price = parseFloat((priceStr || "0").replace(",", ".")) || 0;
+      const label = `${dimension_tag.replace(/x/g, "×")} cm — ${seats} couverts`;
+      return { dimension_tag, label, seats, price, available: true };
+    }).filter(dv => dv.dimension_tag);
+  };
+
   const processCSVDirect = (text: string) => {
     const rows = parseCSV(text);
     if (rows.length < 2) {
@@ -354,6 +370,7 @@ export default function ExcelImportModal({
       bench_type: ["bench_type", "type_banc"],
       sofa_type: ["sofa_type", "type_canape"],
       base_type: ["base_type", "type_base", "type_pied"],
+      dimension_variants: ["dimension_variants", "variantes_dimensions", "tailles", "sizes", "dimensions_variantes", "varianti_dimensioni", "variantes_tallas"],
     };
 
     const col = (row: string[], key: string): string | undefined => {
@@ -463,6 +480,7 @@ export default function ExcelImportModal({
         bench_type: col(row, "bench_type") || null,
         sofa_type: col(row, "sofa_type") || null,
         base_type: col(row, "base_type") || null,
+        dimension_variants: parseDimensionVariants(col(row, "dimension_variants")),
         valid: !!name && !!category,
         errors,
       };
@@ -854,6 +872,7 @@ export default function ExcelImportModal({
           image_url: finalImageUrl,
           gallery_urls: finalGallery.length > 0 ? finalGallery : [],
           product_type_tags: Object.keys(productTypeTags).length > 0 ? productTypeTags : null,
+          dimension_variants: p.dimension_variants && p.dimension_variants.length > 0 ? p.dimension_variants : null,
         };
 
         // Check if product with same name already exists for this partner → edit submission
