@@ -147,8 +147,8 @@ const QuoteRequestModal = ({
 
       // Trigger auto-assign (non-blocking)
       supabase.functions.invoke("auto-workflow", {
-        body: { action: "auto_assign" },
-      }).catch(() => {});
+        body: { action: "auto_assign_partner" },
+      }).catch((err) => console.error("auto-workflow failed:", err));
 
       // Notify all admins (non-blocking)
       try {
@@ -164,6 +164,28 @@ const QuoteRequestModal = ({
         }
       } catch {
         // Non-blocking: admin notification failed silently
+      }
+
+      // Notify the assigned partner in-app (non-blocking)
+      if (bestOffer?.partner_id) {
+        try {
+          const { data: partnerUser } = await supabase
+            .from("partners")
+            .select("user_id")
+            .eq("id", bestOffer.partner_id)
+            .maybeSingle();
+          if (partnerUser?.user_id) {
+            await supabase.from("notifications").insert({
+              user_id: partnerUser.user_id,
+              title: "Nouvelle demande de devis",
+              body: `${form.firstName} ${form.lastName || ""} — ${product.name} × ${form.quantity}`,
+              type: "info",
+              link: "/account?tab=quotes",
+            });
+          }
+        } catch {
+          // Non-blocking
+        }
       }
 
       setStep("success");
