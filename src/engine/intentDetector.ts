@@ -28,6 +28,9 @@ const TERM_TO_CATEGORY_SLUG: Record<string, string> = {
   sunbed: "sun loungers", "sun bed": "sun loungers",
   daybed: "sun loungers", daybeds: "sun loungers",
   "chaise longue": "sun loungers", "chaise lounge": "sun loungers",
+  "table base": "tables", "table top": "tables", tabletop: "tables",
+  "table leg": "tables", "table legs": "tables", pedestal: "tables",
+  "high table": "tables", "coffee table": "tables", "bar table": "tables",
   cushion: "accessories", cushions: "accessories",
   planter: "accessories", planters: "accessories",
   pot: "accessories", pots: "accessories",
@@ -39,6 +42,11 @@ const TERM_TO_CATEGORY_SLUG: Record<string, string> = {
   chaise: "chairs", chaises: "chairs",
   fauteuil: "armchairs", fauteuils: "armchairs",
   tabouret: "bar stools", tabourets: "bar stools",
+  "pied de table": "tables", "pieds de table": "tables",
+  "plateau de table": "tables", "plateaux de table": "tables",
+  "table haute": "tables", "tables hautes": "tables",
+  "table basse": "tables", "tables basses": "tables",
+  "mange-debout": "tables",
   canapé: "lounge seating", canape: "lounge seating",
   canapés: "lounge seating", canapes: "lounge seating",
   banquettes: "lounge seating",
@@ -59,6 +67,8 @@ const TERM_TO_CATEGORY_SLUG: Record<string, string> = {
   sedia: "chairs", sedie: "chairs",
   poltrona: "armchairs", poltrone: "armchairs",
   tavolo: "tables", tavoli: "tables",
+  "piano tavolo": "tables", "base tavolo": "tables",
+  "tavolo alto": "tables", "tavolino": "tables",
   sgabello: "bar stools", sgabelli: "bar stools",
   divano: "lounge seating", divani: "lounge seating",
   panca: "benches", panche: "benches", panchina: "benches",
@@ -74,6 +84,8 @@ const TERM_TO_CATEGORY_SLUG: Record<string, string> = {
   silla: "chairs", sillas: "chairs",
   sillón: "armchairs", sillon: "armchairs", sillones: "armchairs",
   mesa: "tables", mesas: "tables",
+  "mesa alta": "tables", "mesa baja": "tables",
+  "pie de mesa": "tables", "tablero": "tables",
   taburete: "bar stools", taburetes: "bar stools",
   sofá: "lounge seating",
   banco: "benches", bancos: "benches",
@@ -89,6 +101,8 @@ const TERM_TO_CATEGORY_SLUG: Record<string, string> = {
   stuhl: "chairs", stühle: "chairs", stuhle: "chairs",
   sessel: "armchairs",
   tisch: "tables", tische: "tables",
+  tischgestell: "tables", tischplatte: "tables",
+  stehtisch: "tables", couchtisch: "tables", bartisch: "tables",
   hocker: "bar stools", barhocker: "bar stools",
   bank: "benches", bänke: "benches",
   sonnenschirm: "parasols", sonnensegel: "parasols",
@@ -360,8 +374,19 @@ function normalizeQuery(query: string): NormalizedQuery {
     }
   }
 
-  // preferComplete = user said "table"/"tables" (not "pied", "base", "plateau", "top")
-  const baseWords = ["pied", "base", "socle", "plateau", "top", "dessus", "dessous"];
+  // preferComplete = user said "table" (not "base/pied/plateau/top" in any language)
+  const baseWords = [
+    // FR
+    "pied", "base", "socle", "plateau", "dessus", "dessous",
+    // EN
+    "top", "tabletop", "base-only", "pedestal", "trestle",
+    // IT
+    "piano", "basamento", "piedistallo", "gambe",
+    // ES
+    "pie", "sobre", "tablero", "pedestal",
+    // DE
+    "gestell", "tischplatte", "fuss",
+  ];
   const preferComplete = categorySlug === "tables"
     && !baseWords.some(w => lower.includes(w));
 
