@@ -70,27 +70,35 @@ export interface ClientQuote {
 
 // ── Fetch projects with products ───────────────────────────────────────────────
 
-async function fetchClientProjects(userEmail: string): Promise<ClientProject[]> {
-  // Fetch projects
-  const { data: projects, error } = await supabase
+async function fetchClientProjects(userEmail: string, userId?: string): Promise<ClientProject[]> {
+  // Fetch projects by email OR user_id for robustness
+  let query = supabase
     .from("project_requests")
     .select("*")
-    .eq("contact_email", userEmail)
     .order("updated_at", { ascending: false });
 
-  if (error || !projects) return [];
+  if (userId) {
+    query = query.or(`contact_email.eq.${userEmail},user_id.eq.${userId}`);
+  } else {
+    query = query.eq("contact_email", userEmail);
+  }
+
+  const { data: projects, error } = await query;
+  if (error || !projects || projects.length === 0) return [];
 
   // Fetch cart items with product details for all projects
   const projectIds = projects.map((p: any) => p.id);
-  const { data: cartItems } = await supabase
+  const { data: cartItems, error: ciError } = await supabase
     .from("project_cart_items")
     .select("*, product:product_id(id, name, category, image_url, brand_source, price_min, material_structure, dimensions_length_cm, dimensions_width_cm, dimensions_height_cm, weight_kg, is_outdoor, is_stackable, uv_resistant, main_color)")
     .in("project_request_id", projectIds);
 
+  if (ciError) console.error("Failed to fetch cart items:", ciError.message);
+
   // Fetch quote counts per project
   const { data: quotes } = await supabase
     .from("quote_requests")
-    .select("id, project_request_id")
+    .select("id, project_request_id, status")
     .eq("email", userEmail);
 
   const quoteCountByProject: Record<string, number> = {};
@@ -138,13 +146,16 @@ async function fetchClientProjects(userEmail: string): Promise<ClientProject[]> 
       };
     });
 
+    // Compute estimated value from products (not from the often-empty DB field)
+    const computedValue = products.reduce((sum, prod) => sum + (prod.priceMin || 0) * prod.quantity, 0);
+
     return {
       id: p.id,
       name: p.project_name || "Sans nom",
       venueType: p.venue_type || "other",
       city: p.city || null,
       status: p.status || "draft",
-      estimatedValue: Number(p.estimated_value) || 0,
+      estimatedValue: computedValue || Number(p.estimated_value) || 0,
       budgetRange: p.budget_range || null,
       createdAt: p.created_at,
       updatedAt: p.updated_at || p.created_at,
@@ -199,12 +210,13 @@ async function fetchClientQuotes(userEmail: string): Promise<ClientQuote[]> {
 // ── React hooks ────────────────────────────────────────────────────────────────
 
 export function useClientProjects() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const email = profile?.email;
+  const userId = user?.id;
 
   return useQuery({
-    queryKey: ["client-projects", email],
-    queryFn: () => fetchClientProjects(email!),
+    queryKey: ["client-projects", email, userId],
+    queryFn: () => fetchClientProjects(email!, userId),
     enabled: !!email,
   });
 }
