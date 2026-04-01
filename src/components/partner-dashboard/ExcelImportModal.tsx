@@ -266,59 +266,68 @@ export default function ExcelImportModal({
     }
 
     const rawHeaders = rows[0];
+
+    // Normalize header: strip accents, lowercase, replace spaces/dashes with underscores
+    const normalizeHeader = (h: string): string =>
+      h.trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+
     const headerMap: Record<string, number> = {};
     rawHeaders.forEach((h, i) => {
-      headerMap[h.trim().toLowerCase()] = i;
+      const norm = normalizeHeader(h);
+      if (norm) headerMap[norm] = i;
     });
 
-    // Case-insensitive column lookup with common alias support
+    // Case-insensitive column lookup with extensive alias support (EN/FR/IT/ES)
     const colAliases: Record<string, string[]> = {
-      name: ["name", "nom", "product_name", "nom_produit"],
-      category: ["category", "catégorie", "categorie", "cat"],
-      subcategory: ["subcategory", "sous_catégorie", "sous_categorie", "sub_category", "sous-catégorie"],
-      collection: ["collection"],
-      brand_source: ["brand_source", "brand", "marque"],
-      short_description: ["short_description", "description", "desc", "description_courte"],
-      short_description_fr: ["short_description_fr", "description_fr"],
-      short_description_it: ["short_description_it", "description_it"],
-      short_description_es: ["short_description_es", "description_es"],
-      long_description: ["long_description", "description_longue", "long_desc"],
-      material_structure: ["material_structure", "matériau_structure", "materiau_structure", "frame_material"],
-      material_seat: ["material_seat", "matériau_assise", "materiau_assise", "seat_material"],
-      fabric_material_tags: ["fabric_material_tags", "fabric_tags"],
-      top_material_tags: ["top_material_tags", "top_tags"],
-      cushion_type_tags: ["cushion_type_tags", "cushion_tags"],
-      main_color: ["main_color", "couleur_principale", "couleur", "color"],
-      secondary_color: ["secondary_color", "couleur_secondaire"],
-      available_colors: ["available_colors", "couleurs_disponibles", "colors"],
-      style_tags: ["style_tags", "style", "styles"],
-      ambience_tags: ["ambience_tags", "ambiance", "ambience"],
-      silhouette_tags: ["silhouette_tags", "silhouette"],
-      comfort_tier: ["comfort_tier", "comfort"],
-      use_case_tags: ["use_case_tags", "use_case", "usage"],
-      price_min: ["price_min", "prix_min", "prix_ht", "prix", "price"],
-      price_max: ["price_max", "prix_max"],
-      dimensions_length_cm: ["dimensions_length_cm", "longueur_cm", "longueur", "length_cm", "length"],
-      dimensions_width_cm: ["dimensions_width_cm", "largeur_cm", "largeur", "width_cm", "width"],
-      dimensions_height_cm: ["dimensions_height_cm", "hauteur_cm", "hauteur", "height_cm", "height"],
-      seat_height_cm: ["seat_height_cm", "hauteur_assise_cm", "hauteur_assise", "seat_height"],
-      weight_kg: ["weight_kg", "poids_kg", "poids", "weight"],
-      height_type: ["height_type", "type_hauteur"],
-      is_outdoor: ["is_outdoor", "extérieur", "exterieur", "outdoor"],
+      name: ["name", "nom", "product_name", "nom_produit", "nom_du_produit", "designation", "libelle", "reference", "ref", "article", "produit", "producto", "nome", "nome_prodotto", "nombre"],
+      category: ["category", "categorie", "cat", "type", "famille", "famille_produit", "type_produit", "categoria", "tipo"],
+      subcategory: ["subcategory", "sous_categorie", "sub_category", "sous_categorie", "subcategoria", "sottocategoria"],
+      collection: ["collection", "gamme", "ligne", "collezione", "coleccion", "linea"],
+      brand_source: ["brand_source", "brand", "marque", "fournisseur", "supplier", "marca", "fornitore"],
+      short_description: ["short_description", "description", "desc", "description_courte", "desc_courte", "descrizione", "descripcion"],
+      short_description_fr: ["short_description_fr", "description_fr", "desc_fr"],
+      short_description_it: ["short_description_it", "description_it", "desc_it"],
+      short_description_es: ["short_description_es", "description_es", "desc_es"],
+      long_description: ["long_description", "description_longue", "long_desc", "description_complete", "desc_longue"],
+      material_structure: ["material_structure", "materiau_structure", "materiau", "frame_material", "structure", "matiere_structure", "matiere", "material", "material_frame"],
+      material_seat: ["material_seat", "materiau_assise", "seat_material", "assise", "matiere_assise", "material_asiento"],
+      fabric_material_tags: ["fabric_material_tags", "fabric_tags", "tissu"],
+      top_material_tags: ["top_material_tags", "top_tags", "plateau", "top_material"],
+      cushion_type_tags: ["cushion_type_tags", "cushion_tags", "coussin", "type_coussin"],
+      main_color: ["main_color", "couleur_principale", "couleur", "color", "colour", "colore", "color_principal"],
+      secondary_color: ["secondary_color", "couleur_secondaire", "color_secondaire", "colore_secondario"],
+      available_colors: ["available_colors", "couleurs_disponibles", "colors", "couleurs", "colori", "colores"],
+      style_tags: ["style_tags", "style", "styles", "stile", "estilo"],
+      ambience_tags: ["ambience_tags", "ambiance", "ambience", "atmosphere", "ambiente"],
+      silhouette_tags: ["silhouette_tags", "silhouette", "forme", "shape"],
+      comfort_tier: ["comfort_tier", "comfort", "confort", "niveau_confort"],
+      use_case_tags: ["use_case_tags", "use_case", "usage", "utilisation", "uso", "type_usage"],
+      price_min: ["price_min", "prix_min", "prix_ht", "prix", "price", "prezzo", "precio", "tarif", "prix_unitaire", "pu"],
+      price_max: ["price_max", "prix_max", "prix_public", "pvp"],
+      dimensions_length_cm: ["dimensions_length_cm", "longueur_cm", "longueur", "length_cm", "length", "profondeur", "depth", "l_cm", "prof"],
+      dimensions_width_cm: ["dimensions_width_cm", "largeur_cm", "largeur", "width_cm", "width", "w_cm", "larg"],
+      dimensions_height_cm: ["dimensions_height_cm", "hauteur_cm", "hauteur", "height_cm", "height", "h_cm", "haut"],
+      seat_height_cm: ["seat_height_cm", "hauteur_assise_cm", "hauteur_assise", "seat_height", "h_assise"],
+      weight_kg: ["weight_kg", "poids_kg", "poids", "weight", "peso", "kg"],
+      height_type: ["height_type", "type_hauteur", "hauteur_type"],
+      is_outdoor: ["is_outdoor", "exterieur", "outdoor", "ext"],
       is_stackable: ["is_stackable", "empilable", "stackable"],
-      is_chr_heavy_use: ["is_chr_heavy_use", "chr", "heavy_use", "usage_intensif"],
-      uv_resistant: ["uv_resistant", "résistant_uv", "resistant_uv", "uv"],
-      weather_resistant: ["weather_resistant", "résistant_intempéries", "resistant_intemperies", "weather"],
-      fire_retardant: ["fire_retardant", "ignifuge", "fire"],
-      lightweight: ["lightweight", "léger", "leger", "light"],
-      easy_maintenance: ["easy_maintenance", "entretien_facile", "maintenance"],
-      stock_status: ["stock_status", "stock", "disponibilité", "disponibilite"],
-      stock_quantity: ["stock_quantity", "quantité", "quantite", "quantity", "qty"],
-      estimated_delivery_days: ["estimated_delivery_days", "delivery_days", "délai_livraison", "delai_livraison", "delivery"],
-      country_of_manufacture: ["country_of_manufacture", "pays_fabrication", "pays", "country", "origine"],
-      warranty: ["warranty", "garantie"],
-      image_url: ["image_url", "image", "photo", "photo_url"],
-      gallery_urls: ["gallery_urls", "gallery", "photos", "galerie"],
+      is_chr_heavy_use: ["is_chr_heavy_use", "chr", "heavy_use", "usage_intensif", "pro"],
+      uv_resistant: ["uv_resistant", "resistant_uv", "uv", "anti_uv"],
+      weather_resistant: ["weather_resistant", "resistant_intemperies", "weather", "intemperies", "waterproof"],
+      fire_retardant: ["fire_retardant", "ignifuge", "fire", "m2", "feu"],
+      lightweight: ["lightweight", "leger", "light"],
+      easy_maintenance: ["easy_maintenance", "entretien_facile", "maintenance", "entretien"],
+      stock_status: ["stock_status", "stock", "disponibilite", "dispo", "statut_stock"],
+      stock_quantity: ["stock_quantity", "quantite", "quantity", "qty", "qte", "stock_qty"],
+      estimated_delivery_days: ["estimated_delivery_days", "delivery_days", "delai_livraison", "delivery", "delai", "livraison_jours"],
+      country_of_manufacture: ["country_of_manufacture", "pays_fabrication", "pays", "country", "origine", "made_in", "fabrication"],
+      warranty: ["warranty", "garantie", "garanzia", "garantia"],
+      image_url: ["image_url", "image", "photo", "photo_url", "url_image", "img", "photo_principale"],
+      gallery_urls: ["gallery_urls", "gallery", "photos", "galerie", "images"],
       parasol_type: ["parasol_type", "type_parasol"],
       parasol_shape: ["parasol_shape", "forme_parasol"],
       parasol_size: ["parasol_size", "taille_parasol"],
@@ -326,22 +335,23 @@ export default function ExcelImportModal({
       parasol_fabric_tag: ["parasol_fabric_tag", "tissu_parasol"],
       lounger_type: ["lounger_type", "type_bain_de_soleil", "type_transat"],
       bench_type: ["bench_type", "type_banc"],
-      sofa_type: ["sofa_type", "type_canapé", "type_canape"],
+      sofa_type: ["sofa_type", "type_canape"],
       base_type: ["base_type", "type_base", "type_pied"],
     };
 
     const col = (row: string[], key: string): string | undefined => {
-      // Try direct match first
+      // Try direct match first (normalized)
       const directIdx = headerMap[key];
       if (directIdx !== undefined) {
         const val = row[directIdx]?.trim();
         return val || undefined;
       }
-      // Try aliases
+      // Try aliases (all normalized)
       const aliases = colAliases[key];
       if (aliases) {
         for (const alias of aliases) {
-          const idx = headerMap[alias];
+          const normAlias = normalizeHeader(alias);
+          const idx = headerMap[normAlias];
           if (idx !== undefined) {
             const val = row[idx]?.trim();
             return val || undefined;
@@ -350,6 +360,14 @@ export default function ExcelImportModal({
       }
       return undefined;
     };
+
+    // Check which critical columns were detected
+    const detectedName = col(rows[1] || [], "name") !== undefined || rawHeaders.some(h => colAliases.name.some(a => normalizeHeader(h) === normalizeHeader(a)));
+    const detectedCategory = col(rows[1] || [], "category") !== undefined || rawHeaders.some(h => colAliases.category.some(a => normalizeHeader(h) === normalizeHeader(a)));
+    if (!detectedName || !detectedCategory) {
+      const detected = rawHeaders.slice(0, 10).map(h => `"${h.trim()}"`).join(", ");
+      toast.error(`Colonnes "name" et/ou "category" non détectées. Colonnes trouvées : ${detected}…`, { duration: 8000 });
+    }
 
     const dataRows = rows.slice(1).filter(r => r.some(c => c !== ""));
     if (dataRows.length === 0) {
