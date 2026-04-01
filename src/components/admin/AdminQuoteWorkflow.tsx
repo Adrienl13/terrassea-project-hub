@@ -100,57 +100,38 @@ export default function AdminQuoteWorkflow() {
       if (!selectedQuote?.partner_id) return null;
       const partnerId = selectedQuote.partner_id;
       const productId = selectedQuote.product_id;
-
-      // Try brand-distributor effective commission first
-      if (productId) {
-        const { data: product } = await supabase
-          .from("products")
-          .select("partner_id")
-          .eq("id", productId)
-          .maybeSingle();
-
-        if (product?.partner_id) {
-          const { data: ec } = await supabase
-            .from("v_effective_commissions" as any)
-            .select("effective_commission_rate")
-            .eq("brand_id", product.partner_id)
-            .eq("distributor_id", partnerId)
-            .maybeSingle() as { data: { effective_commission_rate: number } | null };
-
-          if (ec?.effective_commission_rate != null) {
-            const rate = Number(ec.effective_commission_rate);
-            const total = Number(selectedQuote.total_price ?? 0);
-            return { rate, amount: Math.round((total * rate) / 100 * 100) / 100, source: "brand_distributor" as const };
-          }
-        }
-      }
-
-      // Fallback: partner_subscriptions commission
-      const { data: sub } = await supabase
-        .from("partner_subscriptions")
-        .select("commission_rate")
-        .eq("partner_id", partnerId)
-        .maybeSingle();
-
-      if (sub?.commission_rate != null) {
-        const rate = Number(sub.commission_rate);
-        const total = Number(selectedQuote.total_price ?? 0);
-        return { rate, amount: Math.round((total * rate) / 100 * 100) / 100, source: "plan" as const };
-      }
-
-      // Last resort: hardcoded plan-based
-      const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, brand_member: 2, brand_network: 1.5 };
-      const { data: partnerRow } = await supabase
-        .from("partners")
-        .select("plan")
-        .eq("id", partnerId)
-        .maybeSingle();
-
-      const rate = partnerRow?.plan && COMMISSION_BY_PLAN[partnerRow.plan] !== undefined
-        ? COMMISSION_BY_PLAN[partnerRow.plan]
-        : 8;
       const total = Number(selectedQuote.total_price ?? 0);
-      return { rate, amount: Math.round((total * rate) / 100 * 100) / 100, source: "plan_fallback" as const };
+      const mkResult = (rate: number, source: "brand_distributor" | "plan" | "plan_fallback") =>
+        ({ rate, amount: Math.round((total * rate) / 100 * 100) / 100, source });
+
+      // Fetch all data in parallel (1-2 round-trips instead of 4)
+      const [productRes, subRes, partnerRes] = await Promise.all([
+        productId
+          ? supabase.from("products").select("partner_id").eq("id", productId).maybeSingle()
+          : { data: null },
+        supabase.from("partner_subscriptions").select("commission_rate").eq("partner_id", partnerId).maybeSingle(),
+        supabase.from("partners").select("plan").eq("id", partnerId).maybeSingle(),
+      ]);
+
+      // Priority 1: brand-distributor effective commission
+      if (productRes.data?.partner_id) {
+        const { data: ec } = await supabase
+          .from("v_effective_commissions" as any)
+          .select("effective_commission_rate")
+          .eq("brand_id", productRes.data.partner_id)
+          .eq("distributor_id", partnerId)
+          .maybeSingle() as { data: { effective_commission_rate: number } | null };
+        if (ec?.effective_commission_rate != null) return mkResult(Number(ec.effective_commission_rate), "brand_distributor");
+      }
+
+      // Priority 2: subscription override
+      if (subRes.data?.commission_rate != null) return mkResult(Number(subRes.data.commission_rate), "plan");
+
+      // Priority 3: hardcoded plan-based fallback
+      const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, brand_member: 2, brand_network: 1.5 };
+      const plan = partnerRes.data?.plan;
+      const rate = plan && COMMISSION_BY_PLAN[plan] !== undefined ? COMMISSION_BY_PLAN[plan] : 8;
+      return mkResult(rate, "plan_fallback");
     },
     enabled: !!selectedQuote?.partner_id,
   });
@@ -420,6 +401,49 @@ export default function AdminQuoteWorkflow() {
             </div>
           )}
         </div>
+
+        {/* Partner response terms */}
+        {selected.replied_at && (
+          <div className="border border-border rounded-xl p-4">
+            <h3 className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+              <Truck className="h-3.5 w-3.5" /> Réponse fournisseur
+              <span className="text-[8px] font-body font-normal normal-case text-muted-foreground ml-auto">
+                {new Date(selected.replied_at).toLocaleDateString("fr-FR")}
+              </span>
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="border border-border rounded-lg p-3">
+                <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">TVA</p>
+                <p className="text-sm font-display font-bold mt-0.5">{selected.tva_rate != null ? `${selected.tva_rate}%` : "—"}</p>
+              </div>
+              <div className="border border-border rounded-lg p-3">
+                <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">Délai livraison</p>
+                <p className="text-sm font-display font-bold mt-0.5">{selected.delivery_delay_days != null ? `${selected.delivery_delay_days} j` : "—"}</p>
+              </div>
+              <div className="border border-border rounded-lg p-3">
+                <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">Validité</p>
+                <p className="text-sm font-display font-bold mt-0.5">{selected.validity_days != null ? `${selected.validity_days} j` : "—"}</p>
+              </div>
+              <div className="border border-border rounded-lg p-3">
+                <p className="text-[9px] font-display font-semibold uppercase text-muted-foreground">Expire le</p>
+                <p className="text-sm font-display font-bold mt-0.5">{selected.validity_expires_at ? new Date(selected.validity_expires_at).toLocaleDateString("fr-FR") : "—"}</p>
+              </div>
+            </div>
+            {(selected.delivery_conditions || selected.payment_conditions || selected.partner_conditions) && (
+              <div className="mt-3 space-y-2 text-xs font-body">
+                {selected.delivery_conditions && (
+                  <div><span className="text-muted-foreground font-display font-semibold text-[9px] uppercase">Conditions livraison :</span> <span className="text-foreground">{selected.delivery_conditions}</span></div>
+                )}
+                {selected.payment_conditions && (
+                  <div><span className="text-muted-foreground font-display font-semibold text-[9px] uppercase">Conditions paiement :</span> <span className="text-foreground">{selected.payment_conditions}</span></div>
+                )}
+                {selected.partner_conditions && (
+                  <div><span className="text-muted-foreground font-display font-semibold text-[9px] uppercase">Conditions partenaire :</span> <span className="text-foreground">{selected.partner_conditions}</span></div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Create order button — only for accepted/signed quotes without an existing order */}
         {(selected.status === "accepted" || selected.status === "signed") && !existingOrder && (

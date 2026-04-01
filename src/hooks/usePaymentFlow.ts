@@ -153,14 +153,24 @@ export function usePaymentFlow() {
       const depositDueDate = new Date(now.getTime() + paymentSettings.depositDueDays * 86_400_000);
       const balanceDueDate = new Date(now.getTime() + paymentSettings.balanceDueDays * 86_400_000);
 
+      // Partner response terms (contractual data from quote)
+      const tvaRate = quote.tva_rate != null ? Number(quote.tva_rate) : null;
+      const deliveryDelayDays = quote.delivery_delay_days != null ? Number(quote.delivery_delay_days) : null;
+      const deliveryConditions = quote.delivery_conditions ?? null;
+      const paymentConditions = quote.payment_conditions ?? null;
+      const partnerConditions = quote.partner_conditions ?? null;
+
+      // Compute estimated delivery date from partner's delivery delay
+      const estimatedDeliveryDate = deliveryDelayDays
+        ? new Date(now.getTime() + deliveryDelayDays * 86_400_000).toISOString().split("T")[0]
+        : null;
+
       // 4. Insert into orders
-      // Bug 3: quote_requests uses "email", not "client_email"
       const clientEmail = quote.email ?? user?.email ?? "";
 
-      // Bug 4: quote_requests has no "client_user_id" column.
-      // Look up the user_id from user_profiles by email, fallback to current user.
-      let clientUserId: string | null = user?.id ?? null;
-      if (clientEmail) {
+      // Use client_user_id from quote if available, else look up by email, fallback to current user
+      let clientUserId: string | null = quote.client_user_id ?? user?.id ?? null;
+      if (!clientUserId && clientEmail) {
         const { data: profileRow } = await supabase
           .from("user_profiles")
           .select("id")
@@ -191,6 +201,12 @@ export function usePaymentFlow() {
           invoice_number: invoiceNumber,
           commission_rate: commissionRate,
           commission_amount: commissionAmount,
+          tva_rate: tvaRate,
+          delivery_delay_days: deliveryDelayDays,
+          estimated_delivery_date: estimatedDeliveryDate,
+          delivery_conditions: deliveryConditions,
+          payment_conditions: paymentConditions,
+          partner_conditions: partnerConditions,
           payment_method: "bank_transfer",
           status: "pending_deposit",
         } as any)
@@ -244,7 +260,40 @@ export function usePaymentFlow() {
         } as any);
       }
 
-      // 8. Return the order
+      // 8. Notify partner that their quote was accepted and order created
+      if (quote.partner_id) {
+        const { data: partnerProfile } = await supabase
+          .from("user_profiles")
+          .select("id")
+          .eq("email", (quote.partner as any)?.contact_email ?? "")
+          .maybeSingle();
+
+        if (partnerProfile?.id) {
+          await supabase.from("notifications").insert({
+            user_id: partnerProfile.id,
+            title: "Devis accepté — commande créée",
+            body: `Votre devis pour ${quote.product_name} (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté. Une commande a été créée.`,
+            type: "order_update",
+            link: `/account?tab=quotes`,
+          } as any);
+        }
+
+        // Send email to partner
+        try {
+          await supabase.functions.invoke("send-notification-email", {
+            body: {
+              to: (quote.partner as any)?.contact_email,
+              subject: `Devis accepté — commande #${(order as any).id?.slice(0, 8)}`,
+              body_html: `<p>Votre devis pour <strong>${quote.product_name}</strong> (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté par le client.</p><p>Une commande a été créée. Le client procède au paiement de l'acompte.</p>`,
+              body_text: `Votre devis pour ${quote.product_name} (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté. Une commande a été créée.`,
+            },
+          });
+        } catch {
+          // Non-blocking
+        }
+      }
+
+      // 9. Return the order
       return order as any;
     },
     onSuccess: () => {

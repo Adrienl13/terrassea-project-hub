@@ -123,10 +123,10 @@ export default function AdminOrderTracking() {
       const partnerId = order?.partner_id;
       if (partnerId) {
         try {
-          // Check if partner is on starter plan
+          // Check if partner is on starter plan (single query for all needed fields)
           const { data: partner } = await supabase
             .from("partners")
-            .select("plan, name")
+            .select("plan, name, contact_email")
             .eq("id", partnerId)
             .maybeSingle();
 
@@ -149,13 +149,7 @@ export default function AdminOrderTracking() {
               } as any).eq("partner_id", partnerId);
 
               // Notify partner (find user profile via partner's contact_email)
-              const { data: partnerRow } = await supabase
-                .from("partners")
-                .select("contact_email")
-                .eq("id", partnerId)
-                .maybeSingle();
-
-              const partnerEmail = partnerRow?.contact_email;
+              const partnerEmail = partner.contact_email;
               const { data: partnerProfile } = partnerEmail
                 ? await supabase
                     .from("user_profiles")
@@ -184,14 +178,16 @@ export default function AdminOrderTracking() {
                 .eq("user_type", "admin")
                 .limit(5);
 
-              for (const admin of admins || []) {
-                await supabase.from("notifications").insert({
-                  user_id: admin.id,
-                  title: "Auto-migration partenaire",
-                  body: `${partner.name} a \u00e9t\u00e9 automatiquement migr\u00e9 vers le plan Growth apr\u00e8s ${count} commandes confirm\u00e9es.`,
-                  type: "info",
-                  link: "/admin?tab=subscriptions",
-                });
+              if (admins && admins.length > 0) {
+                await supabase.from("notifications").insert(
+                  admins.map(admin => ({
+                    user_id: admin.id,
+                    title: "Auto-migration partenaire",
+                    body: `${partner.name} a \u00e9t\u00e9 automatiquement migr\u00e9 vers le plan Growth apr\u00e8s ${count} commandes confirm\u00e9es.`,
+                    type: "info",
+                    link: "/admin?tab=subscriptions",
+                  })) as any
+                );
               }
 
               queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
@@ -403,6 +399,35 @@ export default function AdminOrderTracking() {
         {/* Tracking info */}
         {(selected.tracking_number || selected.status === "shipped" || selected.status === "delivered") && (
           <TrackingPanel order={selected} onUpdate={updateOrder} queryClient={queryClient} />
+        )}
+
+        {/* Partner contractual terms (from quote response) */}
+        {(selected.tva_rate != null || selected.delivery_delay_days || selected.delivery_conditions || selected.payment_conditions || selected.partner_conditions) && (
+          <div className="border border-border rounded-xl p-4">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5" /> Conditions fournisseur
+            </p>
+            <div className="grid grid-cols-2 gap-3 text-xs font-body">
+              {selected.tva_rate != null && (
+                <div><span className="text-muted-foreground">TVA :</span> {selected.tva_rate}%</div>
+              )}
+              {selected.delivery_delay_days != null && (
+                <div><span className="text-muted-foreground">Délai livraison :</span> {selected.delivery_delay_days} jours</div>
+              )}
+              {selected.estimated_delivery_date && (
+                <div><span className="text-muted-foreground">Livraison estimée :</span> {new Date(selected.estimated_delivery_date).toLocaleDateString("fr-FR")}</div>
+              )}
+              {selected.delivery_conditions && (
+                <div className="col-span-2"><span className="text-muted-foreground">Conditions livraison :</span> {selected.delivery_conditions}</div>
+              )}
+              {selected.payment_conditions && (
+                <div className="col-span-2"><span className="text-muted-foreground">Conditions paiement :</span> {selected.payment_conditions}</div>
+              )}
+              {selected.partner_conditions && (
+                <div className="col-span-2"><span className="text-muted-foreground">Conditions partenaire :</span> {selected.partner_conditions}</div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Supplier payout */}

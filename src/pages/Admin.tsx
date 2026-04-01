@@ -1022,7 +1022,7 @@ function ProductsTab() {
   const handleBulkPublish = async () => {
     setBulkLoading(true);
     const ids = [...selectedIds];
-    for (const id of ids) await supabase.from("products").update({ publish_status: "published" }).eq("id", id);
+    await supabase.from("products").update({ publish_status: "published" }).in("id", ids);
     queryClient.invalidateQueries({ queryKey: ["products"] });
     setSelectedIds(new Set()); setConfirmBulkAction(null); setBulkLoading(false);
     toast.success(`${ids.length} produit${ids.length > 1 ? "s" : ""} publié${ids.length > 1 ? "s" : ""}`);
@@ -1031,7 +1031,7 @@ function ProductsTab() {
   const handleBulkOffline = async () => {
     setBulkLoading(true);
     const ids = [...selectedIds];
-    for (const id of ids) await supabase.from("products").update({ publish_status: "draft" }).eq("id", id);
+    await supabase.from("products").update({ publish_status: "draft" }).in("id", ids);
     queryClient.invalidateQueries({ queryKey: ["products"] });
     setSelectedIds(new Set()); setConfirmBulkAction(null); setBulkLoading(false);
     toast.success(`${ids.length} produit${ids.length > 1 ? "s" : ""} mis hors ligne`);
@@ -1040,11 +1040,12 @@ function ProductsTab() {
   const handleBulkDelete = async () => {
     setBulkLoading(true);
     const ids = [...selectedIds];
-    for (const id of ids) {
-      await supabase.from("product_offers").delete().eq("product_id", id);
-      await supabase.from("product_submissions").delete().eq("target_product_id", id);
-      await supabase.from("products").delete().eq("id", id);
-    }
+    // Delete offers & submissions in bulk, then products
+    await Promise.all([
+      supabase.from("product_offers").delete().in("product_id", ids),
+      supabase.from("product_submissions").delete().in("target_product_id", ids),
+    ]);
+    await supabase.from("products").delete().in("id", ids);
     queryClient.invalidateQueries({ queryKey: ["products"] });
     setSelectedIds(new Set()); setConfirmBulkAction(null); setBulkLoading(false);
     toast.success(`${ids.length} produit${ids.length > 1 ? "s" : ""} supprimé${ids.length > 1 ? "s" : ""}`);

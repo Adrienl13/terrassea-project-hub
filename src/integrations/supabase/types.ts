@@ -624,7 +624,9 @@ export type Database = {
           commission_rate: number | null
           created_at: string
           delivered_at: string | null
+          delivery_conditions: string | null
           delivery_confirmed_by: string | null
+          delivery_delay_days: number | null
           delivery_proof_path: string | null
           deposit_amount: number | null
           deposit_due_date: string | null
@@ -638,7 +640,9 @@ export type Database = {
           id: string
           invoice_number: string | null
           invoice_pdf_path: string | null
+          partner_conditions: string | null
           partner_id: string | null
+          payment_conditions: string | null
           payment_method: string | null
           payment_reference: string | null
           product_id: string | null
@@ -666,6 +670,7 @@ export type Database = {
           tracking_provider: string | null
           tracking_status: string | null
           tracking_url: string | null
+          tva_rate: number | null
           unit_price: number | null
           updated_at: string
         }
@@ -682,7 +687,9 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string
           delivered_at?: string | null
+          delivery_conditions?: string | null
           delivery_confirmed_by?: string | null
+          delivery_delay_days?: number | null
           delivery_proof_path?: string | null
           deposit_amount?: number | null
           deposit_due_date?: string | null
@@ -696,7 +703,9 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           invoice_pdf_path?: string | null
+          partner_conditions?: string | null
           partner_id?: string | null
+          payment_conditions?: string | null
           payment_method?: string | null
           payment_reference?: string | null
           product_id?: string | null
@@ -723,6 +732,7 @@ export type Database = {
           tracking_number?: string | null
           tracking_provider?: string | null
           tracking_status?: string | null
+          tva_rate?: number | null
           tracking_url?: string | null
           unit_price?: number | null
           updated_at?: string
@@ -740,7 +750,9 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string
           delivered_at?: string | null
+          delivery_conditions?: string | null
           delivery_confirmed_by?: string | null
+          delivery_delay_days?: number | null
           delivery_proof_path?: string | null
           deposit_amount?: number | null
           deposit_due_date?: string | null
@@ -754,7 +766,9 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           invoice_pdf_path?: string | null
+          partner_conditions?: string | null
           partner_id?: string | null
+          payment_conditions?: string | null
           payment_method?: string | null
           payment_reference?: string | null
           product_id?: string | null
@@ -782,6 +796,7 @@ export type Database = {
           tracking_provider?: string | null
           tracking_status?: string | null
           tracking_url?: string | null
+          tva_rate?: number | null
           unit_price?: number | null
           updated_at?: string
         }
@@ -2062,6 +2077,7 @@ export type Database = {
           created_at: string | null
           currency: string | null
           delivery_delay_days: number | null
+          dimension_tag: string | null
           id: string
           is_active: boolean | null
           minimum_order: number | null
@@ -2082,6 +2098,7 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           delivery_delay_days?: number | null
+          dimension_tag?: string | null
           id?: string
           is_active?: boolean | null
           minimum_order?: number | null
@@ -2102,6 +2119,7 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           delivery_delay_days?: number | null
+          dimension_tag?: string | null
           id?: string
           is_active?: boolean | null
           minimum_order?: number | null

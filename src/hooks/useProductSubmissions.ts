@@ -377,7 +377,7 @@ export function useAdminSubmissions() {
           const { error: offerError } = await supabase
             .from("product_offers")
             .insert({
-              partner_id: submission.partner_id,
+              partner_id: submission.partner_id!,
               product_id: newProduct.id,
               price: dv.price ?? pd.price_min ?? null,
               stock_status: pd.stock_status ?? "available",
@@ -391,7 +391,7 @@ export function useAdminSubmissions() {
               collection_name: pd.collection ?? null,
               minimum_order: pd.minimum_order ?? null,
               dimension_tag: dv.dimension_tag ?? null,
-            } as any);
+            });
           if (offerError) console.warn("Failed to create offer for dimension", dv.dimension_tag, offerError.message);
         }
       } else {
@@ -399,7 +399,7 @@ export function useAdminSubmissions() {
         const { error: offerError } = await supabase
           .from("product_offers")
           .insert({
-            partner_id: submission.partner_id,
+            partner_id: submission.partner_id!,
             product_id: newProduct.id,
             price: pd.price_min ?? null,
             stock_status: pd.stock_status ?? "available",
@@ -412,7 +412,7 @@ export function useAdminSubmissions() {
             partner_color_name: pd.main_color ?? null,
             collection_name: pd.collection ?? null,
             minimum_order: pd.minimum_order ?? null,
-          } as any);
+          });
         if (offerError) console.warn("Failed to create product_offer:", offerError.message);
       }
 

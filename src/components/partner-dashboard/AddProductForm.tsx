@@ -7,8 +7,10 @@ import { toast } from "sonner";
 import {
   X, Upload, Sparkles, Camera, Check, Loader2, AlertTriangle,
   ChevronDown, ChevronUp, Package, Image as ImageIcon, Info,
+  Plus, Trash2,
 } from "lucide-react";
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
+import type { DimensionVariant } from "@/lib/products";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -77,6 +79,7 @@ interface ProductFormData {
   estimated_delivery_days: number | null;
   country_of_manufacture: string;
   warranty: string;
+  dimension_variants: DimensionVariant[];
 }
 
 const EMPTY_FORM: ProductFormData = {
@@ -90,6 +93,7 @@ const EMPTY_FORM: ProductFormData = {
   weather_resistant: false, uv_resistant: false, lightweight: false, easy_maintenance: false,
   stock_status: "in_stock", stock_quantity: null, estimated_delivery_days: null,
   country_of_manufacture: "", warranty: "",
+  dimension_variants: [],
 };
 
 const CATEGORIES = [
@@ -184,6 +188,7 @@ export default function AddProductForm({
         estimated_delivery_days: d.estimated_delivery_days ?? null,
         country_of_manufacture: d.country_of_manufacture || "",
         warranty: d.warranty || "",
+        dimension_variants: Array.isArray(d.dimension_variants) ? d.dimension_variants : [],
       };
     }
     return EMPTY_FORM;
@@ -458,6 +463,7 @@ export default function AddProductForm({
         estimated_delivery_days: form.estimated_delivery_days,
         country_of_manufacture: form.country_of_manufacture || null,
         warranty: form.warranty || null,
+        dimension_variants: form.dimension_variants.length > 0 ? form.dimension_variants : null,
       } as any;
 
       // If editing an existing submission, update it in place instead of creating a new one
@@ -961,6 +967,106 @@ export default function AddProductForm({
                   Indiquez votre prix HT. La commission Terrassea de {config.commission}% sera ajoutée au prix présenté au client.
                 </div>
               </div>
+
+              {/* Dimension variants for tables */}
+              {form.category === "tables" && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-display font-semibold text-foreground">Variantes de dimensions</p>
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({
+                        ...prev,
+                        dimension_variants: [...prev.dimension_variants, { dimension_tag: "", label: "", seats: 2, price: 0, available: true }],
+                      }))}
+                      className="flex items-center gap-1 text-[10px] font-display font-semibold text-[#D4603A] hover:underline"
+                    >
+                      <Plus className="h-3 w-3" /> Ajouter une taille
+                    </button>
+                  </div>
+                  {form.dimension_variants.length === 0 && (
+                    <p className="text-[10px] font-body text-muted-foreground italic">
+                      Ajoutez les différentes tailles disponibles (ex : 80×80, 120×70, 160×80). Les prix ci-dessous seront utilisés comme prix par défaut.
+                    </p>
+                  )}
+                  {form.dimension_variants.map((dv, i) => (
+                    <div key={i} className="grid grid-cols-[1fr_1.5fr_0.6fr_0.8fr_auto] gap-2 items-end">
+                      <div>
+                        <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Tag *</label>
+                        <input
+                          type="text"
+                          placeholder="80x80"
+                          value={dv.dimension_tag}
+                          onChange={e => {
+                            const updated = [...form.dimension_variants];
+                            updated[i] = { ...dv, dimension_tag: e.target.value };
+                            setForm(prev => ({ ...prev, dimension_variants: updated }));
+                          }}
+                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Label</label>
+                        <input
+                          type="text"
+                          placeholder="80×80 cm — 4 couverts"
+                          value={dv.label}
+                          onChange={e => {
+                            const updated = [...form.dimension_variants];
+                            updated[i] = { ...dv, label: e.target.value };
+                            setForm(prev => ({ ...prev, dimension_variants: updated }));
+                          }}
+                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Places</label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={dv.seats}
+                          onChange={e => {
+                            const updated = [...form.dimension_variants];
+                            updated[i] = { ...dv, seats: Number(e.target.value) || 0 };
+                            setForm(prev => ({ ...prev, dimension_variants: updated }));
+                          }}
+                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Prix HT €</label>
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="0"
+                          value={dv.price || ""}
+                          onChange={e => {
+                            const updated = [...form.dimension_variants];
+                            updated[i] = { ...dv, price: Number(e.target.value) || 0 };
+                            setForm(prev => ({ ...prev, dimension_variants: updated }));
+                          }}
+                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = form.dimension_variants.filter((_, idx) => idx !== i);
+                          setForm(prev => ({ ...prev, dimension_variants: updated }));
+                        }}
+                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {form.dimension_variants.length > 0 && (
+                    <p className="text-[9px] font-body text-muted-foreground">
+                      Les prix min/max ci-dessous servent de référence. Chaque taille aura son offre avec son propre prix.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>

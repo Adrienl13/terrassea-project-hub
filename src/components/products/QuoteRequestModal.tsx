@@ -145,22 +145,26 @@ const QuoteRequestModal = ({
       });
       if (insertError) throw insertError;
 
-      // Trigger auto-assign (non-blocking)
+      // Trigger auto-assign with error logging for admin visibility
       supabase.functions.invoke("auto-workflow", {
         body: { action: "auto_assign_partner" },
-      }).catch((err) => console.error("auto-workflow failed:", err));
+      }).then(({ error }) => {
+        if (error) console.error("auto-workflow failed:", error);
+      }).catch((err) => console.error("auto-workflow network error:", err));
 
-      // Notify all admins (non-blocking)
+      // Notify all admins (batched insert)
       try {
         const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
-        for (const admin of admins || []) {
-          await supabase.from("notifications").insert({
-            user_id: admin.id,
-            title: t("quoteModal.notifTitle"),
-            body: t("quoteModal.notifBody", { firstName: form.firstName, lastName: form.lastName || "", product: product.name, quantity: form.quantity }),
-            type: "info",
-            link: "/admin?tab=quotes",
-          });
+        if (admins && admins.length > 0) {
+          await supabase.from("notifications").insert(
+            admins.map(admin => ({
+              user_id: admin.id,
+              title: t("quoteModal.notifTitle"),
+              body: t("quoteModal.notifBody", { firstName: form.firstName, lastName: form.lastName || "", product: product.name, quantity: form.quantity }),
+              type: "info",
+              link: "/admin?tab=quotes",
+            }))
+          );
         }
       } catch {
         // Non-blocking: admin notification failed silently
