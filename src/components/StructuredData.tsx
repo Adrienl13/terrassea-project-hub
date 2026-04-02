@@ -125,6 +125,18 @@ const serviceSchema = {
   },
 };
 
+// ── Partners directory schema ──────────────────────────────────
+
+const partnersListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Verified Outdoor Furniture Suppliers on TerrasseaHUB",
+  description:
+    "Verified manufacturers, brands, and distributors of professional outdoor furniture for the hospitality industry, available on TerrasseaHUB.",
+  url: `${BASE_URL}/partners`,
+  itemListOrder: "https://schema.org/ItemListUnordered",
+};
+
 // ── Breadcrumb builder ─────────────────────────────────────────
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -212,6 +224,11 @@ export default function StructuredData() {
     if (pathname === "/become-partner") {
       schemas.push(serviceSchema);
       schemas.push(faqSchema);
+    }
+
+    // Partners directory
+    if (pathname === "/partners") {
+      schemas.push(partnersListSchema);
     }
 
     // Breadcrumbs on every page except homepage

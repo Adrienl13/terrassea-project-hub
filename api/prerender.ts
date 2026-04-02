@@ -228,69 +228,287 @@ function getRouteConfig(path: string, query: URLSearchParams): RouteConfig {
   };
 }
 
-// ── Product page (dynamic — fetches from Supabase) ────────────────────
+// ── Supabase helper ──────────────────────────────────────────────────
+
+function getSupabaseConfig() {
+  const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+  return url && key ? { url, key } : null;
+}
+
+async function supabaseQuery(table: string, query: string): Promise<any[]> {
+  const sb = getSupabaseConfig();
+  if (!sb) return [];
+  try {
+    const res = await fetch(`${sb.url}/rest/v1/${table}?${query}`, {
+      headers: { apikey: sb.key, Authorization: `Bearer ${sb.key}` },
+    });
+    return res.ok ? await res.json() : [];
+  } catch {
+    return [];
+  }
+}
+
+// Plans where the partner name is visible to buyers (Elite+)
+const VISIBLE_PLANS = ["elite", "brand_member", "brand_network"];
+
+// ── Product page (dynamic) ──────────────────────────────────────────
 
 async function getProductConfig(productId: string): Promise<RouteConfig | null> {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseKey) return null;
+  const rows = await supabaseQuery(
+    "products",
+    `id=eq.${encodeURIComponent(productId)}&select=id,name,name_en,short_description,short_description_en,category,image_url,price_min,brand_name,material_tags&limit=1`
+  );
+  if (!rows.length) return null;
 
-  try {
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/products?id=eq.${encodeURIComponent(productId)}&select=id,name,name_en,name_it,name_es,short_description,short_description_en,short_description_it,short_description_es,category,image_url,price_min,brand_name,material_tags&limit=1`,
-      {
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-        },
-      }
-    );
-    if (!res.ok) return null;
-    const rows = await res.json();
-    if (!rows.length) return null;
+  const p = rows[0];
+  const name = p.name_en || p.name || "Product";
+  const desc = p.short_description_en || p.short_description || `${name} — professional outdoor furniture on TerrasseaHUB.`;
 
-    const p = rows[0];
-    const name = p.name_en || p.name || "Product";
-    const desc = p.short_description_en || p.short_description || `${name} — professional outdoor furniture on TerrasseaHUB.`;
+  const productSchema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name,
+    description: desc,
+    image: p.image_url || undefined,
+    url: `${BASE}/products/${p.id}`,
+    category: p.category,
+    brand: p.brand_name ? { "@type": "Brand", name: p.brand_name } : undefined,
+    material: Array.isArray(p.material_tags) ? p.material_tags.join(", ") : undefined,
+    offeredBy: { "@id": `${BASE}/#organization` },
+  };
 
-    const productSchema: Record<string, unknown> = {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      name,
-      description: desc,
-      image: p.image_url || undefined,
-      url: `${BASE}/products/${p.id}`,
-      category: p.category,
-      brand: p.brand_name ? { "@type": "Brand", name: p.brand_name } : undefined,
-      material: Array.isArray(p.material_tags) ? p.material_tags.join(", ") : undefined,
+  if (p.price_min != null) {
+    productSchema.offers = {
+      "@type": "AggregateOffer",
+      lowPrice: Number(p.price_min).toFixed(2),
+      priceCurrency: "EUR",
+      availability: "https://schema.org/InStock",
+      seller: { "@id": `${BASE}/#organization` },
     };
+  }
 
-    if (p.price_min != null) {
-      productSchema.offers = {
-        "@type": "AggregateOffer",
-        lowPrice: Number(p.price_min).toFixed(2),
-        priceCurrency: "EUR",
-        availability: "https://schema.org/InStock",
-      };
-    }
+  return {
+    title: `${name} | ${SITE_NAME}`,
+    description: desc,
+    schemas: [ORG_JSONLD, productSchema],
+    bodyHtml: `
+      <h1>${name}</h1>
+      <p>${desc}</p>
+      ${p.category ? `<p>Category: ${p.category}</p>` : ""}
+      ${p.brand_name ? `<p>Brand: ${p.brand_name} — available on TerrasseaHUB</p>` : ""}
+      ${p.price_min != null ? `<p>From €${Number(p.price_min).toFixed(2)}</p>` : ""}
+      ${p.image_url ? `<img src="${p.image_url}" alt="${name}" width="600" />` : ""}
+      <p><a href="${BASE}/products">Back to catalogue</a> | <a href="${BASE}/">TerrasseaHUB</a></p>
+    `,
+  };
+}
 
+// ── Partner directory page (dynamic) ────────────────────────────────
+
+async function getPartnersConfig(): Promise<RouteConfig> {
+  const partners = await supabaseQuery(
+    "partners",
+    "is_public=eq.true&select=name,partner_type,country,plan,slug,visibility_level&order=priority_order.desc&limit=200"
+  );
+
+  const listItems = partners.map((p, i) => {
+    const isVisible = VISIBLE_PLANS.includes(p.plan);
+    const label = isVisible ? p.name : `Verified ${(p.partner_type || "supplier").replace(/^\w/, (c: string) => c.toUpperCase())}`;
     return {
-      title: `${name} | ${SITE_NAME}`,
-      description: desc,
-      schemas: [ORG_JSONLD, productSchema],
+      "@type": "ListItem" as const,
+      position: i + 1,
+      item: {
+        "@type": "Offer",
+        name: label,
+        ...(p.country ? { areaServed: p.country } : {}),
+        availableAtOrFrom: { "@id": `${BASE}/#organization` },
+        url: isVisible && p.slug ? `${BASE}/partners/${p.slug}` : `${BASE}/partners`,
+      },
+    };
+  });
+
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Verified Outdoor Furniture Suppliers on TerrasseaHUB",
+    description: `${partners.length} verified manufacturers, brands, and distributors of professional outdoor furniture for the hospitality industry.`,
+    numberOfItems: partners.length,
+    itemListElement: listItems,
+  };
+
+  const visiblePartners = partners.filter(p => VISIBLE_PLANS.includes(p.plan));
+  const anonCount = partners.length - visiblePartners.length;
+
+  return {
+    title: `Verified Outdoor Furniture Suppliers (${partners.length}) | ${SITE_NAME}`,
+    description: `Discover ${partners.length} verified outdoor furniture suppliers on TerrasseaHUB. Manufacturers, brands, and distributors from across Europe. Compare and request free quotes.`,
+    schemas: [ORG_JSONLD, itemListSchema],
+    bodyHtml: `
+      <h1>Verified Outdoor Furniture Suppliers on TerrasseaHUB</h1>
+      <p>${partners.length} verified manufacturers, brands, and distributors of professional outdoor furniture for the hospitality industry.</p>
+      <h2>Featured Suppliers</h2>
+      <ul>
+        ${visiblePartners.map(p => `<li>${p.name}${p.country ? ` — ${p.country}` : ""} — <a href="${BASE}/partners/${p.slug}">View on TerrasseaHUB</a></li>`).join("")}
+      </ul>
+      ${anonCount > 0 ? `<p>+ ${anonCount} additional verified suppliers available on the platform.</p>` : ""}
+      <p><a href="${BASE}/products">Browse Products</a> | <a href="${BASE}/become-partner">Become a Supplier</a></p>
+    `,
+  };
+}
+
+// ── Partner detail page (dynamic) ───────────────────────────────────
+
+async function getPartnerDetailConfig(slug: string): Promise<RouteConfig | null> {
+  const rows = await supabaseQuery(
+    "partners",
+    `slug=eq.${encodeURIComponent(slug)}&is_public=eq.true&select=id,name,partner_type,country,plan,slug,description_en,description,logo_url,specialties&limit=1`
+  );
+  if (!rows.length) return null;
+
+  const p = rows[0];
+  const isVisible = VISIBLE_PLANS.includes(p.plan);
+
+  // Non-visible partners: anonymous prerender
+  if (!isVisible) {
+    const typeLabel = (p.partner_type || "supplier").replace(/^\w/, (c: string) => c.toUpperCase());
+    return {
+      title: `Verified ${typeLabel}${p.country ? ` — ${p.country}` : ""} | ${SITE_NAME}`,
+      description: `Verified ${typeLabel.toLowerCase()} of outdoor furniture${p.country ? ` based in ${p.country}` : ""}. Request quotes via TerrasseaHUB.`,
+      schemas: [ORG_JSONLD],
       bodyHtml: `
-        <h1>${name}</h1>
-        <p>${desc}</p>
-        ${p.category ? `<p>Category: ${p.category}</p>` : ""}
-        ${p.brand_name ? `<p>Brand: ${p.brand_name}</p>` : ""}
-        ${p.price_min != null ? `<p>From €${Number(p.price_min).toFixed(2)}</p>` : ""}
-        ${p.image_url ? `<img src="${p.image_url}" alt="${name}" width="600" />` : ""}
-        <p><a href="${BASE}/products">Back to catalogue</a></p>
+        <h1>Verified ${typeLabel} on TerrasseaHUB</h1>
+        <p>This supplier is a verified ${typeLabel.toLowerCase()} of professional outdoor furniture${p.country ? ` based in ${p.country}` : ""}.</p>
+        <p>Request free quotes and compare offers from multiple suppliers on <a href="${BASE}/">TerrasseaHUB</a>.</p>
       `,
     };
-  } catch {
-    return null;
   }
+
+  const desc = p.description_en || p.description || `${p.name} — verified outdoor furniture supplier on TerrasseaHUB.`;
+
+  // Fetch their products for the ItemList
+  const products = await supabaseQuery(
+    "product_offers",
+    `partner_id=eq.${p.id}&is_active=eq.true&select=product:product_id(id,name,name_en,image_url,category)&limit=50`
+  );
+
+  const productItems = products
+    .filter((o: any) => o.product)
+    .map((o: any, i: number) => ({
+      "@type": "ListItem" as const,
+      position: i + 1,
+      item: {
+        "@type": "Product",
+        name: o.product.name_en || o.product.name,
+        url: `${BASE}/products/${o.product.id}`,
+        ...(o.product.image_url ? { image: o.product.image_url } : {}),
+        ...(o.product.category ? { category: o.product.category } : {}),
+        offeredBy: { "@id": `${BASE}/#organization` },
+      },
+    }));
+
+  const schemas: object[] = [ORG_JSONLD];
+
+  if (productItems.length > 0) {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: `${p.name} products available on TerrasseaHUB`,
+      description: `Browse ${p.name} outdoor furniture collection on TerrasseaHUB. Compare offers and request free quotes.`,
+      numberOfItems: productItems.length,
+      itemListElement: productItems,
+    });
+  }
+
+  return {
+    title: `${p.name} — Outdoor Furniture on ${SITE_NAME}`,
+    description: `${p.name}: ${desc.slice(0, 150)}. Browse their collection and request quotes on TerrasseaHUB.`,
+    schemas,
+    bodyHtml: `
+      <h1>${p.name} — Available on TerrasseaHUB</h1>
+      ${p.logo_url ? `<img src="${p.logo_url}" alt="${p.name}" width="200" />` : ""}
+      <p>${desc}</p>
+      ${p.country ? `<p>Based in ${p.country}</p>` : ""}
+      ${Array.isArray(p.specialties) && p.specialties.length ? `<p>Specialties: ${p.specialties.join(", ")}</p>` : ""}
+      ${productItems.length > 0 ? `<h2>${productItems.length} products available</h2><ul>${productItems.map((item: any) => `<li><a href="${item.item.url}">${item.item.name}</a></li>`).join("")}</ul>` : ""}
+      <p><a href="${BASE}/partners">All suppliers</a> | <a href="${BASE}/products">Browse catalogue</a></p>
+    `,
+  };
+}
+
+// ── Brand page (dynamic) ────────────────────────────────────────────
+
+async function getBrandConfig(slug: string): Promise<RouteConfig | null> {
+  const rows = await supabaseQuery(
+    "partners",
+    `slug=eq.${encodeURIComponent(slug)}&partner_mode=in.(brand_member,brand_network)&select=id,name,description_en,description,logo_url,country,specialties&limit=1`
+  );
+  if (!rows.length) return null;
+
+  const b = rows[0];
+  const desc = b.description_en || b.description || `${b.name} — premium outdoor furniture brand on TerrasseaHUB.`;
+
+  // Fetch brand products
+  const offers = await supabaseQuery(
+    "product_offers",
+    `partner_id=eq.${b.id}&is_active=eq.true&select=collection_name,product:product_id(id,name,name_en,image_url,category)&limit=100`
+  );
+
+  const collections = new Map<string, any[]>();
+  for (const o of offers) {
+    if (!o.product) continue;
+    const col = o.collection_name || "Main Collection";
+    if (!collections.has(col)) collections.set(col, []);
+    collections.get(col)!.push(o.product);
+  }
+
+  const productItems = offers
+    .filter((o: any) => o.product)
+    .map((o: any, i: number) => ({
+      "@type": "ListItem" as const,
+      position: i + 1,
+      item: {
+        "@type": "Product",
+        name: o.product.name_en || o.product.name,
+        url: `${BASE}/products/${o.product.id}`,
+        ...(o.product.image_url ? { image: o.product.image_url } : {}),
+        ...(o.product.category ? { category: o.product.category } : {}),
+        offeredBy: { "@id": `${BASE}/#organization` },
+      },
+    }));
+
+  const schemas: object[] = [ORG_JSONLD];
+
+  if (productItems.length > 0) {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: `${b.name} collection on TerrasseaHUB`,
+      description: `Explore ${b.name} outdoor furniture. ${productItems.length} products available exclusively via TerrasseaHUB.`,
+      numberOfItems: productItems.length,
+      itemListElement: productItems,
+    });
+  }
+
+  let collectionsHtml = "";
+  for (const [colName, products] of collections) {
+    collectionsHtml += `<h3>${colName}</h3><ul>${products.map((p: any) => `<li><a href="${BASE}/products/${p.id}">${p.name_en || p.name}</a></li>`).join("")}</ul>`;
+  }
+
+  return {
+    title: `${b.name} — Outdoor Furniture Collection on ${SITE_NAME}`,
+    description: `Explore ${b.name} outdoor furniture collection on TerrasseaHUB. ${desc.slice(0, 120)}`,
+    schemas,
+    bodyHtml: `
+      <h1>${b.name} — Available on TerrasseaHUB</h1>
+      ${b.logo_url ? `<img src="${b.logo_url}" alt="${b.name}" width="200" />` : ""}
+      <p>${desc}</p>
+      ${b.country ? `<p>Based in ${b.country}</p>` : ""}
+      ${Array.isArray(b.specialties) && b.specialties.length ? `<p>Specialties: ${b.specialties.join(", ")}</p>` : ""}
+      ${collectionsHtml ? `<h2>Collections</h2>${collectionsHtml}` : ""}
+      <p>All products by ${b.name} are available exclusively through <a href="${BASE}/">TerrasseaHUB</a>. <a href="${BASE}/products">Browse full catalogue</a>.</p>
+    `,
+  };
 }
 
 // ── HTML builder ──────────────────────────────────────────────────────
@@ -367,11 +585,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let config: RouteConfig;
 
-  // Product detail page — fetch from Supabase
+  // Dynamic pages — fetch from Supabase
   const productMatch = path.match(/^\/products\/([a-f0-9-]+)$/i);
+  const partnerMatch = path.match(/^\/partners\/([a-z0-9_-]+)$/i);
+  const brandMatch = path.match(/^\/brands\/([a-z0-9_-]+)$/i);
+
   if (productMatch) {
-    const productConfig = await getProductConfig(productMatch[1]);
-    config = productConfig || getRouteConfig(path, forwardedSearch);
+    config = (await getProductConfig(productMatch[1])) || getRouteConfig(path, forwardedSearch);
+  } else if (path === "/partners") {
+    config = await getPartnersConfig();
+  } else if (partnerMatch) {
+    config = (await getPartnerDetailConfig(partnerMatch[1])) || getRouteConfig(path, forwardedSearch);
+  } else if (brandMatch) {
+    config = (await getBrandConfig(brandMatch[1])) || getRouteConfig(path, forwardedSearch);
   } else {
     config = getRouteConfig(path, forwardedSearch);
   }
