@@ -9,12 +9,14 @@ interface SEOProps {
   noindex?: boolean;
 }
 
-const DEFAULT_TITLE = "Terrassea — B2B Outdoor Furniture Sourcing";
+const DEFAULT_TITLE = "TerrasseaHUB — Europe's B2B Marketplace for Outdoor Hospitality Furniture";
 const DEFAULT_DESCRIPTION =
-  "Source premium outdoor furniture for hotels, restaurants, and beach clubs. Compare verified suppliers, request quotes, and manage your hospitality projects.";
-const DEFAULT_IMAGE = "https://terrassea.com/favicon.ico";
-const SITE_NAME = "Terrassea";
+  "Source outdoor furniture for restaurants, hotels, and cafés from verified European manufacturers. Chairs, tables, parasols, sun loungers. Free quotes, 9 countries, 6 languages.";
+const DEFAULT_IMAGE = "https://terrassea.com/og-image.jpg";
+const SITE_NAME = "TerrasseaHUB";
 const BASE_URL = "https://terrassea.com";
+
+const OG_LOCALE_ALTERNATES = ["en_GB", "it_IT", "es_ES", "de_DE"];
 
 function setMeta(name: string, content: string, attribute = "name") {
   let el = document.querySelector(`meta[${attribute}="${name}"]`) as HTMLMetaElement | null;
@@ -72,6 +74,18 @@ export default function SEO({
     setMeta("twitter:title", fullTitle);
     setMeta("twitter:description", description);
     setMeta("twitter:image", image);
+
+    // Locale
+    setMeta("og:locale", "fr_FR", "property");
+    for (const alt of OG_LOCALE_ALTERNATES) {
+      let el = document.querySelector(`meta[property="og:locale:alternate"][content="${alt}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", "og:locale:alternate");
+        el.setAttribute("content", alt);
+        document.head.appendChild(el);
+      }
+    }
 
     // Canonical
     setCanonical(canonicalUrl);

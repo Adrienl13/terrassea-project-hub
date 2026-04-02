@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const CATEGORY_KEYS = [
   "chairs", "armchairs", "barStools", "benches",
@@ -355,6 +356,7 @@ const BecomePartner = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Become a Partner" description="Join TerrasseaHUB as a verified supplier. Reach hospitality buyers across 9 European countries. Free Starter plan available." />
       <Header />
 
       <section className="pt-32 pb-20 px-6 relative overflow-hidden">

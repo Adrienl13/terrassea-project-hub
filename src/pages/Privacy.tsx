@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
@@ -8,6 +9,7 @@ const Privacy = () => {
 
   return (
     <>
+      <SEO title="Privacy Policy" description="Privacy policy and data protection information for TerrasseaHUB." />
       <Header />
       <main className="min-h-screen bg-background">
         <div className="container mx-auto px-6 py-16 max-w-4xl">

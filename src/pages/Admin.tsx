@@ -14,6 +14,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
 import type { DBProduct, ProductTypeTags, TagDefinition } from "@/lib/products";
 import type { Json } from "@/integrations/supabase/types";
 import AdminDashboard from "@/components/admin/AdminDashboard";
@@ -2097,6 +2098,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background flex">
+      <SEO title="Admin" noindex />
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div

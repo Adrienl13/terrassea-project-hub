@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronDown, ArrowRight, Armchair, Layers, Sun, Ruler, Scale } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { TOPIC_ILLUSTRATIONS, SIDEBAR_ILLUSTRATIONS } from "@/components/resources/ResourceIllustrations";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -544,6 +545,7 @@ const Resources = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO title="Resources & Guides" description="Expert guides on choosing outdoor furniture for hospitality. Materials, dimensions, maintenance tips for chairs, tables, parasols." />
       <Header />
 
       {/* ── Hero with photo cards ── */}

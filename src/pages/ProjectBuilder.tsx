@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import ProjectBuilderStepper from "@/components/project-builder/ProjectBuilderStepper";
 import ProjectBuilderSummary from "@/components/project-builder/ProjectBuilderSummary";
 import ProjectBuilderStep from "@/components/project-builder/ProjectBuilderStep";
@@ -277,6 +278,7 @@ const ProjectBuilder = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Project Builder" noindex />
       <Header />
 
       <div className="pt-24 pb-16">

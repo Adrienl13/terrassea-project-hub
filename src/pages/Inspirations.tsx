@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Layers, Sparkles, X } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -468,6 +469,7 @@ const Inspirations = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO title="Inspirations" description="Explore curated outdoor furniture moodboards for hotels, restaurants, and beach clubs. Find your terrace style on TerrasseaHUB." />
       <Header />
       <main className="flex-1">
 

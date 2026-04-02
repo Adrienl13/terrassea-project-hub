@@ -9,6 +9,7 @@ import { CompareProvider } from "@/contexts/CompareContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FavouritesProvider } from "@/contexts/FavouritesContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import StructuredData from "@/components/StructuredData";
 import NotFound from "./pages/NotFound.tsx";
 
 // Lazy-loaded page components
@@ -64,6 +65,7 @@ const App = () => (
           <CompareProvider>
             <Sonner />
             <BrowserRouter>
+              <StructuredData />
               <div className="pt-[var(--header-height)]">
                 <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
                 <Routes>

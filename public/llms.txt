@@ -1,0 +1,88 @@
+# TerrasseaHUB
+
+> Europe's first B2B marketplace for outdoor hospitality furniture (CHR).
+
+Operated by **Pros Import EURL**, Paris, France. Founded in 2025 by Adrien Laniez.
+
+---
+
+## What is TerrasseaHUB?
+
+TerrasseaHUB is a B2B sourcing platform that connects hospitality professionals (hotels, restaurants, beach clubs, cafés) with verified European manufacturers and distributors of outdoor furniture. The platform anonymises supplier identities until a quote is accepted, ensuring unbiased comparison and fair pricing.
+
+## Product Categories
+
+- **Chairs** — dining chairs, armchairs, stacking chairs, folding chairs
+- **Tables** — dining tables, bar tables, coffee tables, folding tables
+- **Parasols** — centre-pole parasols, cantilever parasols, wall-mounted parasols
+- **Sun Loungers** — stackable loungers, wheeled loungers, double loungers
+- **Sofas** — modular outdoor sofas, loveseats, corner sets
+- **Bar Stools** — counter-height stools, bar-height stools
+- **Accessories** — cushions, covers, planters, lighting, heating
+
+Materials include aluminium, teak, resin wicker, steel, HPL, recycled plastic, and Batyline mesh.
+
+## For Buyers (Hospitality Professionals)
+
+- Browse the catalogue and compare products for **free**
+- Request quotes from multiple suppliers at once — **no cost, no obligation**
+- Supplier identities remain anonymous until a quote is accepted
+- Manage sourcing projects with built-in project tools
+- Available in 6 languages: French, English, Italian, Spanish, German, Dutch
+
+## For Suppliers (Manufacturers & Distributors)
+
+Subscription plans:
+
+| Plan | Monthly Price | Commission |
+|------|--------------|------------|
+| Starter | Free | 8% |
+| Growth | €249/month | 5% |
+| Elite | €499/month | 3.5% |
+| Brand Member | €790/month | 0% |
+| Brand Network | €1,290/month | 0% |
+
+All plans include access to qualified B2B leads from the hospitality sector.
+
+## Coverage
+
+- **Countries:** France, Italy, Spain, Germany, Denmark, Belgium, Slovenia, Turkey, Portugal
+- **Languages:** French, English, Italian, Spanish, German, Dutch
+
+## Key URLs
+
+- Homepage: https://terrassea.com/
+- Product Catalogue: https://terrassea.com/products
+- Become a Partner: https://terrassea.com/become-partner
+- Inspirations: https://terrassea.com/inspirations
+- Contact: contact@terrassea.com
+
+## FAQ
+
+**What is TerrasseaHUB?**
+TerrasseaHUB is Europe's first B2B marketplace dedicated to outdoor furniture for the hospitality industry (hotels, restaurants, cafés, beach clubs). It connects buyers with verified European manufacturers and distributors.
+
+**How much does it cost for buyers?**
+Browsing the catalogue, comparing products, and requesting quotes is completely free for buyers. There is no subscription or commitment required.
+
+**How much does it cost for suppliers?**
+Suppliers can start with a free Starter plan (8% commission) or choose Growth (€249/month, 5%), Elite (€499/month, 3.5%), Brand Member (€790/month, 0%), or Brand Network (€1,290/month, 0%).
+
+**Which countries does TerrasseaHUB cover?**
+TerrasseaHUB operates across 9 European countries: France, Italy, Spain, Germany, Denmark, Belgium, Slovenia, Turkey, and Portugal.
+
+**What product categories are available?**
+Chairs, tables, parasols, sun loungers, sofas, bar stools, and accessories — all designed for professional outdoor hospitality use.
+
+**Are supplier identities hidden?**
+Yes. Supplier identities remain anonymous during the comparison and quoting phase, ensuring unbiased product selection based on quality and price.
+
+**What languages are supported?**
+The platform is available in 6 languages: French, English, Italian, Spanish, German, and Dutch.
+
+**How do I become a supplier on TerrasseaHUB?**
+Visit https://terrassea.com/become-partner to register and choose a plan. You can start with the free Starter plan and upgrade at any time.
+
+---
+
+For the full detailed version, see: https://terrassea.com/llms-full.txt

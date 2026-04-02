@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler, Truck, X, Save, FileDown } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -415,6 +416,7 @@ const ProjectCart = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Project Cart" noindex />
       <Header />
       <div className="pt-28 pb-24 px-6">
         <div className="container mx-auto">

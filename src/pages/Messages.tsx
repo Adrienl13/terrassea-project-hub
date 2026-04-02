@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const USER_TYPE_ICON: Record<string, any> = {
   client: User,
@@ -363,6 +364,7 @@ export default function Messages() {
 
   return (
     <>
+      <SEO title="Messages" noindex />
       <Header />
       <div className="min-h-screen bg-background">
         <div className="max-w-6xl mx-auto px-6 py-8">

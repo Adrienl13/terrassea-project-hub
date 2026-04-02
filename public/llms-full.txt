@@ -1,0 +1,211 @@
+# TerrasseaHUB — Full Reference
+
+> Europe's first B2B marketplace for outdoor hospitality furniture (CHR).
+
+Operated by **Pros Import EURL**, Paris, France. Founded in 2025 by Adrien Laniez.
+Contact: contact@terrassea.com
+
+---
+
+## What is TerrasseaHUB?
+
+TerrasseaHUB is a B2B sourcing platform that connects hospitality professionals (hotels, restaurants, beach clubs, cafés) with verified European manufacturers and distributors of outdoor furniture. The platform anonymises supplier identities until a quote is accepted, ensuring unbiased comparison and fair pricing.
+
+The platform is designed for the CHR sector (Cafés, Hotels, Restaurants) and covers the entire sourcing workflow: product discovery, comparison, quoting, supplier selection, and payment via Stripe Connect.
+
+---
+
+## Product Categories
+
+### Chairs
+- Dining chairs, armchairs, stacking chairs, folding chairs
+- Materials: aluminium, teak, resin wicker, steel, recycled plastic, Batyline mesh
+
+### Tables
+- Dining tables, bar tables, coffee tables, folding tables
+- Materials: aluminium, teak, HPL compact laminate, steel, marble, ceramic
+
+### Parasols
+- Centre-pole parasols, cantilever/offset parasols, wall-mounted parasols
+- Materials: aluminium frame, steel frame, acrylic fabric, Sunbrella fabric
+
+### Sun Loungers
+- Stackable loungers, wheeled loungers, double loungers
+- Materials: aluminium, teak, resin wicker, Batyline mesh, Textilene
+
+### Sofas
+- Modular outdoor sofas, loveseats, corner sofa sets
+- Materials: aluminium frame, resin wicker, teak, outdoor fabric cushions
+
+### Bar Stools
+- Counter-height stools, bar-height stools
+- Materials: aluminium, steel, teak, resin wicker
+
+### Accessories
+- Cushions, protective covers, planters, outdoor lighting, patio heaters, windbreakers
+
+---
+
+## Buyer Flow (Hospitality Professionals)
+
+The buying process on TerrasseaHUB works as follows:
+
+1. **Browse & Search** — Explore the product catalogue by category, material, style, or keyword. Multilingual search is supported across 6 languages.
+2. **Compare Products** — Add up to 3 products to a side-by-side comparison view to evaluate specifications, materials, and pricing.
+3. **Build a Project** — Use the Project Builder wizard to define your terrace layout, seating needs, and style preferences. The engine generates recommended product concepts with a bill of materials.
+4. **Request Quotes** — Add products to your sourcing cart and request quotes from multiple suppliers simultaneously. Supplier identities remain anonymous during this phase.
+5. **Select Supplier** — Review quotes, compare pricing and lead times, and select the winning supplier for each product.
+6. **Payment & Delivery** — Payments are processed securely via Stripe Connect. The supplier ships directly to your venue.
+
+**Cost for buyers:** Completely free. No subscription, no platform fee, no obligation.
+
+---
+
+## Supplier Flow (Manufacturers & Distributors)
+
+The supplier onboarding and selling process:
+
+1. **Register** — Visit https://terrassea.com/become-partner and create a supplier account.
+2. **Choose a Plan** — Select a subscription plan (Starter is free) that fits your business.
+3. **Upload Catalogue** — Add products manually, via CSV import, or through API integration. Include photos, specifications, pricing, and stock levels.
+4. **Receive Leads** — Get notified when buyers request quotes for products in your catalogue.
+5. **Submit Quotes** — Respond to quote requests with your pricing, lead times, and conditions.
+6. **Win Orders** — When a buyer selects your offer, the order is confirmed and payment is processed via Stripe Connect.
+7. **Ship & Get Paid** — Ship directly to the buyer's venue. Payment is released automatically after delivery confirmation.
+
+---
+
+## Subscription Plans (Suppliers)
+
+### Catalogue Plans
+
+| Plan | Monthly Price | Commission per Sale | Catalogue Limit |
+|------|--------------|--------------------|-----------------|
+| Starter | Free | 8% | 10 products |
+| Growth | €249/month | 5% | 100 products |
+| Elite | €499/month | 3.5% | Unlimited |
+
+### Brand Plans
+
+| Plan | Monthly Price | Commission | Features |
+|------|--------------|------------|----------|
+| Brand Member | €790/month | 0% | Branded page, priority placement, unlimited catalogue |
+| Brand Network | €1,290/month | 0% | Everything in Brand Member + multi-brand network, dedicated account manager |
+
+### What's Included in Every Plan
+
+- Access to qualified B2B leads from the hospitality sector
+- Product listing in the searchable catalogue
+- Quote management dashboard
+- Order tracking and analytics
+- Multilingual product listing (auto-translated to 6 languages)
+
+### Additional Features by Plan
+
+- **Growth+**: CSV product import/export, newsletter referral, stock synchronisation
+- **Elite+**: API integration, priority support, advanced analytics
+- **Brand Member+**: Branded supplier page, SEO-optimised profile, featured placement in search
+- **Brand Network+**: Multi-location support, dedicated account manager, custom reporting
+
+---
+
+## Platform Features
+
+- **Multilingual Search** — Product search works across all 6 languages with automatic translation
+- **Supplier Anonymity** — Supplier identities are hidden during comparison and quoting to ensure fair evaluation
+- **Stripe Connect Payments** — Secure payment processing with automatic supplier payouts
+- **Stock Synchronisation** — Real-time stock levels via CSV or API for Growth+ plans
+- **Analytics Dashboard** — Suppliers see views, quote requests, conversion rates, and revenue metrics
+- **Project Builder** — Buyers can define terrace parameters (size, style, capacity) and receive AI-generated furniture concepts with bill of materials
+- **Mood Board** — Visual inspiration board to save and organise favourite products
+- **Architect Programme** — Interior designers and architects can access the platform to source for their clients
+- **GDPR Compliant** — Full compliance with European data protection regulations
+- **Responsive Design** — Works on desktop, tablet, and mobile devices
+
+---
+
+## Coverage
+
+### Countries Served
+France, Italy, Spain, Germany, Denmark, Belgium, Slovenia, Turkey, Portugal
+
+### Languages Supported
+French (FR), English (EN), Italian (IT), Spanish (ES), German (DE), Dutch (NL)
+
+---
+
+## Company Information
+
+- **Platform name:** TerrasseaHUB
+- **Operating company:** Pros Import EURL
+- **Location:** Paris, France
+- **Founded:** 2025
+- **Founder:** Adrien Laniez
+- **Contact email:** contact@terrassea.com
+- **Website:** https://terrassea.com
+
+### Social Media
+- LinkedIn: https://www.linkedin.com/company/terrassea
+- Instagram: https://www.instagram.com/terrassea_hub
+- Facebook: https://www.facebook.com/terrassea
+
+---
+
+## FAQ
+
+**What is TerrasseaHUB?**
+TerrasseaHUB is Europe's first B2B marketplace dedicated to outdoor furniture for the hospitality industry (hotels, restaurants, cafés, beach clubs). It connects buyers with verified European manufacturers and distributors.
+
+**How much does it cost for buyers?**
+Browsing the catalogue, comparing products, and requesting quotes is completely free for buyers. There is no subscription or commitment required.
+
+**How much does it cost for suppliers?**
+Suppliers can start with a free Starter plan (8% commission) or choose Growth (€249/month, 5%), Elite (€499/month, 3.5%), Brand Member (€790/month, 0%), or Brand Network (€1,290/month, 0%).
+
+**Which countries does TerrasseaHUB cover?**
+TerrasseaHUB operates across 9 European countries: France, Italy, Spain, Germany, Denmark, Belgium, Slovenia, Turkey, and Portugal.
+
+**What product categories are available?**
+Chairs, tables, parasols, sun loungers, sofas, bar stools, and accessories — all designed for professional outdoor hospitality use.
+
+**Are supplier identities hidden?**
+Yes. Supplier identities remain anonymous during the comparison and quoting phase, ensuring unbiased product selection based on quality and price.
+
+**What languages are supported?**
+The platform is available in 6 languages: French, English, Italian, Spanish, German, and Dutch.
+
+**How do I become a supplier on TerrasseaHUB?**
+Visit https://terrassea.com/become-partner to register and choose a plan. You can start with the free Starter plan and upgrade at any time.
+
+---
+
+## All Site URLs
+
+### Main Pages
+- Homepage: https://terrassea.com/
+- Product Catalogue: https://terrassea.com/products
+- Become a Partner: https://terrassea.com/become-partner
+- Inspirations: https://terrassea.com/inspirations
+- Resources: https://terrassea.com/resources
+- Partners Directory: https://terrassea.com/partners
+- Collections: https://terrassea.com/collections
+- Pro Service: https://terrassea.com/pro-service
+
+### Product Categories
+- Chairs: https://terrassea.com/products?category=chairs
+- Tables: https://terrassea.com/products?category=tables
+- Parasols: https://terrassea.com/products?category=parasols
+- Sun Loungers: https://terrassea.com/products?category=sun-loungers
+- Sofas: https://terrassea.com/products?category=sofas
+- Bar Stools: https://terrassea.com/products?category=bar-stools
+- Accessories: https://terrassea.com/products?category=accessories
+
+### Legal Pages
+- Legal Notice: https://terrassea.com/mentions-legales
+- Terms of Sale (CGV): https://terrassea.com/cgv
+- Terms of Use (CGU): https://terrassea.com/cgu
+- Privacy Policy: https://terrassea.com/confidentialite
+
+### For LLMs
+- Summary: https://terrassea.com/llms.txt
+- Full reference: https://terrassea.com/llms-full.txt

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Camera } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import MoodBoardAnalyzer from "@/components/mood-board/MoodBoardAnalyzer";
 
 const MoodBoard = () => {
@@ -9,6 +10,7 @@ const MoodBoard = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO title="Mood Board" noindex />
       <Header />
       <main className="flex-1">
         {/* Hero */}
