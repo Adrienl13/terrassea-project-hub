@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ml } from "@/lib/i18nFields";
 import SEO from "@/components/SEO";
@@ -154,6 +154,37 @@ const ProductDetail = () => {
   }
 
   const localName = ml(product, "name");
+
+  // Inject Product JSON-LD for search engines and AI crawlers
+  useEffect(() => {
+    if (!product) return;
+    const schema: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: ml(product, "name"),
+      description: ml(product, "short_description") || ml(product, "description") || undefined,
+      image: product.image_url || undefined,
+      url: `https://terrassea.com/products/${product.id}`,
+      category: product.category,
+      brand: product.brand_name ? { "@type": "Brand", name: product.brand_name } : undefined,
+      material: product.material_tags?.join(", ") || undefined,
+    };
+    if (product.price_min != null) {
+      schema.offers = {
+        "@type": "AggregateOffer",
+        lowPrice: product.price_min.toFixed(2),
+        priceCurrency: "EUR",
+        availability: "https://schema.org/InStock",
+        offerCount: offers.length || 1,
+      };
+    }
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.setAttribute("data-jsonld", "product");
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+    return () => { script.remove(); };
+  }, [product, offers.length]);
 
   // Determine displayed image based on selected color variant
   const activeVariant = product.color_variants.find((v) => v.color_slug === effectiveVariant);

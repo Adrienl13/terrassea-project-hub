@@ -6,6 +6,17 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/:path((?!api/|_vercel/).*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-SearchBot|Claude-Web|Google-Extended|Google-Agent|PerplexityBot|Bytespider|CCBot|Cohere-ai|YouBot|Meta-ExternalAgent|Googlebot|bingbot|BingPreview|AppleBot|facebookexternalhit|FacebookBot|Twitterbot).*"
+        }
+      ],
+      "destination": "/api/prerender?path=/:path"
+    },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
