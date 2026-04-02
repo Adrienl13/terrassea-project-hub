@@ -6,6 +6,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     {
       "source": "/:path((?!api/|_vercel/).*)",
       "has": [
