@@ -34,53 +34,107 @@ async function sendEmail(to: string, subject: string, bodyHtml: string, bodyText
 
 /**
  * Auto-assign the best partner to a new quote request.
- * Finds the partner with the best offer for the product and assigns them.
+ *
+ * Two routing paths:
+ *   1. Brand network products → look up the territorial distributor via brand_distributors
+ *   2. Open products → assign the partner with the cheapest active offer
  */
 async function autoAssignPartner(quoteRequestId: string) {
   const enabled = await getSetting("auto_assign_enabled");
   if (enabled !== "true") return { skipped: true, reason: "auto_assign_enabled is off" };
 
-  // Fetch the quote request
+  // Fetch the quote request (includes client country for geo-routing)
   const { data: quote, error: qErr } = await supabase
     .from("quote_requests")
-    .select("id, product_id, partner_id, client_email")
+    .select("id, product_id, partner_id, client_email, client_country_code")
     .eq("id", quoteRequestId)
     .single();
   if (qErr || !quote) return { error: "Quote request not found" };
   if (quote.partner_id) return { skipped: true, reason: "Already assigned" };
 
-  // Find best offer for this product
-  const { data: offers } = await supabase
-    .from("product_offers")
-    .select("id, partner_id, price, delivery_delay_days, stock_status, partner:partner_id(name, contact_email)")
-    .eq("product_id", quote.product_id)
-    .eq("is_active", true)
-    .order("price", { ascending: true })
-    .limit(1);
+  // Determine if this product belongs to a brand_network partner
+  const { data: product } = await supabase
+    .from("products")
+    .select("partner_id")
+    .eq("id", quote.product_id)
+    .single();
 
-  if (!offers || offers.length === 0) return { skipped: true, reason: "No active offers" };
+  let brandRouting = false;
+  if (product?.partner_id) {
+    const { data: brand } = await supabase
+      .from("partners")
+      .select("plan")
+      .eq("id", product.partner_id)
+      .single();
+    brandRouting = brand?.plan === "brand_network";
+  }
 
-  const bestOffer = offers[0] as any;
+  let assignedPartnerId: string | null = null;
+  let assignedPartnerName: string | null = null;
+  let assignedPartnerEmail: string | null = null;
+
+  if (brandRouting && quote.client_country_code && product?.partner_id) {
+    // ── Brand path: territorial distributor ──
+    const { data: dist } = await supabase
+      .from("brand_distributors")
+      .select("distributor_id")
+      .eq("brand_id", product.partner_id)
+      .eq("country_code", quote.client_country_code)
+      .eq("is_active", true)
+      .order("is_exclusive", { ascending: false })
+      .order("priority", { ascending: true })
+      .limit(1);
+
+    if (dist && dist.length > 0) {
+      assignedPartnerId = dist[0].distributor_id;
+      const { data: partner } = await supabase
+        .from("partners")
+        .select("name, contact_email")
+        .eq("id", assignedPartnerId)
+        .single();
+      assignedPartnerName = partner?.name ?? null;
+      assignedPartnerEmail = partner?.contact_email ?? null;
+    }
+    // If no distributor for this country → fall through to open path
+  }
+
+  if (!assignedPartnerId) {
+    // ── Open path: best price ──
+    const { data: offers } = await supabase
+      .from("product_offers")
+      .select("id, partner_id, price, partner:partner_id(name, contact_email)")
+      .eq("product_id", quote.product_id)
+      .eq("is_active", true)
+      .order("price", { ascending: true })
+      .limit(1);
+
+    if (!offers || offers.length === 0) return { skipped: true, reason: "No active offers" };
+
+    const bestOffer = offers[0] as any;
+    assignedPartnerId = bestOffer.partner_id;
+    assignedPartnerName = bestOffer.partner?.name ?? null;
+    assignedPartnerEmail = bestOffer.partner?.contact_email ?? null;
+  }
 
   // Assign partner to quote
   const { error: upErr } = await supabase
     .from("quote_requests")
-    .update({ partner_id: bestOffer.partner_id })
+    .update({ partner_id: assignedPartnerId })
     .eq("id", quoteRequestId);
 
   if (upErr) return { error: upErr.message };
 
   // Notify partner
-  if (bestOffer.partner?.contact_email) {
+  if (assignedPartnerEmail) {
     await sendEmail(
-      bestOffer.partner.contact_email,
+      assignedPartnerEmail,
       "Terrassea — Nouvelle demande de devis",
-      `<p>Bonjour ${bestOffer.partner.name},</p><p>Une nouvelle demande de devis vous a été attribuée sur Terrassea. Connectez-vous à votre espace partenaire pour répondre.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
-      `Bonjour ${bestOffer.partner.name}, une nouvelle demande de devis vous a été attribuée sur Terrassea. Connectez-vous à votre espace partenaire pour répondre.`
+      `<p>Bonjour ${assignedPartnerName},</p><p>Une nouvelle demande de devis vous a été attribuée sur Terrassea. Connectez-vous à votre espace partenaire pour répondre.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+      `Bonjour ${assignedPartnerName}, une nouvelle demande de devis vous a été attribuée sur Terrassea. Connectez-vous à votre espace partenaire pour répondre.`
     );
   }
 
-  return { success: true, partnerId: bestOffer.partner_id };
+  return { success: true, partnerId: assignedPartnerId, routing: brandRouting ? "brand" : "open" };
 }
 
 /**

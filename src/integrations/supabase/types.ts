@@ -3028,6 +3028,7 @@ export type Database = {
         Row: {
           client_anonymous_id: string | null
           client_city: string | null
+          client_country_code: string | null
           client_first_name: string | null
           client_user_id: string | null
           company: string | null
@@ -3066,6 +3067,7 @@ export type Database = {
         Insert: {
           client_anonymous_id?: string | null
           client_city?: string | null
+          client_country_code?: string | null
           client_first_name?: string | null
           client_user_id?: string | null
           company?: string | null
@@ -3104,6 +3106,7 @@ export type Database = {
         Update: {
           client_anonymous_id?: string | null
           client_city?: string | null
+          client_country_code?: string | null
           client_first_name?: string | null
           client_user_id?: string | null
           company?: string | null
@@ -3527,6 +3530,7 @@ export type Database = {
         Row: {
           company: string | null
           country: string | null
+          country_code: string | null
           created_at: string | null
           email: string
           first_name: string | null
@@ -3539,6 +3543,7 @@ export type Database = {
         Insert: {
           company?: string | null
           country?: string | null
+          country_code?: string | null
           created_at?: string | null
           email: string
           first_name?: string | null
@@ -3551,6 +3556,7 @@ export type Database = {
         Update: {
           company?: string | null
           country?: string | null
+          country_code?: string | null
           created_at?: string | null
           email?: string
           first_name?: string | null

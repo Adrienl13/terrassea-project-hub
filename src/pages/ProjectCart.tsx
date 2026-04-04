@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClientCountry } from "@/hooks/useClientCountry";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -94,6 +95,7 @@ async function lookupSiren(siren: string): Promise<SirenResult | null> {
 const ProjectCart = () => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { countryCode: clientCountry } = useClientCountry();
   const { items, removeItem, updateQuantity, clearSupplier, notes, setNotes, quotationStatus, markCartSubmitted, clearCart } =
   useProjectCart();
 
@@ -290,6 +292,7 @@ const ProjectCart = () => {
             siren: formData.siren,
             client_first_name: formData.name.split(" ")[0],
             client_city: formData.city || sirenResult?.address || null,
+            client_country_code: clientCountry,
             client_user_id: user?.id || null,
             unit_price: unitPrice,
             total_price: unitPrice ? unitPrice * item.quantity : null,

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -6,11 +6,13 @@ import {
   Minus, Plus, Zap, AlertTriangle, CheckCircle2, XCircle, Clock, Shield,
 } from "lucide-react";
 import type { ProductOffer } from "@/lib/productOffers";
+import { fetchBrandDistributorForCountry } from "@/lib/productOffers";
 import { normalizePartnerType } from "@/lib/partnerConstants";
 import type { DBProduct } from "@/lib/products";
 import type { ProductArrival } from "@/hooks/useArrivals";
 import { useProjectCart, type SelectedSupplier } from "@/contexts/ProjectCartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClientCountry } from "@/hooks/useClientCountry";
 import AddToProjectModal from "@/components/architect-dashboard/AddToProjectModal";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
 import ProjectBriefModal from "@/components/products/ProjectBriefModal";
@@ -207,6 +209,7 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
   const [quantity, setQuantity] = useState(defaultQuantity);
   const { addItem, selectSupplier } = useProjectCart();
   const { profile } = useAuth();
+  const { countryCode: clientCountry } = useClientCountry();
   const isArchitect = profile?.user_type === "architect";
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [pendingSupplier, setPendingSupplier] = useState<SelectedSupplier | null>(null);
@@ -214,9 +217,32 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
   const [projectBriefOffer, setProjectBriefOffer] = useState<ProductOffer | null>(null);
   const getPartnerTypeLabel = usePartnerTypeLabel();
 
+  // ── Brand network routing: filter to territorial distributor ──
+  const isBrandNetwork = allOffers.some((o) => o.partner?.partner_mode === "brand_network");
+  const brandPartnerId = isBrandNetwork
+    ? allOffers.find((o) => o.partner?.partner_mode === "brand_network")?.partner_id
+    : null;
+
+  const [territorialDistributorId, setTerritorialDistributorId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!brandPartnerId || !clientCountry) {
+      setTerritorialDistributorId(null);
+      return;
+    }
+    fetchBrandDistributorForCountry(brandPartnerId, clientCountry).then((dist) => {
+      setTerritorialDistributorId(dist?.distributor_id ?? null);
+    });
+  }, [brandPartnerId, clientCountry]);
+
   // Filter offers by selected color and/or dimension variant
   const offers = useMemo(() => {
     let filtered = allOffers;
+
+    // Brand network: show only the territorial distributor's offers
+    if (isBrandNetwork && territorialDistributorId) {
+      filtered = filtered.filter((o) => o.partner_id === territorialDistributorId);
+    }
 
     if (selectedColor) {
       const colorFiltered = filtered.filter(o =>

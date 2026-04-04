@@ -12,6 +12,7 @@ interface UserProfile {
   siren: string | null;
   phone: string | null;
   country: string | null;
+  country_code: string | null;
 }
 
 interface AuthContextType {

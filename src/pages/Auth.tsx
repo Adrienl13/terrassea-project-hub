@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Header from "@/components/Header";
+import { SUPPORTED_COUNTRIES, countryName } from "@/lib/countries";
 
 type Mode = "login" | "register";
 type UserType = "client" | "partner" | "architect" | "designer";
@@ -49,10 +50,22 @@ const Auth = () => {
 
   const [form, setForm] = useState({
     email: "", password: "", firstName: "", lastName: "",
-    company: "", siren: "", phone: "", country: "France", userType: defaultType,
+    company: "", siren: "", phone: "", countryCode: "FR", userType: defaultType,
     partnerType: "" as "brand" | "reseller" | "manufacturer" | "",
     partnerMode: "" as "brand_member" | "brand_network" | "",
   });
+
+  // Auto-detect country via Vercel geo header
+  useEffect(() => {
+    fetch("/api/geo")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.country_code && SUPPORTED_COUNTRIES.some((c) => c.code === data.country_code)) {
+          setForm((p) => ({ ...p, countryCode: data.country_code }));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handle = (field: string) =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -112,7 +125,8 @@ const Auth = () => {
             company: form.company,
             siren: form.siren,
             phone: form.phone || null,
-            country: form.country || null,
+            country: countryName(form.countryCode) || form.countryCode,
+            country_code: form.countryCode,
             partner_type: form.userType === "partner" ? (form.partnerType || "manufacturer") : null,
             partner_mode: form.userType === "partner" && form.partnerType === "brand" ? (form.partnerMode || "standard") : null,
           },
@@ -358,22 +372,13 @@ const Auth = () => {
                 <div>
                   <span className={labelClass}>{t('auth.country', 'Pays')}</span>
                   <select
-                    value={form.country}
-                    onChange={e => setForm(p => ({ ...p, country: e.target.value }))}
+                    value={form.countryCode}
+                    onChange={e => setForm(p => ({ ...p, countryCode: e.target.value }))}
                     className={inputClass}
                   >
-                    <option value="France">France</option>
-                    <option value="Belgium">{t('brief.countryBelgium')}</option>
-                    <option value="Switzerland">{t('brief.countrySwitzerland')}</option>
-                    <option value="Luxembourg">Luxembourg</option>
-                    <option value="Monaco">Monaco</option>
-                    <option value="Italy">{t('brief.countryItaly')}</option>
-                    <option value="Spain">{t('brief.countrySpain')}</option>
-                    <option value="Portugal">{t('brief.countryPortugal')}</option>
-                    <option value="Germany">{t('brief.countryGermany')}</option>
-                    <option value="Netherlands">{t('brief.countryNetherlands')}</option>
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="Other">{t('brief.other')}</option>
+                    {SUPPORTED_COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
 

@@ -1,6 +1,33 @@
 import { supabase } from "@/integrations/supabase/client";
 import { applyCommission } from "@/lib/products";
 
+export interface BrandDistributor {
+  distributor_id: string;
+  country_code: string;
+  is_exclusive: boolean;
+  priority: number;
+}
+
+/**
+ * For brand_network products: find the distributor assigned to a specific country.
+ * Returns null if no distributor covers that country.
+ */
+export async function fetchBrandDistributorForCountry(
+  brandId: string,
+  countryCode: string
+): Promise<BrandDistributor | null> {
+  const { data } = await supabase
+    .from("brand_distributors")
+    .select("distributor_id, country_code, is_exclusive, priority")
+    .eq("brand_id", brandId)
+    .eq("country_code", countryCode)
+    .eq("is_active", true)
+    .order("is_exclusive", { ascending: false })
+    .order("priority", { ascending: true })
+    .limit(1);
+  return (data?.[0] as BrandDistributor) ?? null;
+}
+
 export interface ProductOffer {
   id: string;
   product_id: string;

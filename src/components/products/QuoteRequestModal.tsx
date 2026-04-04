@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Shield, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClientCountry } from "@/hooks/useClientCountry";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import type { DBProduct } from "@/lib/products";
@@ -47,6 +48,7 @@ const QuoteRequestModal = ({
 }: QuoteRequestModalProps) => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { countryCode: clientCountry } = useClientCountry();
   const [step, setStep] = useState<"form" | "success">("form");
   const [submitting, setSubmitting] = useState(false);
 
@@ -133,6 +135,7 @@ const QuoteRequestModal = ({
         first_name: form.firstName,
         client_first_name: form.firstName,
         client_city: sirenResult?.address || null,
+        client_country_code: clientCountry,
         client_user_id: user?.id || null,
         last_name: form.lastName || null,
         email: form.email,
