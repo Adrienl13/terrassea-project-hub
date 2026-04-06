@@ -106,35 +106,32 @@ export function findCompatibleProducts(
 
   // ── 1. Exact compatibility ─────────────────────────────
 
-  // compatible_tops: source is a base → find tops whose dimension_tag matches
+  // compatible_tops: source is a base → find tops by product ID
   if (sourceTags.compatible_tops?.length) {
-    const topSet = new Set(sourceTags.compatible_tops);
+    const topIdSet = new Set(sourceTags.compatible_tops);
     for (const p of others) {
-      const dt = tags(p).dimension_tag;
-      if (dt && topSet.has(dt)) {
+      if (topIdSet.has(p.id)) {
+        const pt = tags(p);
         matches.push({
           product: p,
           type: "compatible_top",
-          reason: `Compatible top — ${dt}`,
+          reason: `Compatible top — ${pt.dimension_tag ?? p.name}`,
           confidence: "exact",
         });
       }
     }
   }
 
-  // compatible_bases: source is a top → find bases whose dimension_tag or base_type matches
+  // compatible_bases: source is a top → find bases by product ID
   if (sourceTags.compatible_bases?.length) {
-    const baseSet = new Set(sourceTags.compatible_bases);
+    const baseIdSet = new Set(sourceTags.compatible_bases);
     for (const p of others) {
-      const pt = tags(p);
-      if (
-        (pt.dimension_tag && baseSet.has(pt.dimension_tag)) ||
-        (pt.base_type && baseSet.has(pt.base_type))
-      ) {
+      if (baseIdSet.has(p.id)) {
+        const pt = tags(p);
         matches.push({
           product: p,
           type: "compatible_base",
-          reason: `Compatible base — ${pt.dimension_tag ?? pt.base_type}`,
+          reason: `Compatible base — ${pt.base_type ?? p.name}`,
           confidence: "exact",
         });
       }

@@ -1193,12 +1193,16 @@ function scoreProduct(
 
   // Dimension match for tables
   if (product.category.toLowerCase().includes("table")) {
-    if (ptt.dimension_tag) {
-      score += W.dimension * 0.5; // has a dimension specified
-      // Expert mode: boost if dimension matches user's tableMix
+    // Collect all dimension tags: from variants (primary) + single tag (fallback)
+    const variantTags: string[] = (product.dimension_variants || []).map((v: any) => v.dimension_tag).filter(Boolean);
+    const allDimTags = variantTags.length > 0 ? variantTags : (ptt.dimension_tag ? [ptt.dimension_tag] : []);
+
+    if (allDimTags.length > 0) {
+      score += W.dimension * 0.5; // has dimensions specified
+      // Expert mode: boost if any dimension matches user's tableMix
       if (params.tableMix && params.tableMix.length > 0) {
         const matchesUserFormat = params.tableMix.some(
-          tm => ptt.dimension_tag && ptt.dimension_tag.includes(tm.format)
+          tm => allDimTags.some(dt => dt.includes(tm.format))
         );
         if (matchesUserFormat) score += W.dimension * 1.5;
       }
@@ -1319,7 +1323,7 @@ function buildBOMSlot(
     layoutRequirementId:    layoutReq?.id,
     layoutRequirementType:  layoutReq?.type,
     layoutRequirementLabel: layoutReq?.label,
-    tableFormat: (product.product_type_tags as ProductTypeTags)?.dimension_tag,
+    tableFormat: (product.dimension_variants?.length ? product.dimension_variants[0]?.dimension_tag : null) ?? (product.product_type_tags as ProductTypeTags)?.dimension_tag,
     unitPriceMin:  unitMin,
     unitPriceMax:  unitMax,
     slotTotalMin:  unitMin != null ? unitMin * quantity : null,

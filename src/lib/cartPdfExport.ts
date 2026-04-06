@@ -118,10 +118,20 @@ const labels: Record<string, Record<string, string>> = {
 
 function getProductName(item: CartItem, lang: string): string {
   const p = item.product;
-  if (lang === "fr" && p.name_fr) return p.name_fr;
-  if (lang === "es" && p.name_es) return p.name_es;
-  if (lang === "it" && p.name_it) return p.name_it;
-  return p.name;
+  let name = p.name;
+  if (lang === "fr" && p.name_fr) name = p.name_fr;
+  else if (lang === "es" && p.name_es) name = p.name_es;
+  else if (lang === "it" && p.name_it) name = p.name_it;
+
+  if (item.selectedDimension) {
+    const dimVariant = p.dimension_variants?.find((v: any) => v.dimension_tag === item.selectedDimension);
+    name += ` — ${dimVariant?.label || item.selectedDimension}`;
+  }
+  if (item.selectedColor) {
+    const colorVariant = p.color_variants?.find((v: any) => v.color_slug === item.selectedColor);
+    if (colorVariant) name += ` — ${colorVariant.label_en}`;
+  }
+  return name;
 }
 
 function generateRefNumber(): string {
@@ -180,7 +190,10 @@ export function exportCartAsPdf(data: PdfExportData): void {
 
     for (const item of conceptItems) {
       rowIndex++;
-      const price = item.selectedSupplier?.price ?? item.product.price_min ?? null;
+      const dimPrice = item.selectedDimension
+        ? item.product.dimension_variants?.find((v: any) => v.dimension_tag === item.selectedDimension)?.price ?? null
+        : null;
+      const price = item.selectedSupplier?.price ?? dimPrice ?? item.product.price_min ?? null;
       const lineTotal = price !== null ? price * item.quantity : null;
       if (lineTotal !== null) {
         groupTotal += lineTotal;

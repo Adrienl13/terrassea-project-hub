@@ -2694,6 +2694,7 @@ export type Database = {
           project_request_id: string | null
           quantity: number
           selected_delivery_days: number | null
+          selected_dimension_tag: string | null
           selected_offer_id: string | null
           selected_partner_id: string | null
           selected_partner_name: string | null
@@ -2709,6 +2710,7 @@ export type Database = {
           project_request_id?: string | null
           quantity?: number
           selected_delivery_days?: number | null
+          selected_dimension_tag?: string | null
           selected_offer_id?: string | null
           selected_partner_id?: string | null
           selected_partner_name?: string | null
@@ -2724,6 +2726,7 @@ export type Database = {
           project_request_id?: string | null
           quantity?: number
           selected_delivery_days?: number | null
+          selected_dimension_tag?: string | null
           selected_offer_id?: string | null
           selected_partner_id?: string | null
           selected_partner_name?: string | null
@@ -3052,6 +3055,7 @@ export type Database = {
           project_request_id: string | null
           quantity: number | null
           replied_at: string | null
+          selected_dimension_tag: string | null
           signed_at: string | null
           signed_by: string | null
           signed_pdf_path: string | null
@@ -3091,6 +3095,7 @@ export type Database = {
           project_request_id?: string | null
           quantity?: number | null
           replied_at?: string | null
+          selected_dimension_tag?: string | null
           signed_at?: string | null
           signed_by?: string | null
           signed_pdf_path?: string | null
@@ -3130,6 +3135,7 @@ export type Database = {
           project_request_id?: string | null
           quantity?: number | null
           replied_at?: string | null
+          selected_dimension_tag?: string | null
           signed_at?: string | null
           signed_by?: string | null
           signed_pdf_path?: string | null

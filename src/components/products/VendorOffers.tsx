@@ -386,13 +386,13 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
       return;
     }
 
-    addItem(product, undefined, quantity, undefined, selectedColor ?? undefined);
+    addItem(product, undefined, quantity, undefined, selectedColor ?? undefined, selectedDimension ?? undefined);
     selectSupplier(product.id, supplier);
     toast.success(t("vendorOffers.addedToProject", { count: quantity, name: product.name }));
   };
 
   const handleArchitectConfirm = (projectId: string, projectName: string, zoneName?: string) => {
-    addItem(product, zoneName || projectName, quantity, undefined, selectedColor ?? undefined);
+    addItem(product, zoneName || projectName, quantity, undefined, selectedColor ?? undefined, selectedDimension ?? undefined);
     if (pendingSupplier) {
       selectSupplier(product.id, pendingSupplier);
     }

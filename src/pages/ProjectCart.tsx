@@ -165,12 +165,17 @@ const ProjectCart = () => {
   }, {});
 
   // ── Indicative budget ────────────────────────────────────────────────────────
+  const getDimensionPrice = (item: CartItem): number | null => {
+    if (!item.selectedDimension) return null;
+    const v = item.product.dimension_variants?.find((v: any) => v.dimension_tag === item.selectedDimension);
+    return v?.price ?? null;
+  };
   const totalBudget = items.reduce((sum, item) => {
-    const price = item.selectedSupplier?.price ?? item.product.price_min ?? null;
+    const price = item.selectedSupplier?.price ?? getDimensionPrice(item) ?? item.product.price_min ?? null;
     return price !== null ? sum + price * item.quantity : sum;
   }, 0);
   const hasBudget = items.some(
-    (i) => i.selectedSupplier?.price != null || i.product.price_min != null
+    (i) => i.selectedSupplier?.price != null || getDimensionPrice(i) != null || i.product.price_min != null
   );
 
   const currentStep = getCurrentStep(items);
@@ -234,6 +239,7 @@ const ProjectCart = () => {
         selected_price: item.selectedSupplier?.price || null,
         selected_stock_status: item.selectedSupplier?.stockStatus || null,
         selected_delivery_days: item.selectedSupplier?.deliveryDelayDays || null,
+        selected_dimension_tag: item.selectedDimension || null,
       }));
       const { error: ciError } = await supabase.
       from("project_cart_items").
@@ -256,12 +262,17 @@ const ProjectCart = () => {
         // If no supplier pre-selected, find best offer for this product
         if (!partnerId) {
           try {
-            const { data: bestOffer } = await supabase
+            let offerQuery = supabase
               .from("product_offers")
-              .select("id, partner_id, price, partners(name)")
+              .select("id, partner_id, price, dimension_tag, partners(name)")
               .eq("product_id", product.id)
               .eq("is_active", true)
-              .not("price", "is", null)
+              .not("price", "is", null);
+            // Prefer offers matching the selected dimension
+            if (item.selectedDimension) {
+              offerQuery = offerQuery.eq("dimension_tag", item.selectedDimension);
+            }
+            const { data: bestOffer } = await offerQuery
               .order("price", { ascending: true })
               .limit(1)
               .maybeSingle();
@@ -270,6 +281,23 @@ const ProjectCart = () => {
               partnerName = (bestOffer.partners as any)?.name || null;
               offerId = bestOffer.id;
               unitPrice = bestOffer.price;
+            } else if (item.selectedDimension) {
+              // Fallback: no dimension-specific offer, try any offer
+              const { data: fallbackOffer } = await supabase
+                .from("product_offers")
+                .select("id, partner_id, price, partners(name)")
+                .eq("product_id", product.id)
+                .eq("is_active", true)
+                .not("price", "is", null)
+                .order("price", { ascending: true })
+                .limit(1)
+                .maybeSingle();
+              if (fallbackOffer) {
+                partnerId = fallbackOffer.partner_id;
+                partnerName = (fallbackOffer.partners as any)?.name || null;
+                offerId = fallbackOffer.id;
+                unitPrice = fallbackOffer.price;
+              }
             }
           } catch {
             // Non-blocking: best offer lookup failed
@@ -297,6 +325,7 @@ const ProjectCart = () => {
             unit_price: unitPrice,
             total_price: unitPrice ? unitPrice * item.quantity : null,
             status: "pending",
+            selected_dimension_tag: item.selectedDimension || null,
           });
         } catch (err) {
           console.error("Failed to create quote_request for", product.name, err);
@@ -494,7 +523,7 @@ const ProjectCart = () => {
                       </div>
 
                       <div className="space-y-2">
-                        {conceptItems.map(({ product, quantity, layoutRequirementLabel, selectedSupplier, selectedColor }) => {
+                        {conceptItems.map(({ product, quantity, layoutRequirementLabel, selectedSupplier, selectedColor, selectedDimension }) => {
                       return (
                         <motion.div
                           key={product.id}
@@ -520,6 +549,10 @@ const ProjectCart = () => {
                                     {selectedColor && (() => {
                                       const variant = product.color_variants?.find((v) => v.color_slug === selectedColor);
                                       return variant ? ` — ${variant.label_en}` : "";
+                                    })()}
+                                    {selectedDimension && (() => {
+                                      const dimVariant = product.dimension_variants?.find((v: any) => v.dimension_tag === selectedDimension);
+                                      return dimVariant ? ` — ${dimVariant.label || selectedDimension}` : ` — ${selectedDimension}`;
                                     })()}
                                   </p>
                                   <p className="text-[10px] text-muted-foreground font-body truncate">
@@ -565,14 +598,21 @@ const ProjectCart = () => {
 
                               {/* Price */}
                               <div className="text-right">
-                                {(selectedSupplier?.price ?? product.price_min) != null ?
-                            <>
-                                    <p className="text-[10px] text-muted-foreground font-body">×€{(selectedSupplier?.price ?? product.price_min)!.toFixed(2)}</p>
-                                    <p className="font-display font-semibold text-foreground text-base">~€{((selectedSupplier?.price ?? product.price_min)! * quantity).toLocaleString("fr-FR")}</p>
-                                  </> :
+                                {(() => {
+                                  const dimPrice = selectedDimension
+                                    ? product.dimension_variants?.find((v: any) => v.dimension_tag === selectedDimension)?.price ?? null
+                                    : null;
+                                  const effectivePrice = selectedSupplier?.price ?? dimPrice ?? product.price_min ?? null;
+                                  return effectivePrice != null ? (
+                                    <>
+                                      <p className="text-[10px] text-muted-foreground font-body">×€{effectivePrice.toFixed(2)}</p>
+                                      <p className="font-display font-semibold text-foreground text-base">~€{(effectivePrice * quantity).toLocaleString("fr-FR")}</p>
+                                    </>
+                                  ) : (
+                                    <p className="text-[10px] text-muted-foreground font-body">{t('projectCart.onRequest')}</p>
+                                  );
+                                })()}
 
-                            <p className="text-[10px] text-muted-foreground font-body">{t('projectCart.onRequest')}</p>
-                            }
                               </div>
 
                               {/* Delete */}

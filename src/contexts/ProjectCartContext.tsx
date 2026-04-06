@@ -32,6 +32,7 @@ export interface CartItem {
   layoutSuggestedQuantity?: number;
   selectedSupplier?: SelectedSupplier;
   selectedColor?: string;
+  selectedDimension?: string;
 }
 
 export type QuotationStatus =
@@ -42,7 +43,7 @@ export type QuotationStatus =
 
 interface ProjectCartContextType {
   items: CartItem[];
-  addItem: (product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta, selectedColor?: string) => void;
+  addItem: (product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta, selectedColor?: string, selectedDimension?: string) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number, layoutMeta?: CartItemLayoutMeta) => void;
   selectSupplier: (productId: string, supplier: SelectedSupplier) => void;
@@ -62,6 +63,7 @@ interface SerializableCartItem {
   conceptName?: string;
   selectedSupplier?: SelectedSupplier;
   selectedColor?: string;
+  selectedDimension?: string;
 }
 
 function serializeCartItems(items: CartItem[]): SerializableCartItem[] {
@@ -71,6 +73,7 @@ function serializeCartItems(items: CartItem[]): SerializableCartItem[] {
     conceptName: i.conceptName,
     selectedSupplier: i.selectedSupplier,
     selectedColor: i.selectedColor,
+    selectedDimension: i.selectedDimension,
   }));
 }
 
@@ -197,6 +200,7 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
                   conceptName: si.conceptName,
                   selectedSupplier: si.selectedSupplier,
                   selectedColor: si.selectedColor,
+                  selectedDimension: si.selectedDimension,
                 }));
 
               if (hydrated.length > 0) {
@@ -266,14 +270,14 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  const addItem = useCallback((product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta, selectedColor?: string) => {
+  const addItem = useCallback((product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta, selectedColor?: string, selectedDimension?: string) => {
     const qty = quantity ?? 1;
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
       if (existing) {
         return prev.map((i) =>
           i.product.id === product.id
-            ? applyLayoutMeta({ ...i, quantity: i.quantity + qty, selectedColor: selectedColor ?? i.selectedColor }, layoutMeta)
+            ? applyLayoutMeta({ ...i, quantity: i.quantity + qty, selectedColor: selectedColor ?? i.selectedColor, selectedDimension: selectedDimension ?? i.selectedDimension }, layoutMeta)
             : i
         );
       }
@@ -285,6 +289,7 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
         layoutRequirementLabel: layoutMeta?.requirementLabel,
         layoutSuggestedQuantity: layoutMeta?.suggestedQuantity,
         selectedColor,
+        selectedDimension,
       };
       return [...prev, newItem];
     });

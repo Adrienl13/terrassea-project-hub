@@ -80,6 +80,7 @@ interface ProductFormData {
   country_of_manufacture: string;
   warranty: string;
   dimension_variants: DimensionVariant[];
+  product_type_tags: Record<string, any>;
 }
 
 const EMPTY_FORM: ProductFormData = {
@@ -94,6 +95,7 @@ const EMPTY_FORM: ProductFormData = {
   stock_status: "in_stock", stock_quantity: null, estimated_delivery_days: null,
   country_of_manufacture: "", warranty: "",
   dimension_variants: [],
+  product_type_tags: {},
 };
 
 const CATEGORIES = [
@@ -189,6 +191,7 @@ export default function AddProductForm({
         country_of_manufacture: d.country_of_manufacture || "",
         warranty: d.warranty || "",
         dimension_variants: Array.isArray(d.dimension_variants) ? d.dimension_variants : [],
+        product_type_tags: (d as any).product_type_tags || {},
       };
     }
     return EMPTY_FORM;
@@ -427,6 +430,12 @@ export default function AddProductForm({
         ? await uploadExtraImages(envFiles, "env")
         : form.environment_urls;
 
+      // For tables, product_type_tags is the source of truth; material_structure/seat stay for non-table categories
+      const isTableCategory = form.category === "tables";
+      const pttPayload = isTableCategory && Object.keys(form.product_type_tags || {}).length > 0
+        ? form.product_type_tags
+        : null;
+
       const productPayload = {
         name: form.name,
         category: form.category,
@@ -440,8 +449,9 @@ export default function AddProductForm({
         price_max: form.price_max,
         main_color: form.main_color || null,
         secondary_color: form.secondary_color || null,
-        material_structure: form.material_structure || null,
-        material_seat: form.material_seat || null,
+        material_structure: isTableCategory ? null : (form.material_structure || null),
+        material_seat: isTableCategory ? null : (form.material_seat || null),
+        product_type_tags: pttPayload,
         style_tags: form.style_tags.length > 0 ? form.style_tags : null,
         ambience_tags: form.ambience_tags.length > 0 ? form.ambience_tags : null,
 
@@ -934,15 +944,75 @@ export default function AddProductForm({
                 </>
               )}
 
-              {(form.category === "tables") && (
-                <>
-                  <p className="text-xs font-display font-semibold text-foreground">Spécifications — Tables</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {renderSelect("Type de table", "material_structure", ["complete","plateau-seul","piètement-seul"].map(v => ({ value: v, label: v === "complete" ? "Table complète" : v === "plateau-seul" ? "Plateau seul" : "Piètement seul" })))}
-                    {renderSelect("Forme", "material_seat", ["carré","rectangulaire","rond","ovale"].map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })))}
+              {(form.category === "tables") && (() => {
+                const ptt = form.product_type_tags || {};
+                const tableType = ptt.table_type || "";
+                const setPtt = (key: string, val: any) => setForm(prev => ({ ...prev, product_type_tags: { ...prev.product_type_tags, [key]: val } }));
+                const selectCls = "w-full bg-card border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-foreground";
+                const labelCls = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1";
+                const PttSelect = ({ label, field, options, required }: { label: string; field: string; options: { value: string; label: string }[]; required?: boolean }) => (
+                  <div>
+                    <label className={labelCls}>{label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+                    <select value={ptt[field] || ""} onChange={e => setPtt(field, e.target.value)} className={selectCls}>
+                      <option value="">— Sélectionner —</option>
+                      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
                   </div>
-                </>
-              )}
+                );
+                return (
+                  <>
+                    <p className="text-xs font-display font-semibold text-foreground">Spécifications — Tables</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <PttSelect label="Type de table *" field="table_type" required options={[
+                        { value: "complete", label: "Table complète" },
+                        { value: "base-only", label: "Piètement seul" },
+                        { value: "top-only", label: "Plateau seul" },
+                      ]} />
+                      <PttSelect label="Type de hauteur" field="height_type" options={[
+                        { value: "dining", label: "Dining" },
+                        { value: "coffee", label: "Table basse" },
+                        { value: "high-bar", label: "Mange-debout" },
+                        { value: "console", label: "Console" },
+                      ]} />
+                    </div>
+                    {tableType && (
+                      <div className="grid grid-cols-2 gap-3">
+                        {tableType !== "base-only" && (
+                          <PttSelect label="Forme" field="shape" options={[
+                            { value: "square", label: "Carré" },
+                            { value: "rectangular", label: "Rectangulaire" },
+                            { value: "round", label: "Rond" },
+                            { value: "oval", label: "Ovale" },
+                          ]} />
+                        )}
+                        {tableType !== "base-only" && (
+                          <PttSelect label="Matériau plateau" field="top_material" options={[
+                            { value: "hpl", label: "HPL" }, { value: "teak", label: "Teck" },
+                            { value: "alu-top", label: "Aluminium" }, { value: "ceramic", label: "Céramique" },
+                            { value: "marble-effect", label: "Effet marbre" }, { value: "werzalit", label: "Werzalit" },
+                            { value: "compact", label: "Compact" }, { value: "glass", label: "Verre" },
+                            { value: "concrete", label: "Béton" },
+                          ]} />
+                        )}
+                        {tableType !== "top-only" && (
+                          <PttSelect label="Type de piètement" field="base_type" options={[
+                            { value: "pedestal", label: "Pied central" }, { value: "4-leg", label: "4 pieds" },
+                            { value: "bistrot-base", label: "Base bistrot" }, { value: "folding-base", label: "Pliant" },
+                            { value: "x-frame", label: "Croisillon" }, { value: "tulip-base", label: "Tulipe" },
+                          ]} />
+                        )}
+                        {tableType !== "base-only" && (
+                          <PttSelect label="Finition bord" field="edge_finish" options={[
+                            { value: "square", label: "Droit" },
+                            { value: "beveled", label: "Biseauté" },
+                            { value: "rounded", label: "Arrondi" },
+                          ]} />
+                        )}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               {(form.category === "parasols") && (
                 <>
@@ -1042,77 +1112,56 @@ export default function AddProductForm({
                       Ajoutez les différentes tailles disponibles (ex : 80×80, 120×70, 160×80). Les prix ci-dessous seront utilisés comme prix par défaut.
                     </p>
                   )}
-                  {form.dimension_variants.map((dv, i) => (
-                    <div key={i} className="grid grid-cols-[1fr_1.5fr_0.6fr_0.8fr_auto] gap-2 items-end">
+                  {form.dimension_variants.map((dv, i) => {
+                    const updateDv = (patch: Partial<DimensionVariant>) => {
+                      const updated = [...form.dimension_variants];
+                      updated[i] = { ...dv, ...patch };
+                      setForm(prev => ({ ...prev, dimension_variants: updated }));
+                    };
+                    return (
+                    <div key={i} className="grid grid-cols-[1fr_1.2fr_0.5fr_0.7fr_0.7fr_auto] gap-2 items-end">
                       <div>
                         <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Tag *</label>
-                        <input
-                          type="text"
-                          placeholder="80x80"
-                          value={dv.dimension_tag}
-                          onChange={e => {
-                            const updated = [...form.dimension_variants];
-                            updated[i] = { ...dv, dimension_tag: e.target.value };
-                            setForm(prev => ({ ...prev, dimension_variants: updated }));
-                          }}
-                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none"
-                        />
+                        <input type="text" placeholder="80x80" value={dv.dimension_tag}
+                          onChange={e => updateDv({ dimension_tag: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none" />
                       </div>
                       <div>
                         <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Label</label>
-                        <input
-                          type="text"
-                          placeholder="80×80 cm — 4 couverts"
-                          value={dv.label}
-                          onChange={e => {
-                            const updated = [...form.dimension_variants];
-                            updated[i] = { ...dv, label: e.target.value };
-                            setForm(prev => ({ ...prev, dimension_variants: updated }));
-                          }}
-                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none"
-                        />
+                        <input type="text" placeholder="80×80 cm — 4 couverts" value={dv.label}
+                          onChange={e => updateDv({ label: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none" />
                       </div>
                       <div>
                         <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Places</label>
-                        <input
-                          type="number"
-                          min={1}
-                          value={dv.seats}
-                          onChange={e => {
-                            const updated = [...form.dimension_variants];
-                            updated[i] = { ...dv, seats: Number(e.target.value) || 0 };
-                            setForm(prev => ({ ...prev, dimension_variants: updated }));
-                          }}
-                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none"
-                        />
+                        <input type="number" min={1} value={dv.seats}
+                          onChange={e => updateDv({ seats: Number(e.target.value) || 0 })}
+                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none" />
                       </div>
                       <div>
                         <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Prix HT €</label>
-                        <input
-                          type="number"
-                          min={0}
-                          placeholder="0"
-                          value={dv.price || ""}
-                          onChange={e => {
-                            const updated = [...form.dimension_variants];
-                            updated[i] = { ...dv, price: Number(e.target.value) || 0 };
-                            setForm(prev => ({ ...prev, dimension_variants: updated }));
-                          }}
-                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none"
-                        />
+                        <input type="number" min={0} placeholder="0" value={dv.price || ""}
+                          onChange={e => updateDv({ price: Number(e.target.value) || 0 })}
+                          className="w-full px-2.5 py-1.5 text-xs font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none" />
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = form.dimension_variants.filter((_, idx) => idx !== i);
-                          setForm(prev => ({ ...prev, dimension_variants: updated }));
-                        }}
-                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
-                      >
+                      <div>
+                        <label className="text-[9px] font-display font-semibold text-muted-foreground uppercase">Stock</label>
+                        <select value={dv.stock_status || "in_stock"}
+                          onChange={e => updateDv({ stock_status: e.target.value, available: e.target.value !== "out_of_stock" })}
+                          className="w-full px-1.5 py-1.5 text-[10px] font-body border border-border rounded-sm bg-background focus:border-foreground transition-colors outline-none">
+                          <option value="in_stock">En stock</option>
+                          <option value="low_stock">Faible</option>
+                          <option value="out_of_stock">Rupture</option>
+                          <option value="made_to_order">Sur cde</option>
+                        </select>
+                      </div>
+                      <button type="button"
+                        onClick={() => setForm(prev => ({ ...prev, dimension_variants: prev.dimension_variants.filter((_, idx) => idx !== i) }))}
+                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
-                    </div>
-                  ))}
+                    </div>);
+                  })}
                   {form.dimension_variants.length > 0 && (
                     <p className="text-[9px] font-body text-muted-foreground">
                       Les prix min/max ci-dessous servent de référence. Chaque taille aura son offre avec son propre prix.

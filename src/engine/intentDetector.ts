@@ -318,6 +318,8 @@ interface NormalizedQuery {
   useCaseSlugs:   string[];
   rawTerms:       string[];        // unmatched terms for fallback
   preferComplete: boolean;         // user said "table" (not "pied" or "plateau")
+  heightTypeHint: string | null;   // "dining" | "high-bar" | "coffee" extracted from query
+  dimensionHint:  string | null;   // "80x80" extracted from query pattern
 }
 
 function normalizeQuery(query: string): NormalizedQuery {
@@ -390,6 +392,38 @@ function normalizeQuery(query: string): NormalizedQuery {
   const preferComplete = categorySlug === "tables"
     && !baseWords.some(w => lower.includes(w));
 
+  // Extract height type hint from table queries
+  let heightTypeHint: string | null = null;
+  if (categorySlug === "tables") {
+    const heightWords: Record<string, string> = {
+      // FR
+      haute: "high-bar", hautes: "high-bar", "mange-debout": "high-bar",
+      basse: "coffee", basses: "coffee",
+      // EN
+      high: "high-bar", bar: "high-bar", standing: "high-bar",
+      coffee: "coffee", low: "coffee",
+      // IT
+      alto: "high-bar", alta: "high-bar", basso: "coffee", bassa: "coffee",
+      // ES
+      alta: "high-bar", baja: "coffee",
+    };
+    for (const token of tokens) {
+      if (heightWords[token]) { heightTypeHint = heightWords[token]; break; }
+    }
+  }
+
+  // Extract dimension pattern from query (e.g., "80x80", "120x70", "o80")
+  let dimensionHint: string | null = null;
+  const dimMatch = lower.match(/\b(\d{2,3})\s*[x×]\s*(\d{2,3})\b/);
+  if (dimMatch) {
+    dimensionHint = `${dimMatch[1]}x${dimMatch[2]}`;
+  } else {
+    const roundMatch = lower.match(/\b[øoØO]?\s*(\d{2,3})\b/);
+    if (roundMatch && categorySlug === "tables") {
+      dimensionHint = `o${roundMatch[1]}`;
+    }
+  }
+
   return {
     originalTerms: tokens,
     categorySlug,
@@ -399,6 +433,8 @@ function normalizeQuery(query: string): NormalizedQuery {
     useCaseSlugs,
     rawTerms,
     preferComplete,
+    heightTypeHint,
+    dimensionHint,
   };
 }
 
@@ -520,6 +556,19 @@ export function searchProducts(query: string, products: DBProduct[]): {
       if (norm.categorySlug === "tables" && norm.preferComplete) {
         if (ptt.table_type === "base-only") score += W.baseOnlyPenalty;
         if (ptt.table_type === "top-only")  score += W.topOnlyPenalty;
+      }
+
+      // Height type hint matching (e.g., "table haute" → high-bar)
+      if (norm.heightTypeHint && ptt.height_type) {
+        if (ptt.height_type === norm.heightTypeHint) score += 4.0;
+        else score -= 2.0;
+      }
+
+      // Dimension hint matching (e.g., "80x80")
+      if (norm.dimensionHint) {
+        const variantTags: string[] = (product.dimension_variants || []).map((v: any) => v.dimension_tag).filter(Boolean);
+        const allDims = variantTags.length > 0 ? variantTags : (ptt.dimension_tag ? [ptt.dimension_tag] : []);
+        if (allDims.some(d => d.includes(norm.dimensionHint!))) score += 5.0;
       }
 
       // Subcategory match

@@ -244,15 +244,22 @@ export async function scoreSupplierOffers(
   targetProductId: string,
   projectProductIds: string[],
   isUrgent: boolean = false,
-  arrivals: ProductArrival[] = []
+  arrivals: ProductArrival[] = [],
+  selectedDimension?: string | null
 ): Promise<ScoredOffer[]> {
   // Fetch all offers across the project
   const uniqueIds = [...new Set([...projectProductIds, targetProductId])];
   const allOffers = await fetchAllProjectOffers(uniqueIds);
 
   // Offers for the target product only
-  const targetOffers = allOffers.filter((o) => o.product_id === targetProductId);
+  let targetOffers = allOffers.filter((o) => o.product_id === targetProductId);
   if (targetOffers.length === 0) return [];
+
+  // When a dimension is selected, compare prices only among same-dimension offers
+  const sameDimOffers = selectedDimension
+    ? targetOffers.filter(o => o.dimension_tag?.toLowerCase() === selectedDimension.toLowerCase())
+    : [];
+  const priceComparisonPool = sameDimOffers.length > 0 ? sameDimOffers : targetOffers;
 
   const coverage = buildPartnerCoverage(allOffers, uniqueIds);
   const weights = isUrgent ? URGENT_WEIGHTS : NORMAL_WEIGHTS;
@@ -266,16 +273,22 @@ export async function scoreSupplierOffers(
     const consistency = scoreConsistency(offer.partner_id, coverage, uniqueIds.length);
     const availability = scoreAvailability(offer, offerArrivals);
     const leadTime = scoreLeadTime(offer, allOffers);
-    const price = scorePrice(offer, allOffers);
+    // Compare prices within same-dimension pool when dimension is selected
+    const price = scorePrice(offer, priceComparisonPool);
     const reputation = scoreReputation(offer.partner_id, reputations);
 
-    const total = Math.round(
+    let total = Math.round(
       consistency * weights.consistency +
       availability * weights.availability +
       leadTime * weights.leadTime +
       price * weights.price +
       reputation * weights.reputation
     );
+
+    // Dimension match bonus: boost offers matching the selected dimension
+    if (selectedDimension && offer.dimension_tag?.toLowerCase() === selectedDimension.toLowerCase()) {
+      total += 15;
+    }
 
     return {
       ...offer,

@@ -35,6 +35,7 @@ import AdminBrandManagement from "@/components/admin/AdminBrandManagement";
 import ColorVariantEditor from "@/components/admin/ColorVariantEditor";
 import DimensionVariantEditor from "@/components/admin/DimensionVariantEditor";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
+import CompatibleProductsEditor from "@/components/admin/CompatibleProductsEditor";
 import type { ColorVariant, DimensionVariant } from "@/lib/products";
 
 // ═══════════════════════════════════════════════════════════
@@ -264,23 +265,61 @@ function ProductTypeTagsForm({
 
   // ── Tables ──
   if (cat.includes("table")) {
+    const tableType = value.table_type || "";
     return (
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Table type *" field="table_type"
-          options={["complete","base-only","top-only"]} />
-        <Field label="Dimension tag *" field="dimension_tag"
-          options={["60x60","70x70","80x80","90x90","110x70","120x70","120x80","140x80","160x80","160x90","180x90","200x90","200x100","220x100","240x100","300x100","o60","o70","o80","o90","o100","o120","o150","60x60h","70x70h","80x80h","120x60h","o60h","o80h"]} />
-        <Field label="Shape" field="shape"
-          options={["square","rectangular","round","oval"]} />
-        <Field label="Height type" field="height_type"
-          options={["dining","coffee","high-bar","console"]} />
-        <Field label="Top material" field="top_material"
-          options={["hpl","teak","alu-top","ceramic","marble-effect","werzalit","compact","glass","concrete","melamine","acacia-top","resin-top","iroko","oak-top","granite-effect","bamboo-top"]} />
-        <Field label="Base type" field="base_type"
-          options={["pedestal","4-leg","bistrot-base","folding-base","x-frame","tulip-base","h-frame","trestle"]} />
-        <Field label="Capacity (covers)" field="capacity_covers" type="number" />
-        <Field label="Edge finish" field="edge_finish"
-          options={["square","beveled","rounded"]} />
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Table type *" field="table_type"
+            options={["complete","base-only","top-only"]} />
+          <Field label="Height type" field="height_type"
+            options={["dining","coffee","high-bar","console"]} />
+        </div>
+
+        {/* Conditional fields based on table_type */}
+        {tableType && (
+          <div className="grid grid-cols-2 gap-3">
+            {/* Shape — for complete + top-only */}
+            {tableType !== "base-only" && (
+              <Field label="Shape" field="shape"
+                options={["square","rectangular","round","oval"]} />
+            )}
+            {/* Top material — for complete + top-only */}
+            {tableType !== "base-only" && (
+              <Field label="Top material" field="top_material"
+                options={["hpl","teak","alu-top","ceramic","marble-effect","werzalit","compact","glass","concrete","melamine","acacia-top","resin-top","iroko","oak-top","granite-effect","bamboo-top"]} />
+            )}
+            {/* Base type — for complete + base-only */}
+            {tableType !== "top-only" && (
+              <Field label="Base type" field="base_type"
+                options={["pedestal","4-leg","bistrot-base","folding-base","x-frame","tulip-base","h-frame","trestle"]} />
+            )}
+            {/* Edge finish — for complete + top-only */}
+            {tableType !== "base-only" && (
+              <Field label="Edge finish" field="edge_finish"
+                options={["square","beveled","rounded"]} />
+            )}
+          </div>
+        )}
+
+        {/* Compatibility editors */}
+        {tableType === "base-only" && (
+          <CompatibleProductsEditor
+            label="Plateaux compatibles"
+            description="Sélectionnez les plateaux (top-only) compatibles avec ce piètement"
+            value={value.compatible_tops || []}
+            onChange={(ids) => set("compatible_tops", ids)}
+            filterTableTypes={["top-only"]}
+          />
+        )}
+        {tableType === "top-only" && (
+          <CompatibleProductsEditor
+            label="Piètements compatibles"
+            description="Sélectionnez les piètements (base-only) compatibles avec ce plateau"
+            value={value.compatible_bases || []}
+            onChange={(ids) => set("compatible_bases", ids)}
+            filterTableTypes={["base-only"]}
+          />
+        )}
       </div>
     );
   }
@@ -801,36 +840,58 @@ function ProductForm({
       )}
 
       {/* ── Dimensions ── */}
-      {section === "dims" && (
-        <div className="space-y-6">
-          <SectionHeader icon={FileText} title="Dimensions & Capacité" description="Mesures physiques du produit et capacité d'assise" />
-          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
-            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Mesures</p>
-            <div className="grid grid-cols-3 gap-4">
-              {renderInput("Longueur (cm)", "dimensions_length_cm", "number")}
-              {renderInput("Largeur (cm)", "dimensions_width_cm", "number")}
-              {renderInput("Hauteur (cm)", "dimensions_height_cm", "number")}
+      {section === "dims" && (() => {
+        const isTable = (form.category || "").toLowerCase().includes("table");
+        return (
+          <div className="space-y-6">
+            <SectionHeader icon={FileText} title="Dimensions & Capacité" description={isTable ? "Mesures physiques de référence (les tailles par variante sont dans Prix & Stock)" : "Mesures physiques du produit et capacité d'assise"} />
+            <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+              <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Mesures</p>
+              {isTable ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {renderInput("Hauteur (cm)", "dimensions_height_cm", "number")}
+                  {renderInput("Poids (kg)", "weight_kg", "number")}
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-3 gap-4">
+                    {renderInput("Longueur (cm)", "dimensions_length_cm", "number")}
+                    {renderInput("Largeur (cm)", "dimensions_width_cm", "number")}
+                    {renderInput("Hauteur (cm)", "dimensions_height_cm", "number")}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {renderInput("Hauteur assise (cm)", "seat_height_cm", "number")}
+                    {renderInput("Poids (kg)", "weight_kg", "number")}
+                  </div>
+                </>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {renderInput("Hauteur assise (cm)", "seat_height_cm", "number")}
-              {renderInput("Poids (kg)", "weight_kg", "number")}
-            </div>
+            {isTable ? (
+              <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+                <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Options</p>
+                <div className="flex gap-6 flex-wrap">
+                  {renderToggle("Combinable", "combinable")}
+                </div>
+                {form.combinable && renderInput("Capacité si combiné", "combined_capacity_if_joined", "number")}
+              </div>
+            ) : (
+              <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
+                <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Capacité d'assise</p>
+                <div className="grid grid-cols-2 gap-4">
+                  {renderSelect("Forme table", "table_shape", ["square","rectangular","round","oval"])}
+                  {renderInput("Places par défaut", "default_seating_capacity", "number")}
+                  {renderInput("Places min", "recommended_seating_min", "number")}
+                  {renderInput("Places max", "recommended_seating_max", "number")}
+                </div>
+                <div className="flex gap-6 flex-wrap pt-2">
+                  {renderToggle("Combinable", "combinable")}
+                </div>
+                {form.combinable && renderInput("Capacité si combiné", "combined_capacity_if_joined", "number")}
+              </div>
+            )}
           </div>
-          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
-            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Capacité d'assise</p>
-            <div className="grid grid-cols-2 gap-4">
-              {renderSelect("Forme table", "table_shape", ["square","rectangular","round","oval"])}
-              {renderInput("Places par défaut", "default_seating_capacity", "number")}
-              {renderInput("Places min", "recommended_seating_min", "number")}
-              {renderInput("Places max", "recommended_seating_max", "number")}
-            </div>
-            <div className="flex gap-6 flex-wrap pt-2">
-              {renderToggle("Combinable", "combinable")}
-            </div>
-            {form.combinable && renderInput("Capacité si combiné", "combined_capacity_if_joined", "number")}
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Technical booleans ── */}
       {section === "technical" && (
