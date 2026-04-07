@@ -75,9 +75,10 @@ export default function Collections() {
       try {
         const { data, error: err } = await supabase
           .from("partners")
-          .select("id, slug, name, logo_url, country, country_code, description, partner_mode, hero_image_url, cover_photo_url, founded_year, specialties, certifications")
+          .select("id, slug, name, logo_url, country, country_code, description, partner_mode, hero_image_url, cover_photo_url, founded_year, specialties, certifications, priority_order")
           .in("partner_mode", ["brand_member", "brand_network"])
           .eq("is_active", true)
+          .order("priority_order", { ascending: true, nullsFirst: false })
           .order("name");
 
         if (cancelled) return;
@@ -127,7 +128,7 @@ export default function Collections() {
   return (
     <>
       <SEO
-        title={t("nav.collections", "Collections") + " | TerrasseaHUB"}
+        title={t("nav.collections", "Collections")}
         description={t("brand.heroDescription")}
       />
       <Header />
@@ -310,20 +311,31 @@ export default function Collections() {
                       </div>
                     ) : null}
 
-                    {/* Expand / Collapse button */}
-                    {collNames.length > 0 ? (
-                      <button
-                        onClick={() => setExpandedBrand((prev) => (prev === brand.id ? null : brand.id))}
-                        className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors"
+                    {/* Expand / Collapse + Discover link */}
+                    <div className="flex items-center gap-4">
+                      {collNames.length > 0 && (
+                        <button
+                          onClick={() => setExpandedBrand((prev) => (prev === brand.id ? null : brand.id))}
+                          className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors"
+                        >
+                          {expandedBrand === brand.id ? t("brand.hideCollections") : t("brand.showCollections")}
+                          {expandedBrand === brand.id ? (
+                            <ChevronUp className="h-3.5 w-3.5" />
+                          ) : (
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      )}
+                      <Link
+                        to={"/brands/" + brand.slug}
+                        className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-foreground hover:text-[#D4603A] transition-colors"
                       >
-                        {expandedBrand === brand.id ? t("brand.hideCollections") : t("brand.showCollections")}
-                        {expandedBrand === brand.id ? (
-                          <ChevronUp className="h-3.5 w-3.5" />
-                        ) : (
-                          <ChevronDown className="h-3.5 w-3.5" />
-                        )}
-                      </button>
-                    ) : null}
+                        {t("brand.discoverBrand", "Découvrir")} <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                    {collNames.length === 0 && (
+                      <p className="text-[10px] font-body text-muted-foreground mt-2 italic">Collections à venir</p>
+                    )}
                   </div>
                 </div>
 

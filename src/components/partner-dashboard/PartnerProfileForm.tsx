@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Building2, Globe, MapPin, FileText, Upload, Save, CheckCircle2, Loader2,
+  Crown, Plus, X, Image as ImageIcon,
 } from "lucide-react";
 
 import { PARTNER_TYPES } from "@/lib/partnerConstants";
@@ -21,6 +22,17 @@ const COUNTRIES = [
 const PRODUCT_CATEGORIES = [
   "Chairs", "Tables", "Parasols", "Loungers", "Sofas", "Stools",
   "Accessories", "Lighting", "Planters", "Screens",
+];
+
+const BRAND_SPECIALTIES = [
+  "Aluminium", "Teck", "Résine tressée", "Acier", "Tissu technique", "Pierre",
+  "Céramique", "Bois massif", "Rotin", "Inox", "Fibre synthétique", "HPL",
+  "Corde nautique", "Béton fibré", "Verre trempé",
+];
+
+const BRAND_CERTIFICATIONS = [
+  "FSC", "PEFC", "ISO 9001", "ISO 14001", "OEKO-TEX", "GreenGuard",
+  "Made in France", "Made in Italy", "Made in Spain", "BIFMA", "EN 581",
 ];
 
 const DELIVERY_COUNTRIES = COUNTRIES.map((c) => c.name);
@@ -44,6 +56,13 @@ interface FormData {
   description: string;
   logo_url: string;
   delivery_countries: string[];
+  // Brand showcase fields
+  hero_image_url: string;
+  cover_photo_url: string;
+  founded_year: number | null;
+  specialties: string[];
+  certifications: string[];
+  gallery_urls: string[];
 }
 
 export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes }: PartnerProfileFormProps) {
@@ -52,6 +71,11 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingHero, setUploadingHero] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [customSpecialty, setCustomSpecialty] = useState("");
+  const [customCertification, setCustomCertification] = useState("");
   const [form, setForm] = useState<FormData>({
     name: "",
     partner_type: "manufacturer",
@@ -65,6 +89,12 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     description: "",
     logo_url: "",
     delivery_countries: [],
+    hero_image_url: "",
+    cover_photo_url: "",
+    founded_year: null,
+    specialties: [],
+    certifications: [],
+    gallery_urls: [],
   });
 
   // Load existing partner data
@@ -90,6 +120,12 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
           description: data.description || "",
           logo_url: data.logo_url || "",
           delivery_countries: data.delivery_countries || [],
+          hero_image_url: (data as any).hero_image_url || "",
+          cover_photo_url: (data as any).cover_photo_url || "",
+          founded_year: (data as any).founded_year || null,
+          specialties: (data as any).specialties || [],
+          certifications: (data as any).certifications || [],
+          gallery_urls: (data as any).gallery_urls || [],
         });
       }
     };
@@ -136,6 +172,57 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     toast.success(t("partnerProfile.logoUploaded", "Logo uploaded"));
   };
 
+  const handleImageUpload = async (
+    file: File,
+    pathPrefix: string,
+    setLoading: (v: boolean) => void,
+    field: "hero_image_url" | "cover_photo_url",
+  ) => {
+    setLoading(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${pathPrefix}/${partnerId}.${ext}`;
+    const { error } = await supabase.storage.from("partner-assets").upload(path, file, { upsert: true });
+    if (error) { toast.error("Upload failed"); setLoading(false); return; }
+    const { data: urlData } = supabase.storage.from("partner-assets").getPublicUrl(path);
+    setForm((prev) => ({ ...prev, [field]: urlData.publicUrl }));
+    setLoading(false);
+    toast.success("Image uploadée");
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const remaining = 6 - form.gallery_urls.length;
+    if (remaining <= 0) { toast.error("Maximum 6 photos"); return; }
+    setUploadingGallery(true);
+    const newUrls: string[] = [];
+    for (const file of files.slice(0, remaining)) {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `brand-gallery/${partnerId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+      const { error } = await supabase.storage.from("partner-assets").upload(path, file, { contentType: file.type });
+      if (!error) {
+        const { data: urlData } = supabase.storage.from("partner-assets").getPublicUrl(path);
+        newUrls.push(urlData.publicUrl);
+      }
+    }
+    setForm((prev) => ({ ...prev, gallery_urls: [...prev.gallery_urls, ...newUrls] }));
+    setUploadingGallery(false);
+    if (newUrls.length > 0) toast.success(`${newUrls.length} photo(s) ajoutée(s)`);
+    e.target.value = "";
+  };
+
+  const toggleSpecialty = (s: string) =>
+    setForm((prev) => ({
+      ...prev,
+      specialties: prev.specialties.includes(s) ? prev.specialties.filter((x) => x !== s) : [...prev.specialties, s],
+    }));
+
+  const toggleCertification = (c: string) =>
+    setForm((prev) => ({
+      ...prev,
+      certifications: prev.certifications.includes(c) ? prev.certifications.filter((x) => x !== c) : [...prev.certifications, c],
+    }));
+
   const handleSubmit = async () => {
     if (form.name.trim().length === 0) {
       toast.error(t("partnerProfile.nameRequired", "Company name is required"));
@@ -161,6 +248,12 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
       description: form.description.trim(),
       logo_url: form.logo_url || null,
       delivery_countries: form.delivery_countries,
+      hero_image_url: form.hero_image_url || null,
+      cover_photo_url: form.cover_photo_url || null,
+      founded_year: form.founded_year || null,
+      specialties: form.specialties.length > 0 ? form.specialties : null,
+      certifications: form.certifications.length > 0 ? form.certifications : null,
+      gallery_urls: form.gallery_urls.length > 0 ? form.gallery_urls : null,
       profile_completed: false,
       profile_submitted: true,
       profile_submitted_at: new Date().toISOString(),
@@ -485,6 +578,135 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
           </div>
         </div>
       </div>
+
+      {/* Brand Showcase (brands only) */}
+      {form.partner_type === "brand" && (
+        <div className="border-2 border-purple-200 bg-purple-50/30 rounded-xl p-5 space-y-6">
+          <div>
+            <h3 className="font-display font-bold text-sm flex items-center gap-2 text-purple-700">
+              <Crown className="h-4 w-4" /> Vitrine Marque
+            </h3>
+            <p className="text-[10px] font-body text-muted-foreground mt-1">
+              Ces informations sont affichées sur votre page marque publique. Plus votre fiche est complète, plus elle est attractive.
+            </p>
+          </div>
+
+          {/* Hero image */}
+          <div>
+            <label className={labelClass}>Image principale (header de votre page marque)</label>
+            {form.hero_image_url ? (
+              <div className="relative rounded-xl overflow-hidden">
+                <img src={form.hero_image_url} alt="" className="w-full h-44 object-cover" />
+                <button onClick={() => setForm((p) => ({ ...p, hero_image_url: "" }))} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-purple-300 rounded-xl cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-all">
+                {uploadingHero ? <Loader2 className="h-5 w-5 animate-spin text-purple-400" /> : <Upload className="h-5 w-5 text-purple-400 mb-1" />}
+                <span className="text-[10px] font-body text-muted-foreground">Format 16:9 recommandé, min 1600px</span>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f, "brand-hero", setUploadingHero, "hero_image_url"); }} />
+              </label>
+            )}
+          </div>
+
+          {/* Cover photo */}
+          <div>
+            <label className={labelClass}>Photo de couverture (pour les listings)</label>
+            {form.cover_photo_url ? (
+              <div className="relative w-48 rounded-xl overflow-hidden">
+                <img src={form.cover_photo_url} alt="" className="w-full h-32 object-cover" />
+                <button onClick={() => setForm((p) => ({ ...p, cover_photo_url: "" }))} className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-48 h-32 border-2 border-dashed border-purple-300 rounded-xl cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-all">
+                {uploadingCover ? <Loader2 className="h-4 w-4 animate-spin text-purple-400" /> : <Upload className="h-4 w-4 text-purple-400 mb-1" />}
+                <span className="text-[9px] font-body text-muted-foreground">Format 4:3</span>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f, "brand-cover", setUploadingCover, "cover_photo_url"); }} />
+              </label>
+            )}
+          </div>
+
+          {/* Founded year */}
+          <div className="max-w-xs">
+            <label className={labelClass}>Année de fondation</label>
+            <input
+              type="number"
+              min={1800}
+              max={new Date().getFullYear()}
+              value={form.founded_year ?? ""}
+              onChange={(e) => setForm((p) => ({ ...p, founded_year: e.target.value ? Number(e.target.value) : null }))}
+              className={inputClass}
+              placeholder="ex: 1985"
+            />
+          </div>
+
+          {/* Specialties */}
+          <div>
+            <label className={labelClass}>Spécialités & matériaux</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {BRAND_SPECIALTIES.map((s) => (
+                <button key={s} type="button" onClick={() => toggleSpecialty(s)} className={`px-3 py-1.5 text-xs font-display font-semibold rounded-full border transition-all ${form.specialties.includes(s) ? "bg-purple-600 text-white border-purple-600" : "border-purple-200 text-purple-600 hover:border-purple-400"}`}>
+                  {form.specialties.includes(s) && <CheckCircle2 className="h-3 w-3 inline mr-1" />}{s}
+                </button>
+              ))}
+              {form.specialties.filter((s) => !BRAND_SPECIALTIES.includes(s)).map((s) => (
+                <span key={s} className="px-3 py-1.5 text-xs font-display font-semibold rounded-full bg-purple-600 text-white border border-purple-600 flex items-center gap-1">
+                  {s} <button type="button" onClick={() => toggleSpecialty(s)}><X className="h-2.5 w-2.5" /></button>
+                </span>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <input value={customSpecialty} onChange={(e) => setCustomSpecialty(e.target.value)} placeholder="Ajouter une spécialité..." className="text-xs font-body border border-purple-200 rounded-full px-3 py-1.5 focus:outline-none focus:border-purple-500 w-48" onKeyDown={(e) => { if (e.key === "Enter" && customSpecialty.trim()) { e.preventDefault(); toggleSpecialty(customSpecialty.trim()); setCustomSpecialty(""); } }} />
+              <button type="button" onClick={() => { if (customSpecialty.trim()) { toggleSpecialty(customSpecialty.trim()); setCustomSpecialty(""); } }} className="text-[10px] font-display font-semibold text-purple-600 hover:text-purple-800 flex items-center gap-0.5"><Plus className="h-3 w-3" /> Ajouter</button>
+            </div>
+          </div>
+
+          {/* Certifications */}
+          <div>
+            <label className={labelClass}>Certifications & labels</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {BRAND_CERTIFICATIONS.map((c) => (
+                <button key={c} type="button" onClick={() => toggleCertification(c)} className={`px-3 py-1.5 text-xs font-display font-semibold rounded-full border transition-all ${form.certifications.includes(c) ? "bg-emerald-600 text-white border-emerald-600" : "border-emerald-200 text-emerald-700 hover:border-emerald-400"}`}>
+                  {form.certifications.includes(c) && <CheckCircle2 className="h-3 w-3 inline mr-1" />}{c}
+                </button>
+              ))}
+              {form.certifications.filter((c) => !BRAND_CERTIFICATIONS.includes(c)).map((c) => (
+                <span key={c} className="px-3 py-1.5 text-xs font-display font-semibold rounded-full bg-emerald-600 text-white border border-emerald-600 flex items-center gap-1">
+                  {c} <button type="button" onClick={() => toggleCertification(c)}><X className="h-2.5 w-2.5" /></button>
+                </span>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <input value={customCertification} onChange={(e) => setCustomCertification(e.target.value)} placeholder="Ajouter une certification..." className="text-xs font-body border border-emerald-200 rounded-full px-3 py-1.5 focus:outline-none focus:border-emerald-500 w-48" onKeyDown={(e) => { if (e.key === "Enter" && customCertification.trim()) { e.preventDefault(); toggleCertification(customCertification.trim()); setCustomCertification(""); } }} />
+              <button type="button" onClick={() => { if (customCertification.trim()) { toggleCertification(customCertification.trim()); setCustomCertification(""); } }} className="text-[10px] font-display font-semibold text-emerald-600 hover:text-emerald-800 flex items-center gap-0.5"><Plus className="h-3 w-3" /> Ajouter</button>
+            </div>
+          </div>
+
+          {/* Gallery */}
+          <div>
+            <label className={labelClass}>Galerie — Atelier, showroom, savoir-faire (max 6)</label>
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              {form.gallery_urls.map((url, i) => (
+                <div key={i} className="relative rounded-xl overflow-hidden aspect-[4/3]">
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <button onClick={() => setForm((p) => ({ ...p, gallery_urls: p.gallery_urls.filter((_, idx) => idx !== i) }))} className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {form.gallery_urls.length < 6 && (
+                <label className="flex flex-col items-center justify-center aspect-[4/3] border-2 border-dashed border-purple-300 rounded-xl cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-all">
+                  {uploadingGallery ? <Loader2 className="h-4 w-4 animate-spin text-purple-400" /> : <><ImageIcon className="h-5 w-5 text-purple-300 mb-1" /><span className="text-[9px] font-body text-muted-foreground">Ajouter</span></>}
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
+                </label>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Submit */}
       <div className="flex justify-center pt-2 pb-8">

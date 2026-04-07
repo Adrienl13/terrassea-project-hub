@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Award, Calendar, ArrowRight } from "lucide-react";
+import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -23,11 +24,14 @@ interface BrandPartner {
   city: string | null;
   logo_url: string | null;
   hero_image_url: string | null;
+  cover_photo_url: string | null;
   specialties: string[] | null;
   certifications: string[] | null;
   partner_mode: string;
   founded_year: number | null;
   website: string | null;
+  gallery_urls: string[] | null;
+  delivery_countries: string[] | null;
 }
 
 interface CollectionOffer {
@@ -166,75 +170,171 @@ export default function BrandPage() {
     );
   }
 
+  const yearsExperience = brand.founded_year ? new Date().getFullYear() - brand.founded_year : null;
+  const tagline = brand.description ? brand.description.split(/[.!?]/)[0] : null;
+  const galleryImages = brand.gallery_urls?.filter(Boolean) || [];
+  const websiteDomain = brand.website ? brand.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/.*/, "") : null;
+  const hasKeyFigures = yearsExperience || collectionNames.length > 0 || offers.length > 0 || (brand.delivery_countries && brand.delivery_countries.length > 0);
+
   return (
     <>
-      <SEO title={`${brand.name} | TerrasseaHUB`} description={brand.description || `D\u00e9couvrez les collections ${brand.name} pour l'h\u00f4tellerie-restauration outdoor.`} />
+      <SEO title={`${brand.name} — Outdoor Furniture Collection`} description={brand.description || `Découvrez les collections ${brand.name} pour l'hôtellerie-restauration outdoor.`} />
       <Header />
 
-      {/* Section 1 — Hero */}
+      {/* ═══ Section 1 — Hero premium ═══ */}
       <section
-        className="relative min-h-[50vh] flex items-end"
+        className="relative min-h-[60vh] flex items-end"
         style={{
           background: brand.hero_image_url
-            ? `linear-gradient(to top, rgba(28,26,23,0.85) 0%, rgba(28,26,23,0.3) 60%), url(${brand.hero_image_url}) center/cover no-repeat`
-            : "#1C1A17",
+            ? `linear-gradient(to top, rgba(28,26,23,0.92) 0%, rgba(28,26,23,0.4) 50%, rgba(28,26,23,0.15) 100%), url(${brand.hero_image_url}) center/cover no-repeat`
+            : "linear-gradient(135deg, #1C1A17 0%, #2A2520 100%)",
         }}
       >
-        <div className="container mx-auto px-6 pb-12 pt-24">
-          <Link to="/collections" className="inline-flex items-center gap-1.5 text-xs font-body text-white/60 hover:text-white mb-6 transition-colors">
+        <div className="container mx-auto px-6 pb-14 pt-32">
+          <Link to="/collections" className="inline-flex items-center gap-1.5 text-xs font-body text-white/50 hover:text-white mb-8 transition-colors">
             <ArrowLeft className="h-3.5 w-3.5" /> {t("brand.backToCollections")}
           </Link>
           <div className="flex items-end gap-6">
             {brand.logo_url && (
-              <img src={brand.logo_url} alt={brand.name} className="h-16 w-16 rounded-xl object-contain bg-white/10 backdrop-blur-sm p-2" />
+              <img src={brand.logo_url} alt={brand.name} className="h-20 w-20 rounded-2xl object-contain bg-white/10 backdrop-blur-sm p-3 border border-white/10" />
             )}
-            <div>
+            <div className="flex-1">
               <h1 className="font-display text-4xl md:text-5xl font-bold text-white tracking-tight">{brand.name}</h1>
-              <div className="flex items-center gap-3 mt-2 text-sm font-body text-white/60">
-                {flag && <span className="text-lg">{flag}</span>}
-                {brand.country && <span>{brand.country}</span>}
+              {tagline && <p className="text-sm font-body text-white/60 mt-2 max-w-xl">{tagline}.</p>}
+              <div className="flex flex-wrap items-center gap-4 mt-4">
+                {flag && brand.country && (
+                  <span className="flex items-center gap-1.5 text-xs font-body text-white/70">
+                    <MapPin className="h-3 w-3" /> {flag} {brand.country}{brand.city ? `, ${brand.city}` : ""}
+                  </span>
+                )}
+                {brand.founded_year && (
+                  <span className="flex items-center gap-1.5 text-xs font-body text-white/70">
+                    <Calendar className="h-3 w-3" /> Depuis {brand.founded_year}
+                  </span>
+                )}
+                {websiteDomain && (
+                  <a href={brand.website!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-body text-white/70 hover:text-white transition-colors">
+                    <Globe className="h-3 w-3" /> {websiteDomain} <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                )}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Section 2 — Origine & Savoir-faire */}
+      {/* ═══ Section 2 — Chiffres clés ═══ */}
+      {hasKeyFigures && (
+        <section className="bg-[#1C1A17] border-t border-white/5">
+          <div className="container mx-auto px-6 py-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {yearsExperience && yearsExperience > 0 && (
+                <div className="text-center">
+                  <p className="font-display text-3xl font-bold text-white">{yearsExperience}</p>
+                  <p className="text-[10px] font-body text-white/50 uppercase tracking-wider mt-1">Années d'expérience</p>
+                </div>
+              )}
+              <div className="text-center">
+                <p className="font-display text-3xl font-bold text-white">{collectionNames.length}</p>
+                <p className="text-[10px] font-body text-white/50 uppercase tracking-wider mt-1">Collections</p>
+              </div>
+              <div className="text-center">
+                <p className="font-display text-3xl font-bold text-white">{offers.length}</p>
+                <p className="text-[10px] font-body text-white/50 uppercase tracking-wider mt-1">Produits</p>
+              </div>
+              {brand.delivery_countries && brand.delivery_countries.length > 0 && (
+                <div className="text-center">
+                  <p className="font-display text-3xl font-bold text-white">{brand.delivery_countries.length}</p>
+                  <p className="text-[10px] font-body text-white/50 uppercase tracking-wider mt-1">Pays livrés</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══ Section 3 — Savoir-faire & Galerie ═══ */}
       <section className="bg-[#FAF7F4] py-16">
-        <div className="container mx-auto px-6 max-w-3xl">
-          <h2 className="font-display text-2xl font-bold text-foreground mb-6">{t("brand.originExpertise")}</h2>
-          {brand.description && (
-            <p className="text-sm font-body text-muted-foreground leading-relaxed mb-8">{brand.description}</p>
-          )}
-          <div className="flex flex-wrap gap-6">
-            {brand.country && (
-              <div className="flex items-center gap-2 text-sm font-body text-muted-foreground">
-                <MapPin className="h-4 w-4" /> {brand.country}{brand.city ? `, ${brand.city}` : ""}
-              </div>
-            )}
-            {brand.certifications && brand.certifications.length > 0 && (
-              <div className="flex items-center gap-2 text-sm font-body text-muted-foreground">
-                <Award className="h-4 w-4" /> {brand.certifications.join(", ")}
-              </div>
-            )}
-          </div>
-          {brand.specialties && brand.specialties.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-6">
-              {brand.specialties.map((s) => (
-                <span key={s} className="text-xs px-3 py-1 rounded-full bg-white border border-border text-muted-foreground font-body">{s}</span>
-              ))}
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start max-w-5xl mx-auto">
+            {/* Left — Story */}
+            <div>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-6">{t("brand.originExpertise")}</h2>
+              {brand.description && (
+                <p className="text-base font-body text-muted-foreground leading-relaxed mb-8">{brand.description}</p>
+              )}
+
+              {brand.country && (
+                <div className="flex items-center gap-2 text-sm font-body text-muted-foreground mb-4">
+                  <MapPin className="h-4 w-4 text-muted-foreground/60" /> {brand.country}{brand.city ? `, ${brand.city}` : ""}
+                </div>
+              )}
+
+              {brand.certifications && brand.certifications.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {brand.certifications.map((c) => (
+                    <span key={c} className="inline-flex items-center gap-1.5 text-xs font-display font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <Award className="h-3 w-3" /> {c}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {brand.specialties && brand.specialties.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {brand.specialties.map((s) => (
+                    <span key={s} className="text-xs font-display font-semibold px-3 py-1.5 rounded-full bg-white border border-border text-foreground">{s}</span>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Right — Gallery */}
+            <div>
+              {galleryImages.length > 1 ? (
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {galleryImages.map((url, i) => (
+                      <CarouselItem key={i}>
+                        <div className="aspect-[4/3] rounded-2xl overflow-hidden">
+                          <img src={url} alt={`${brand.name} — ${i + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="-left-4" />
+                  <CarouselNext className="-right-4" />
+                </Carousel>
+              ) : galleryImages.length === 1 ? (
+                <div className="aspect-[4/3] rounded-2xl overflow-hidden">
+                  <img src={galleryImages[0]} alt={brand.name} className="w-full h-full object-cover" />
+                </div>
+              ) : brand.cover_photo_url ? (
+                <div className="aspect-[4/3] rounded-2xl overflow-hidden">
+                  <img src={brand.cover_photo_url} alt={brand.name} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-[#F5F0EB] to-[#E8E0D8] flex items-center justify-center">
+                  <span className="font-display text-6xl font-bold text-foreground/10">{brand.name[0]}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Section 3 — Collections */}
-      {collectionNames.length > 0 && (
-        <section className="py-16">
-          <div className="container mx-auto px-6">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-2">{t("brand.ourCollections")}</h2>
-            <p className="text-sm font-body text-muted-foreground mb-10">{t("brand.collectionSubtitle")}</p>
+      {/* ═══ Section 4 — Collections ═══ */}
+      <section className="py-16">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="font-display text-2xl font-bold text-foreground">{t("brand.ourCollections")}</h2>
+            {collectionNames.length > 0 && (
+              <span className="text-xs font-display font-semibold bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full">{collectionNames.length}</span>
+            )}
+          </div>
+          <p className="text-sm font-body text-muted-foreground mb-10">{t("brand.collectionSubtitle")}</p>
 
+          {collectionNames.length > 0 ? (
             <div className="space-y-12">
               {collectionNames.map((collName) => {
                 const items = collections[collName];
@@ -251,54 +351,52 @@ export default function BrandPage() {
                         <div key={item.id} className="group">
                           <div className="aspect-square rounded-xl overflow-hidden bg-muted mb-2">
                             {item.product?.image_url ? (
-                              <img
-                                src={item.product.image_url}
-                                alt={item.product.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
+                              <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">
-                                {t("brand.noPhoto")}
-                              </div>
+                              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">{t("brand.noPhoto")}</div>
                             )}
                           </div>
                           <p className="text-xs font-display font-semibold text-foreground truncate">{item.product?.name || "Produit"}</p>
-                          {/* Never display price */}
                         </div>
                       ))}
                     </div>
-
-                    <button
-                      onClick={() => setBriefOffer(items[0] || null)}
-                      className="mt-6 inline-flex items-center gap-2 text-sm font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors"
-                    >
+                    <button onClick={() => setBriefOffer(items[0] || null)} className="mt-6 inline-flex items-center gap-2 text-sm font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors">
                       {t("brand.submitBriefForCollection")} <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
                 );
               })}
             </div>
-          </div>
-        </section>
-      )}
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-border rounded-2xl">
+              <FolderOpen className="h-10 w-10 text-muted-foreground/30 mb-4" />
+              <p className="text-sm font-display font-semibold text-foreground mb-1">Collections à venir</p>
+              <p className="text-xs font-body text-muted-foreground max-w-xs">
+                {brand.name} prépare ses collections. Revenez bientôt pour découvrir leur catalogue.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
 
-      {/* Section 4 — CTA final */}
+      {/* ═══ Section 5 — CTA final ═══ */}
       <section className="bg-[#1C1A17] py-16">
         <div className="container mx-auto px-6 text-center">
+          {brand.logo_url && (
+            <img src={brand.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-white/10 p-1.5 mx-auto mb-5" />
+          )}
           <h2 className="font-display text-2xl md:text-3xl font-bold text-white mb-3">
             {t("brand.outdoorProject")}
           </h2>
           <p className="text-sm font-body text-white/60 mb-8">
             {t("brand.teamContact")}
           </p>
-          {offers.length > 0 && (
-            <button
-              onClick={() => setBriefOffer(offers[0])}
-              className="px-8 py-3 font-display font-semibold text-sm bg-[#D4603A] text-white rounded-full hover:opacity-90 transition-opacity"
-            >
-              {t("brand.submitBrief")} &rarr;
-            </button>
-          )}
+          <button
+            onClick={() => setBriefOffer(offers[0] || null)}
+            className="px-8 py-3 font-display font-semibold text-sm bg-[#D4603A] text-white rounded-full hover:opacity-90 transition-opacity"
+          >
+            {offers.length > 0 ? t("brand.submitBrief") : "Nous contacter"} &rarr;
+          </button>
         </div>
       </section>
 
