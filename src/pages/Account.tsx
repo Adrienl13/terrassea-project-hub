@@ -418,7 +418,7 @@ const Account = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("partners")
-        .select("id, plan, profile_completed, profile_submitted, profile_status, profile_submitted_at, profile_review_notes, partner_mode")
+        .select("id, plan, profile_completed, profile_submitted, profile_status, profile_submitted_at, profile_review_notes, partner_mode, partner_type")
         .eq("contact_email", profile!.email)
         .maybeSingle();
       if (error || !data) return null;
@@ -432,6 +432,7 @@ const Account = () => {
         profile_submitted_at: data.profile_submitted_at || null,
         profile_review_notes: data.profile_review_notes || null,
         partner_mode: data.partner_mode || "standard",
+        partner_type: data.partner_type || "manufacturer",
       };
     },
     enabled: !!profile?.email && profile?.user_type === "partner",
@@ -463,10 +464,18 @@ const Account = () => {
     enabled: !!partnerId && profile?.user_type === "partner",
   });
 
-  const partnerPlan: PartnerPlan =
-    partnerData?.plan === "elite" || partnerData?.plan === "growth" || partnerData?.plan === "starter" || partnerData?.plan === "brand_member" || partnerData?.plan === "brand_network"
-      ? (partnerData.plan as PartnerPlan)
-      : "starter"; // default to starter
+  // Derive partner plan — brands that ended up with "starter" get corrected to their mode-based plan
+  const partnerPlan: PartnerPlan = (() => {
+    const rawPlan = partnerData?.plan;
+    // If brand has wrong plan (e.g. "starter"), derive from partner_mode
+    if (partnerData?.partner_type === "brand" && rawPlan !== "brand_member" && rawPlan !== "brand_network") {
+      return partnerData?.partner_mode === "brand_network" ? "brand_network" : "brand_member";
+    }
+    if (rawPlan === "elite" || rawPlan === "growth" || rawPlan === "starter" || rawPlan === "brand_member" || rawPlan === "brand_network") {
+      return rawPlan as PartnerPlan;
+    }
+    return "starter";
+  })();
 
   // Auto-create partners row if partner user has none (runs once)
   const partnerAutoCreateRef = useRef(false);
@@ -483,6 +492,12 @@ const Account = () => {
       const name = profile.company || `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || profile.email;
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       const meta = user?.user_metadata ?? {};
+      const pType = meta.partner_type || "manufacturer";
+      const pMode = meta.partner_mode || "standard";
+      // Brands get their plan from partner_mode; non-brands start on "starter"
+      const pPlan = pType === "brand"
+        ? (pMode === "brand_network" ? "brand_network" : "brand_member")
+        : "starter";
       supabase.from("partners").insert({
         name,
         slug: `${slug}-${Date.now().toString(36)}`,
@@ -490,12 +505,12 @@ const Account = () => {
         contact_name: `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || null,
         contact_phone: profile.phone || null,
         user_id: profile.id,
-        plan: "starter",
+        plan: pPlan,
         is_active: true,
         is_public: false,
         country: profile.country || "France",
-        partner_type: meta.partner_type || "manufacturer",
-        partner_mode: meta.partner_mode || "standard",
+        partner_type: pType,
+        partner_mode: pMode,
       }).then(({ error: insertErr }) => {
         if (insertErr) {
           console.error("Failed to auto-create partner:", insertErr.message);
@@ -533,9 +548,10 @@ const Account = () => {
 
   const nav = (() => {
     if (userType !== "partner") return config.nav;
+    const isBrandType = partnerData?.partner_type === "brand";
     let base = partnerData?.partner_mode === "brand_network"
       ? NAV_BRAND_NETWORK
-      : partnerData?.partner_mode === "brand_member"
+      : (partnerData?.partner_mode === "brand_member" || (isBrandType && partnerData?.partner_mode === "standard"))
         ? NAV_BRAND_MEMBER
         : getPartnerNav(partnerPlan);
     // Add brand catalogue nav for distributors (partners with inherited offers)
@@ -645,7 +661,7 @@ const Account = () => {
         }
       }
 
-      const isBrand = partnerData?.partner_mode === "brand_member" || partnerData?.partner_mode === "brand_network";
+      const isBrand = partnerData?.partner_type === "brand" || partnerData?.partner_mode === "brand_member" || partnerData?.partner_mode === "brand_network";
       const isBrandNetwork = partnerData?.partner_mode === "brand_network";
 
       const partnerSectionContent = (() => {
@@ -658,7 +674,7 @@ const Account = () => {
             case "briefs":        return isBrandNetwork
               ? <BrandNetworkDashboard partnerId={partnerId!} />
               : <BrandBriefInbox partnerId={partnerId!} />;
-            case "collections":   return <BrandCollectionManager partnerId={partnerId!} />;
+            case "collections":   return <BrandCollectionManager partnerId={partnerId!} plan={partnerPlan} />;
             case "brand-catalogue": return <BrandCatalogueSection partnerId={partnerId!} />;
             case "messages":      return <PartnerMessagesSection />;
             case "network":       return <BrandNetworkDashboard partnerId={partnerId!} />;
@@ -770,7 +786,7 @@ const Account = () => {
                     className="w-10 h-10 rounded-full flex items-center justify-center text-lg mb-2"
                     style={{ background: config.bg }}
                   >
-                    {config.emoji}
+                    {userType === "partner" && partnerData?.partner_type === "brand" ? "🏷" : config.emoji}
                   </div>
                   <p className="font-display font-bold text-sm text-foreground">
                     {profile.first_name
@@ -794,8 +810,8 @@ const Account = () => {
                       <TierBadge tier={architectTier} />
                     )}
                   </div>
-                  {/* Commission reminder for partners */}
-                  {userType === "partner" && (
+                  {/* Commission reminder for partners (hide for brands) */}
+                  {userType === "partner" && partnerData?.partner_type !== "brand" && (
                     <div
                       className="flex items-center gap-1.5 mt-2.5 px-2.5 py-1.5 rounded-sm border text-[9px] font-body"
                       style={{

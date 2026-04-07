@@ -134,6 +134,7 @@ export default function AddProductForm({
   editProductId,
   editInitialData,
   editSubmissionId,
+  collectionName,
 }: {
   plan: PartnerPlan;
   editMode?: boolean;
@@ -142,6 +143,7 @@ export default function AddProductForm({
   editSubmissionId?: string;
   onClose: () => void;
   onSuccess: () => void;
+  collectionName?: string;
 }) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -474,6 +476,7 @@ export default function AddProductForm({
         country_of_manufacture: form.country_of_manufacture || null,
         warranty: form.warranty || null,
         dimension_variants: form.dimension_variants.length > 0 ? form.dimension_variants : null,
+        collection: collectionName || null,
       } as any;
 
       // If editing an existing submission, update it in place instead of creating a new one
@@ -597,6 +600,11 @@ export default function AddProductForm({
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
             <h2 className="font-display font-bold text-base text-foreground">{editMode ? "Modifier un produit" : editInitialData ? "Compléter le produit" : "Ajouter un produit"}</h2>
+            {collectionName && (
+              <span className="inline-flex items-center gap-1 text-[9px] font-display font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 mt-1">
+                <Package className="h-2.5 w-2.5" /> {collectionName}
+              </span>
+            )}
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1.5">
                 <div className="w-20 h-1 bg-muted rounded-full overflow-hidden">
