@@ -1,11 +1,13 @@
 import { lazy } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
-  Lock, Briefcase, ArrowRight, CheckCircle2, Star, Globe, Zap,
+  Lock, Briefcase, ArrowRight, CheckCircle2, Star, Globe, Zap, Loader2,
 } from "lucide-react";
 
 const ProService = lazy(() => import("./ProService"));
@@ -14,9 +16,38 @@ export default function ProServiceGate() {
   const { profile } = useAuth();
   const { t } = useTranslation();
 
-  // Admins get the real ProService page
-  if (profile?.user_type === "admin") {
+  // Check if current partner is a validated brand
+  const { data: partnerAccess, isLoading: partnerLoading } = useQuery({
+    queryKey: ["pro-service-access", profile?.email],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("partners")
+        .select("partner_type, profile_completed, profile_status")
+        .eq("contact_email", profile!.email)
+        .maybeSingle();
+      if (!data) return { allowed: false };
+      const isBrand = data.partner_type === "brand";
+      const isValidated = data.profile_completed && data.profile_status === "approved";
+      return { allowed: isBrand && isValidated };
+    },
+    enabled: !!profile?.email && profile?.user_type === "partner",
+  });
+
+  // Admins and validated brands get the real ProService page
+  if (profile?.user_type === "admin" || partnerAccess?.allowed) {
     return <ProService />;
+  }
+
+  // Loading state for partner check
+  if (profile?.user_type === "partner" && partnerLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </>
+    );
   }
 
   // Everyone else sees the upgrade/teaser page

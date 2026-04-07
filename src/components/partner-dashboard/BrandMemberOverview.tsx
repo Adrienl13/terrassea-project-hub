@@ -2,9 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useConversations } from "@/hooks/useConversations";
+import { useNavigate } from "react-router-dom";
 import {
   Crown, Sparkles, Inbox, Package, TrendingUp, CheckCircle2,
-  ArrowRight, MessageSquare, Clock, FolderOpen, BarChart3, Eye,
+  ArrowRight, MessageSquare, Clock, FolderOpen, BarChart3, Eye, Briefcase,
 } from "lucide-react";
 
 interface BrandMemberOverviewProps {
@@ -14,6 +15,7 @@ interface BrandMemberOverviewProps {
 
 export default function BrandMemberOverview({ partnerId, onNavigate }: BrandMemberOverviewProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { totalUnread } = useConversations();
 
   // ── Briefs data ────────────────────────────────────────────────────────
@@ -271,6 +273,21 @@ export default function BrandMemberOverview({ partnerId, onNavigate }: BrandMemb
           )}
         </button>
       </div>
+
+      {/* ── Pro Service CTA ───────────────────────────────────────────── */}
+      <button
+        onClick={() => navigate("/pro-service")}
+        className="w-full flex items-center gap-4 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl text-left hover:border-amber-400 hover:shadow-md hover:shadow-amber-100/40 transition-all group"
+      >
+        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shrink-0">
+          <Briefcase className="h-5 w-5 text-amber-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-display font-bold text-foreground group-hover:text-amber-700 transition-colors">Pro Service</p>
+          <p className="text-[10px] font-body text-muted-foreground">{t("proServiceGate.description", "Accédez aux projets qualifiés d'hôtels, restaurants et beach clubs.")}</p>
+        </div>
+        <ArrowRight className="h-4 w-4 text-amber-500 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+      </button>
     </div>
   );
 }
