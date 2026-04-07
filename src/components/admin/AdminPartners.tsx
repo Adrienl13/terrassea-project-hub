@@ -214,12 +214,26 @@ export default function AdminPartners() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t("adminPartners.deleteConfirm"))) return;
-    const { error } = await supabase.from("partners").delete().eq("id", id);
-    if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); return; }
-    toast.success(t("adminPartners.partnerDeleted"));
-    invalidatePartnerCaches();
-    setView("list");
+    if (!confirm("Supprimer définitivement ce partenaire et toutes ses données associées ? Cette action est irréversible.")) return;
+    try {
+      // Clean up NO ACTION FK references before deleting
+      await supabase.from("brand_distributors").delete().or(`brand_id.eq.${id},distributor_id.eq.${id}`);
+      await supabase.from("products").update({ partner_id: null } as any).eq("partner_id", id);
+      await supabase.from("orders").update({ partner_id: null } as any).eq("partner_id", id);
+      await supabase.from("partner_applications").update({ created_partner_id: null } as any).eq("created_partner_id", id);
+      await supabase.from("project_briefs").update({ brand_partner_id: null } as any).eq("brand_partner_id", id);
+      await supabase.from("project_briefs").update({ routed_to_partner_id: null } as any).eq("routed_to_partner_id", id);
+      await supabase.from("project_cart_items").update({ selected_partner_id: null } as any).eq("selected_partner_id", id);
+      await supabase.from("project_zone_products").update({ supplier_id: null } as any).eq("supplier_id", id);
+      // Now delete the partner (CASCADE handles the rest)
+      const { error } = await supabase.from("partners").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Partenaire supprimé définitivement");
+      invalidatePartnerCaches();
+      setView("list");
+    } catch (err: any) {
+      toast.error("Erreur lors de la suppression : " + (err.message || ""));
+    }
   };
 
   // Shared helper: notify a partner by looking up their user profile from contact_email
@@ -419,10 +433,16 @@ export default function AdminPartners() {
           <button onClick={() => setView("list")} className="flex items-center gap-1.5 text-xs font-body text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> {t("adminPartners.back")}
           </button>
-          <button onClick={() => { setFormData(partnerToForm(selected)); setIsEditing(true); setView("form"); }}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90">
-            <Pencil className="h-3.5 w-3.5" /> {t("adminPartners.edit")}
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => { setFormData(partnerToForm(selected)); setIsEditing(true); setView("form"); }}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90">
+              <Pencil className="h-3.5 w-3.5" /> {t("adminPartners.edit")}
+            </button>
+            <button onClick={() => handleDelete(selected.id)}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold text-red-600 border border-red-200 rounded-full hover:bg-red-50 transition-colors">
+              <Trash2 className="h-3.5 w-3.5" /> Supprimer
+            </button>
+          </div>
         </div>
 
         <div className="flex items-start gap-4 p-5 border border-border rounded-xl bg-card">
