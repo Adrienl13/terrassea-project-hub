@@ -63,6 +63,11 @@ interface FormData {
   specialties: string[];
   certifications: string[];
   gallery_urls: string[];
+  video_url: string;
+  showroom_address: string;
+  contact_name_display: string;
+  contact_email_display: string;
+  contact_phone_display: string;
 }
 
 export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes }: PartnerProfileFormProps) {
@@ -95,6 +100,11 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     specialties: [],
     certifications: [],
     gallery_urls: [],
+    video_url: "",
+    showroom_address: "",
+    contact_name_display: "",
+    contact_email_display: "",
+    contact_phone_display: "",
   });
 
   // Load existing partner data
@@ -126,6 +136,11 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
           specialties: (data as any).specialties || [],
           certifications: (data as any).certifications || [],
           gallery_urls: (data as any).gallery_urls || [],
+          video_url: (data as any).video_url || "",
+          showroom_address: (data as any).showroom_address || "",
+          contact_name_display: data.contact_name || "",
+          contact_email_display: data.contact_email || "",
+          contact_phone_display: data.contact_phone || "",
         });
       }
     };
@@ -254,6 +269,11 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
       specialties: form.specialties.length > 0 ? form.specialties : null,
       certifications: form.certifications.length > 0 ? form.certifications : null,
       gallery_urls: form.gallery_urls.length > 0 ? form.gallery_urls : null,
+      video_url: form.video_url.trim() || null,
+      showroom_address: form.showroom_address.trim() || null,
+      contact_name: form.contact_name_display.trim() || null,
+      contact_email: form.contact_email_display.trim() || null,
+      contact_phone: form.contact_phone_display.trim() || null,
       profile_completed: false,
       profile_submitted: true,
       profile_submitted_at: new Date().toISOString(),
@@ -703,6 +723,59 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
                   <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
                 </label>
               )}
+            </div>
+          </div>
+
+          {/* Video URL */}
+          <div>
+            <label className={labelClass}>Vidéo de présentation (YouTube ou Vimeo)</label>
+            <input
+              type="url"
+              value={form.video_url}
+              onChange={(e) => setForm((p) => ({ ...p, video_url: e.target.value }))}
+              className={inputClass}
+              placeholder="https://www.youtube.com/watch?v=... ou https://vimeo.com/..."
+            />
+            <p className="text-[9px] font-body text-muted-foreground mt-1">Collez le lien de votre vidéo de présentation</p>
+          </div>
+
+          {/* Showroom address */}
+          <div>
+            <label className={labelClass}>Adresse du showroom (optionnel)</label>
+            <textarea
+              value={form.showroom_address}
+              onChange={(e) => setForm((p) => ({ ...p, showroom_address: e.target.value }))}
+              className={`${inputClass} resize-none`}
+              rows={2}
+              placeholder="ex: 12 rue de la Paix, 75002 Paris"
+            />
+          </div>
+
+          {/* Contact info */}
+          <div>
+            <label className={labelClass}>Informations de contact (affichées sur votre page marque)</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <input
+                type="text"
+                value={form.contact_name_display}
+                onChange={(e) => setForm((p) => ({ ...p, contact_name_display: e.target.value }))}
+                className={inputClass}
+                placeholder="Nom du contact"
+              />
+              <input
+                type="email"
+                value={form.contact_email_display}
+                onChange={(e) => setForm((p) => ({ ...p, contact_email_display: e.target.value }))}
+                className={inputClass}
+                placeholder="Email"
+              />
+              <input
+                type="tel"
+                value={form.contact_phone_display}
+                onChange={(e) => setForm((p) => ({ ...p, contact_phone_display: e.target.value }))}
+                className={inputClass}
+                placeholder="Téléphone"
+              />
             </div>
           </div>
         </div>

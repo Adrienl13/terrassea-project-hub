@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox, Clock,
-  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag, Lock, ArrowRight,
+  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag, Lock, ArrowRight, Image as ImageIcon,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -62,6 +62,7 @@ import UpgradeSuggestion from "@/components/partner-dashboard/UpgradeSuggestion"
 import PartnerProfileForm from "@/components/partner-dashboard/PartnerProfileForm";
 import BrandBriefInbox from "@/components/partner-dashboard/BrandBriefInbox";
 import BrandCollectionManager from "@/components/partner-dashboard/BrandCollectionManager";
+import BrandReferencesManager from "@/components/partner-dashboard/BrandReferencesManager";
 import BrandNetworkDashboard from "@/components/partner-dashboard/BrandNetworkDashboard";
 import BrandNetworkOverview from "@/components/partner-dashboard/BrandNetworkOverview";
 import BrandMemberOverview from "@/components/partner-dashboard/BrandMemberOverview";
@@ -176,6 +177,7 @@ const NAV_BRAND_MEMBER = [
   { id: "overview",     icon: LayoutDashboard, labelKey: "account.overview" },
   { id: "briefs",       icon: Inbox,           labelKey: "account.brandBriefs" },
   { id: "collections",  icon: Package,         labelKey: "account.brandCollections" },
+  { id: "references",   icon: ImageIcon,       labelKey: "account.brandReferences" },
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
@@ -184,6 +186,7 @@ const NAV_BRAND_MEMBER = [
 const NAV_BRAND_NETWORK = [
   { id: "overview",     icon: LayoutDashboard, labelKey: "account.overview" },
   { id: "collections",  icon: Package,         labelKey: "account.brandCollections" },
+  { id: "references",   icon: ImageIcon,       labelKey: "account.brandReferences" },
   { id: "network",      icon: Briefcase,       labelKey: "account.brandNetwork" },
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
@@ -675,6 +678,7 @@ const Account = () => {
               ? <BrandNetworkDashboard partnerId={partnerId!} />
               : <BrandBriefInbox partnerId={partnerId!} />;
             case "collections":   return <BrandCollectionManager partnerId={partnerId!} plan={partnerPlan} />;
+            case "references":    return <BrandReferencesManager partnerId={partnerId!} />;
             case "brand-catalogue": return <BrandCatalogueSection partnerId={partnerId!} />;
             case "messages":      return <PartnerMessagesSection />;
             case "network":       return <BrandNetworkDashboard partnerId={partnerId!} />;

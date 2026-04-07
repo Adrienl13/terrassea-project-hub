@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink } from "lucide-react";
+import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, User } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -32,6 +32,26 @@ interface BrandPartner {
   website: string | null;
   gallery_urls: string[] | null;
   delivery_countries: string[] | null;
+  video_url: string | null;
+  showroom_address: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+}
+
+interface BrandReferenceItem {
+  id: string;
+  title: string;
+  location: string | null;
+  description: string | null;
+  photos: string[];
+  product_ids: string[];
+}
+
+interface RefProduct {
+  id: string;
+  name: string;
+  image_url: string | null;
 }
 
 interface CollectionOffer {
@@ -53,6 +73,16 @@ function groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {
     acc[k].push(item);
     return acc;
   }, {} as Record<string, T[]>);
+}
+
+function getEmbedUrl(url: string): string {
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  return url;
 }
 
 function countryFlag(code: string | null | undefined): string {
@@ -103,6 +133,36 @@ export default function BrandPage() {
     },
     enabled: !!brand?.id,
   });
+
+  // Fetch brand references (project portfolio)
+  const { data: references = [] } = useQuery({
+    queryKey: ["brand-page-references", brand?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("brand_references")
+        .select("id, title, location, description, photos, product_ids")
+        .eq("partner_id", brand!.id)
+        .eq("is_active", true)
+        .order("display_order");
+      if (error) throw error;
+      return (data ?? []) as BrandReferenceItem[];
+    },
+    enabled: !!brand?.id,
+  });
+
+  // Resolve products linked in references
+  const refProductIds = [...new Set(references.flatMap((r) => r.product_ids || []))];
+  const { data: refProducts = [] } = useQuery({
+    queryKey: ["brand-page-ref-products", refProductIds],
+    queryFn: async () => {
+      if (refProductIds.length === 0) return [];
+      const { data } = await supabase.from("products").select("id, name, image_url").in("id", refProductIds);
+      return (data ?? []) as RefProduct[];
+    },
+    enabled: refProductIds.length > 0,
+  });
+
+  const [expandedRef, setExpandedRef] = useState<string | null>(null);
 
   const collections = groupBy(offers.filter((o) => o.collection_name), "collection_name");
   const collectionNames = Object.keys(collections);
@@ -323,6 +383,116 @@ export default function BrandPage() {
         </div>
       </section>
 
+      {/* ═══ Section 3b — Video ═══ */}
+      {brand.video_url && (
+        <section className="py-16">
+          <div className="container mx-auto px-6">
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center flex items-center justify-center gap-2">
+              <Play className="h-5 w-5 text-[#D4603A]" /> Découvrir la marque
+            </h2>
+            <div className="max-w-3xl mx-auto">
+              <div className="aspect-video rounded-2xl overflow-hidden shadow-xl">
+                <iframe
+                  src={getEmbedUrl(brand.video_url)}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══ Section 3c — Projets & Références ═══ */}
+      {references.length > 0 && (
+        <section className="bg-[#FAF7F4] py-16">
+          <div className="container mx-auto px-6">
+            <h2 className="font-display text-2xl font-bold text-foreground mb-2">Projets réalisés</h2>
+            <p className="text-sm font-body text-muted-foreground mb-10">Des réalisations concrètes à travers l'Europe</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {references.map((ref) => {
+                const cover = ref.photos?.[0] || null;
+                const isExpanded = expandedRef === ref.id;
+                const linkedProducts = refProducts.filter((p) => ref.product_ids?.includes(p.id));
+
+                return (
+                  <div key={ref.id} className={`rounded-2xl overflow-hidden border transition-all bg-white ${isExpanded ? "border-[#D4603A] shadow-lg col-span-full" : "border-border hover:shadow-md"}`}>
+                    <button onClick={() => setExpandedRef(isExpanded ? null : ref.id)} className="w-full text-left">
+                      <div className={`relative overflow-hidden ${isExpanded ? "h-64" : "h-48"}`}>
+                        {cover ? (
+                          <img src={cover} alt={ref.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
+                            <Package className="h-10 w-10 text-amber-300" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <h3 className="font-display text-lg font-bold text-white">{ref.title}</h3>
+                          {ref.location && (
+                            <p className="text-xs font-body text-white/70 flex items-center gap-1 mt-1">
+                              <MapPin className="h-3 w-3" /> {ref.location}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="p-6">
+                        {ref.description && (
+                          <p className="text-sm font-body text-muted-foreground leading-relaxed mb-6">{ref.description}</p>
+                        )}
+
+                        {/* Extra photos */}
+                        {ref.photos.length > 1 && (
+                          <div className="grid grid-cols-3 gap-2 mb-6">
+                            {ref.photos.slice(1).map((url, i) => (
+                              <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden">
+                                <img src={url} alt="" className="w-full h-full object-cover" />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Linked products → sales funnel */}
+                        {linkedProducts.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                              Produits utilisés dans ce projet
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                              {linkedProducts.map((p) => (
+                                <Link key={p.id} to={`/products/${p.id}`} className="group border border-border rounded-xl overflow-hidden hover:border-[#D4603A] hover:shadow-sm transition-all">
+                                  <div className="aspect-square bg-muted overflow-hidden">
+                                    {p.image_url ? (
+                                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center"><Package className="h-6 w-6 text-muted-foreground/30" /></div>
+                                    )}
+                                  </div>
+                                  <div className="p-2.5 flex items-center justify-between">
+                                    <p className="text-[11px] font-display font-semibold text-foreground truncate">{p.name}</p>
+                                    <ExternalLink className="h-3 w-3 text-[#D4603A] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ═══ Section 4 — Collections ═══ */}
       <section className="py-16">
         <div className="container mx-auto px-6">
@@ -379,7 +549,50 @@ export default function BrandPage() {
         </div>
       </section>
 
-      {/* ═══ Section 5 — CTA final ═══ */}
+      {/* ═══ Section 5 — Contact / Showroom ═══ */}
+      {(brand.contact_name || brand.contact_email || brand.showroom_address) && (
+        <section className="py-16 bg-[#FAF7F4]">
+          <div className="container mx-auto px-6 max-w-3xl">
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">Contact & Showroom</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Contact card */}
+              {(brand.contact_name || brand.contact_email) && (
+                <div className="border border-border rounded-2xl p-6 bg-white">
+                  <h3 className="font-display text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" /> Contact
+                  </h3>
+                  <div className="space-y-3">
+                    {brand.contact_name && (
+                      <p className="text-sm font-body text-foreground">{brand.contact_name}</p>
+                    )}
+                    {brand.contact_email && (
+                      <a href={`mailto:${brand.contact_email}`} className="flex items-center gap-2 text-sm font-body text-[#D4603A] hover:underline">
+                        <Mail className="h-3.5 w-3.5" /> {brand.contact_email}
+                      </a>
+                    )}
+                    {brand.contact_phone && (
+                      <a href={`tel:${brand.contact_phone}`} className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground">
+                        <Phone className="h-3.5 w-3.5" /> {brand.contact_phone}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Showroom card */}
+              {brand.showroom_address && (
+                <div className="border border-border rounded-2xl p-6 bg-white">
+                  <h3 className="font-display text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" /> Showroom
+                  </h3>
+                  <p className="text-sm font-body text-muted-foreground whitespace-pre-line">{brand.showroom_address}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══ Section 6 — CTA final ═══ */}
       <section className="bg-[#1C1A17] py-16">
         <div className="container mx-auto px-6 text-center">
           {brand.logo_url && (
