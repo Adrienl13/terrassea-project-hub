@@ -7,6 +7,7 @@ import {
   Palette, Tag, Layers,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizePostgrest } from "@/lib/sanitizePostgrest";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { ml } from "@/lib/i18nFields";
 import type { DBProduct } from "@/lib/products";
@@ -107,7 +108,7 @@ export default function MaterialBoardView({ boardId, isReadOnly = false }: Props
         .from("products")
         .select("*")
         .neq("availability_type", "discontinued")
-        .or(`name.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`)
+        .or(`name.ilike.%${sanitizePostgrest(searchQuery)}%,category.ilike.%${sanitizePostgrest(searchQuery)}%`)
         .order("priority_score", { ascending: false })
         .limit(12);
       if (error) throw error;

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
 import type { DimensionVariant } from "@/lib/products";
+import { validateImageUpload } from "@/lib/validateUpload";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -218,10 +219,8 @@ export default function AddProductForm({
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("L'image ne doit pas dépasser 10 Mo.");
-      return;
-    }
+    const vErr = validateImageUpload(file, { maxSizeMB: 10 });
+    if (vErr) { toast.error(vErr); return; }
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -235,11 +234,9 @@ export default function AddProductForm({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (!file?.type.startsWith("image/")) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("L'image ne doit pas dépasser 10 Mo.");
-      return;
-    }
+    if (!file) return;
+    const vErr = validateImageUpload(file, { maxSizeMB: 10 });
+    if (vErr) { toast.error(vErr); return; }
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -255,7 +252,7 @@ export default function AddProductForm({
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const remaining = 5 - galleryFiles.length;
-    const toAdd = files.slice(0, remaining).filter(f => f.size <= 10 * 1024 * 1024);
+    const toAdd = files.slice(0, remaining).filter(f => !validateImageUpload(f, { maxSizeMB: 10 }));
     toAdd.forEach(file => {
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -272,7 +269,7 @@ export default function AddProductForm({
   const handleEnvSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const remaining = 3 - envFiles.length;
-    const toAdd = files.slice(0, remaining).filter(f => f.size <= 10 * 1024 * 1024);
+    const toAdd = files.slice(0, remaining).filter(f => !validateImageUpload(f, { maxSizeMB: 10 }));
     toAdd.forEach(file => {
       const reader = new FileReader();
       reader.onload = (ev) => {

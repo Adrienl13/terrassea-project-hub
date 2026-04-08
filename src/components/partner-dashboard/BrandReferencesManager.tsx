@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { validateImageUpload } from "@/lib/validateUpload";
 import {
   Plus, ArrowLeft, Pencil, Trash2, Image as ImageIcon, Upload,
   Crown, Sparkles, Loader2, X, Save, MapPin, Package, Search,
@@ -354,6 +355,8 @@ function ReferenceForm({
     setUploadingPhotos(true);
     const newUrls: string[] = [];
     for (const file of files.slice(0, remaining)) {
+      const vErr = validateImageUpload(file, { maxSizeMB: 5 });
+      if (vErr) { toast.error(vErr); continue; }
       const ext = file.name.split(".").pop() || "jpg";
       const path = `brand-references/${partnerId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
       const { error } = await supabase.storage.from("partner-assets").upload(path, file, { contentType: file.type });

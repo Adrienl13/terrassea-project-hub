@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { sanitizePostgrest } from "@/lib/sanitizePostgrest";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ async function fetchClientProjects(userEmail: string, userId?: string): Promise<
     .order("updated_at", { ascending: false });
 
   if (userId) {
-    query = query.or(`contact_email.eq.${userEmail},user_id.eq.${userId}`);
+    query = query.or(`contact_email.eq.${sanitizePostgrest(userEmail)},user_id.eq.${userId}`);
   } else {
     query = query.eq("contact_email", userEmail);
   }

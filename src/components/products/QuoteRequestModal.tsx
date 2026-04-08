@@ -241,7 +241,7 @@ const QuoteRequestModal = ({
                   </h2>
 
                   <p className="text-sm font-body text-muted-foreground leading-relaxed mb-6"
-                    dangerouslySetInnerHTML={{ __html: t("quoteModal.successBody", { product: product.name }) }}
+                    dangerouslySetInnerHTML={{ __html: t("quoteModal.successBody", { product: product.name.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c] ?? c)) }) }}
                   />
 
                   <button

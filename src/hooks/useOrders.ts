@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { sanitizePostgrest } from "@/lib/sanitizePostgrest";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -57,7 +58,7 @@ export function useClientOrders() {
       const { data, error } = await supabase
         .from("orders")
         .select("*, partner:partner_id(name)")
-        .or(`client_email.eq.${profile.email},client_user_id.eq.${profile.id}`)
+        .or(`client_email.eq.${sanitizePostgrest(profile.email)},client_user_id.eq.${profile.id}`)
         .order("created_at", { ascending: false });
 
       if (error || !data) return [];

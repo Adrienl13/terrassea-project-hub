@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchProducts, type DBProduct } from "@/lib/products";
 import type { Json } from "@/integrations/supabase/types";
+import { validateImageUpload } from "@/lib/validateUpload";
 
 // ── Analysis result from the Edge Function ────────────────
 export interface TerraceAnalysis {
@@ -224,6 +225,10 @@ export function useMoodBoard() {
       setError(null);
 
       try {
+        // 0. Validate file
+        const vErr = validateImageUpload(file, { maxSizeMB: 10 });
+        if (vErr) throw new Error(vErr);
+
         // 1. Convert File to base64
         const base64 = await fileToBase64(file);
         const mediaType = file.type || "image/jpeg";

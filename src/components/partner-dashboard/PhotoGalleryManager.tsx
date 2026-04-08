@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { ImagePlus, Trash2, Loader2, X, Upload } from "lucide-react";
+import { validateImageUpload } from "@/lib/validateUpload";
 
 export interface GalleryPhoto {
   name: string;
@@ -37,6 +38,8 @@ export function usePartnerGallery(partnerId: string | null) {
     const folder = `partner-gallery/${partnerId}`;
     let uploaded = 0;
     for (const file of files) {
+      const vErr = validateImageUpload(file, { maxSizeMB: 5 });
+      if (vErr) { continue; }
       const ext = file.name.split(".").pop() || "jpg";
       const slug = file.name.replace(/\.[^.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, "-").slice(0, 60);
       const path = `${folder}/${Date.now()}-${slug}.${ext}`;

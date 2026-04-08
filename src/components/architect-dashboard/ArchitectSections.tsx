@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSupplierCalls } from "@/hooks/useSupplierCalls";
+import { sanitizePostgrest } from "@/lib/sanitizePostgrest";
 import type { SupplierCall as HookSupplierCall, SupplierResponse as HookSupplierResponse } from "@/hooks/useSupplierCalls";
 import { useArchitectProjects, useProjectZones, useProjectAnnotations, useMaterialBoards, useProjectTemplates } from "@/hooks/useArchitectProjects";
 import type { ZoneWithProducts } from "@/hooks/useArchitectProjects";
@@ -2312,7 +2313,7 @@ export function ArchitectMessagesSection({ filterProjectRef }: { filterProjectRe
         .from("user_profiles")
         .select("id, first_name, last_name, email, user_type, company")
         .neq("id", user!.id)
-        .or(`email.ilike.%${newSearch}%,first_name.ilike.%${newSearch}%,last_name.ilike.%${newSearch}%,company.ilike.%${newSearch}%`)
+        .or(`email.ilike.%${sanitizePostgrest(newSearch)}%,first_name.ilike.%${sanitizePostgrest(newSearch)}%,last_name.ilike.%${sanitizePostgrest(newSearch)}%,company.ilike.%${sanitizePostgrest(newSearch)}%`)
         .limit(8);
       return data || [];
     },

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { PARTNER_TYPES } from "@/lib/partnerConstants";
+import { validateImageUpload } from "@/lib/validateUpload";
 
 const COUNTRIES = [
   { code: "FR", name: "France" }, { code: "IT", name: "Italie" }, { code: "ES", name: "Espagne" },
@@ -165,6 +166,8 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const vErr = validateImageUpload(file, { maxSizeMB: 2, allowSvg: true });
+    if (vErr) { toast.error(vErr); return; }
 
     setUploading(true);
     const ext = file.name.split(".").pop();
@@ -193,6 +196,8 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     setLoading: (v: boolean) => void,
     field: "hero_image_url" | "cover_photo_url",
   ) => {
+    const vErr = validateImageUpload(file, { maxSizeMB: 5 });
+    if (vErr) { toast.error(vErr); return; }
     setLoading(true);
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${pathPrefix}/${partnerId}.${ext}`;
@@ -212,6 +217,8 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     setUploadingGallery(true);
     const newUrls: string[] = [];
     for (const file of files.slice(0, remaining)) {
+      const vErr = validateImageUpload(file, { maxSizeMB: 5 });
+      if (vErr) { toast.error(vErr); continue; }
       const ext = file.name.split(".").pop() || "jpg";
       const path = `brand-gallery/${partnerId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
       const { error } = await supabase.storage.from("partner-assets").upload(path, file, { contentType: file.type });
