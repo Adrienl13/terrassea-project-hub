@@ -12,15 +12,17 @@ CREATE POLICY "Partners read own orders" ON public.orders FOR SELECT
 CREATE POLICY "Clients read own pro_service_requests" ON public.pro_service_requests FOR SELECT
   USING (client_user_id = auth.uid());
 
-CREATE POLICY "Authenticated users create pro_service_requests" ON public.pro_service_requests FOR INSERT
-  TO authenticated WITH CHECK (true);
+-- Allow anonymous submissions (lead form on public landing page)
+CREATE POLICY "Anyone can submit pro_service_requests" ON public.pro_service_requests FOR INSERT
+  WITH CHECK (true);
 
 CREATE POLICY "Partners read matched pro_service_requests" ON public.pro_service_requests FOR SELECT
   USING (id IN (SELECT request_id FROM public.pro_service_matches WHERE partner_id IN (SELECT id FROM public.partners WHERE user_id = auth.uid())));
 
--- ── 3. platform_settings: public read for feature flags ──
-CREATE POLICY "Public read feature flags" ON public.platform_settings FOR SELECT
-  USING (key IN ('chatbot_enabled', 'maintenance_mode'));
+-- ── 3. platform_settings: authenticated users read all settings ──
+-- Feature flags, loyalty config, payment info are needed client-side
+CREATE POLICY "Authenticated read platform_settings" ON public.platform_settings FOR SELECT
+  TO authenticated USING (true);
 
 -- ── 4. notifications: fix INSERT to allow sending to other users ──
 -- Old policy required user_id = auth.uid() → blocked cross-user notifications
