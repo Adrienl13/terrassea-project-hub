@@ -14,6 +14,13 @@ const SITE_NAME = "TerrasseaHUB";
 const DEFAULT_DESC =
   "Europe's B2B marketplace for outdoor hospitality furniture. Chairs, tables, parasols, sun loungers from verified European manufacturers. 9 countries, 6 languages. Free quotes.";
 
+const MAX_TITLE = 70;
+function clampTitle(t: string): string {
+  if (t.length <= MAX_TITLE) return t;
+  const cut = t.lastIndexOf(" ", MAX_TITLE - 2);
+  return t.slice(0, cut > 0 ? cut : MAX_TITLE - 1) + "…";
+}
+
 const BOT_UA =
   /GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-SearchBot|Claude-Web|Google-Extended|Google-Agent|PerplexityBot|Bytespider|CCBot|Cohere-ai|YouBot|Meta-ExternalAgent|Googlebot|bingbot|BingPreview|AppleBot|facebookexternalhit|FacebookBot|Twitterbot/i;
 
@@ -109,11 +116,11 @@ function getRouteConfig(path: string, query: URLSearchParams): RouteConfig {
   // Homepage
   if (path === "/") {
     return {
-      title: `${SITE_NAME} — Europe's B2B Marketplace for Outdoor Hospitality Furniture`,
+      title: `${SITE_NAME} — B2B Outdoor Furniture for Hotels & Restaurants`,
       description: DEFAULT_DESC,
       schemas: [ORG_JSONLD, WEBSITE_JSONLD, FAQ_JSONLD],
       bodyHtml: `
-        <h1>TerrasseaHUB — Europe's B2B Marketplace for Outdoor Hospitality Furniture</h1>
+        <h1>TerrasseaHUB — B2B Outdoor Furniture for Hotels & Restaurants</h1>
         <p>${DEFAULT_DESC}</p>
         <h2>Product Categories</h2>
         <ul>${CATEGORIES.map(c => `<li><a href="${BASE}/products?category=${c}">${c.replace(/-/g, " ")}</a></li>`).join("")}</ul>
@@ -221,7 +228,7 @@ function getRouteConfig(path: string, query: URLSearchParams): RouteConfig {
 
   // Default fallback
   return {
-    title: `${SITE_NAME} — Europe's B2B Marketplace for Outdoor Hospitality Furniture`,
+    title: `${SITE_NAME} — B2B Outdoor Furniture for Hotels & Restaurants`,
     description: DEFAULT_DESC,
     schemas: [ORG_JSONLD],
     bodyHtml: `<h1>TerrasseaHUB</h1><p>${DEFAULT_DESC}</p><p><a href="${BASE}/products">Browse Products</a></p>`,
@@ -289,7 +296,7 @@ async function getProductConfig(productId: string): Promise<RouteConfig | null> 
   }
 
   return {
-    title: `${name} | ${SITE_NAME}`,
+    title: clampTitle(`${name} | ${SITE_NAME}`),
     description: desc,
     schemas: [ORG_JSONLD, productSchema],
     bodyHtml: `
@@ -341,7 +348,7 @@ async function getPartnersConfig(): Promise<RouteConfig> {
   const anonCount = partners.length - visiblePartners.length;
 
   return {
-    title: `Verified Outdoor Furniture Suppliers (${partners.length}) | ${SITE_NAME}`,
+    title: clampTitle(`Verified Outdoor Furniture Suppliers (${partners.length}) | ${SITE_NAME}`),
     description: `Discover ${partners.length} verified outdoor furniture suppliers on TerrasseaHUB. Manufacturers, brands, and distributors from across Europe. Compare and request free quotes.`,
     schemas: [ORG_JSONLD, itemListSchema],
     bodyHtml: `
@@ -373,7 +380,7 @@ async function getPartnerDetailConfig(slug: string): Promise<RouteConfig | null>
   if (!isVisible) {
     const typeLabel = (p.partner_type || "supplier").replace(/^\w/, (c: string) => c.toUpperCase());
     return {
-      title: `Verified ${typeLabel}${p.country ? ` — ${p.country}` : ""} | ${SITE_NAME}`,
+      title: clampTitle(`Verified ${typeLabel}${p.country ? ` — ${p.country}` : ""} | ${SITE_NAME}`),
       description: `Verified ${typeLabel.toLowerCase()} of outdoor furniture${p.country ? ` based in ${p.country}` : ""}. Request quotes via TerrasseaHUB.`,
       schemas: [ORG_JSONLD],
       bodyHtml: `
@@ -421,7 +428,7 @@ async function getPartnerDetailConfig(slug: string): Promise<RouteConfig | null>
   }
 
   return {
-    title: `${p.name} — Outdoor Furniture on ${SITE_NAME}`,
+    title: clampTitle(`${p.name} — Outdoor Furniture on ${SITE_NAME}`),
     description: `${p.name}: ${desc.slice(0, 150)}. Browse their collection and request quotes on TerrasseaHUB.`,
     schemas,
     bodyHtml: `
@@ -496,7 +503,7 @@ async function getBrandConfig(slug: string): Promise<RouteConfig | null> {
   }
 
   return {
-    title: `${b.name} — Outdoor Furniture Collection on ${SITE_NAME}`,
+    title: clampTitle(`${b.name} — Outdoor Furniture Collection on ${SITE_NAME}`),
     description: `Explore ${b.name} outdoor furniture collection on TerrasseaHUB. ${desc.slice(0, 120)}`,
     schemas,
     bodyHtml: `
@@ -552,7 +559,9 @@ function buildHtml(config: RouteConfig, canonicalUrl: string): string {
         <a href="${BASE}/">${SITE_NAME}</a> |
         <a href="${BASE}/products">Products</a> |
         <a href="${BASE}/partners">Partners</a> |
+        <a href="${BASE}/collections">Collections</a> |
         <a href="${BASE}/inspirations">Inspirations</a> |
+        <a href="${BASE}/resources">Resources</a> |
         <a href="${BASE}/become-partner">Become a Partner</a>
       </nav>
     </header>

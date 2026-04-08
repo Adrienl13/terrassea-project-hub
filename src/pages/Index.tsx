@@ -144,7 +144,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="B2B Outdoor Furniture for Hotels, Restaurants & Beach Clubs"
+        title="B2B Outdoor Furniture for Hotels & Restaurants"
         description="Source premium outdoor furniture for hotels, restaurants, and beach clubs. Compare verified suppliers, request quotes, and manage your hospitality projects on Terrassea."
       />
       <Header />

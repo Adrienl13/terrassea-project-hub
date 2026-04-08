@@ -12,7 +12,7 @@ import {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
-import { normalizeSearchQuery } from "@/lib/searchNormalizer";
+import { filterProducts } from "@/engine/intentDetector";
 import CompareBar from "@/components/products/CompareBar";
 import ProductFilterSidebar, {
   type FilterState,
@@ -171,20 +171,7 @@ const Products = () => {
     const rawQ = search.toLowerCase().trim();
 
     if (rawQ) {
-      // Normalize search to English so it matches DB values
-      const q = normalizeSearchQuery(rawQ);
-      result = result.filter((p) => {
-        // Build searchable text from product fields
-        const armType = p.product_type_tags?.arm_type as string | undefined;
-        const armLabel = armType && armType !== "no-arms" ? "armchair fauteuil sillón poltrona" : "";
-        const haystack = [
-          p.name, p.category, p.subcategory, p.short_description,
-          p.main_color, p.product_family, p.collection, p.brand_source,
-          p.material_structure, armLabel,
-          ...p.style_tags, ...p.material_tags, ...p.use_case_tags,
-        ].filter(Boolean).join(" ").toLowerCase();
-        return q.split(/\s+/).every((word) => haystack.includes(word));
-      });
+      result = filterProducts(rawQ, result);
     }
 
     if (filters.categories.length > 0) {

@@ -98,25 +98,45 @@ export function computeProductQuality(
     suggestions.push("Add environment photos showing the product in context");
   }
 
-  // Dimensions (L x W x H): +7
-  const hasDims =
-    productData.dimensions_length_cm != null &&
-    productData.dimensions_width_cm != null &&
-    productData.dimensions_height_cm != null;
-  if (hasDims) {
-    score += 7;
-    strengths.push("Full dimensions provided (L x W x H)");
-  } else {
-    const dimCount = [
-      productData.dimensions_length_cm,
-      productData.dimensions_width_cm,
-      productData.dimensions_height_cm,
-    ].filter((d) => d != null).length;
-    if (dimCount > 0) {
-      score += Math.round((dimCount / 3) * 7);
-      suggestions.push("Complete all three dimensions (length, width, height)");
+  // Dimensions: +7
+  // For tables with dimension_variants, variants replace L×W
+  const isTable = (productData.category || "").toLowerCase().includes("table");
+  const dimVariants = (productData.dimension_variants as any[]) || [];
+  if (isTable && dimVariants.length > 0) {
+    // Tables: dimension variants provide size info
+    score += 4;
+    strengths.push(`${dimVariants.length} dimension variant(s) defined`);
+    if (dimVariants.every((v: any) => v.price > 0)) {
+      score += 2;
+      strengths.push("All dimension variants have prices");
     } else {
-      missingFields.push("dimensions");
+      suggestions.push("Set prices for all dimension variants");
+    }
+    if (productData.dimensions_height_cm != null) {
+      score += 1;
+    } else {
+      suggestions.push("Add table height for complete specs");
+    }
+  } else {
+    const hasDims =
+      productData.dimensions_length_cm != null &&
+      productData.dimensions_width_cm != null &&
+      productData.dimensions_height_cm != null;
+    if (hasDims) {
+      score += 7;
+      strengths.push("Full dimensions provided (L x W x H)");
+    } else {
+      const dimCount = [
+        productData.dimensions_length_cm,
+        productData.dimensions_width_cm,
+        productData.dimensions_height_cm,
+      ].filter((d) => d != null).length;
+      if (dimCount > 0) {
+        score += Math.round((dimCount / 3) * 7);
+        suggestions.push("Complete all three dimensions (length, width, height)");
+      } else {
+        missingFields.push("dimensions");
+      }
     }
   }
 
@@ -128,17 +148,40 @@ export function computeProductQuality(
     missingFields.push("weight_kg");
   }
 
-  // Materials (structure + seat): +5
-  if (productData.material_structure) {
-    score += 3;
-    if (productData.material_seat) {
-      score += 2;
-      strengths.push("Materials fully documented");
+  // Materials & type-specific tags: +5
+  if (isTable) {
+    const ptt = (productData.product_type_tags as any) || {};
+    const tableType = ptt.table_type || "";
+    // Define expected fields per sub-type
+    const expected: string[] =
+      tableType === "base-only"  ? ["table_type", "height_type", "base_type"] :
+      tableType === "top-only"   ? ["table_type", "shape", "top_material"] :
+      tableType === "complete"   ? ["table_type", "shape", "top_material", "base_type"] :
+                                   ["table_type"];
+    const filled = expected.filter(k => ptt[k] != null && ptt[k] !== "").length;
+    if (filled === expected.length) {
+      score += 5;
+      strengths.push("Table specifications fully documented");
+    } else if (filled > 0) {
+      score += Math.round((filled / expected.length) * 5);
+      const missing = expected.filter(k => !ptt[k]);
+      suggestions.push(`Complete table specs: ${missing.join(", ")}`);
     } else {
-      suggestions.push("Add seat material information");
+      missingFields.push("product_type_tags");
+      suggestions.push("Add table type and specifications");
     }
   } else {
-    missingFields.push("material_structure");
+    if (productData.material_structure) {
+      score += 3;
+      if (productData.material_seat) {
+        score += 2;
+        strengths.push("Materials fully documented");
+      } else {
+        suggestions.push("Add seat material information");
+      }
+    } else {
+      missingFields.push("material_structure");
+    }
   }
 
   // Style tags (2+): +5

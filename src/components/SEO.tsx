@@ -9,12 +9,19 @@ interface SEOProps {
   noindex?: boolean;
 }
 
-const DEFAULT_TITLE = "TerrasseaHUB — Europe's B2B Marketplace for Outdoor Hospitality Furniture";
+const DEFAULT_TITLE = "TerrasseaHUB — B2B Outdoor Furniture for Hotels & Restaurants";
 const DEFAULT_DESCRIPTION =
   "Source outdoor furniture for restaurants, hotels, and cafés from verified European manufacturers. Chairs, tables, parasols, sun loungers. Free quotes, 9 countries, 6 languages.";
 const DEFAULT_IMAGE = "https://terrassea.com/og-image.svg";
 const SITE_NAME = "TerrasseaHUB";
 const BASE_URL = "https://terrassea.com";
+const MAX_TITLE = 70;
+
+function clampTitle(t: string): string {
+  if (t.length <= MAX_TITLE) return t;
+  const cut = t.lastIndexOf(" ", MAX_TITLE - 2);
+  return t.slice(0, cut > 0 ? cut : MAX_TITLE - 1) + "…";
+}
 
 const OG_LOCALE_ALTERNATES = ["en_GB", "it_IT", "es_ES", "de_DE"];
 
@@ -50,7 +57,7 @@ export default function SEO({
   type = "website",
   noindex = false,
 }: SEOProps) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : DEFAULT_TITLE;
+  const fullTitle = clampTitle(title ? `${title} | ${SITE_NAME}` : DEFAULT_TITLE);
   const canonicalUrl = url ?? (typeof window !== "undefined" ? `${BASE_URL}${window.location.pathname}` : BASE_URL);
 
   useEffect(() => {

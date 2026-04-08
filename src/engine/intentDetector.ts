@@ -307,6 +307,25 @@ const TERM_TO_USE_CASE_SLUG: Record<string, string> = {
   weingut: "vineyard-winery",
 };
 
+// ── Word-boundary matching helper ────────────────────────
+// Avoids false positives like "table" matching "comfortable"
+
+function wordBoundaryMatch(haystack: string, term: string): boolean {
+  const esc = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?:^|[\\s\\-_/,.()])${esc}(?=[\\s\\-_/,.]|$)`, "i").test(haystack);
+}
+
+// ── Ambiguous terms (both color AND style) ───────────────
+// Deferred during tokenization, resolved after full scan.
+
+const AMBIGUOUS_TERMS: Record<string, { color: string; style: string }> = {
+  natural:   { color: "natural", style: "natural" },
+  naturel:   { color: "natural", style: "natural" },
+  naturelle: { color: "natural", style: "natural" },
+  naturale:  { color: "natural", style: "natural" },
+  "natürlich": { color: "natural", style: "natural" },
+};
+
 // ── Normalized query structure ────────────────────────────
 
 interface NormalizedQuery {
@@ -320,6 +339,13 @@ interface NormalizedQuery {
   preferComplete: boolean;         // user said "table" (not "pied" or "plateau")
   heightTypeHint: string | null;   // "dining" | "high-bar" | "coffee" extracted from query
   dimensionHint:  string | null;   // "80x80" extracted from query pattern
+  // ── Category-specific hints ──
+  shapeHint:       string | null;  // "round" | "square" | "rectangular"
+  capacityHint:    number | null;  // seats/covers extracted for tables
+  armTypeHint:     string | null;  // "with-arms" | "no-arms"
+  stackableHint:   boolean;
+  parasolTypeHint: string | null;  // "centre-pole" | "cantilever" | "wall-mounted" | "shade-sail"
+  parasolSizeHint: number | null;  // diameter in meters
 }
 
 function normalizeQuery(query: string): NormalizedQuery {
@@ -332,6 +358,7 @@ function normalizeQuery(query: string): NormalizedQuery {
   const materialSlugs: string[] = [];
   const useCaseSlugs:  string[] = [];
   const rawTerms:     string[] = [];
+  const deferredAmbiguous: string[] = [];  // tokens to resolve after full scan
 
   // Check multi-word terms first (across all dictionaries)
   const multiWordMaps: { dict: Record<string, string>; type: "category" | "material" | "useCase" }[] = [
@@ -361,6 +388,12 @@ function normalizeQuery(query: string): NormalizedQuery {
     const clean = token.replace(/[^a-zàâäéèêëîïôùûüœæçñáíóúü]/gi, "");
     if (!clean) continue;
 
+    // Defer ambiguous terms (color AND style) for context-aware resolution
+    if (AMBIGUOUS_TERMS[clean]) {
+      deferredAmbiguous.push(clean);
+      continue;
+    }
+
     if (!categorySlug && TERM_TO_CATEGORY_SLUG[clean]) {
       categorySlug = TERM_TO_CATEGORY_SLUG[clean];
     } else if (TERM_TO_COLOR_SLUG[clean]) {
@@ -373,6 +406,16 @@ function normalizeQuery(query: string): NormalizedQuery {
       useCaseSlugs.push(TERM_TO_USE_CASE_SLUG[clean]);
     } else {
       rawTerms.push(clean);
+    }
+  }
+
+  // Resolve ambiguous terms: if category or other styles present → style, else → color
+  for (const amb of deferredAmbiguous) {
+    const entry = AMBIGUOUS_TERMS[amb];
+    if (categorySlug || styleSlugs.length > 0 || materialSlugs.length > 0) {
+      styleSlugs.push(entry.style);
+    } else {
+      colorSlugs.push(entry.color);
     }
   }
 
@@ -412,16 +455,86 @@ function normalizeQuery(query: string): NormalizedQuery {
     }
   }
 
-  // Extract dimension pattern from query (e.g., "80x80", "120x70", "o80")
+  // Extract dimension pattern from query (e.g., "80x80", "120x70", "Ø80")
   let dimensionHint: string | null = null;
   const dimMatch = lower.match(/\b(\d{2,3})\s*[x×]\s*(\d{2,3})\b/);
   if (dimMatch) {
     dimensionHint = `${dimMatch[1]}x${dimMatch[2]}`;
   } else {
-    const roundMatch = lower.match(/\b[øoØO]?\s*(\d{2,3})\b/);
+    // Only match round dimension if preceded by ø/o or if query is about tables
+    const roundMatch = lower.match(/[øØ]\s*(\d{2,3})\b/);
     if (roundMatch && categorySlug === "tables") {
       dimensionHint = `o${roundMatch[1]}`;
     }
+  }
+
+  // ── Category-specific hint extraction ─────────────────────
+
+  // Shape (tables)
+  let shapeHint: string | null = null;
+  const shapeTerms: Record<string, string> = {
+    round: "round", ronde: "round", rond: "round", rotondo: "round", rotonda: "round",
+    redonda: "round", redondo: "round", rund: "round",
+    square: "square", carré: "square", carrée: "square", quadrato: "square", quadrata: "square",
+    cuadrada: "square", cuadrado: "square", quadratisch: "square",
+    rectangular: "rectangular", rectangulaire: "rectangular", rettangolare: "rectangular",
+    rechteckig: "rectangular",
+  };
+  for (const token of tokens) {
+    if (shapeTerms[token]) { shapeHint = shapeTerms[token]; break; }
+  }
+
+  // Capacity (tables) — "6 places", "8 seats", "4 couverts"
+  let capacityHint: number | null = null;
+  if (categorySlug === "tables") {
+    const capMatch = lower.match(/(\d+)\s*(places?|couverts?|seats?|covers?|posti|plazas?)/);
+    if (capMatch) capacityHint = parseInt(capMatch[1]);
+  }
+
+  // Arm type (chairs/armchairs)
+  let armTypeHint: string | null = null;
+  if (categorySlug === "armchairs") {
+    armTypeHint = "with-arms";  // fauteuil/armchair implies arms
+  } else {
+    const armTerms: Record<string, string> = {
+      accoudoirs: "with-arms", accoudoir: "with-arms",
+      "avec accoudoirs": "with-arms", "con braccioli": "with-arms",
+      "con reposabrazos": "with-arms", "with arms": "with-arms",
+      "sans accoudoirs": "no-arms", "without arms": "no-arms",
+      "senza braccioli": "no-arms", "sin reposabrazos": "no-arms",
+    };
+    for (const [term, hint] of Object.entries(armTerms)) {
+      if (lower.includes(term)) { armTypeHint = hint; break; }
+    }
+  }
+
+  // Stackable
+  const stackableTerms = [
+    "stackable", "empilable", "empilables", "impilabile", "impilabili",
+    "apilable", "apilables", "stapelbar",
+  ];
+  const stackableHint = stackableTerms.some(t => lower.includes(t));
+
+  // Parasol type
+  let parasolTypeHint: string | null = null;
+  if (categorySlug === "parasols") {
+    const pTypeTerms: Record<string, string> = {
+      "déporté": "cantilever", deporte: "cantilever", cantilever: "cantilever",
+      offset: "cantilever", "braccio laterale": "cantilever", "brazo lateral": "cantilever",
+      droit: "centre-pole", "centre pole": "centre-pole", central: "centre-pole",
+      mural: "wall-mounted", "wall mounted": "wall-mounted",
+      voile: "shade-sail", "shade sail": "shade-sail", "vela": "shade-sail",
+    };
+    for (const [term, hint] of Object.entries(pTypeTerms)) {
+      if (lower.includes(term)) { parasolTypeHint = hint; break; }
+    }
+  }
+
+  // Parasol size — "3m", "4.5m", "Ø3m"
+  let parasolSizeHint: number | null = null;
+  if (categorySlug === "parasols") {
+    const sizeMatch = lower.match(/(\d+(?:[.,]\d+)?)\s*m\b/);
+    if (sizeMatch) parasolSizeHint = parseFloat(sizeMatch[1].replace(",", "."));
   }
 
   return {
@@ -435,6 +548,12 @@ function normalizeQuery(query: string): NormalizedQuery {
     preferComplete,
     heightTypeHint,
     dimensionHint,
+    shapeHint,
+    capacityHint,
+    armTypeHint,
+    stackableHint,
+    parasolTypeHint,
+    parasolSizeHint,
   };
 }
 
@@ -504,9 +623,327 @@ export function detectIntent(query: string): SearchIntent {
 }
 
 // ═══════════════════════════════════════════════════════════
-// PRODUCT SEARCH
-// Fixed: French/multi-lang normalization, complete table priority,
-// color slug matching, case-insensitive categories, base/top penalty
+// CATEGORY-AWARE SCORING PROFILES
+// Each product type has different decision criteria.
+// ═══════════════════════════════════════════════════════════
+
+// Base weights — product_type is the strongest signal
+const W = {
+  categoryExact:   8.0,
+  categoryPartial: 4.0,
+  colorExact:      5.0,
+  colorPartial:    2.5,
+  material:        4.0,
+  style:           3.5,
+  use_case:        3.0,
+  name:            3.0,
+  subcategory:     2.5,
+  technical:       2.0,
+  availability:    1.5,
+  popularity:      1.5,
+  priority:        1.0,
+  dataQuality:     1.0,
+  baseOnlyPenalty: -6.0,
+  topOnlyPenalty:  -6.0,
+};
+
+type Weights = typeof W;
+
+interface ScoringProfile {
+  weights?: Partial<Weights>;
+  bonusScorer?: (product: DBProduct, norm: NormalizedQuery) => number;
+}
+
+function getDimensionTags(product: DBProduct): string[] {
+  const variantTags: string[] = (product.dimension_variants || [])
+    .map((v: any) => v.dimension_tag).filter(Boolean);
+  const ptt: ProductTypeTags = product.product_type_tags || {};
+  return variantTags.length > 0 ? variantTags : (ptt.dimension_tag ? [String(ptt.dimension_tag)] : []);
+}
+
+const CATEGORY_PROFILES: Record<string, ScoringProfile> = {
+  tables: {
+    weights: { material: 5.0, style: 3.0 },
+    bonusScorer: (product, norm) => {
+      let bonus = 0;
+      const ptt: ProductTypeTags = product.product_type_tags || {};
+      // Shape match
+      if (norm.shapeHint && ptt.shape) {
+        if (ptt.shape === norm.shapeHint) bonus += 4.0;
+        else bonus -= 1.0;
+      }
+      // Capacity match — "table 6 places"
+      if (norm.capacityHint && ptt.capacity_covers) {
+        if ((ptt.capacity_covers as number) >= norm.capacityHint) bonus += 3.0;
+      }
+      return bonus;
+    },
+  },
+
+  chairs: {
+    weights: { style: 4.0, material: 3.5 },
+    bonusScorer: (product, norm) => {
+      let bonus = 0;
+      const ptt: ProductTypeTags = product.product_type_tags || {};
+      // Arm type
+      if (norm.armTypeHint) {
+        const hasArms = ptt.arm_type && ptt.arm_type !== "no-arms";
+        if (norm.armTypeHint === "with-arms" && hasArms) bonus += 4.0;
+        if (norm.armTypeHint === "no-arms" && !hasArms) bonus += 2.0;
+      }
+      // Stackable
+      if (norm.stackableHint && product.is_stackable) bonus += 3.0;
+      return bonus;
+    },
+  },
+
+  armchairs: {
+    weights: { style: 4.0, material: 3.5 },
+    bonusScorer: (product, norm) => {
+      let bonus = 0;
+      // Armchairs always have arms — no arm_type bonus needed
+      if (norm.stackableHint && product.is_stackable) bonus += 3.0;
+      return bonus;
+    },
+  },
+
+  "bar stools": {
+    weights: { style: 4.0 },
+    bonusScorer: (product, norm) => {
+      let bonus = 0;
+      const ptt: ProductTypeTags = product.product_type_tags || {};
+      if (norm.armTypeHint === "with-arms" && ptt.arm_type && ptt.arm_type !== "no-arms") bonus += 3.0;
+      if (norm.stackableHint && product.is_stackable) bonus += 3.0;
+      return bonus;
+    },
+  },
+
+  parasols: {
+    weights: { use_case: 4.0, material: 3.0 },
+    bonusScorer: (product, norm) => {
+      let bonus = 0;
+      const ptt: ProductTypeTags = product.product_type_tags || {};
+      // Parasol type match
+      if (norm.parasolTypeHint && ptt.parasol_type) {
+        if (ptt.parasol_type === norm.parasolTypeHint) bonus += 5.0;
+        else bonus -= 1.5;
+      }
+      // Diameter match (±0.5m tolerance)
+      if (norm.parasolSizeHint && ptt.diameter_m) {
+        if (Math.abs((ptt.diameter_m as number) - norm.parasolSizeHint) <= 0.5) bonus += 4.0;
+      }
+      // Wind resistance
+      if (ptt.wind_beaufort && typeof ptt.wind_beaufort === "number" && ptt.wind_beaufort >= 5) {
+        bonus += 1.0;
+      }
+      return bonus;
+    },
+  },
+
+  "sun loungers": {
+    weights: { material: 3.5 },
+    bonusScorer: (product, norm) => {
+      let bonus = 0;
+      const ptt: ProductTypeTags = product.product_type_tags || {};
+      const rawSet = new Set(norm.rawTerms);
+      if ((rawSet.has("daybed") || rawSet.has("lit")) && ptt.is_daybed) bonus += 4.0;
+      if ((rawSet.has("wheels") || rawSet.has("roulettes") || rawSet.has("ruote") || rawSet.has("ruedas")) && ptt.has_wheels) bonus += 2.0;
+      return bonus;
+    },
+  },
+
+  "lounge seating": {
+    weights: { style: 4.5 },
+    bonusScorer: (product, norm) => {
+      let bonus = 0;
+      const ptt: ProductTypeTags = product.product_type_tags || {};
+      const rawSet = new Set(norm.rawTerms);
+      if ((rawSet.has("modular") || rawSet.has("modulaire") || rawSet.has("modulare")) && ptt.is_modular) bonus += 4.0;
+      return bonus;
+    },
+  },
+};
+
+// ═══════════════════════════════════════════════════════════
+// SCORE COMPUTATION (reusable by searchProducts & filterProducts)
+// ═══════════════════════════════════════════════════════════
+
+const AMBIENCE_TERMS_SCORING: Record<string, string> = {
+  cozy: "warm", cosy: "warm", chaleureux: "warm", accogliente: "warm", acogedor: "warm",
+  elegant: "elegant", élégant: "elegant", elegante: "elegant",
+  relaxed: "relaxed", décontracté: "relaxed", rilassato: "relaxed", relajado: "relaxed",
+  festive: "festive", festif: "festive", festivo: "festive",
+  intimate: "intimate", intime: "intimate", intimo: "intimate", íntimo: "intimate",
+  bright: "bright", lumineux: "bright", luminoso: "bright",
+  refined: "refined", raffiné: "refined", raffinato: "refined", refinado: "refined",
+  convivial: "convivial", conviviale: "convivial",
+};
+
+function computeScore(product: DBProduct, norm: NormalizedQuery, W_eff: Weights): number {
+  let score = 0;
+  const catLower = (product.category || "").toLowerCase();
+  const subLower = (product.subcategory || "").toLowerCase();
+  const ptt: ProductTypeTags = product.product_type_tags || {};
+
+  // ── Category match ──────────────────────────────────────
+  if (norm.categorySlug) {
+    if (catLower === norm.categorySlug || catLower.startsWith(norm.categorySlug.replace(/s$/, ""))) {
+      score += W_eff.categoryExact;
+    } else if (catLower.includes(norm.categorySlug.replace(/s$/, ""))) {
+      score += W_eff.categoryPartial;
+    }
+
+    // Penalize table bases and tops when user searched plain "table"
+    if (norm.categorySlug === "tables" && norm.preferComplete) {
+      if (ptt.table_type === "base-only") score += W_eff.baseOnlyPenalty;
+      if (ptt.table_type === "top-only")  score += W_eff.topOnlyPenalty;
+    }
+
+    // Height type hint matching (e.g., "table haute" → high-bar)
+    if (norm.heightTypeHint && ptt.height_type) {
+      if (ptt.height_type === norm.heightTypeHint) score += 4.0;
+      else score -= 2.0;
+    }
+
+    // Dimension hint matching (e.g., "80x80")
+    if (norm.dimensionHint) {
+      const allDims = getDimensionTags(product);
+      if (allDims.some(d => d.includes(norm.dimensionHint!))) score += 5.0;
+    }
+
+    // Subcategory match
+    if (subLower.includes(norm.categorySlug.replace(/s$/, ""))) {
+      score += W_eff.subcategory;
+    }
+  }
+
+  // ── Color match — slug-first ────────────────────────────
+  for (const colorSlug of norm.colorSlugs) {
+    if (product.main_color?.toLowerCase() === colorSlug) {
+      score += W_eff.colorExact;
+    }
+    if (product.available_colors?.includes(colorSlug)) {
+      score += W_eff.colorExact * 0.7;
+    }
+    // color_variants
+    if (product.color_variants?.some((cv: any) => cv.color_slug === colorSlug || cv.label?.toLowerCase() === colorSlug)) {
+      score += W_eff.colorExact * 0.6;
+    }
+    if (product.secondary_color?.toLowerCase() === colorSlug) {
+      score += W_eff.colorPartial;
+    }
+    const colorTerms = Object.entries(TERM_TO_COLOR_SLUG)
+      .filter(([, slug]) => slug === colorSlug)
+      .map(([term]) => term);
+    for (const term of colorTerms) {
+      if (wordBoundaryMatch(product.name.toLowerCase(), term)) score += W_eff.colorPartial;
+    }
+  }
+
+  // ── Style match ─────────────────────────────────────────
+  for (const styleSlug of norm.styleSlugs) {
+    if (product.style_tags.includes(styleSlug)) score += W_eff.style;
+    if (product.ambience_tags.includes(styleSlug)) score += W_eff.style * 0.4;
+  }
+
+  // ── Ambience match (from raw terms) ───────────────────
+  for (const term of norm.rawTerms) {
+    const ambienceSlug = AMBIENCE_TERMS_SCORING[term];
+    if (ambienceSlug && product.ambience_tags.includes(ambienceSlug)) {
+      score += W_eff.style * 0.6;
+    }
+  }
+
+  // ── Material match ──────────────────────────────────────
+  for (const matSlug of norm.materialSlugs) {
+    if (product.material_tags.includes(matSlug)) score += W_eff.material;
+  }
+
+  // ── Use-case match ────────────────────────────────────
+  for (const ucSlug of norm.useCaseSlugs) {
+    if (product.use_case_tags.includes(ucSlug)) score += W_eff.use_case;
+  }
+
+  // ── Technical tag match via raw terms ──────────────────
+  for (const term of norm.rawTerms) {
+    if (term.length < 3) continue;
+    for (const tag of product.technical_tags) {
+      if (tag.includes(term) || term.includes(tag.replace(/-/g, ""))) {
+        score += W_eff.technical;
+      }
+    }
+  }
+
+  // ── Availability bonus ──────────────────────────────────
+  if (product.availability_type === "available" || product.stock_status === "in_stock") {
+    score += W_eff.availability;
+  }
+
+  // ── Cross-attribute synergy bonus ──────────────────────
+  const signalCount = [
+    norm.categorySlug ? 1 : 0,
+    norm.colorSlugs.length > 0 ? 1 : 0,
+    norm.styleSlugs.length > 0 ? 1 : 0,
+    norm.materialSlugs.length > 0 ? 1 : 0,
+    norm.useCaseSlugs.length > 0 ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+  if (signalCount >= 3 && score > 0) score += 2.0;
+
+  // ── Category-specific bonus scorer ──────────────────────
+  if (norm.categorySlug) {
+    const profile = CATEGORY_PROFILES[norm.categorySlug];
+    if (profile?.bonusScorer) score += profile.bonusScorer(product, norm);
+  }
+
+  // ── Raw terms fallback — match against name/tags ────────
+  for (const term of norm.rawTerms) {
+    if (term.length < 3) continue;
+    if (wordBoundaryMatch(product.name.toLowerCase(), term))  score += W_eff.name * 0.8;
+    if (wordBoundaryMatch(catLower, term))                    score += W_eff.categoryPartial * 0.5;
+    for (const tag of [...product.style_tags, ...product.ambience_tags]) {
+      if (tag.includes(term)) score += W_eff.style * 0.5;
+    }
+    for (const tag of product.material_tags) {
+      if (tag.includes(term)) score += W_eff.material * 0.5;
+    }
+    for (const tag of product.use_case_tags) {
+      if (tag.includes(term)) score += W_eff.use_case * 0.5;
+    }
+  }
+
+  // ── Description fallback (multilingual) ──────────────────
+  if (norm.rawTerms.length > 0) {
+    const descriptions = [
+      product.short_description,
+      (product as any).short_description_fr,
+      (product as any).short_description_es,
+      (product as any).short_description_it,
+    ].filter(Boolean).map((d: string) => d.toLowerCase());
+
+    for (const term of norm.rawTerms) {
+      if (term.length < 4) continue;
+      for (const desc of descriptions) {
+        if (wordBoundaryMatch(desc, term)) {
+          score += W_eff.name * 0.5;
+          break; // count once per term across all languages
+        }
+      }
+    }
+  }
+
+  // ── Boost by priority and popularity ───────────────────
+  score += product.priority_score   * W_eff.priority;
+  score += product.popularity_score * W_eff.popularity;
+
+  // ── data_quality multiplicative ─────────────────────────
+  const quality = product.data_quality_score ?? 0.5;
+  score = score * (0.5 + quality * 0.5);
+
+  return score;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PRODUCT SEARCH (Homepage — returns recommended + similar + compatible)
 // ═══════════════════════════════════════════════════════════
 
 export function searchProducts(query: string, products: DBProduct[]): {
@@ -514,187 +951,14 @@ export function searchProducts(query: string, products: DBProduct[]): {
   similar:     DBProduct[];
   compatible:  DBProduct[];
 } {
-  const norm  = normalizeQuery(query);
+  const norm = normalizeQuery(query);
+  const profile = norm.categorySlug ? CATEGORY_PROFILES[norm.categorySlug] : null;
+  const W_eff: Weights = profile?.weights ? { ...W, ...profile.weights } as Weights : W;
 
-  // Weights — product_type is the strongest signal
-  const W = {
-    categoryExact:   8.0,  // category matches the search intent exactly
-    categoryPartial: 4.0,
-    colorExact:      5.0,  // main_color slug matches
-    colorPartial:    2.5,  // color in available_colors or name
-    material:        4.0,
-    style:           3.5,
-    use_case:        3.0,
-    name:            3.0,
-    subcategory:     2.5,
-    technical:       2.0,  // technical tag match
-    availability:    1.5,  // in-stock bonus
-    popularity:      1.5,
-    priority:        1.0,
-    dataQuality:     1.0,  // multiplicative quality factor
-    // Penalties
-    baseOnlyPenalty: -6.0,  // penalize table bases when user wants "table"
-    topOnlyPenalty:  -6.0,  // penalize tabletops when user wants "table"
-  };
-
-  const scored = products.map(product => {
-    let score = 0;
-    const catLower = (product.category || "").toLowerCase();
-    const subLower = (product.subcategory || "").toLowerCase();
-    const ptt: ProductTypeTags = product.product_type_tags || {};
-
-    // ── Category match ──────────────────────────────────────
-    if (norm.categorySlug) {
-      // Exact: "chairs" matches category "Chairs"
-      if (catLower === norm.categorySlug || catLower.startsWith(norm.categorySlug.replace(/s$/, ""))) {
-        score += W.categoryExact;
-      } else if (catLower.includes(norm.categorySlug.replace(/s$/, ""))) {
-        score += W.categoryPartial;
-      }
-
-      // Penalize table bases and tops when user searched plain "table"
-      if (norm.categorySlug === "tables" && norm.preferComplete) {
-        if (ptt.table_type === "base-only") score += W.baseOnlyPenalty;
-        if (ptt.table_type === "top-only")  score += W.topOnlyPenalty;
-      }
-
-      // Height type hint matching (e.g., "table haute" → high-bar)
-      if (norm.heightTypeHint && ptt.height_type) {
-        if (ptt.height_type === norm.heightTypeHint) score += 4.0;
-        else score -= 2.0;
-      }
-
-      // Dimension hint matching (e.g., "80x80")
-      if (norm.dimensionHint) {
-        const variantTags: string[] = (product.dimension_variants || []).map((v: any) => v.dimension_tag).filter(Boolean);
-        const allDims = variantTags.length > 0 ? variantTags : (ptt.dimension_tag ? [ptt.dimension_tag] : []);
-        if (allDims.some(d => d.includes(norm.dimensionHint!))) score += 5.0;
-      }
-
-      // Subcategory match
-      if (subLower.includes(norm.categorySlug.replace(/s$/, ""))) {
-        score += W.subcategory;
-      }
-    }
-
-    // ── Color match — slug-first ────────────────────────────
-    for (const colorSlug of norm.colorSlugs) {
-      // main_color exact slug match
-      if (product.main_color?.toLowerCase() === colorSlug) {
-        score += W.colorExact;
-      }
-      // available_colors includes this slug
-      if (product.available_colors?.includes(colorSlug)) {
-        score += W.colorExact * 0.7;
-      }
-      // secondary_color
-      if (product.secondary_color?.toLowerCase() === colorSlug) {
-        score += W.colorPartial;
-      }
-      // name or description contains color term
-      const colorTerms = Object.entries(TERM_TO_COLOR_SLUG)
-        .filter(([, slug]) => slug === colorSlug)
-        .map(([term]) => term);
-      for (const term of colorTerms) {
-        if (product.name.toLowerCase().includes(term)) score += W.colorPartial;
-      }
-    }
-
-    // ── Style match ─────────────────────────────────────────
-    for (const styleSlug of norm.styleSlugs) {
-      if (product.style_tags.includes(styleSlug)) score += W.style;
-      // Ambience tags often correlate with style searches
-      if (product.ambience_tags.includes(styleSlug)) score += W.style * 0.4;
-    }
-
-    // ── Ambience match (from raw terms) ───────────────────
-    const AMBIENCE_TERMS: Record<string, string> = {
-      cozy: "warm", cosy: "warm", chaleureux: "warm", accogliente: "warm", acogedor: "warm",
-      elegant: "elegant", élégant: "elegant", elegante: "elegant",
-      relaxed: "relaxed", décontracté: "relaxed", rilassato: "relaxed", relajado: "relaxed",
-      festive: "festive", festif: "festive", festivo: "festive",
-      intimate: "intimate", intime: "intimate", intimo: "intimate", íntimo: "intimate",
-      bright: "bright", lumineux: "bright", luminoso: "bright",
-      refined: "refined", raffiné: "refined", raffinato: "refined", refinado: "refined",
-      convivial: "convivial", conviviale: "convivial",
-    };
-    for (const term of norm.rawTerms) {
-      const ambienceSlug = AMBIENCE_TERMS[term];
-      if (ambienceSlug && product.ambience_tags.includes(ambienceSlug)) {
-        score += W.style * 0.6;
-      }
-    }
-
-    // ── Material match ──────────────────────────────────────
-    for (const matSlug of norm.materialSlugs) {
-      if (product.material_tags.includes(matSlug)) score += W.material;
-    }
-
-    // ── Use-case match ────────────────────────────────────
-    for (const ucSlug of norm.useCaseSlugs) {
-      if (product.use_case_tags.includes(ucSlug)) score += W.use_case;
-    }
-
-    // ── Technical tag match via raw terms ──────────────────
-    for (const term of norm.rawTerms) {
-      if (term.length < 3) continue;
-      for (const tag of product.technical_tags) {
-        if (tag.includes(term) || term.includes(tag.replace(/-/g, ""))) {
-          score += W.technical;
-        }
-      }
-    }
-
-    // ── Availability bonus — prefer in-stock products ──────
-    if (product.availability_type === "available" || product.stock_status === "in_stock") {
-      score += W.availability;
-    }
-
-    // ── Cross-attribute bonus — multiple signals align ──────
-    const signalCount = [
-      norm.categorySlug ? 1 : 0,
-      norm.colorSlugs.length > 0 ? 1 : 0,
-      norm.styleSlugs.length > 0 ? 1 : 0,
-      norm.materialSlugs.length > 0 ? 1 : 0,
-      norm.useCaseSlugs.length > 0 ? 1 : 0,
-    ].reduce((a, b) => a + b, 0);
-    // When user provides 3+ distinct signal types, matched products get a synergy bonus
-    if (signalCount >= 3 && score > 0) score += 2.0;
-
-    // ── Raw terms fallback — match against name/tags ────────
-    for (const term of norm.rawTerms) {
-      if (term.length < 3) continue;
-      if (product.name.toLowerCase().includes(term))     score += W.name * 0.8;
-      if (catLower.includes(term))                       score += W.categoryPartial * 0.5;
-      for (const tag of [...product.style_tags, ...product.ambience_tags]) {
-        if (tag.includes(term)) score += W.style * 0.5;
-      }
-      for (const tag of product.material_tags) {
-        if (tag.includes(term)) score += W.material * 0.5;
-      }
-      for (const tag of product.use_case_tags) {
-        if (tag.includes(term)) score += W.use_case * 0.5;
-      }
-    }
-
-    // ── Description fallback for raw terms ──────────────────
-    if (norm.rawTerms.length > 0 && product.short_description) {
-      const descLower = product.short_description.toLowerCase();
-      for (const term of norm.rawTerms) {
-        if (term.length >= 4 && descLower.includes(term)) score += W.name * 0.5;
-      }
-    }
-
-    // ── Boost by priority and popularity ───────────────────
-    score += product.priority_score   * W.priority;
-    score += product.popularity_score * W.popularity;
-
-    // ── data_quality multiplicative ─────────────────────────
-    const quality = product.data_quality_score ?? 0.5;
-    score = score * (0.5 + quality * 0.5);
-
-    return { product, score };
-  });
+  const scored = products.map(product => ({
+    product,
+    score: computeScore(product, norm, W_eff),
+  }));
 
   scored.sort((a, b) => b.score - a.score);
 
@@ -712,18 +976,16 @@ export function searchProducts(query: string, products: DBProduct[]): {
 
   // ── Zero-results fallback — relax criteria ──────────────
   if (recommended.length === 0 && products.length > 0) {
-    // Fallback 1: try matching just by raw terms in name
     const fallback = products
       .filter(p => {
         const nameLower = p.name.toLowerCase();
-        return norm.rawTerms.some(t => t.length >= 3 && nameLower.includes(t))
-          || norm.originalTerms.some(t => t.length >= 3 && nameLower.includes(t));
+        return norm.rawTerms.some(t => t.length >= 3 && wordBoundaryMatch(nameLower, t))
+          || norm.originalTerms.some(t => t.length >= 3 && wordBoundaryMatch(nameLower, t));
       })
       .slice(0, 4);
     if (fallback.length > 0) {
       recommended.push(...fallback);
     } else {
-      // Fallback 2: show most popular products
       const popular = [...products]
         .sort((a, b) => (b.popularity_score ?? 0) - (a.popularity_score ?? 0))
         .slice(0, 4);
@@ -740,7 +1002,6 @@ export function searchProducts(query: string, products: DBProduct[]): {
     const recIds = new Set(recommended.map(p => p.id));
     const topCat = topProduct.category.toLowerCase();
 
-    // Affinity scorer — how similar is a product to the top result?
     const affinityScore = (p: DBProduct): number => {
       let aff = 0;
       aff += p.style_tags.filter(t => topProduct.style_tags.includes(t)).length * 2;
@@ -751,7 +1012,6 @@ export function searchProducts(query: string, products: DBProduct[]): {
       return aff;
     };
 
-    // Similar = same category (excluding bases/tops if top is complete)
     similar = products
       .filter(p => {
         if (recIds.has(p.id)) return false;
@@ -763,7 +1023,6 @@ export function searchProducts(query: string, products: DBProduct[]): {
       .sort((a, b) => affinityScore(b) - affinityScore(a))
       .slice(0, 4);
 
-    // Compatible = complementary categories (case-insensitive)
     const COMPAT_MAP: Record<string, string[]> = {
       chairs:           ["tables", "parasols", "accessories"],
       armchairs:        ["tables", "parasols", "lounge seating", "accessories"],
@@ -792,5 +1051,35 @@ export function searchProducts(query: string, products: DBProduct[]): {
   return { recommended, similar, compatible };
 }
 
+// ═══════════════════════════════════════════════════════════
+// FILTER PRODUCTS (Products page — returns all matching, sorted by score)
+// ═══════════════════════════════════════════════════════════
+
+export function filterProducts(query: string, products: DBProduct[]): DBProduct[] {
+  if (!query.trim()) return products;
+
+  const norm = normalizeQuery(query);
+  const profile = norm.categorySlug ? CATEGORY_PROFILES[norm.categorySlug] : null;
+  const W_eff: Weights = profile?.weights ? { ...W, ...profile.weights } as Weights : W;
+
+  const scored = products
+    .map(p => ({ product: p, score: computeScore(p, norm, W_eff) }))
+    .sort((a, b) => b.score - a.score);
+
+  const results = scored.filter(s => s.score > 0).map(s => s.product);
+  if (results.length > 0) return results;
+
+  // Fallback 1: name matching with word-boundary
+  const nameMatches = products.filter(p => {
+    const nameLower = p.name.toLowerCase();
+    return norm.rawTerms.some(t => t.length >= 3 && wordBoundaryMatch(nameLower, t))
+      || norm.originalTerms.some(t => t.length >= 3 && wordBoundaryMatch(nameLower, t));
+  });
+  if (nameMatches.length > 0) return nameMatches;
+
+  // Fallback 2: return all products rather than empty page
+  return products;
+}
+
 // ── Export normalization helpers for use in other modules ──
-export { normalizeQuery, TERM_TO_COLOR_SLUG, TERM_TO_CATEGORY_SLUG, TERM_TO_USE_CASE_SLUG };
+export { normalizeQuery, TERM_TO_COLOR_SLUG, TERM_TO_CATEGORY_SLUG, TERM_TO_USE_CASE_SLUG, TERM_TO_STYLE_SLUG };

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { searchProducts, normalizeQuery, detectIntent } from "@/engine/intentDetector";
+import { searchProducts, normalizeQuery, detectIntent, filterProducts } from "@/engine/intentDetector";
 import type { DBProduct } from "@/lib/products";
 
 // ═══════════════════════════════════════════════════════════
@@ -390,5 +390,157 @@ describe("Description fallback", () => {
   it('"rope woven" → matches Riviera description', () => {
     const { recommended } = searchProducts("rope woven", CATALOG);
     expect(recommended.some(r => r.id === "chair-riviera")).toBe(true);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 9. WORD-BOUNDARY MATCHING — avoid false positives
+// ═══════════════════════════════════════════════════════════
+
+describe("Word-boundary matching", () => {
+  const lounge = p({
+    id: "lounge-comfort", name: "Comfortable Lounge Armchair", category: "Armchairs",
+    style_tags: ["modern"], material_tags: ["fabric"],
+    main_color: "grey", price_min: 500,
+  });
+
+  it('"table" should NOT have Comfortable Lounge as top result', () => {
+    const catalog = [...CATALOG, lounge];
+    const { recommended } = searchProducts("table", catalog);
+    expect(recommended[0].category).toBe("Tables");
+    expect(recommended.some(r => r.id === "lounge-comfort")).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 10. NATURAL DISAMBIGUATION — context-aware color/style
+// ═══════════════════════════════════════════════════════════
+
+describe("Natural disambiguation", () => {
+  it('"natural chair" → natural resolved as style (category present)', () => {
+    const norm = normalizeQuery("natural chair");
+    expect(norm.styleSlugs).toContain("natural");
+    expect(norm.colorSlugs).not.toContain("natural");
+    expect(norm.categorySlug).toBe("chairs");
+  });
+
+  it('"natural" alone → resolved as color', () => {
+    const norm = normalizeQuery("natural");
+    expect(norm.colorSlugs).toContain("natural");
+    expect(norm.styleSlugs).not.toContain("natural");
+  });
+
+  it('"naturel méditerranéen" → natural as style (other style present)', () => {
+    const norm = normalizeQuery("naturel méditerranéen");
+    expect(norm.styleSlugs).toContain("natural");
+    expect(norm.styleSlugs).toContain("mediterranean");
+    expect(norm.colorSlugs).not.toContain("natural");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 11. CATEGORY-SPECIFIC HINTS — tables, chairs, parasols
+// ═══════════════════════════════════════════════════════════
+
+describe("Table-specific hints", () => {
+  it('"table ronde" → shapeHint = round', () => {
+    const norm = normalizeQuery("table ronde");
+    expect(norm.shapeHint).toBe("round");
+    expect(norm.categorySlug).toBe("tables");
+  });
+
+  it('"tavolo quadrato" (IT) → shapeHint = square', () => {
+    const norm = normalizeQuery("tavolo quadrato");
+    expect(norm.shapeHint).toBe("square");
+  });
+
+  it('"table 6 places" → capacityHint = 6', () => {
+    const norm = normalizeQuery("table 6 places");
+    expect(norm.capacityHint).toBe(6);
+  });
+
+  it('"table ronde" → round table with Ø80 boosted', () => {
+    const roundTable = p({
+      id: "table-round", name: "Round Teak Table", category: "Tables",
+      style_tags: ["modern"], material_tags: ["teak"],
+      main_color: "teak", price_min: 800,
+      product_type_tags: { table_type: "complete", shape: "round", dimension_tag: "o80" },
+    });
+    const squareTable = p({
+      id: "table-square", name: "Square Steel Table", category: "Tables",
+      style_tags: ["modern"], material_tags: ["steel"],
+      main_color: "black", price_min: 600,
+      product_type_tags: { table_type: "complete", shape: "square", dimension_tag: "80x80" },
+    });
+    const { recommended } = searchProducts("table ronde", [roundTable, squareTable]);
+    expect(recommended[0].id).toBe("table-round");
+  });
+});
+
+describe("Chair-specific hints", () => {
+  it('"chaise empilable" → stackableHint = true', () => {
+    const norm = normalizeQuery("chaise empilable");
+    expect(norm.stackableHint).toBe(true);
+    expect(norm.categorySlug).toBe("chairs");
+  });
+
+  it('"fauteuil" → armTypeHint = with-arms (implicit)', () => {
+    const norm = normalizeQuery("fauteuil");
+    expect(norm.armTypeHint).toBe("with-arms");
+    expect(norm.categorySlug).toBe("armchairs");
+  });
+
+  it('stackable chairs boosted over non-stackable', () => {
+    const { recommended } = searchProducts("chaise empilable", CATALOG);
+    // Bistro is stackable, Riviera is not
+    expect(recommended[0].id).toBe("chair-bistro");
+  });
+});
+
+describe("Parasol-specific hints", () => {
+  it('"parasol déporté" → parasolTypeHint = cantilever', () => {
+    const norm = normalizeQuery("parasol déporté");
+    expect(norm.parasolTypeHint).toBe("cantilever");
+    expect(norm.categorySlug).toBe("parasols");
+  });
+
+  it('"parasol 3m" → parasolSizeHint = 3', () => {
+    const norm = normalizeQuery("parasol 3m");
+    expect(norm.parasolSizeHint).toBe(3);
+  });
+
+  it('"ombrellone 4m" (IT) → parasol + size 4', () => {
+    const norm = normalizeQuery("ombrellone 4m");
+    expect(norm.categorySlug).toBe("parasols");
+    expect(norm.parasolSizeHint).toBe(4);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 12. filterProducts — unified Products page search
+// ═══════════════════════════════════════════════════════════
+
+describe("filterProducts", () => {
+  it("returns scored results sorted by relevance", () => {
+    const results = filterProducts("chair", CATALOG);
+    expect(results.length).toBeGreaterThan(0);
+    // Chairs should be first
+    expect(results[0].category).toBe("Chairs");
+  });
+
+  it("returns all products on zero results (fallback)", () => {
+    const results = filterProducts("xyznonexistent", CATALOG);
+    // Should fallback to full catalog rather than empty
+    expect(results.length).toBe(CATALOG.length);
+  });
+
+  it("empty query returns all products unchanged", () => {
+    const results = filterProducts("", CATALOG);
+    expect(results.length).toBe(CATALOG.length);
+  });
+
+  it("French multi-word query works", () => {
+    const results = filterProducts("chaise aluminium", CATALOG);
+    expect(results[0].id).toBe("chair-bistro");
   });
 });

@@ -9,7 +9,7 @@ import {
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
   CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge, Landmark, Crown,
-  EyeOff, Trash2, ArrowUpDown, ChevronRight,
+  EyeOff, Trash2, ArrowUpDown, ChevronRight, Sparkles,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,17 +32,19 @@ import AdminProductReview from "@/components/admin/AdminProductReview";
 import AdminChatbotStats from "@/components/admin/AdminChatbotStats";
 import AdminFinancing from "@/components/admin/AdminFinancing";
 import AdminBrandManagement from "@/components/admin/AdminBrandManagement";
+import AdminAIScanner from "@/components/admin/AdminAIScanner";
 import ColorVariantEditor from "@/components/admin/ColorVariantEditor";
 import DimensionVariantEditor from "@/components/admin/DimensionVariantEditor";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
 import CompatibleProductsEditor from "@/components/admin/CompatibleProductsEditor";
+import { computeProductQuality } from "@/lib/productQualityScore";
 import type { ColorVariant, DimensionVariant } from "@/lib/products";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "settings";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -448,18 +450,53 @@ function ProductForm({
 
   const previewScore = (() => {
     let s = 0;
-    if (form.archetype_id) s += 0.20;
-    const pttKeys = Object.keys(form.product_type_tags || {}).filter(k => form.product_type_tags[k] != null).length;
-    if (pttKeys >= 4) s += 0.15;
+    const isTable = (form.category || "").toLowerCase().includes("table");
+    const dimVariants = (form.dimension_variants || []) as DimensionVariant[];
+    const ptt = form.product_type_tags || {};
+    const pttKeys = Object.keys(ptt).filter(k => ptt[k] != null && ptt[k] !== "").length;
+    const tableType = ptt.table_type || "";
+
+    // ── Identity (30%) ──
+    if (form.archetype_id) s += 0.10;
+    if (isTable && tableType) {
+      // Sub-type specific completeness check
+      const expected: string[] =
+        tableType === "base-only"  ? ["table_type", "height_type", "base_type"] :
+        tableType === "top-only"   ? ["table_type", "shape", "top_material", "edge_finish"] :
+        /* complete */               ["table_type", "shape", "height_type", "top_material", "base_type"];
+      const filled = expected.filter(k => ptt[k] != null && ptt[k] !== "").length;
+      s += Math.round((filled / expected.length) * 10) / 100; // up to 0.10
+    } else {
+      if (pttKeys >= 3) s += 0.10; else if (pttKeys >= 1) s += 0.05;
+    }
     if (form.image_url) s += 0.10;
+
+    // ── Content (25%) ──
     if (form.gallery_urls.length >= 1) s += 0.05;
-    if (form.price_min != null) s += 0.10;
-    if (form.use_case_tags.length >= 3) s += 0.10;
-    if (form.style_tags.length >= 2) s += 0.10;
-    if (form.dimensions_length_cm != null) s += 0.05;
-    if (form.dimensions_width_cm != null) s += 0.05;
+    if (form.style_tags.length >= 2) s += 0.05;
+    if (form.use_case_tags.length >= 2) s += 0.05;
     if (form.main_color) s += 0.05;
     if (form.warranty) s += 0.05;
+
+    // ── Commercial (25%) ──
+    if (form.price_min != null) s += 0.10;
+    if (isTable && dimVariants.length > 0) {
+      s += 0.05; // has variants
+      if (dimVariants.every(v => v.price > 0)) s += 0.05; // all priced
+      if (dimVariants.some(v => v.stock_status)) s += 0.05; // stock documented
+    } else {
+      if (form.dimensions_length_cm != null) s += 0.05;
+      if (form.dimensions_width_cm != null) s += 0.05;
+      if (form.dimensions_height_cm != null) s += 0.05;
+    }
+
+    // ── Technical (20%) ──
+    if (form.material_tags?.length >= 2) s += 0.05;
+    if (form.ambience_tags?.length >= 1) s += 0.05;
+    const boolCount = [form.is_outdoor, form.is_chr_heavy_use, form.uv_resistant, form.weather_resistant, form.easy_maintenance].filter(Boolean).length;
+    if (boolCount >= 3) s += 0.05;
+    if (form.country_of_manufacture) s += 0.05;
+
     return Math.min(Math.round(s * 100) / 100, 1);
   })();
 
@@ -1034,6 +1071,9 @@ function ProductsTab() {
     } else if (publish_status) {
       dbData.publish_status = publish_status;
     }
+    // Recompute data quality score on every save
+    dbData.data_quality_score = computeProductQuality(data as any).score / 100;
+
     try {
       if (id) {
         const { error } = await supabase.from("products").update(dbData).eq("id", id);
@@ -2033,6 +2073,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
       { id: "submissions", icon: Inbox,         label: "Soumissions",   badgeKey: "submissions" },
       { id: "subscriptions", icon: Star,        label: "Abonnements" },
       { id: "brands",        icon: Crown,       label: "Marques" },
+      { id: "ai_scanner",    icon: Sparkles,    label: "AI Scanner" },
     ],
   },
   {
@@ -2079,6 +2120,7 @@ const TAB_TITLES: Record<Tab, string> = {
   analytics: "Analytics",
   pro_service: "Pro Service",
   brands: "Gestion des marques",
+  ai_scanner: "AI Scanner",
 };
 
 const Admin = () => {
@@ -2287,6 +2329,7 @@ const Admin = () => {
           {tab === "financing"    && <AdminFinancing />}
           {tab === "brands"       && <AdminBrandManagement />}
           {tab === "chatbot"      && <AdminChatbotStats />}
+          {tab === "ai_scanner"   && <AdminAIScanner />}
         </div>
       </main>
     </div>
