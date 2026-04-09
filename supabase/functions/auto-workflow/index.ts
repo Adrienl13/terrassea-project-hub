@@ -167,7 +167,7 @@ async function autoCreateOrder(quoteRequestId: string) {
   const depositAmount = Math.round(totalAmount * depositPercent) / 100;
 
   // Dynamic commission from partner's plan
-  const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, elite_pro: 2.5 };
+  const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, elite_pro: 2.5, brand_member: 0, brand_network: 0 };
   let commissionRate = 8; // default starter
   if (quote.partner_id) {
     const { data: partner } = await supabase

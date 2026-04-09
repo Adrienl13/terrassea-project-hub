@@ -841,7 +841,7 @@ export default function AdminBrandManagement() {
                   <div className="border border-border rounded-xl p-3 bg-gray-50">
                     <p className="text-[10px] font-body text-muted-foreground uppercase tracking-wider mb-1">{t("adminBrands.commissionPlanLabel")}</p>
                     <p className="text-sm font-display font-bold text-foreground">
-                      {selectedBrand.plan === "brand_network" ? "1.5%" : "2%"}
+                      0%
                     </p>
                   </div>
                   <div className="border border-border rounded-xl p-3 bg-gray-50">

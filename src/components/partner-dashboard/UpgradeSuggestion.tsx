@@ -14,8 +14,8 @@ const PLAN_META: Record<PlanKey, { label: string; commission: number; maxProduct
   starter:       { label: "Starter",       commission: 8,   maxProducts: 30,  maxFeatured: 0,  color: "#6B7280" },
   growth:        { label: "Growth",        commission: 5,   maxProducts: 50,  maxFeatured: 0,  color: "#2563EB" },
   elite:         { label: "Elite",         commission: 3.5, maxProducts: 150, maxFeatured: 15, color: "#D4603A" },
-  brand_member:  { label: "Brand Member",  commission: 2,   maxProducts: 999, maxFeatured: 0,  color: "#7C3AED" },
-  brand_network: { label: "Brand Network", commission: 1.5, maxProducts: 999, maxFeatured: 0,  color: "#6D28D9" },
+  brand_member:  { label: "Brand Member",  commission: 0,   maxProducts: 999, maxFeatured: 0,  color: "#7C3AED" },
+  brand_network: { label: "Brand Network", commission: 0,   maxProducts: 999, maxFeatured: 0,  color: "#6D28D9" },
 };
 
 // ── Props ─────────────────────────────────────────────────────────────────────

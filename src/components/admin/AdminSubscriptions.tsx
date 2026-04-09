@@ -12,8 +12,8 @@ const PLAN_CONFIG: Record<string, { label: string; icon: any; color: string; com
   starter:   { label: "Starter",   icon: Shield, color: "#6B7280", commission: 8,   maxProducts: 30,  maxFeatured: 0,  price: "Gratuit" },
   growth:    { label: "Growth",    icon: Star,   color: "#2563EB", commission: 5,   maxProducts: 50,  maxFeatured: 0,  price: "249\u20AC/mois" },
   elite:     { label: "Elite",     icon: Crown,  color: "#D4603A", commission: 3.5, maxProducts: 150, maxFeatured: 15, price: "499\u20AC/mois" },
-  brand_member:  { label: "Brand Member",  icon: Crown, color: "#7C3AED", commission: 2,   maxProducts: 999, maxFeatured: 0,  price: "799\u20AC/mois" },
-  brand_network: { label: "Brand Network", icon: Gem,   color: "#6D28D9", commission: 1.5, maxProducts: 999, maxFeatured: 0,  price: "1299\u20AC/mois" },
+  brand_member:  { label: "Brand Member",  icon: Crown, color: "#7C3AED", commission: 0,   maxProducts: 999, maxFeatured: 0,  price: "799\u20AC/mois" },
+  brand_network: { label: "Brand Network", icon: Gem,   color: "#6D28D9", commission: 0,   maxProducts: 999, maxFeatured: 0,  price: "1299\u20AC/mois" },
 };
 
 function countryFlag(code: string | null): string {

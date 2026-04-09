@@ -42,8 +42,8 @@ export const COMMISSION_BY_PLAN: Record<PartnerPlan, number> = {
   starter: 8,
   growth: 5,
   elite: 3.5,
-  brand_member: 2,
-  brand_network: 1.5,
+  brand_member: 0,
+  brand_network: 0,
 };
 
 /** Product limits by plan */
