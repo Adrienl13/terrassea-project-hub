@@ -221,8 +221,8 @@
       "coMarketing": "Co-marketing con Terrassea",
       "proLeads": "Accesso ai lead Pro Service",
       "productsUnlimited": "Prodotti illimitati",
-      "commission2": "2% di commissione sugli ordini confermati",
-      "commission15": "1.5% di commissione sugli ordini confermati",
+      "commission2": "0% di commissione sugli ordini confermati",
+      "commission15": "0% di commissione sugli ordini confermati",
       "briefInbox": "Casella brief qualificati",
       "collections": "Gestione collezioni",
       "onRequestPricing": "Prezzi su richiesta (nessun prezzo pubblico)",
@@ -231,8 +231,8 @@
     },
     "brandMember": "Brand Member",
     "brandNetwork": "Brand Network",
-    "brandMemberSub": "2% di commissione · vendita diretta ai buyer CHR",
-    "brandNetworkSub": "1.5% di commissione · instradamento via distributori",
+    "brandMemberSub": "0% di commissione · vendita diretta ai buyer CHR",
+    "brandNetworkSub": "0% di commissione · instradamento via distributori",
     "brandMemberNote": "Contratto di 12 mesi. Ideale per marchi che vendono direttamente ai professionisti dell'ospitalità.",
     "brandNetworkNote": "Contratto di 12 mesi. Per marchi che distribuiscono tramite una rete di rivenditori e grossisti.",
     "directSales": "Vendita diretta",
@@ -243,6 +243,7 @@
     "subtitle": "Sourcing professionale — cerca, confronta e seleziona.",
     "searchPlaceholder": "Cerca per nome, materiale, colore, stile...",
     "noResults": "Nessun prodotto corrisponde ai tuoi criteri.",
+    "loadMore": "Carica altri",
     "addToProject": "Aggiungi",
     "added": "Aggiunto",
     "inStock": "Disponibile",
@@ -1012,7 +1013,7 @@
       "phone": "Telefono",
       "country": "Paese",
       "accountType": "Tipo di account",
-      "securityNote": "I tuoi dati sono protetti e non vengono mai condivisi senza il tuo consenso. Per modificare email o password, contatta il nostro supporto."
+      "securityNote": "I tuoi dati sono protetti e non vengono mai condivisi senza il tuo consenso."
     }
   },
   "ad": {
@@ -2015,7 +2016,12 @@
     "somethingWrong": "Qualcosa è andato storto. Riprova.",
     "notFound": "Pagina non trovata",
     "unauthorized": "Devi effettuare l'accesso",
-    "sessionExpired": "La sessione è scaduta. Effettua nuovamente l'accesso."
+    "sessionExpired": "La sessione è scaduta. Effettua nuovamente l'accesso.",
+    "noProductsAvailable": "Nessun prodotto disponibile. Riprova più tardi.",
+    "passwordWeak": "La password deve contenere almeno una lettera maiuscola, una minuscola e un numero.",
+    "errorBoundaryTitle": "Qualcosa è andato storto",
+    "errorBoundaryMessage": "Si è verificato un errore imprevisto. Ricarica la pagina.",
+    "reload": "Ricarica"
   },
   "success": {
     "saved": "Salvato con successo",
@@ -2090,6 +2096,27 @@
     "productNotFound": "Prodotto non trovato.",
     "backToProducts": "Torna ai prodotti"
   },
+  "reviews": {
+    "title": "Recensioni clienti",
+    "count": "{{count}} recensione",
+    "count_other": "{{count}} recensioni",
+    "average": "Valutazione media",
+    "write": "Scrivi una recensione",
+    "yourRating": "La tua valutazione",
+    "titleField": "Titolo",
+    "titlePlaceholder": "Riassumi la tua esperienza",
+    "bodyField": "La tua recensione",
+    "bodyPlaceholder": "Condividi dettagli sulla qualità, comfort, durabilità...",
+    "submit": "Invia recensione",
+    "submitted": "Recensione inviata! Apparirà dopo la moderazione.",
+    "alreadyExists": "Hai già recensito questo prodotto",
+    "verifiedPurchase": "Acquisto verificato",
+    "noReviewsYet": "Nessuna recensione. Sii il primo!",
+    "loginToReview": "Accedi per lasciare una recensione",
+    "pending": "La tua recensione è in attesa di moderazione.",
+    "selectRating": "Seleziona una valutazione",
+    "anonymous": "Anonimo"
+  },
   "filters": {
     "type": "Tipo",
     "usage": "Utilizzo",
@@ -2123,6 +2150,7 @@
     "outdoor": "Esterno",
     "product": "prodotto",
     "products": "prodotti",
+    "remaining": "rimanenti",
     "showingFrom": "Prodotti di",
     "verifiedSupplier": "Fornitore Verificato",
     "addToProject": "Aggiungi al progetto",
@@ -2596,6 +2624,7 @@
   "projectCart": {
     "title": "Il Mio Progetto",
     "subtitle": "Rivedi la tua selezione, conferma i fornitori e invia per il sourcing",
+    "continueShopping": "Continua lo shopping",
     "noProducts": "Nessun prodotto nel tuo progetto.",
     "startDesigning": "Inizia a progettare →",
     "contactDelivery": "Contatto & consegna",
@@ -2658,6 +2687,9 @@
     "badge": "Project Builder",
     "title": "Costruisci il tuo progetto hospitality",
     "subtitle": "Definisci le tue esigenze · Ottieni suggerimenti di layout · Scopri i prodotti",
+    "draftResume": "Hai un progetto in corso. Vuoi riprendere da dove avevi lasciato?",
+    "draftDismiss": "Ignora",
+    "draftRestart": "Ricominciare",
     "subtitleFromInspirations": "Il tuo stile è impostato — aggiungi capacità e budget per generare concetti.",
     "stylePreSelected": "Stile {{style}} preselezionato dalle Ispirazioni",
     "generating": "Generazione dei concetti di progetto...",

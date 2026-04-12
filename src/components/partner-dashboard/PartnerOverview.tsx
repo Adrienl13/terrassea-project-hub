@@ -96,7 +96,13 @@ function TopProductsWidget({ partnerId, onNavigate }: { partnerId: string | null
             </div>
           </div>
         )) : (
-          <p className="text-xs font-body text-muted-foreground py-4 text-center">{t('pd.overview.noProducts', 'Aucun produit dans le catalogue')}</p>
+          <div className="border border-dashed border-border rounded-xl px-4 py-6 text-center">
+            <Package className="h-5 w-5 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-[10px] font-display font-semibold text-foreground mb-1">{t('pd.overview.noProducts', 'Aucun produit dans le catalogue')}</p>
+            <p className="text-[9px] font-body text-muted-foreground max-w-xs mx-auto">
+              {t('pd.overview.noProductsHint', 'Ajoutez vos premiers produits pour apparaître dans le catalogue et recevoir des demandes.')}
+            </p>
+          </div>
         )}
       </div>
     </div>
@@ -312,7 +318,21 @@ export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNav
               />
             );
           }) : (
-            <p className="text-xs font-body text-muted-foreground py-4 text-center">{t('pd.overview.noRecentRequests', 'Aucune demande récente')}</p>
+            <div className="border border-dashed border-border rounded-xl px-4 py-8 text-center">
+              <Inbox className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-xs font-display font-semibold text-foreground mb-1">{t('pd.overview.noRecentRequests', 'Aucune demande récente')}</p>
+              <p className="text-[10px] font-body text-muted-foreground max-w-xs mx-auto">
+                {t('pd.overview.noRecentRequestsHint', 'Les demandes de devis apparaîtront ici dès que des clients s\'intéresseront à vos produits. Assurez-vous d\'avoir des produits en ligne !')}
+              </p>
+              {productsCount === 0 && (
+                <button
+                  onClick={() => onNavigate("catalogue")}
+                  className="mt-3 px-4 py-2 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                >
+                  {t('pd.overview.addFirstProduct', 'Ajouter des produits')}
+                </button>
+              )}
+            </div>
           )}
         </div>
         <button

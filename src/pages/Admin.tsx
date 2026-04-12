@@ -27,6 +27,7 @@ import AdminOrderTracking from "@/components/admin/AdminOrderTracking";
 import AdminAnalyticsDashboard from "@/components/admin/AdminAnalyticsDashboard";
 import AdminSettings from "@/components/admin/AdminSettings";
 import AdminRatingsModeration from "@/components/admin/AdminRatingsModeration";
+import AdminProductReviews from "@/components/admin/AdminProductReviews";
 import AdminSubscriptions from "@/components/admin/AdminSubscriptions";
 import AdminProductReview from "@/components/admin/AdminProductReview";
 import AdminChatbotStats from "@/components/admin/AdminChatbotStats";
@@ -44,7 +45,7 @@ import type { ColorVariant, DimensionVariant } from "@/lib/products";
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "product_reviews" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -2080,7 +2081,8 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
     label: "COMMUNICATION",
     items: [
       { id: "messages", icon: MessageSquare, label: "Messages",   badgeKey: "messages" },
-      { id: "ratings",  icon: Star,          label: "Avis" },
+      { id: "ratings",  icon: Star,          label: "Avis partenaires" },
+      { id: "product_reviews", icon: Star,  label: "Avis produits" },
       { id: "chatbot",  icon: Bot,           label: "Chatbot IA" },
     ],
   },
@@ -2317,6 +2319,7 @@ const Admin = () => {
           {tab === "partner_visibility" && <AdminPartnerVisibility />}
           {tab === "subscriptions"      && <AdminSubscriptions />}
           {tab === "ratings"            && <AdminRatingsModeration />}
+          {tab === "product_reviews"    && <AdminProductReviews />}
           {tab === "messages"     && <AdminMessages />}
           {tab === "applications" && <ApplicationsTab />}
           {tab === "quotes"       && <AdminQuoteWorkflow />}

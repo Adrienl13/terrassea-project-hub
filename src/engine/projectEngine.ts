@@ -1052,7 +1052,18 @@ function getConceptTemplates(params: ProjectParameters): ConceptTemplate[] {
     if (t) allTemplates.push(...t);
   }
   if (allTemplates.length === 0) {
-    allTemplates.push(...(CONCEPT_LIBRARY["modern"] || []));
+    const modernTemplates = CONCEPT_LIBRARY["modern"];
+    if (modernTemplates && modernTemplates.length > 0) {
+      allTemplates.push(...modernTemplates);
+    } else {
+      // Ultimate fallback: grab the first available style in the library
+      for (const key of Object.keys(CONCEPT_LIBRARY)) {
+        if (CONCEPT_LIBRARY[key]?.length) {
+          allTemplates.push(...CONCEPT_LIBRARY[key]);
+          break;
+        }
+      }
+    }
   }
 
   const estAmbiences = ESTABLISHMENT_AMBIENCE[params.establishmentType] || [];

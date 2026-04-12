@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import SEO from "@/components/SEO";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProServiceLanding from "@/components/pro-service/ProServiceLanding";
@@ -29,6 +30,7 @@ const ProService = () => {
   if (userType) {
     return (
       <div className="min-h-screen bg-background">
+        <SEO title="Pro Service" noindex />
         <Header />
         <div className="pt-24 pb-16 px-6">
           <div className="container mx-auto max-w-6xl">

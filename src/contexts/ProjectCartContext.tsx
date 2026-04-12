@@ -3,6 +3,7 @@ import type { DBProduct } from "@/lib/products";
 import type { LayoutRequirementType } from "@/engine/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export interface CartItemLayoutMeta {
   requirementType?: LayoutRequirementType;
@@ -133,12 +134,17 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
   const serverCartExistsRef = useRef(false);
   const hasLoadedServerCartRef = useRef(false);
 
+  const storageWarningShownRef = useRef(false);
+
   // Persist cart items to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
     } catch {
-      // localStorage persist failed silently
+      if (!storageWarningShownRef.current) {
+        storageWarningShownRef.current = true;
+        toast.warning("Storage full — your cart may not persist across page reloads.");
+      }
     }
   }, [items]);
 
@@ -147,7 +153,7 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(NOTES_STORAGE_KEY, notes);
     } catch {
-      // localStorage persist failed silently
+      // Notes storage failure is non-critical
     }
   }, [notes]);
 
@@ -230,21 +236,20 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
       return price !== null ? sum + price * item.quantity : sum;
     }, 0);
 
+    const syncPayload = {
+      user_id: user.id,
+      cart_data: serializeCartItems(items) as any,
+      notes,
+      item_count: items.reduce((s, i) => s + i.quantity, 0),
+      total_estimated: totalEstimated,
+      last_synced_at: new Date().toISOString(),
+    };
+
     const timer = setTimeout(async () => {
       try {
         const { error } = await supabase
           .from("saved_carts")
-          .upsert(
-            {
-              user_id: user.id,
-              cart_data: serializeCartItems(items) as any,
-              notes,
-              item_count: items.reduce((s, i) => s + i.quantity, 0),
-              total_estimated: totalEstimated,
-              last_synced_at: new Date().toISOString(),
-            },
-            { onConflict: "user_id" }
-          );
+          .upsert(syncPayload, { onConflict: "user_id" });
 
         if (!error) {
           serverCartExistsRef.current = true;
@@ -252,9 +257,21 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
       } catch {
         // Server sync failed silently
       }
-    }, 3000);
+    }, 1500);
 
-    return () => clearTimeout(timer);
+    // Flush on page close to prevent data loss
+    const handleBeforeUnload = () => {
+      navigator.sendBeacon?.(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/saved_carts?on_conflict=user_id`,
+        JSON.stringify(syncPayload)
+      );
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, [user, items, notes]);
 
   // ── Mark cart as submitted ─────────────────────────────────────────────────

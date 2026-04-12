@@ -5,8 +5,9 @@ const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrassea.com";
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
 };
 
@@ -124,11 +125,18 @@ Deno.serve(async (req: Request) => {
       const orderRef = orderId.slice(0, 8);
 
       if (isDeposit) {
-        await supabase.from("orders").update({
+        // Atomic update: only set if stripe_payment_id is still null (prevents race condition)
+        const { data: updated, error: updateErr } = await supabase.from("orders").update({
           deposit_paid_at: new Date().toISOString(),
           status: "deposit_paid",
           stripe_payment_id: paymentIntent,
-        }).eq("id", orderId);
+        }).eq("id", orderId).is("stripe_payment_id", null).select("id");
+        if (updateErr || !updated?.length) {
+          // Another webhook already processed this — skip
+          return new Response(JSON.stringify({ received: true, duplicate: true }), {
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          });
+        }
 
         await supabase.from("order_events").insert({
           order_id: orderId,
@@ -150,11 +158,17 @@ Deno.serve(async (req: Request) => {
           "/admin?tab=orders");
 
       } else {
-        await supabase.from("orders").update({
+        // Atomic update: only set if stripe_balance_payment_id is still null
+        const { data: balUpdated, error: balErr } = await supabase.from("orders").update({
           balance_paid_at: new Date().toISOString(),
           status: "completed",
           stripe_balance_payment_id: paymentIntent,
-        }).eq("id", orderId);
+        }).eq("id", orderId).is("stripe_balance_payment_id", null).select("id");
+        if (balErr || !balUpdated?.length) {
+          return new Response(JSON.stringify({ received: true, duplicate: true }), {
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          });
+        }
 
         await supabase.from("order_events").insert({
           order_id: orderId,

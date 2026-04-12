@@ -309,10 +309,18 @@ const TERM_TO_USE_CASE_SLUG: Record<string, string> = {
 
 // ── Word-boundary matching helper ────────────────────────
 // Avoids false positives like "table" matching "comfortable"
+// Regex cache to avoid re-creating RegExp on every call (hot path in product scoring)
+
+const _wbCache = new Map<string, RegExp>();
 
 function wordBoundaryMatch(haystack: string, term: string): boolean {
-  const esc = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`(?:^|[\\s\\-_/,.()])${esc}(?=[\\s\\-_/,.]|$)`, "i").test(haystack);
+  let re = _wbCache.get(term);
+  if (!re) {
+    const esc = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    re = new RegExp(`(?:^|[\\s\\-_/,.()])${esc}(?=[\\s\\-_/,.]|$)`, "i");
+    _wbCache.set(term, re);
+  }
+  return re.test(haystack);
 }
 
 // ── Ambiguous terms (both color AND style) ───────────────

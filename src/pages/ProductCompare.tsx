@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, X, Plus, Check, Award, Zap, DollarSign, Star, Download } from "lucide-react";
+import SEO from "@/components/SEO";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCompare } from "@/contexts/CompareContext";
@@ -340,6 +341,7 @@ const ProductCompare = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Compare Products" noindex />
       <Header />
       <main className="pt-24 pb-16 px-6">
         <div className="container mx-auto">

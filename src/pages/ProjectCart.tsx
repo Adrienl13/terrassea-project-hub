@@ -193,6 +193,10 @@ const ProjectCart = () => {
       toast.error(t('projectCart.fillRequired'));
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast.error(t('errors.invalidEmail', 'Invalid email address'));
+      return;
+    }
     if (formData.siren.length !== 9) {
       toast.error(t('projectCart.sirenDigits'));
       return;
@@ -276,9 +280,9 @@ const ProjectCart = () => {
               .order("price", { ascending: true })
               .limit(1)
               .maybeSingle();
-            if (bestOffer) {
+            if (bestOffer?.partner_id) {
               partnerId = bestOffer.partner_id;
-              partnerName = (bestOffer.partners as any)?.name || null;
+              partnerName = (bestOffer.partners as any)?.name ?? null;
               offerId = bestOffer.id;
               unitPrice = bestOffer.price;
             } else if (item.selectedDimension) {
@@ -292,9 +296,9 @@ const ProjectCart = () => {
                 .order("price", { ascending: true })
                 .limit(1)
                 .maybeSingle();
-              if (fallbackOffer) {
+              if (fallbackOffer?.partner_id) {
                 partnerId = fallbackOffer.partner_id;
-                partnerName = (fallbackOffer.partners as any)?.name || null;
+                partnerName = (fallbackOffer.partners as any)?.name ?? null;
                 offerId = fallbackOffer.id;
                 unitPrice = fallbackOffer.price;
               }
@@ -302,6 +306,12 @@ const ProjectCart = () => {
           } catch {
             // Non-blocking: best offer lookup failed
           }
+        }
+
+        // Skip quote_request creation if no valid partner could be found
+        if (!partnerId) {
+          console.warn("No partner found for product", product.name, "— skipping quote_request");
+          continue;
         }
 
         try {
@@ -453,9 +463,14 @@ const ProjectCart = () => {
       <div className="pt-28 pb-24 px-6">
         <div className="container mx-auto">
           {/* Back */}
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground mb-8">
-            <ArrowLeft className="h-4 w-4" /> {t('projectCart.back')}
-          </Link>
+          <div className="flex items-center gap-4 mb-8">
+            <Link to="/" className="inline-flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" /> {t('projectCart.back')}
+            </Link>
+            <Link to="/products" className="inline-flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground">
+              {t('projectCart.continueShopping', 'Continue shopping')} →
+            </Link>
+          </div>
 
           {/* Title */}
           <div className="mb-6 flex items-start justify-between">

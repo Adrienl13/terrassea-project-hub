@@ -10,7 +10,7 @@ import Header from "@/components/Header";
 import { SUPPORTED_COUNTRIES, countryName } from "@/lib/countries";
 
 type Mode = "login" | "register";
-type UserType = "client" | "partner" | "architect" | "designer";
+type UserType = "client" | "partner" | "architect";
 
 /** Ensure redirect target is a safe relative path (no open redirect). */
 const isSafeRedirect = (path: string): boolean =>
@@ -22,7 +22,10 @@ const Auth = () => {
   const location = useLocation();
   const { user, isLoading: authLoading, isPasswordRecovery } = useAuth();
   const rawFrom = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
-  const from = rawFrom && isSafeRedirect(rawFrom) ? rawFrom : "/account";
+  const searchRedirect = new URLSearchParams(location.search).get("redirect");
+  const from = rawFrom && isSafeRedirect(rawFrom) ? rawFrom
+    : searchRedirect && isSafeRedirect(searchRedirect) ? searchRedirect
+    : "/account";
 
   // Redirect already-authenticated users (unless in password recovery flow)
   useEffect(() => {
@@ -111,6 +114,22 @@ const Auth = () => {
       toast.error(t('auth.sirenDigits'));
       return;
     }
+    if (form.userType !== "client" && sirenValid === false) {
+      toast.error(t('auth.sirenDigits'));
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error(t('errors.invalidEmail'));
+      return;
+    }
+    if (form.password.length < 8) {
+      toast.error(t('errors.passwordTooShort'));
+      return;
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(form.password)) {
+      toast.error(t('errors.passwordWeak', 'Password must contain at least one uppercase letter, one lowercase letter, and one number.'));
+      return;
+    }
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -133,6 +152,12 @@ const Auth = () => {
         },
       });
       if (error) throw error;
+      // If email confirmation is required, user won't have a session yet
+      if (data.user && !data.session) {
+        toast.success(t('auth.accountCreated'));
+        setMode("login");
+        return;
+      }
       toast.success(t('auth.accountCreated'));
       navigate(from);
     } catch (err: any) {
@@ -145,6 +170,10 @@ const Auth = () => {
   const handleLogin = async () => {
     if (!form.email || !form.password) {
       toast.error(t('auth.emailPasswordRequired'));
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error(t('errors.invalidEmail'));
       return;
     }
     setIsLoading(true);
@@ -209,11 +238,17 @@ const Auth = () => {
                     toast.error(t('auth.passwordsNoMatch'));
                     return;
                   }
+                  if (newPassword.length < 8) {
+                    toast.error(t('errors.passwordTooShort'));
+                    return;
+                  }
                   setIsLoading(true);
                   try {
                     const { error } = await supabase.auth.updateUser({ password: newPassword });
                     if (error) throw error;
                     toast.success(t('auth.passwordUpdated'));
+                    // Clean recovery hash to prevent re-triggering on next load
+                    window.history.replaceState(null, "", window.location.pathname);
                     setTimeout(() => { window.location.replace("/"); }, 1500);
                   } catch (err: any) {
                     toast.error(err.message || t('errors.somethingWrong'));
@@ -327,18 +362,18 @@ const Auth = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className={labelClass}>{t('auth.firstName')} *</span>
-                    <input value={form.firstName} onChange={handle("firstName")} className={inputClass} />
+                    <input value={form.firstName} onChange={handle("firstName")} className={inputClass} aria-label={t('auth.firstName')} autoComplete="given-name" />
                   </div>
                   <div>
                     <span className={labelClass}>{t('auth.lastName')}</span>
-                    <input value={form.lastName} onChange={handle("lastName")} className={inputClass} />
+                    <input value={form.lastName} onChange={handle("lastName")} className={inputClass} aria-label={t('auth.lastName')} autoComplete="family-name" />
                   </div>
                 </div>
 
                 {/* Company — required for partner/architect, optional for client */}
                 <div>
                   <span className={labelClass}>{t('auth.company')} {form.userType !== "client" ? "*" : ""}</span>
-                  <input value={form.company} onChange={handle("company")} className={inputClass} placeholder={form.userType === "client" ? t('auth.companyOptional', 'Optionnel') : ""} />
+                  <input value={form.company} onChange={handle("company")} className={inputClass} placeholder={form.userType === "client" ? t('auth.companyOptional', 'Optionnel') : ""} aria-label={t('auth.company')} autoComplete="organization" />
                 </div>
 
                 {/* SIREN — required for partner/architect, optional for client */}
@@ -366,7 +401,7 @@ const Auth = () => {
 
                 <div>
                   <span className={labelClass}>{t('auth.phone')}</span>
-                  <input value={form.phone} onChange={handle("phone")} className={inputClass} />
+                  <input value={form.phone} onChange={handle("phone")} className={inputClass} aria-label={t('auth.phone')} autoComplete="tel" />
                 </div>
 
                 <div>
@@ -395,12 +430,12 @@ const Auth = () => {
 
             <div>
               <span className={labelClass}>{t('auth.email')} *</span>
-              <input value={form.email} onChange={handle("email")} type="email" placeholder={t('forms.emailPlaceholder')} className={inputClass} />
+              <input value={form.email} onChange={handle("email")} type="email" placeholder={t('forms.emailPlaceholder')} className={inputClass} aria-label={t('auth.email')} autoComplete="email" />
             </div>
 
             <div>
               <span className={labelClass}>{t('auth.password')} *</span>
-              <input value={form.password} onChange={handle("password")} type="password" placeholder="••••••••" className={inputClass} />
+              <input value={form.password} onChange={handle("password")} type="password" placeholder="••••••••" className={inputClass} aria-label={t('auth.password')} autoComplete={mode === "login" ? "current-password" : "new-password"} />
             </div>
 
             {mode === "login" && (

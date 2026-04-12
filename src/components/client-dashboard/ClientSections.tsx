@@ -21,7 +21,7 @@ import {
   CheckCircle2, Clock, FileText, Send, ArrowRight,
   Lightbulb, ShieldCheck, Star, Eye, MapPin, X, Landmark,
   ChevronDown, ChevronUp, Truck, ClipboardList,
-  ExternalLink, Bookmark, Lock, Unlock, PenTool,
+  ExternalLink, Bookmark, Lock, Unlock, PenTool, KeyRound,
   Download, AlertTriangle, Upload, Check,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -1948,15 +1948,12 @@ export function ClientSettingsSection({ profile }: { profile: any }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("user_profiles")
-        .update({
-          first_name: form.first_name || null,
-          last_name: form.last_name || null,
-          company: form.company || null,
-          phone: form.phone || null,
-        })
-        .eq("id", profile.id);
+      const { error } = await supabase.rpc("update_own_profile", {
+        p_first_name: form.first_name || null,
+        p_last_name: form.last_name || null,
+        p_company: form.company || null,
+        p_phone: form.phone || null,
+      });
       if (error) throw error;
       await refreshProfile();
       setEditing(false);
@@ -2027,6 +2024,37 @@ export function ClientSettingsSection({ profile }: { profile: any }) {
             )}
           </div>
         ))}
+      </div>
+
+      {/* Change password */}
+      <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-border">
+        <div className="flex items-center gap-3">
+          <KeyRound className="h-4 w-4 text-muted-foreground shrink-0" />
+          <div>
+            <p className="text-xs font-display font-semibold text-foreground">
+              {t("cd.settings.changePassword", { defaultValue: "Change password" })}
+            </p>
+            <p className="text-[10px] font-body text-muted-foreground">
+              {t("cd.settings.changePasswordDesc", { defaultValue: "You'll receive a reset link by email." })}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={async () => {
+            try {
+              const { error } = await supabase.auth.resetPasswordForEmail(profile.email, {
+                redirectTo: `${window.location.origin}/auth`,
+              });
+              if (error) throw error;
+              toast.success(t("auth.resetEmailSent", { defaultValue: "Password reset email sent! Check your inbox." }));
+            } catch (err: any) {
+              toast.error(err.message || t("errors.somethingWrong", { defaultValue: "Something went wrong." }));
+            }
+          }}
+          className="px-3 py-1.5 text-xs font-display font-semibold border border-border rounded-lg hover:border-foreground/30 transition-colors shrink-0"
+        >
+          {t("cd.settings.sendResetLink", { defaultValue: "Send link" })}
+        </button>
       </div>
 
       {/* Reassurance */}

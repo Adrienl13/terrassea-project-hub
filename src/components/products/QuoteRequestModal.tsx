@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Shield, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +57,7 @@ const QuoteRequestModal = ({
     company: "", siren: "", message: "", quantity: defaultQuantity,
   });
 
+  const modalRef = useRef<HTMLDivElement>(null);
   const [sirenResult, setSirenResult] = useState<SirenResult | null>(null);
   const [sirenChecking, setSirenChecking] = useState(false);
   const [sirenError, setSirenError] = useState(false);
@@ -100,12 +101,31 @@ const QuoteRequestModal = ({
     return () => { cancelled = true; };
   }, [form.siren]);
 
-  // Close on Escape
+  // Close on Escape + focus trap
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { onClose(); return; }
+      // Focus trap
+      if (e.key === "Tab" && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
     window.addEventListener("keydown", handler);
+    // Auto-focus first input on open
+    setTimeout(() => {
+      const firstInput = modalRef.current?.querySelector<HTMLElement>("input, button");
+      firstInput?.focus();
+    }, 100);
     return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  }, [onClose, open]);
 
   const handle = (field: string) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -228,7 +248,7 @@ const QuoteRequestModal = ({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className="bg-background border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto">
+            <div ref={modalRef} role="dialog" aria-modal="true" aria-label={t("quoteModal.title", "Request a quote")} className="bg-background border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto">
               {step === "success" ? (
                 /* ── Success state ── */
                 <div className="p-8 text-center">

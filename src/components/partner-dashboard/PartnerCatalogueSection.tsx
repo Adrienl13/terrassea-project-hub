@@ -347,20 +347,31 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
       {catalogueTab === "published" && (
         <>
           {products.length === 0 ? (
-            <div className="border border-border rounded-sm px-4 py-8 text-center">
-              <Package className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
-              <p className="text-xs font-body text-muted-foreground">
-                {searchTerm
-                  ? t('pd.catalogue.noSearch', 'Aucun produit ne correspond à votre recherche')
-                  : t('pd.catalogue.noPublished', 'Aucun produit en ligne')}
-              </p>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="text-[10px] font-display font-semibold text-foreground underline mt-2"
-                >
-                  {t('pd.catalogue.clearSearch', 'Effacer la recherche')}
-                </button>
+            <div className="border border-dashed border-border rounded-xl px-4 py-10 text-center">
+              <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
+                <Package className="h-6 w-6 text-muted-foreground/40" />
+              </div>
+              {searchTerm ? (
+                <>
+                  <p className="text-xs font-display font-semibold text-foreground mb-1">
+                    {t('pd.catalogue.noSearch', 'Aucun produit ne correspond à votre recherche')}
+                  </p>
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="text-[10px] font-display font-semibold text-foreground underline mt-2"
+                  >
+                    {t('pd.catalogue.clearSearch', 'Effacer la recherche')}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs font-display font-semibold text-foreground mb-1">
+                    {t('pd.catalogue.noPublished', 'Aucun produit en ligne')}
+                  </p>
+                  <p className="text-[10px] font-body text-muted-foreground mb-4 max-w-xs mx-auto">
+                    {t('pd.catalogue.noPublishedHint', 'Importez votre catalogue via Excel ou ajoutez vos produits manuellement pour commencer à recevoir des demandes de devis.')}
+                  </p>
+                </>
               )}
             </div>
           ) : (

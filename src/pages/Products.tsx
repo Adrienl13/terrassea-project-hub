@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SEO from "@/components/SEO";
@@ -115,11 +115,29 @@ const Products = () => {
     return map;
   }, [brandPartnersData]);
 
+  const PRODUCTS_PER_PAGE = 60;
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [sortKey, setSortKey] = useState<SortKey>("popular");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE);
+
+  // Debounce search to avoid re-filtering 2000 products on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Reset visible count when filters/search change
+  useEffect(() => {
+    setVisibleCount(PRODUCTS_PER_PAGE);
+  }, [debouncedSearch, filters, sortKey]);
+
+  const handleLoadMore = useCallback(() => {
+    setVisibleCount((prev) => prev + PRODUCTS_PER_PAGE);
+  }, []);
 
   // Sync filters from URL params on mount
   useEffect(() => {
@@ -168,7 +186,7 @@ const Products = () => {
       );
     }
 
-    const rawQ = search.toLowerCase().trim();
+    const rawQ = debouncedSearch.toLowerCase().trim();
 
     if (rawQ) {
       result = filterProducts(rawQ, result);
@@ -294,7 +312,7 @@ const Products = () => {
     }
 
     return result;
-  }, [products, search, filters, sortKey, supplierSlug, supplierPartner, supplierProductIds]);
+  }, [products, debouncedSearch, filters, sortKey, supplierSlug, supplierPartner, supplierProductIds, brandProductMap]);
 
   const handleAdd = (product: DBProduct) => {
     addItem(product);
@@ -304,7 +322,11 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Product Catalog — Professional Outdoor Furniture"
+        title={
+          filters.categories.length > 0
+            ? `${filters.categories.join(", ")} — Professional Outdoor Furniture`
+            : "Product Catalog — Professional Outdoor Furniture"
+        }
         description="Browse our curated catalog of professional outdoor furniture for hospitality. Filter by category, material, style, and compare offers from verified suppliers."
       />
       <Header />
@@ -455,17 +477,35 @@ const Products = () => {
                     </p>
                   </div>
                 ) : viewMode === "grid" ? (
+                  <>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                    {filtered.map((product) => (
+                    {filtered.slice(0, visibleCount).map((product) => (
                       <ProductGridCard key={product.id} product={product} onAdd={handleAdd} isBrandProduct={brandProductMap.has(product.id)} />
                     ))}
                   </div>
+                  {visibleCount < filtered.length && (
+                    <div className="flex justify-center mt-10">
+                      <button onClick={handleLoadMore} className="px-8 py-2.5 rounded-full border border-border text-sm font-display font-semibold hover:border-foreground transition-colors">
+                        {t('products.loadMore', 'Load more')} ({filtered.length - visibleCount} {t('filters.remaining', 'remaining')})
+                      </button>
+                    </div>
+                  )}
+                  </>
                 ) : (
+                  <>
                   <div className="space-y-4">
-                    {filtered.map((product) => (
+                    {filtered.slice(0, visibleCount).map((product) => (
                       <ProductListCard key={product.id} product={product} onAdd={handleAdd} isBrandProduct={brandProductMap.has(product.id)} />
                     ))}
                   </div>
+                  {visibleCount < filtered.length && (
+                    <div className="flex justify-center mt-10">
+                      <button onClick={handleLoadMore} className="px-8 py-2.5 rounded-full border border-border text-sm font-display font-semibold hover:border-foreground transition-colors">
+                        {t('products.loadMore', 'Load more')} ({filtered.length - visibleCount} {t('filters.remaining', 'remaining')})
+                      </button>
+                    </div>
+                  )}
+                  </>
                 )}
               </div>
             </div>
@@ -546,6 +586,8 @@ function ProductGridCard({ product, onAdd, isBrandProduct }: { product: DBProduc
             alt={localName}
             className="w-full h-full object-contain p-3 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
+            decoding="async"
+            sizes="(max-width: 768px) 50vw, 25vw"
           />
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavourite(product); }}

@@ -1170,9 +1170,14 @@ export function ArchitectProjectsSection({
 
       <div className="space-y-2">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <FolderOpen className="h-8 w-8 text-muted-foreground/30 mb-3" />
-            <p className="text-sm font-body text-muted-foreground">{t('ad.projects.noResults')}</p>
+          <div className="flex flex-col items-center justify-center py-14 text-center border border-dashed border-border rounded-xl">
+            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+              <FolderOpen className="h-6 w-6 text-muted-foreground/40" />
+            </div>
+            <p className="text-sm font-display font-semibold text-foreground mb-1">{t('ad.projects.noResults')}</p>
+            <p className="text-xs font-body text-muted-foreground mb-4 max-w-xs">
+              {t('ad.projects.noResultsHint', 'Create your first project to start organising material boards and product specifications for your clients.')}
+            </p>
           </div>
         ) : (
           filtered.map((p) => {

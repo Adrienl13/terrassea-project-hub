@@ -58,6 +58,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
             alt={localName}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
+            decoding="async"
+            sizes="(max-width: 768px) 50vw, 25vw"
           />
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavourite(product); }}
@@ -108,8 +110,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <span className="text-muted-foreground text-xs">On request</span>
             )}
           </p>
-          <span className="flex items-center gap-1">
-            <span className={`w-1.5 h-1.5 rounded-full ${stock.dot}`} />
+          <span className="flex items-center gap-1" role="status">
+            <span className={`w-1.5 h-1.5 rounded-full ${stock.dot}`} aria-hidden="true" />
             <span className="text-[10px] text-muted-foreground font-body">{stock.label}</span>
           </span>
         </div>

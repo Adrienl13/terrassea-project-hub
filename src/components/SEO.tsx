@@ -1,4 +1,12 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
+
+const LANG_TO_OG_LOCALE: Record<string, string> = {
+  fr: "fr_FR",
+  en: "en_GB",
+  es: "es_ES",
+  it: "it_IT",
+};
 
 interface SEOProps {
   title?: string;
@@ -57,8 +65,10 @@ export default function SEO({
   type = "website",
   noindex = false,
 }: SEOProps) {
+  const { i18n } = useTranslation();
   const fullTitle = clampTitle(title ? `${title} | ${SITE_NAME}` : DEFAULT_TITLE);
   const canonicalUrl = url ?? (typeof window !== "undefined" ? `${BASE_URL}${window.location.pathname}` : BASE_URL);
+  const currentLocale = LANG_TO_OG_LOCALE[i18n.language] ?? "fr_FR";
 
   useEffect(() => {
     // Title
@@ -82,9 +92,9 @@ export default function SEO({
     setMeta("twitter:description", description);
     setMeta("twitter:image", image);
 
-    // Locale
-    setMeta("og:locale", "fr_FR", "property");
-    for (const alt of OG_LOCALE_ALTERNATES) {
+    // Locale — dynamic based on current i18n language
+    setMeta("og:locale", currentLocale, "property");
+    for (const alt of OG_LOCALE_ALTERNATES.filter(a => a !== currentLocale)) {
       let el = document.querySelector(`meta[property="og:locale:alternate"][content="${alt}"]`) as HTMLMetaElement | null;
       if (!el) {
         el = document.createElement("meta");
@@ -94,9 +104,25 @@ export default function SEO({
       }
     }
 
+    // Hreflang link tags for language alternates
+    // All hreflang point to the same canonical URL (SPA serves content in any language)
+    const hreflangs = ["fr", "en", "es", "it", "x-default"];
+    const cleanHref = `${BASE_URL}${window.location.pathname}`;
+    for (const hl of hreflangs) {
+      const selector = `link[rel="alternate"][hreflang="${hl}"]`;
+      let linkEl = document.querySelector(selector) as HTMLLinkElement | null;
+      if (!linkEl) {
+        linkEl = document.createElement("link");
+        linkEl.setAttribute("rel", "alternate");
+        linkEl.setAttribute("hreflang", hl);
+        document.head.appendChild(linkEl);
+      }
+      linkEl.setAttribute("href", cleanHref);
+    }
+
     // Canonical
     setCanonical(canonicalUrl);
-  }, [fullTitle, description, image, canonicalUrl, type, noindex]);
+  }, [fullTitle, description, image, canonicalUrl, type, noindex, currentLocale]);
 
   return null;
 }

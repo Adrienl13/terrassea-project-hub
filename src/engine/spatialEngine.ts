@@ -89,8 +89,16 @@ export function getEffectiveTableFootprint(tableFormat: string, density: Density
   const dims = TABLE_PHYSICAL_DIMS[tableFormat];
   // Fallback footprint in m² for unknown table formats (~1.5m × 1.5m + clearance)
   if (!dims) return 2.5;
-  
+
   const clearance = DENSITY_FACTORS[density].circulationClearance;
+
+  // Circular tables: use circular footprint (π × r²) with clearance
+  if (tableFormat.startsWith("Ø")) {
+    const diameter = dims.width; // width == length for circular
+    const effRadius = diameter / 2 + clearance;
+    return Math.PI * effRadius * effRadius;
+  }
+
   const effWidth = dims.width + clearance * 2;
   const effLength = dims.length + clearance * 2;
   return effWidth * effLength;

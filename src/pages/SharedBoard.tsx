@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { ml } from "@/lib/i18nFields";
 import { Palette, Package, ExternalLink } from "lucide-react";
+import SEO from "@/components/SEO";
 import type { DBProduct } from "@/lib/products";
 
 interface BoardItem {
@@ -91,6 +92,7 @@ export default function SharedBoard() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+      <SEO title="Shared Board" noindex />
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 text-muted-foreground mb-2">

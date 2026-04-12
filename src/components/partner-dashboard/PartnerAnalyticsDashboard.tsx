@@ -199,6 +199,21 @@ export default function PartnerAnalyticsDashboard({ partnerId, tier }: Props) {
         </div>
       </div>
 
+      {/* ── First-time onboarding hint ─────────────────────────────────── */}
+      {(analytics?.totalViews ?? 0) === 0 && (analytics?.totalQuotes ?? 0) === 0 && (analytics?.totalRevenue ?? 0) === 0 && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-blue-50/50 border border-blue-100">
+          <Eye className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-[11px] font-display font-semibold text-blue-800">
+              {t("partnerAnalytics.onboardingTitle", "Your analytics will appear here")}
+            </p>
+            <p className="text-[10px] font-body text-blue-700">
+              {t("partnerAnalytics.onboardingDesc", "Once your products are online and clients start viewing them, your performance metrics — views, quote requests, revenue — will update automatically.")}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── KPI Cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard

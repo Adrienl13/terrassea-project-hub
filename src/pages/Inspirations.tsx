@@ -373,7 +373,7 @@ function DetailPanel({ board, onClose, productCount, t }: { board: MoodboardDef;
               {t('inspirations.exploreProducts')}
             </button>
             <button
-              onClick={() => navigate("/projects/new")}
+              onClick={() => navigate(`/projects/new?style=${(STYLE_URL_MAP[board.styleKey] || board.styleKey).toLowerCase()}&from=inspirations`)}
               className="w-full py-3 text-sm font-display font-semibold border border-border text-muted-foreground rounded-full hover:border-foreground hover:text-foreground transition-all"
             >
               {t('inspirations.createProject')}

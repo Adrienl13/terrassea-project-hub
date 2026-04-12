@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrassea.com";
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -65,7 +66,7 @@ serve(async (req) => {
             },
           });
           sent++;
-        } catch { /* continue */ }
+        } catch (e) { console.error("[scheduled-task] Error:", e); }
       }
       results.reminder_partner_48h = { checked: (staleQuotes || []).length, sent };
     }
@@ -93,7 +94,7 @@ serve(async (req) => {
             },
           });
           sent++;
-        } catch { /* continue */ }
+        } catch (e) { console.error("[scheduled-task] Error:", e); }
       }
       results.reminder_client_7d = { checked: (staleReplied || []).length, sent };
     }
@@ -126,7 +127,7 @@ serve(async (req) => {
             },
           });
           sent++;
-        } catch { /* continue */ }
+        } catch (e) { console.error("[scheduled-task] Error:", e); }
       }
       results.reminder_expiry_3d = { checked: (expiring || []).length, sent };
     }
@@ -163,7 +164,7 @@ serve(async (req) => {
                 body: { action: "auto_create_order", quoteRequestId: q.id },
               });
               created++;
-            } catch { /* continue */ }
+            } catch (e) { console.error("[scheduled-task] Error:", e); }
           }
         }
       }

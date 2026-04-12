@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import SEO from "@/components/SEO";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
@@ -53,6 +54,7 @@ export default function ProServiceGate() {
   // Everyone else sees the upgrade/teaser page
   return (
     <>
+      <SEO title="Pro Service" noindex />
       <Header />
       <main className="min-h-screen bg-gradient-to-b from-background to-muted/30">
         <div className="max-w-3xl mx-auto px-4 py-20">

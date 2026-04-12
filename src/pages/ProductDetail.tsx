@@ -17,11 +17,13 @@ import Footer from "@/components/Footer";
 import ProductGallery from "@/components/products/ProductGallery";
 import VendorOffers from "@/components/products/VendorOffers";
 import CompatibleProducts from "@/components/products/CompatibleProducts";
-import { fetchProductById, fetchProducts, type DBProduct } from "@/lib/products";
+import { fetchProductById, type DBProduct } from "@/lib/products";
 import { fetchProductOffers } from "@/lib/productOffers";
 import { useProductArrivals } from "@/hooks/useArrivals";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
+import { useProductReviews } from "@/hooks/useProductReviews";
+import ProductReviews from "@/components/products/ProductReviews";
 import { useFavourites } from "@/contexts/FavouritesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,9 +49,44 @@ const ProductDetail = () => {
     enabled: !!id,
   });
 
-  const { data: allProducts = [] } = useQuery({
-    queryKey: ["products"],
-    queryFn: fetchProducts,
+  // Fetch only similar products (same category) — NOT the full 2000-product catalog
+  const { data: similarProducts = [] } = useQuery({
+    queryKey: ["similar-products", product?.category, id],
+    queryFn: async () => {
+      if (!product) return [];
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .eq("publish_status", "published")
+        .is("duplicate_of", null)
+        .eq("category", product.category)
+        .neq("id", product.id)
+        .order("priority_score", { ascending: false })
+        .limit(12);
+      return (data ?? []) as unknown as DBProduct[];
+    },
+    enabled: !!product,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch complementary products (different category, matching style)
+  const { data: complementaryProducts = [] } = useQuery({
+    queryKey: ["complementary-products", product?.style_tags, product?.category, id],
+    queryFn: async () => {
+      if (!product || product.style_tags.length === 0) return [];
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .eq("publish_status", "published")
+        .is("duplicate_of", null)
+        .neq("category", product.category)
+        .neq("id", product.id)
+        .overlaps("style_tags", product.style_tags)
+        .order("priority_score", { ascending: false })
+        .limit(12);
+      return (data ?? []) as unknown as DBProduct[];
+    },
+    enabled: !!product,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -60,6 +97,7 @@ const ProductDetail = () => {
   });
 
   const { arrivals } = useProductArrivals(id);
+  const { stats: reviewStats } = useProductReviews(id);
 
   const isAdmin = profile?.user_type === "admin";
   const { data: currentPartner } = useQuery({
@@ -116,7 +154,8 @@ const ProductDetail = () => {
       image: product.image_url || undefined,
       url: `https://terrassea.com/products/${product.id}`,
       category: product.category,
-      brand: product.brand_name ? { "@type": "Brand", name: product.brand_name } : undefined,
+      sku: product.supplier_internal || product.id,
+      brand: product.brand_source ? { "@type": "Brand", name: product.brand_source } : undefined,
       material: product.material_tags?.join(", ") || undefined,
     };
     if (product.price_min != null) {
@@ -128,13 +167,22 @@ const ProductDetail = () => {
         offerCount: offers.length || 1,
       };
     }
+    if (reviewStats?.review_count && reviewStats.review_count > 0) {
+      schema.aggregateRating = {
+        "@type": "AggregateRating",
+        ratingValue: reviewStats.avg_rating,
+        reviewCount: reviewStats.review_count,
+        bestRating: 5,
+        worstRating: 1,
+      };
+    }
     const script = document.createElement("script");
     script.type = "application/ld+json";
     script.setAttribute("data-jsonld", "product");
     script.textContent = JSON.stringify(schema);
     document.head.appendChild(script);
     return () => { script.remove(); };
-  }, [product, offers.length]);
+  }, [product, offers.length, reviewStats]);
 
   if (isLoading) {
     return (
@@ -203,19 +251,15 @@ const ProductDetail = () => {
     toast.success(`${localName} → ${projectName}${zoneName ? ` · ${zoneName}` : ""}`);
   };
 
-  // Related products: same category, exclude self
-  const similar = allProducts
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 6);
+  // Related products: already filtered server-side
+  const similar = similarProducts.slice(0, 6);
 
-  // Complementary: different category, matching style or use_case
-  const complementary = allProducts
+  // Complementary: already filtered server-side, further refine by use_case overlap
+  const complementary = complementaryProducts
     .filter(
       (p) =>
-        p.category !== product.category &&
-        p.id !== product.id &&
-        (p.style_tags.some((t) => product.style_tags.includes(t)) ||
-          p.use_case_tags.some((t) => product.use_case_tags.includes(t)))
+        p.style_tags.some((t) => product.style_tags.includes(t)) ||
+        p.use_case_tags.some((t) => product.use_case_tags.includes(t))
     )
     .slice(0, 6);
 
@@ -505,8 +549,11 @@ const ProductDetail = () => {
         </section>
 
 
+        {/* Customer reviews */}
+        <ProductReviews productId={product.id} />
+
         {/* Compatible products */}
-        <CompatibleProducts product={product} allProducts={allProducts} />
+        <CompatibleProducts product={product} allProducts={[...similarProducts, ...complementaryProducts]} />
 
         {similar.length > 0 && (
           <section className="px-6 mt-20">

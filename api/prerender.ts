@@ -238,8 +238,9 @@ function getRouteConfig(path: string, query: URLSearchParams): RouteConfig {
 // ── Supabase helper ──────────────────────────────────────────────────
 
 function getSupabaseConfig() {
-  const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+  // Prefer server-side env vars; fall back to VITE_ for local dev only
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   return url && key ? { url, key } : null;
 }
 
@@ -292,6 +293,23 @@ async function getProductConfig(productId: string): Promise<RouteConfig | null> 
       priceCurrency: "EUR",
       availability: "https://schema.org/InStock",
       seller: { "@id": `${BASE}/#organization` },
+    };
+  }
+
+  // Fetch review stats for AggregateRating
+  const { data: reviewStats } = await supabase
+    .from("product_review_stats")
+    .select("*")
+    .eq("product_id", p.id)
+    .maybeSingle();
+
+  if (reviewStats?.review_count > 0) {
+    productSchema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: reviewStats.avg_rating,
+      reviewCount: reviewStats.review_count,
+      bestRating: 5,
+      worstRating: 1,
     };
   }
 

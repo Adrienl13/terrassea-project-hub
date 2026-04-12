@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Sparkles } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -19,6 +19,36 @@ import ProjectResults from "@/components/ProjectResults";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
 import { useProducts } from "@/hooks/useProducts";
 import { generateProjectConcepts } from "@/engine/projectEngine";
+import { toast } from "sonner";
+
+const DRAFT_PARAMS_KEY = "terrassea_project_draft_params";
+const DRAFT_STEP_KEY = "terrassea_project_draft_step";
+
+function loadDraft(): { params: ProjectParameters; step: number } | null {
+  try {
+    const p = localStorage.getItem(DRAFT_PARAMS_KEY);
+    const s = localStorage.getItem(DRAFT_STEP_KEY);
+    if (p && s) {
+      const params = JSON.parse(p) as ProjectParameters;
+      const step = parseInt(s, 10);
+      // Only restore if the user actually started (has a builder mode)
+      if (params.builderMode && step > 0) return { params, step };
+    }
+  } catch { /* corrupted draft — ignore */ }
+  return null;
+}
+
+function saveDraft(params: ProjectParameters, step: number) {
+  try {
+    localStorage.setItem(DRAFT_PARAMS_KEY, JSON.stringify(params));
+    localStorage.setItem(DRAFT_STEP_KEY, String(step));
+  } catch { /* storage full — ignore */ }
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_PARAMS_KEY);
+  localStorage.removeItem(DRAFT_STEP_KEY);
+}
 
 const DEFAULT_PARAMS: ProjectParameters = {
   builderMode: "",
@@ -117,8 +147,16 @@ const ProjectBuilder = () => {
     },
   }), [t]);
 
-  const [currentStep, setCurrentStep] = useState(0);
+  // Check for saved draft (only if no URL params override)
+  const hasUrlOverride = !!(urlVenue || urlStyle || urlCapacity);
+  const existingDraft = useMemo(() => hasUrlOverride ? null : loadDraft(), []);
+  const [showResumeBanner, setShowResumeBanner] = useState(!!existingDraft);
+
+  const [currentStep, setCurrentStep] = useState(() => existingDraft?.step ?? 0);
   const [params, setParams] = useState<ProjectParameters>(() => {
+    // If resuming a draft, use saved params
+    if (existingDraft) return existingDraft.params;
+
     const initial = { ...DEFAULT_PARAMS };
     if (urlVenue) {
       initial.establishmentType = urlVenue;
@@ -138,6 +176,14 @@ const ProjectBuilder = () => {
     return initial;
   });
 
+  // Auto-save draft on every param/step change
+  useEffect(() => {
+    if (params.builderMode && currentStep > 0) {
+      saveDraft(params, currentStep);
+    }
+  }, [params, currentStep]);
+
+  const stepContentRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<{
     parameters: ProjectParameters;
@@ -156,6 +202,13 @@ const ProjectBuilder = () => {
       setCurrentStep(2);
     }
   }, [urlStyle, urlFrom, urlVenue, urlCapacity, guidedSteps.length]);
+
+  // Move focus to step content when step changes (WCAG 2.4.3)
+  useEffect(() => {
+    if (stepContentRef.current) {
+      stepContentRef.current.focus({ preventScroll: true });
+    }
+  }, [currentStep]);
 
   const isExpert     = params.builderMode === "expert";
   const steps        = isExpert ? expertSteps : guidedSteps;
@@ -217,7 +270,10 @@ const ProjectBuilder = () => {
   ].filter(Boolean).join(" ");
 
   const handleGenerate = () => {
-    if (products.length === 0) return;
+    if (products.length === 0) {
+      toast.error(t('errors.noProductsAvailable', 'No products available. Please try again later.'));
+      return;
+    }
     setIsGenerating(true);
     const query = buildQuery(params);
 
@@ -225,11 +281,15 @@ const ProjectBuilder = () => {
       const { parameters, concepts } = generateProjectConcepts(query, products, params);
       setResults({ parameters, concepts, query });
       setIsGenerating(false);
+      clearDraft(); // Project generated — draft no longer needed
     }, 1200);
   };
 
   const handleRegenerate = (updatedParams: ProjectParameters) => {
-    if (products.length === 0) return;
+    if (products.length === 0) {
+      toast.error(t('errors.noProductsAvailable', 'No products available. Please try again later.'));
+      return;
+    }
     setIsGenerating(true);
     setParams(updatedParams);
     const query = buildQuery(updatedParams);
@@ -245,6 +305,8 @@ const ProjectBuilder = () => {
     setCurrentStep(0);
     setParams({ ...DEFAULT_PARAMS });
     setResults(null);
+    setShowResumeBanner(false);
+    clearDraft();
   };
 
   if (results) {
@@ -282,6 +344,36 @@ const ProjectBuilder = () => {
       <Header />
 
       <div className="pt-24 pb-16">
+        {/* Resume banner */}
+        {showResumeBanner && (
+          <div className="px-6 mb-6">
+            <div className="container mx-auto max-w-4xl">
+              <div className="flex items-center justify-between gap-4 bg-card border border-border rounded-xl px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-4 w-4 text-foreground flex-shrink-0" />
+                  <p className="text-sm font-body text-foreground">
+                    {t('projectBuilder.draftResume', 'You have an unfinished project. Pick up where you left off?')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setShowResumeBanner(false)}
+                    className="text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t('projectBuilder.draftDismiss', 'Dismiss')}
+                  </button>
+                  <button
+                    onClick={() => { handleReset(); }}
+                    className="text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t('projectBuilder.draftRestart', 'Start over')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Hero */}
         <section className="px-6 mb-12">
           <div className="container mx-auto text-center">
@@ -334,7 +426,7 @@ const ProjectBuilder = () => {
         <section className="px-6">
           <div className="container mx-auto max-w-6xl">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className={isModeStep ? "lg:col-span-3" : "lg:col-span-2"}>
+              <div ref={stepContentRef} tabIndex={-1} className={`outline-none ${isModeStep ? "lg:col-span-3" : "lg:col-span-2"}`}>
                 <AnimatePresence mode="wait">
                   {isGenerating ? (
                     <motion.div

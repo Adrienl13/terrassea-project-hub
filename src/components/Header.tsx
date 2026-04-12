@@ -277,7 +277,7 @@ const Header = () => {
             <div className="flex items-center gap-7 py-2.5 min-w-max">
               <Link
                 to="/products"
-                className="text-[11px] font-display font-semibold text-white/60 hover:text-white transition-colors whitespace-nowrap"
+                className="text-[11px] font-display font-semibold text-white/80 hover:text-white transition-colors whitespace-nowrap"
                 onMouseEnter={() => setOpenCat(null)}
               >
                 {t("categories.all")}
@@ -298,10 +298,28 @@ const Header = () => {
                   >
                     <Link
                       to={cat.href}
-                      className={`text-[11px] font-display font-semibold whitespace-nowrap py-2.5 border-b-2 transition-all block ${
+                      aria-haspopup={cat.subcategories && cat.subcategories.length > 0 ? "true" : undefined}
+                      aria-expanded={openCat === cat.labelKey ? "true" : undefined}
+                      onFocus={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setDropdownPos({ left: rect.left, top: rect.bottom });
+                        setOpenCat(cat.labelKey);
+                      }}
+                      onBlur={(e) => {
+                        // Delay close to allow focus to move to dropdown items
+                        setTimeout(() => {
+                          if (!e.currentTarget.closest(".relative")?.contains(document.activeElement)) {
+                            setOpenCat(null);
+                          }
+                        }, 100);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") { setOpenCat(null); }
+                      }}
+                      className={`text-[11px] font-display font-semibold whitespace-nowrap py-2.5 border-b-2 transition-all block focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50 ${
                         openCat === cat.labelKey
                           ? "text-white border-terracotta"
-                          : "text-white/60 hover:text-white border-transparent hover:border-terracotta"
+                          : "text-white/80 hover:text-white border-transparent hover:border-terracotta"
                       }`}
                     >
                       {label}
@@ -365,6 +383,10 @@ const Header = () => {
 
             {/* Panel */}
             <motion.nav
+              aria-modal="true"
+              role="dialog"
+              aria-label="Mobile navigation"
+              onKeyDown={(e) => { if (e.key === "Escape") closeMobile(); }}
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}

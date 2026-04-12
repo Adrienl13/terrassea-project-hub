@@ -125,10 +125,15 @@ export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
       {quotesLoading ? (
         <div className="flex items-center justify-center py-12"><div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin" /></div>
       ) : filtered.length === 0 ? (
-        <div className="border border-border rounded-sm px-4 py-8 text-center">
-          <FileText className="h-6 w-6 text-muted-foreground/20 mx-auto mb-2" />
-          <p className="text-xs font-body text-muted-foreground">{t('pd.quotes.noResults')}</p>
-          <button onClick={() => setFilter("all")} className="text-[10px] font-display font-semibold text-foreground underline mt-2">{t('pd.quotes.seeAll')}</button>
+        <div className="border border-dashed border-border rounded-xl px-4 py-10 text-center">
+          <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
+            <FileText className="h-6 w-6 text-muted-foreground/40" />
+          </div>
+          <p className="text-xs font-display font-semibold text-foreground mb-1">{t('pd.quotes.noResults')}</p>
+          <p className="text-[10px] font-body text-muted-foreground mb-3 max-w-xs mx-auto">
+            {t('pd.quotes.noResultsHint', 'Les demandes de devis de vos clients apparaîtront ici. Assurez-vous que vos produits et prix sont bien renseignés.')}
+          </p>
+          <button onClick={() => setFilter("all")} className="text-[10px] font-display font-semibold text-foreground underline">{t('pd.quotes.seeAll')}</button>
         </div>
       ) : (
         <div className="space-y-2">

@@ -78,6 +78,7 @@ export default function ProductGallery({
               <button
                 key={`${url}-${i}`}
                 onClick={() => setSelectedIndex(i)}
+                aria-label={`${isEnv ? "Environment" : "Product"} photo ${i + 1}`}
                 className={`relative flex-shrink-0 w-16 h-16 overflow-hidden rounded-sm border-2 transition-all ${
                   isActive
                     ? isEnv

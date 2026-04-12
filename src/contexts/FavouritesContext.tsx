@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef, useCallback, us
 import type { DBProduct } from "@/lib/products";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface FavouritesContextType {
   favourites: DBProduct[];
@@ -85,19 +86,21 @@ export const FavouritesProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     try {
       if (isAdding) {
-        await supabase
+        const { error } = await supabase
           .from("user_favourites")
           .upsert({ user_id: user.id, entity_type: "product", entity_id: productId }, { onConflict: "user_id,entity_type,entity_id" });
+        if (error) throw error;
       } else {
-        await supabase
+        const { error } = await supabase
           .from("user_favourites")
           .delete()
           .eq("user_id", user.id)
           .eq("entity_type", "product")
           .eq("entity_id", productId);
+        if (error) throw error;
       }
     } catch {
-      // DB sync failed silently
+      toast.error("Failed to sync favourites. Your changes are saved locally.");
     }
   }, [user]);
 

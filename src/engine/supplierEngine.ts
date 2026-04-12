@@ -127,7 +127,7 @@ function scoreAvailability(offer: ProductOffer, offerArrivals: ProductArrival[] 
 
 function scoreLeadTime(offer: ProductOffer, allOffers: ProductOffer[]): number {
   const days = offer.delivery_delay_days;
-  if (days === null || days === undefined) return 30; // unknown = low score
+  if (days === null || days === undefined) return 15; // unknown = penalized — prefer confirmed lead times
 
   // Find the range among all offers for same product
   const sameProduct = allOffers.filter((o) => o.product_id === offer.product_id && o.delivery_delay_days != null);
@@ -252,7 +252,7 @@ export async function scoreSupplierOffers(
   const allOffers = await fetchAllProjectOffers(uniqueIds);
 
   // Offers for the target product only
-  let targetOffers = allOffers.filter((o) => o.product_id === targetProductId);
+  const targetOffers = allOffers.filter((o) => o.product_id === targetProductId);
   if (targetOffers.length === 0) return [];
 
   // When a dimension is selected, compare prices only among same-dimension offers

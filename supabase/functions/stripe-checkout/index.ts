@@ -59,6 +59,22 @@ Deno.serve(async (req: Request) => {
 
     const { orderId, successUrl, cancelUrl } = await req.json();
 
+    // Validate redirect URLs to prevent open redirect attacks
+    const ALLOWED_HOSTS = ["terrassea.com", "www.terrassea.com", "localhost"];
+    const isValidUrl = (url: string | undefined): boolean => {
+      if (!url) return true; // optional
+      try {
+        const parsed = new URL(url);
+        return ALLOWED_HOSTS.some(h => parsed.hostname === h || parsed.hostname.endsWith(`.${h}`));
+      } catch { return false; }
+    };
+    if (!isValidUrl(successUrl) || !isValidUrl(cancelUrl)) {
+      return new Response(JSON.stringify({ error: "Invalid redirect URL" }), {
+        status: 400,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
     if (!orderId) {
       return new Response(JSON.stringify({ error: "Missing required field: orderId" }), {
         status: 400,
