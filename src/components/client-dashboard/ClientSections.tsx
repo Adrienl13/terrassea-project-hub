@@ -10,7 +10,7 @@ import {
   type ClientProject, type ClientProjectProduct, type ClientQuote,
 } from "@/hooks/useClientDashboard";
 import { useFavouritePartners, useFavouriteArchitects } from "@/hooks/useFavouritesDB";
-import { signDocument } from "@/lib/quoteDocuments";
+import { signQuoteRequest } from "@/lib/quoteDocuments";
 
 const QuotePdfViewer = lazy(() => import("@/components/quotes/QuotePdfViewer"));
 const QuoteRecapCard = lazy(() => import("@/components/quotes/QuoteRecapCard"));
@@ -1005,6 +1005,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
     { id: "all", label: t("cd.quotes.all") },
     { id: "pending", label: t("cd.quotes.pending") },
     { id: "replied", label: t("cd.quotes.replied") },
+    { id: "accepted", label: t("cd.quotes.accepted", "Accepté") },
     { id: "signed", label: t("cd.quotes.signed") },
     { id: "expired", label: t("cd.quotes.expired") },
   ];
@@ -1088,9 +1089,9 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
           <p className="text-xs font-display font-semibold text-muted-foreground uppercase tracking-wider">{t("cd.quotes.quoteDetails")}</p>
           <div className="grid grid-cols-2 gap-3">
             <SpecRow label={t("cd.detail.spec.quantity")} value={`${activeQuote.quantity} pcs`} />
-            <SpecRow label={t("cd.detail.spec.unitPrice")} value={`€${activeQuote.unitPrice}`} />
-            <SpecRow label={t("cd.quotes.validUntil")} value={t("clientDashboard.thirtyDays")} />
-            <SpecRow label={t("cd.detail.spec.subtotal")} value={`€${activeQuote.totalPrice.toLocaleString()}`} highlight />
+            <SpecRow label={t("cd.detail.spec.unitPrice")} value={activeQuote.unitPrice != null ? `€${activeQuote.unitPrice.toLocaleString()}` : "—"} />
+            <SpecRow label={t("cd.quotes.validUntil")} value={activeQuote.validityExpiresAt ? new Date(activeQuote.validityExpiresAt).toLocaleDateString() : activeQuote.validityDays ? `${activeQuote.validityDays} jours` : "—"} />
+            <SpecRow label={t("cd.detail.spec.subtotal")} value={activeQuote.totalPrice != null ? `€${activeQuote.totalPrice.toLocaleString()}` : "—"} highlight />
           </div>
         </div>
 
@@ -1303,7 +1304,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
             setSigningQuoteId(null);
             setHasSigned(true);
             if (qId) {
-              await supabase.from("quote_requests").update({ status: "signed", signed_at: new Date().toISOString() }).eq("id", qId);
+              // Status already set to "signed" by signQuoteRequest in the modal
               queryClient.invalidateQueries({ queryKey: ["client-quotes"] });
               toast.success(t("clientDashboard.quoteSigned"));
 
@@ -1426,10 +1427,10 @@ function SignatureModal({
                 <div className="grid grid-cols-2 gap-2">
                   <SpecRow label={t("cd.quotes.supplierInfo")} value={quote.supplierAlias} />
                   <SpecRow label={t("cd.detail.spec.quantity")} value={`${quote.quantity} pcs`} />
-                  <SpecRow label={t("cd.detail.spec.unitPrice")} value={`€${quote.unitPrice}`} />
-                  <SpecRow label="Total" value={`€${quote.totalPrice.toLocaleString()}`} highlight />
-                  <SpecRow label={t("cd.quotes.validUntil")} value={t("clientDashboard.thirtyDays")} />
-                  <SpecRow label={t("cd.sign.project")} value={quote.projectName} />
+                  <SpecRow label={t("cd.detail.spec.unitPrice")} value={quote.unitPrice != null ? `€${quote.unitPrice.toLocaleString()}` : "—"} />
+                  <SpecRow label="Total" value={quote.totalPrice != null ? `€${quote.totalPrice.toLocaleString()}` : "—"} highlight />
+                  <SpecRow label={t("cd.quotes.validUntil")} value={quote.validityExpiresAt ? new Date(quote.validityExpiresAt).toLocaleDateString() : quote.validityDays ? `${quote.validityDays} jours` : "—"} />
+                  <SpecRow label={t("cd.sign.project")} value={quote.projectName || "—"} />
                 </div>
               </div>
 
@@ -1499,11 +1500,13 @@ function SignatureModal({
                 </button>
                 <button
                   onClick={async () => {
-                    // Call real signDocument if we have a document ID
+                    // Sign the quote request (finds and signs the latest document if one exists)
                     if (user?.id) {
                       try {
-                        await signDocument({ documentId: quoteId, signedBy: user.id, provider: "platform" });
-                      } catch (e) { /* Will work when real documents exist */ }
+                        await signQuoteRequest({ quoteRequestId: quoteId, signedBy: user.id, provider: "platform" });
+                      } catch (e) {
+                        console.error("Sign failed:", e);
+                      }
                     }
                     setStep("done");
                   }}

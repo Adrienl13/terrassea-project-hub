@@ -202,11 +202,83 @@ export async function signDocument({
         signed_pdf_path: doc.file_path,
         signed_at: new Date().toISOString(),
         signed_by: signedBy,
-        status: "accepted",
+        status: "signed",
       })
       .eq("id", doc.quote_request_id);
     if (updateError) {
       console.error("Failed to update quote_request after signing:", updateError.message);
+    }
+  }
+
+  return { success: true, error: null };
+}
+
+// ── Sign a quote request (finds latest document or updates request directly) ──
+
+export async function signQuoteRequest({
+  quoteRequestId,
+  signedBy,
+  provider = "platform",
+  reference,
+}: {
+  quoteRequestId: string;
+  signedBy: string;
+  provider?: string;
+  reference?: string;
+}): Promise<{ success: boolean; error: string | null }> {
+  const now = new Date().toISOString();
+
+  // Try to find the latest document for this quote request
+  const { data: docs } = await supabase
+    .from("quote_documents")
+    .select("id, file_path")
+    .eq("quote_request_id", quoteRequestId)
+    .eq("doc_type", "quote_pdf")
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  // Sign the document if one exists
+  if (docs && docs.length > 0) {
+    const doc = docs[0];
+    await supabase
+      .from("quote_documents")
+      .update({
+        signed_at: now,
+        signed_by: signedBy,
+        signature_provider: provider,
+        signature_reference: reference || null,
+      })
+      .eq("id", doc.id);
+
+    // Update quote_request with signed PDF path
+    const { error: updateError } = await supabase
+      .from("quote_requests")
+      .update({
+        signed_pdf_path: doc.file_path,
+        signed_at: now,
+        signed_by: signedBy,
+        status: "signed",
+      })
+      .eq("id", quoteRequestId);
+
+    if (updateError) {
+      console.error("Failed to update quote_request after signing:", updateError.message);
+      return { success: false, error: updateError.message };
+    }
+  } else {
+    // No document yet — just update the quote request status
+    const { error: updateError } = await supabase
+      .from("quote_requests")
+      .update({
+        signed_at: now,
+        signed_by: signedBy,
+        status: "signed",
+      })
+      .eq("id", quoteRequestId);
+
+    if (updateError) {
+      console.error("Failed to sign quote_request:", updateError.message);
+      return { success: false, error: updateError.message };
     }
   }
 
@@ -219,6 +291,13 @@ export async function deleteQuoteDocument(
   documentId: string,
   filePath: string
 ): Promise<{ success: boolean; error: string | null }> {
+  // Get the quote_request_id before deleting
+  const { data: doc } = await supabase
+    .from("quote_documents")
+    .select("quote_request_id")
+    .eq("id", documentId)
+    .single();
+
   // Delete from storage
   const { error: storageError } = await supabase.storage
     .from("quote-documents")
@@ -238,6 +317,15 @@ export async function deleteQuoteDocument(
   if (dbError) {
     console.error("DB delete error:", dbError);
     return { success: false, error: dbError.message };
+  }
+
+  // Clear latest_pdf_path on the quote_request if it pointed to this file
+  if (doc?.quote_request_id) {
+    await supabase
+      .from("quote_requests")
+      .update({ latest_pdf_path: null })
+      .eq("id", doc.quote_request_id)
+      .eq("latest_pdf_path", filePath);
   }
 
   return { success: true, error: null };

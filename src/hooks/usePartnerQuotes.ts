@@ -32,23 +32,33 @@ export function usePartnerQuotes() {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
 
-  // Find partner_id linked to this user's email
+  const { user } = useAuth();
+
+  // Find partner_id linked to this user (by user_id first, then contact_email fallback)
   const { data: partnerId } = useQuery({
-    queryKey: ["partner-id-for-user", profile?.email],
+    queryKey: ["partner-id-for-user", user?.id, profile?.email],
     queryFn: async () => {
-      if (!profile?.email) return null;
-      const { data, error } = await supabase
-        .from("partners")
-        .select("id")
-        .eq("contact_email", profile.email)
-        .single();
-      if (error) {
-        console.error("Failed to find partner for user:", error.message);
-        return null;
+      // Try by user_id first (matches RLS policy)
+      if (user?.id) {
+        const { data } = await supabase
+          .from("partners")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (data?.id) return data.id;
       }
-      return data?.id || null;
+      // Fallback: try by contact_email
+      if (profile?.email) {
+        const { data } = await supabase
+          .from("partners")
+          .select("id")
+          .eq("contact_email", profile.email)
+          .maybeSingle();
+        if (data?.id) return data.id;
+      }
+      return null;
     },
-    enabled: !!profile?.email,
+    enabled: !!user?.id || !!profile?.email,
   });
 
   // Fetch quote requests assigned to this partner

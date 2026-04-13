@@ -136,6 +136,10 @@ const QuoteRequestModal = ({
       toast.error(t("quoteModal.fillRequired"));
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error(t("quoteModal.invalidEmail", "Veuillez entrer un email valide."));
+      return;
+    }
     if (form.siren.length !== 9) {
       toast.error(t("quoteModal.sirenDigits"));
       return;
@@ -145,12 +149,12 @@ const QuoteRequestModal = ({
     try {
       const bestOffer = offers.find((o) => o.price !== null) || offers[0] || null;
 
-      const { error: insertError } = await supabase.from("quote_requests").insert({
+      const { data: insertedRow, error: insertError } = await supabase.from("quote_requests").insert({
         product_id: product.id,
         product_name: product.name,
         offer_id: bestOffer?.id || null,
-        partner_id: bestOffer?.partner_id || null,
-        partner_name: bestOffer?.partner?.name || null,
+        // Don't pre-assign partner_id — let auto-workflow handle routing
+        // (brand products need geo-routing via brand_distributors, not cheapest offer)
         quantity: form.quantity,
         first_name: form.firstName,
         client_first_name: form.firstName,
@@ -159,21 +163,24 @@ const QuoteRequestModal = ({
         client_user_id: user?.id || null,
         last_name: form.lastName || null,
         email: form.email,
+        phone: form.phone || null,
         company: form.company || sirenResult?.companyName || null,
         siren: form.siren,
         message: form.message || null,
         unit_price: bestOffer?.price || null,
         total_price: bestOffer?.price ? bestOffer.price * form.quantity : null,
         status: "pending",
-      });
+      }).select("id").single();
       if (insertError) throw insertError;
 
-      // Trigger auto-assign with error logging for admin visibility
-      supabase.functions.invoke("auto-workflow", {
-        body: { action: "auto_assign_partner" },
-      }).then(({ error }) => {
-        if (error) console.error("auto-workflow failed:", error);
-      }).catch((err) => console.error("auto-workflow network error:", err));
+      // Trigger auto-assign with the actual quote request ID
+      if (insertedRow?.id) {
+        supabase.functions.invoke("auto-workflow", {
+          body: { action: "auto_assign_partner", quoteRequestId: insertedRow.id },
+        }).then(({ error }) => {
+          if (error) console.error("auto-workflow failed:", error);
+        }).catch((err) => console.error("auto-workflow network error:", err));
+      }
 
       // Notify all admins (batched insert)
       try {

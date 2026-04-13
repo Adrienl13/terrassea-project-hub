@@ -160,9 +160,14 @@ export default function AdminQuoteWorkflow() {
   };
 
   const updateQuoteStatus = async (id: string, status: string) => {
+    const updates: Record<string, unknown> = { status };
+    // Set signed_at when admin force-signs, clear when moving away
+    if (status === "signed") {
+      updates.signed_at = new Date().toISOString();
+    }
     const { error } = await supabase
       .from("quote_requests")
-      .update({ status })
+      .update(updates)
       .eq("id", id);
     if (error) { toast.error(t("adminQuotes.errorPrefix") + error.message); return; }
     toast.success(t("adminQuotes.statusUpdated", { status: t(STATUS_LABEL_KEYS[status] || status) }));

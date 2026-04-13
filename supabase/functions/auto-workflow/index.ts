@@ -46,7 +46,7 @@ async function autoAssignPartner(quoteRequestId: string) {
   // Fetch the quote request (includes client country for geo-routing)
   const { data: quote, error: qErr } = await supabase
     .from("quote_requests")
-    .select("id, product_id, partner_id, client_email, client_country_code")
+    .select("id, product_id, partner_id, email, client_country_code")
     .eq("id", quoteRequestId)
     .single();
   if (qErr || !quote) return { error: "Quote request not found" };
@@ -146,7 +146,7 @@ async function autoCreateOrder(quoteRequestId: string) {
 
   const { data: quote, error: qErr } = await supabase
     .from("quote_requests")
-    .select("id, product_name, product_id, quantity, unit_price, total_price, partner_id, client_email, client_first_name, tva_rate, delivery_delay_days, project_request_id")
+    .select("id, product_name, product_id, quantity, unit_price, total_price, partner_id, email, client_first_name, client_user_id, tva_rate, delivery_delay_days, delivery_conditions, payment_conditions, partner_conditions, project_request_id")
     .eq("id", quoteRequestId)
     .single();
   if (qErr || !quote) return { error: "Quote not found" };
@@ -160,26 +160,86 @@ async function autoCreateOrder(quoteRequestId: string) {
   if (existing && existing.length > 0) return { skipped: true, reason: "Order already exists" };
 
   const totalAmount = Number(quote.total_price || 0);
+  if (totalAmount <= 0) return { error: "Cannot create order with zero amount" };
 
   // Dynamic deposit percent from platform_settings (default 30)
   const depositPercentSetting = await getSetting("deposit_percent");
   const depositPercent = depositPercentSetting ? Number(depositPercentSetting) : 30;
-  const depositAmount = Math.round(totalAmount * depositPercent) / 100;
+  const depositAmount = Math.round(totalAmount * depositPercent / 100 * 100) / 100;
+  const balanceAmount = Math.round((totalAmount - depositAmount) * 100) / 100;
 
-  // Dynamic commission from partner's plan
+  // Due dates from settings
+  const depositDueDaysSetting = await getSetting("deposit_due_days");
+  const balanceDueDaysSetting = await getSetting("balance_due_days");
+  const depositDueDays = depositDueDaysSetting ? Number(depositDueDaysSetting) : 7;
+  const balanceDueDays = balanceDueDaysSetting ? Number(balanceDueDaysSetting) : 30;
+  const now = Date.now();
+  const depositDueDate = new Date(now + depositDueDays * 86_400_000).toISOString();
+  const balanceDueDate = new Date(now + balanceDueDays * 86_400_000).toISOString();
+
+  // Commission: 3-tier resolution (brand-distributor → subscription → plan fallback)
   const COMMISSION_BY_PLAN: Record<string, number> = { starter: 8, growth: 5, elite: 3.5, elite_pro: 2.5, brand_member: 0, brand_network: 0 };
   let commissionRate = 8; // default starter
   if (quote.partner_id) {
-    const { data: partner } = await supabase
-      .from("partners")
-      .select("plan")
-      .eq("id", quote.partner_id)
-      .single();
-    if (partner?.plan && COMMISSION_BY_PLAN[partner.plan] !== undefined) {
-      commissionRate = COMMISSION_BY_PLAN[partner.plan];
+    let found = false;
+
+    // Tier 1: brand-distributor effective commission
+    if (quote.product_id) {
+      const { data: product } = await supabase
+        .from("products")
+        .select("partner_id")
+        .eq("id", quote.product_id)
+        .maybeSingle();
+      if (product?.partner_id) {
+        const { data: ec } = await supabase
+          .from("v_effective_commissions" as any)
+          .select("effective_commission_rate")
+          .eq("brand_id", product.partner_id)
+          .eq("distributor_id", quote.partner_id)
+          .maybeSingle();
+        if ((ec as any)?.effective_commission_rate != null) {
+          commissionRate = Number((ec as any).effective_commission_rate);
+          found = true;
+        }
+      }
+    }
+
+    // Tier 2: partner subscription override
+    if (!found) {
+      const { data: sub } = await supabase
+        .from("partner_subscriptions")
+        .select("commission_rate")
+        .eq("partner_id", quote.partner_id)
+        .maybeSingle();
+      if (sub?.commission_rate != null) {
+        commissionRate = Number(sub.commission_rate);
+        found = true;
+      }
+    }
+
+    // Tier 3: plan-based fallback
+    if (!found) {
+      const { data: partner } = await supabase
+        .from("partners")
+        .select("plan")
+        .eq("id", quote.partner_id)
+        .maybeSingle();
+      if (partner?.plan && COMMISSION_BY_PLAN[partner.plan] !== undefined) {
+        commissionRate = COMMISSION_BY_PLAN[partner.plan];
+      }
     }
   }
-  const commissionAmount = Math.round(totalAmount * commissionRate) / 100;
+  const commissionAmount = Math.round(totalAmount * commissionRate / 100 * 100) / 100;
+
+  // Generate sequential references via DB functions
+  const { data: paymentReference } = await supabase.rpc("next_payment_reference");
+  const { data: invoiceNumber } = await supabase.rpc("next_invoice_number");
+
+  // Estimated delivery date
+  const deliveryDelayDays = quote.delivery_delay_days ? Number(quote.delivery_delay_days) : null;
+  const estimatedDeliveryDate = deliveryDelayDays
+    ? new Date(now + deliveryDelayDays * 86_400_000).toISOString().split("T")[0]
+    : null;
 
   const { data: order, error: oErr } = await supabase
     .from("orders")
@@ -192,24 +252,43 @@ async function autoCreateOrder(quoteRequestId: string) {
       quantity: quote.quantity,
       unit_price: quote.unit_price,
       total_amount: totalAmount,
-      client_email: quote.client_email,
-      client_name: quote.client_first_name || "",
+      client_email: quote.email,
+      client_user_id: quote.client_user_id || null,
       status: "pending_deposit",
       deposit_percent: depositPercent,
       deposit_amount: depositAmount,
-      balance_amount: totalAmount - depositAmount,
+      deposit_due_date: depositDueDate,
+      balance_amount: balanceAmount,
+      balance_due_date: balanceDueDate,
+      payment_reference: paymentReference || null,
+      invoice_number: invoiceNumber || null,
       commission_rate: commissionRate,
       commission_amount: commissionAmount,
+      tva_rate: quote.tva_rate != null ? Number(quote.tva_rate) : null,
+      delivery_delay_days: deliveryDelayDays,
+      estimated_delivery_date: estimatedDeliveryDate,
+      delivery_conditions: quote.delivery_conditions || null,
+      payment_conditions: quote.payment_conditions || null,
+      partner_conditions: quote.partner_conditions || null,
+      payment_method: "bank_transfer",
     })
     .select("id")
     .single();
 
   if (oErr) return { error: oErr.message };
 
+  // Insert order_event
+  await supabase.from("order_events").insert({
+    order_id: order.id,
+    event_type: "order_created",
+    description: `Order auto-created from quote ${quoteRequestId}. Payment ref: ${paymentReference || "N/A"}`,
+    actor: "system",
+  });
+
   // Notify client
-  if (quote.client_email) {
+  if (quote.email) {
     await sendEmail(
-      quote.client_email,
+      quote.email,
       "Terrassea — Votre commande a été créée",
       `<p>Bonjour${quote.client_first_name ? ` ${quote.client_first_name}` : ""},</p><p>Suite à l'acceptation de votre devis, votre commande a été créée. Un acompte de ${depositPercent}% (€${depositAmount.toLocaleString()}) est attendu pour lancer la production.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
       `Bonjour, suite à l'acceptation de votre devis, votre commande a été créée. Un acompte de ${depositPercent}% (€${depositAmount}) est attendu pour lancer la production.`
@@ -263,7 +342,7 @@ async function reminderClient7d() {
 
   const { data: quotes } = await supabase
     .from("quote_requests")
-    .select("id, product_name, client_email, client_first_name, replied_at")
+    .select("id, product_name, email, client_first_name, replied_at")
     .eq("status", "replied")
     .lt("replied_at", cutoff)
     .is("signed_at", null);
@@ -272,9 +351,9 @@ async function reminderClient7d() {
 
   let sent = 0;
   for (const q of quotes) {
-    if (q.client_email) {
+    if (q.email) {
       await sendEmail(
-        q.client_email,
+        q.email,
         "Terrassea — Votre devis attend votre validation",
         `<p>Bonjour${q.client_first_name ? ` ${q.client_first_name}` : ""},</p><p>Votre devis pour <strong>${q.product_name}</strong> est en attente de validation depuis 7 jours. N'hésitez pas à vous connecter pour le consulter et le valider.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
         `Bonjour, votre devis pour ${q.product_name} est en attente de validation depuis 7 jours. Connectez-vous pour le consulter.`
@@ -298,7 +377,7 @@ async function reminderExpiry3d() {
 
   const { data: quotes } = await supabase
     .from("quote_requests")
-    .select("id, product_name, client_email, client_first_name, validity_expires_at")
+    .select("id, product_name, email, client_first_name, validity_expires_at")
     .eq("status", "replied")
     .is("signed_at", null)
     .gt("validity_expires_at", now.toISOString())
@@ -308,10 +387,10 @@ async function reminderExpiry3d() {
 
   let sent = 0;
   for (const q of quotes) {
-    if (q.client_email) {
+    if (q.email) {
       const expiryDate = new Date(q.validity_expires_at!).toLocaleDateString("fr-FR");
       await sendEmail(
-        q.client_email,
+        q.email,
         "Terrassea — Votre devis expire bientôt",
         `<p>Bonjour${q.client_first_name ? ` ${q.client_first_name}` : ""},</p><p>Votre devis pour <strong>${q.product_name}</strong> expire le <strong>${expiryDate}</strong>. Pensez à le valider avant cette date.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
         `Bonjour, votre devis pour ${q.product_name} expire le ${expiryDate}. Pensez à le valider avant cette date.`

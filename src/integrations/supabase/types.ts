@@ -80,6 +80,144 @@ export type Database = {
         }
         Relationships: []
       }
+      architect_prospects: {
+        Row: {
+          analyst_profile: Json | null
+          analyst_score: number | null
+          city: string | null
+          company_id: string
+          company_name: string
+          competitive_intel: string | null
+          contacts: Json
+          conversion_date: string | null
+          conversion_type: string | null
+          converted: boolean | null
+          country: string | null
+          created_at: string | null
+          current_contact_email: string | null
+          current_contact_name: string | null
+          digital_maturity: string | null
+          emails_sent: number | null
+          first_contact_date: string | null
+          furniture_brands: string[] | null
+          generic_email: string | null
+          has_replied: boolean | null
+          hooks_reserved: Json | null
+          id: string
+          instagram: string | null
+          language: string | null
+          last_contact_date: string | null
+          last_gmail_message_id: string | null
+          last_subject_line: string | null
+          next_action_date: string | null
+          next_action_type: string | null
+          notes: string | null
+          outdoor_status: string | null
+          profile_type: string | null
+          project_scale: string | null
+          reply_date: string | null
+          reply_from: string | null
+          reply_sentiment: string | null
+          reply_summary: string | null
+          scout_score: number | null
+          segment: string | null
+          status: string | null
+          total_contacts_tried: number | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          analyst_profile?: Json | null
+          analyst_score?: number | null
+          city?: string | null
+          company_id: string
+          company_name: string
+          competitive_intel?: string | null
+          contacts?: Json
+          conversion_date?: string | null
+          conversion_type?: string | null
+          converted?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          current_contact_email?: string | null
+          current_contact_name?: string | null
+          digital_maturity?: string | null
+          emails_sent?: number | null
+          first_contact_date?: string | null
+          furniture_brands?: string[] | null
+          generic_email?: string | null
+          has_replied?: boolean | null
+          hooks_reserved?: Json | null
+          id?: string
+          instagram?: string | null
+          language?: string | null
+          last_contact_date?: string | null
+          last_gmail_message_id?: string | null
+          last_subject_line?: string | null
+          next_action_date?: string | null
+          next_action_type?: string | null
+          notes?: string | null
+          outdoor_status?: string | null
+          profile_type?: string | null
+          project_scale?: string | null
+          reply_date?: string | null
+          reply_from?: string | null
+          reply_sentiment?: string | null
+          reply_summary?: string | null
+          scout_score?: number | null
+          segment?: string | null
+          status?: string | null
+          total_contacts_tried?: number | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          analyst_profile?: Json | null
+          analyst_score?: number | null
+          city?: string | null
+          company_id?: string
+          company_name?: string
+          competitive_intel?: string | null
+          contacts?: Json
+          conversion_date?: string | null
+          conversion_type?: string | null
+          converted?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          current_contact_email?: string | null
+          current_contact_name?: string | null
+          digital_maturity?: string | null
+          emails_sent?: number | null
+          first_contact_date?: string | null
+          furniture_brands?: string[] | null
+          generic_email?: string | null
+          has_replied?: boolean | null
+          hooks_reserved?: Json | null
+          id?: string
+          instagram?: string | null
+          language?: string | null
+          last_contact_date?: string | null
+          last_gmail_message_id?: string | null
+          last_subject_line?: string | null
+          next_action_date?: string | null
+          next_action_type?: string | null
+          notes?: string | null
+          outdoor_status?: string | null
+          profile_type?: string | null
+          project_scale?: string | null
+          reply_date?: string | null
+          reply_from?: string | null
+          reply_sentiment?: string | null
+          reply_summary?: string | null
+          scout_score?: number | null
+          segment?: string | null
+          status?: string | null
+          total_contacts_tried?: number | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       board_items: {
         Row: {
           board_id: string
@@ -212,6 +350,153 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      brand_prospects: {
+        Row: {
+          analyst_profile: Json | null
+          analyst_score: number | null
+          brand_type: string | null
+          city: string | null
+          company_id: string
+          company_name: string
+          competitive_intel: string | null
+          contacts: Json
+          conversion_date: string | null
+          conversion_type: string | null
+          converted: boolean | null
+          country: string | null
+          created_at: string | null
+          current_contact_email: string | null
+          current_contact_name: string | null
+          emails_sent: number | null
+          first_contact_date: string | null
+          generic_email: string | null
+          has_chr_focus: boolean | null
+          has_outdoor: boolean | null
+          has_replied: boolean | null
+          hooks_reserved: Json | null
+          id: string
+          instagram: string | null
+          language: string | null
+          last_contact_date: string | null
+          last_gmail_message_id: string | null
+          last_gmail_thread_id: string | null
+          last_subject_line: string | null
+          met_at_event: string | null
+          next_action_date: string | null
+          next_action_type: string | null
+          notes: string | null
+          price_segment: string | null
+          product_categories: string[] | null
+          reply_date: string | null
+          reply_from: string | null
+          reply_sentiment: string | null
+          reply_summary: string | null
+          scout_score: number | null
+          signature_materials: string[] | null
+          status: string | null
+          target_plan: string | null
+          total_contacts_tried: number | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          analyst_profile?: Json | null
+          analyst_score?: number | null
+          brand_type?: string | null
+          city?: string | null
+          company_id: string
+          company_name: string
+          competitive_intel?: string | null
+          contacts?: Json
+          conversion_date?: string | null
+          conversion_type?: string | null
+          converted?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          current_contact_email?: string | null
+          current_contact_name?: string | null
+          emails_sent?: number | null
+          first_contact_date?: string | null
+          generic_email?: string | null
+          has_chr_focus?: boolean | null
+          has_outdoor?: boolean | null
+          has_replied?: boolean | null
+          hooks_reserved?: Json | null
+          id?: string
+          instagram?: string | null
+          language?: string | null
+          last_contact_date?: string | null
+          last_gmail_message_id?: string | null
+          last_gmail_thread_id?: string | null
+          last_subject_line?: string | null
+          met_at_event?: string | null
+          next_action_date?: string | null
+          next_action_type?: string | null
+          notes?: string | null
+          price_segment?: string | null
+          product_categories?: string[] | null
+          reply_date?: string | null
+          reply_from?: string | null
+          reply_sentiment?: string | null
+          reply_summary?: string | null
+          scout_score?: number | null
+          signature_materials?: string[] | null
+          status?: string | null
+          target_plan?: string | null
+          total_contacts_tried?: number | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          analyst_profile?: Json | null
+          analyst_score?: number | null
+          brand_type?: string | null
+          city?: string | null
+          company_id?: string
+          company_name?: string
+          competitive_intel?: string | null
+          contacts?: Json
+          conversion_date?: string | null
+          conversion_type?: string | null
+          converted?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          current_contact_email?: string | null
+          current_contact_name?: string | null
+          emails_sent?: number | null
+          first_contact_date?: string | null
+          generic_email?: string | null
+          has_chr_focus?: boolean | null
+          has_outdoor?: boolean | null
+          has_replied?: boolean | null
+          hooks_reserved?: Json | null
+          id?: string
+          instagram?: string | null
+          language?: string | null
+          last_contact_date?: string | null
+          last_gmail_message_id?: string | null
+          last_gmail_thread_id?: string | null
+          last_subject_line?: string | null
+          met_at_event?: string | null
+          next_action_date?: string | null
+          next_action_type?: string | null
+          notes?: string | null
+          price_segment?: string | null
+          product_categories?: string[] | null
+          reply_date?: string | null
+          reply_from?: string | null
+          reply_sentiment?: string | null
+          reply_summary?: string | null
+          scout_score?: number | null
+          signature_materials?: string[] | null
+          status?: string | null
+          target_plan?: string | null
+          total_contacts_tried?: number | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
       }
       brand_references: {
         Row: {
@@ -446,6 +731,159 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      distributor_prospects: {
+        Row: {
+          analyst_profile: Json | null
+          analyst_score: number | null
+          brands_carried: string[] | null
+          city: string | null
+          company_id: string
+          company_name: string
+          competitive_intel: string | null
+          contacts: Json
+          conversion_date: string | null
+          conversion_type: string | null
+          converted: boolean | null
+          country: string | null
+          created_at: string | null
+          current_contact_email: string | null
+          current_contact_name: string | null
+          digital_maturity: string | null
+          distributor_type: string | null
+          emails_sent: number | null
+          estimated_size: string | null
+          first_contact_date: string | null
+          generic_email: string | null
+          geographic_coverage: string[] | null
+          has_ecommerce: boolean | null
+          has_replied: boolean | null
+          has_showroom: boolean | null
+          hooks_reserved: Json | null
+          id: string
+          instagram: string | null
+          language: string | null
+          last_contact_date: string | null
+          last_gmail_message_id: string | null
+          last_subject_line: string | null
+          next_action_date: string | null
+          next_action_type: string | null
+          notes: string | null
+          product_categories: string[] | null
+          reply_date: string | null
+          reply_from: string | null
+          reply_sentiment: string | null
+          reply_summary: string | null
+          scout_score: number | null
+          segment: string | null
+          showroom_locations: string | null
+          status: string | null
+          targets_chr: boolean | null
+          total_contacts_tried: number | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          analyst_profile?: Json | null
+          analyst_score?: number | null
+          brands_carried?: string[] | null
+          city?: string | null
+          company_id: string
+          company_name: string
+          competitive_intel?: string | null
+          contacts?: Json
+          conversion_date?: string | null
+          conversion_type?: string | null
+          converted?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          current_contact_email?: string | null
+          current_contact_name?: string | null
+          digital_maturity?: string | null
+          distributor_type?: string | null
+          emails_sent?: number | null
+          estimated_size?: string | null
+          first_contact_date?: string | null
+          generic_email?: string | null
+          geographic_coverage?: string[] | null
+          has_ecommerce?: boolean | null
+          has_replied?: boolean | null
+          has_showroom?: boolean | null
+          hooks_reserved?: Json | null
+          id?: string
+          instagram?: string | null
+          language?: string | null
+          last_contact_date?: string | null
+          last_gmail_message_id?: string | null
+          last_subject_line?: string | null
+          next_action_date?: string | null
+          next_action_type?: string | null
+          notes?: string | null
+          product_categories?: string[] | null
+          reply_date?: string | null
+          reply_from?: string | null
+          reply_sentiment?: string | null
+          reply_summary?: string | null
+          scout_score?: number | null
+          segment?: string | null
+          showroom_locations?: string | null
+          status?: string | null
+          targets_chr?: boolean | null
+          total_contacts_tried?: number | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          analyst_profile?: Json | null
+          analyst_score?: number | null
+          brands_carried?: string[] | null
+          city?: string | null
+          company_id?: string
+          company_name?: string
+          competitive_intel?: string | null
+          contacts?: Json
+          conversion_date?: string | null
+          conversion_type?: string | null
+          converted?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          current_contact_email?: string | null
+          current_contact_name?: string | null
+          digital_maturity?: string | null
+          distributor_type?: string | null
+          emails_sent?: number | null
+          estimated_size?: string | null
+          first_contact_date?: string | null
+          generic_email?: string | null
+          geographic_coverage?: string[] | null
+          has_ecommerce?: boolean | null
+          has_replied?: boolean | null
+          has_showroom?: boolean | null
+          hooks_reserved?: Json | null
+          id?: string
+          instagram?: string | null
+          language?: string | null
+          last_contact_date?: string | null
+          last_gmail_message_id?: string | null
+          last_subject_line?: string | null
+          next_action_date?: string | null
+          next_action_type?: string | null
+          notes?: string | null
+          product_categories?: string[] | null
+          reply_date?: string | null
+          reply_from?: string | null
+          reply_sentiment?: string | null
+          reply_summary?: string | null
+          scout_score?: number | null
+          segment?: string | null
+          showroom_locations?: string | null
+          status?: string | null
+          targets_chr?: boolean | null
+          total_contacts_tried?: number | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
       }
       financing_requests: {
         Row: {
@@ -727,7 +1165,6 @@ export type Database = {
           deposit_paid_at: string | null
           deposit_payment_ref: string | null
           deposit_percent: number | null
-          deposit_percentage: number | null
           dispute_reason: string | null
           dispute_resolved_at: string | null
           estimated_delivery_date: string | null
@@ -790,7 +1227,6 @@ export type Database = {
           deposit_paid_at?: string | null
           deposit_payment_ref?: string | null
           deposit_percent?: number | null
-          deposit_percentage?: number | null
           dispute_reason?: string | null
           dispute_resolved_at?: string | null
           estimated_delivery_date?: string | null
@@ -853,7 +1289,6 @@ export type Database = {
           deposit_paid_at?: string | null
           deposit_payment_ref?: string | null
           deposit_percent?: number | null
-          deposit_percentage?: number | null
           dispute_reason?: string | null
           dispute_resolved_at?: string | null
           estimated_delivery_date?: string | null
@@ -1269,7 +1704,14 @@ export type Database = {
             foreignKeyName: "partner_commissions_quote_request_id_fkey"
             columns: ["quote_request_id"]
             isOneToOne: false
-            referencedRelation: "project_requests"
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_commissions_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests_supplier_view"
             referencedColumns: ["id"]
           },
         ]
@@ -2252,6 +2694,80 @@ export type Database = {
           },
         ]
       }
+      product_reviews: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_verified_purchase: boolean | null
+          order_id: string | null
+          product_id: string
+          quote_request_id: string | null
+          rating: number
+          review: string | null
+          status: string
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_verified_purchase?: boolean | null
+          order_id?: string | null
+          product_id: string
+          quote_request_id?: string | null
+          rating: number
+          review?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_verified_purchase?: boolean | null
+          order_id?: string | null
+          product_id?: string
+          quote_request_id?: string | null
+          rating?: number
+          review?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests_supplier_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_submissions: {
         Row: {
           admin_feedback: Json | null
@@ -3153,6 +3669,7 @@ export type Database = {
           fit_status: string | null
           id: string
           last_name: string | null
+          last_reminder_sent_at: string | null
           latest_pdf_path: string | null
           message: string | null
           offer_id: string | null
@@ -3193,6 +3710,7 @@ export type Database = {
           fit_status?: string | null
           id?: string
           last_name?: string | null
+          last_reminder_sent_at?: string | null
           latest_pdf_path?: string | null
           message?: string | null
           offer_id?: string | null
@@ -3233,6 +3751,7 @@ export type Database = {
           fit_status?: string | null
           id?: string
           last_name?: string | null
+          last_reminder_sent_at?: string | null
           latest_pdf_path?: string | null
           message?: string | null
           offer_id?: string | null
@@ -3288,6 +3807,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      salone_2026_visits: {
+        Row: {
+          brand_id: string
+          id: string
+          mail: string | null
+          nom: string | null
+          notes: string | null
+          poste: string | null
+          prenom: string | null
+          rdv: boolean | null
+          updated_at: string | null
+          visited: boolean | null
+        }
+        Insert: {
+          brand_id: string
+          id?: string
+          mail?: string | null
+          nom?: string | null
+          notes?: string | null
+          poste?: string | null
+          prenom?: string | null
+          rdv?: boolean | null
+          updated_at?: string | null
+          visited?: boolean | null
+        }
+        Update: {
+          brand_id?: string
+          id?: string
+          mail?: string | null
+          nom?: string | null
+          notes?: string | null
+          poste?: string | null
+          prenom?: string | null
+          rdv?: boolean | null
+          updated_at?: string | null
+          visited?: boolean | null
+        }
+        Relationships: []
       }
       saved_carts: {
         Row: {
@@ -3724,6 +4282,27 @@ export type Database = {
           },
         ]
       }
+      product_review_stats: {
+        Row: {
+          avg_rating: number | null
+          product_id: string | null
+          review_count: number | null
+          stars_1: number | null
+          stars_2: number | null
+          stars_3: number | null
+          stars_4: number | null
+          stars_5: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_requests_supplier_view: {
         Row: {
           client_display_name: string | null
@@ -3786,6 +4365,17 @@ export type Database = {
       }
     }
     Functions: {
+      create_notification: {
+        Args: {
+          p_body: string
+          p_link?: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      expire_overdue_quotes: { Args: never; Returns: number }
       fuzzy_search_products: {
         Args: {
           category_filter?: string
@@ -3888,6 +4478,8 @@ export type Database = {
       generate_partner_slug: { Args: { company: string }; Returns: string }
       invoke_scheduled_tasks: { Args: never; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
+      next_invoice_number: { Args: never; Returns: string }
+      next_payment_reference: { Args: never; Returns: string }
       reserve_preorder: {
         Args: {
           p_arrival_item_id: string
@@ -3916,8 +4508,6 @@ export type Database = {
           relevance_score: number
         }[]
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       [_ in never]: never
@@ -4050,4 +4640,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

@@ -308,24 +308,24 @@ const ProjectCart = () => {
           }
         }
 
-        // Skip quote_request creation if no valid partner could be found
+        // Create quote_request even without a partner — auto-workflow will assign one
         if (!partnerId) {
-          console.warn("No partner found for product", product.name, "— skipping quote_request");
-          continue;
+          console.warn("No partner found for product", product.name, "— will rely on auto-assign");
         }
 
         try {
-          await supabase.from("quote_requests").insert({
+          const { data: insertedQR } = await supabase.from("quote_requests").insert({
             project_request_id: pr.id,
             product_id: product.id,
             product_name: product.name,
             offer_id: offerId,
-            partner_id: partnerId,
-            partner_name: partnerName,
+            partner_id: partnerId || null,
+            partner_name: partnerName || null,
             quantity: item.quantity,
             first_name: formData.name.split(" ")[0],
             last_name: formData.name.split(" ").slice(1).join(" ") || null,
             email: formData.email,
+            phone: formData.phone || null,
             company: formData.company || sirenResult?.companyName || null,
             siren: formData.siren,
             client_first_name: formData.name.split(" ")[0],
@@ -336,7 +336,14 @@ const ProjectCart = () => {
             total_price: unitPrice ? unitPrice * item.quantity : null,
             status: "pending",
             selected_dimension_tag: item.selectedDimension || null,
-          });
+          }).select("id").single();
+
+          // Trigger auto-assign for quotes without a pre-assigned partner
+          if (insertedQR?.id && !partnerId) {
+            supabase.functions.invoke("auto-workflow", {
+              body: { action: "auto_assign_partner", quoteRequestId: insertedQR.id },
+            }).catch((err) => console.error("auto-assign failed:", err));
+          }
         } catch (err) {
           console.error("Failed to create quote_request for", product.name, err);
         }

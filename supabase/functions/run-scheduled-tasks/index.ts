@@ -35,22 +35,29 @@ serve(async (req) => {
         "reminder_client_7d",
         "reminder_expiry_3d",
         "auto_create_order",
+        "auto_expire_quotes",
       ]);
 
     const flags: Record<string, boolean> = {};
-    (settings || []).forEach((s: any) => { flags[s.key] = s.value === true; });
+    (settings || []).forEach((s: any) => {
+      // Handle both boolean true and string "true" from JSONB
+      flags[s.key] = s.value === true || s.value === "true";
+    });
 
     const results: Record<string, any> = {};
 
     // ── 1. Reminder: Partner 48h (pending quotes without response) ──
     if (flags.reminder_partner_48h) {
       const cutoff = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
+      // Only send if no reminder was sent in the last 24h (deduplication)
+      const reminderCutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
       const { data: staleQuotes } = await supabase
         .from("quote_requests")
         .select("id, product_name, partner_id, partners!quote_requests_partner_id_fkey(contact_email, name)")
         .eq("status", "pending")
         .lt("created_at", cutoff)
-        .not("partner_id", "is", null);
+        .not("partner_id", "is", null)
+        .or(`last_reminder_sent_at.is.null,last_reminder_sent_at.lt.${reminderCutoff}`);
 
       let sent = 0;
       for (const q of staleQuotes || []) {
@@ -65,6 +72,8 @@ serve(async (req) => {
               body_text: `Bonjour ${partner.name}, vous avez une demande de devis en attente pour ${q.product_name} depuis plus de 48h. Connectez-vous à votre espace partenaire pour y répondre.`,
             },
           });
+          // Mark reminder sent
+          await supabase.from("quote_requests").update({ last_reminder_sent_at: new Date().toISOString() }).eq("id", q.id);
           sent++;
         } catch (e) { console.error("[scheduled-task] Error:", e); }
       }
@@ -132,40 +141,41 @@ serve(async (req) => {
       results.reminder_expiry_3d = { checked: (expiring || []).length, sent };
     }
 
-    // ── 4. Auto-create orders for accepted quotes without orders ──
-    if (flags.auto_create_order) {
-      const { data: acceptedQuotes } = await supabase
-        .from("quote_requests")
-        .select("id")
-        .eq("status", "accepted")
-        .not("id", "in", `(SELECT quote_request_id FROM orders WHERE quote_request_id IS NOT NULL)`);
+    // ── 4. Auto-expire overdue quotes ──
+    if (flags.auto_expire_quotes !== false) {
+      // Always run expiration unless explicitly disabled
+      try {
+        const { data: expiredCount } = await supabase.rpc("expire_overdue_quotes");
+        results.auto_expire_quotes = { expired: expiredCount ?? 0 };
+      } catch (e) {
+        console.error("[scheduled-task] expire_overdue_quotes error:", e);
+        results.auto_expire_quotes = { error: String(e) };
+      }
+    }
 
-      // Use RPC-style: find accepted quotes that don't have orders yet
-      const { data: noOrderQuotes } = await supabase.rpc("get_accepted_quotes_without_orders");
+    // ── 5. Auto-create orders for accepted/signed quotes without orders ──
+    if (flags.auto_create_order) {
+      const { data: accepted } = await supabase
+        .from("quote_requests")
+        .select("id, total_price")
+        .in("status", ["accepted", "signed"]);
 
       let created = 0;
-      // Fallback: query accepted quotes and check orders manually
-      if (!noOrderQuotes) {
-        const { data: accepted } = await supabase
-          .from("quote_requests")
-          .select("id, total_price")
-          .eq("status", "accepted");
+      for (const q of accepted || []) {
+        // Check if order already exists for this quote
+        const { data: existingOrder } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("quote_request_id", q.id)
+          .maybeSingle();
 
-        for (const q of accepted || []) {
-          const { data: existingOrder } = await supabase
-            .from("orders")
-            .select("id")
-            .eq("quote_request_id", q.id)
-            .maybeSingle();
-
-          if (!existingOrder && q.total_price) {
-            try {
-              await supabase.functions.invoke("auto-workflow", {
-                body: { action: "auto_create_order", quoteRequestId: q.id },
-              });
-              created++;
-            } catch (e) { console.error("[scheduled-task] Error:", e); }
-          }
+        if (!existingOrder && q.total_price) {
+          try {
+            await supabase.functions.invoke("auto-workflow", {
+              body: { action: "auto_create_order", quoteRequestId: q.id },
+            });
+            created++;
+          } catch (e) { console.error("[scheduled-task] Error:", e); }
         }
       }
       results.auto_create_order = { created };
@@ -177,7 +187,7 @@ serve(async (req) => {
     );
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: String(err) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }

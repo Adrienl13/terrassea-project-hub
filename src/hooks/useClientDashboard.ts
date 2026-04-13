@@ -169,12 +169,20 @@ async function fetchClientProjects(userEmail: string, userId?: string): Promise<
 
 // ── Fetch quotes ───────────────────────────────────────────────────────────────
 
-async function fetchClientQuotes(userEmail: string): Promise<ClientQuote[]> {
-  const { data: quotes, error } = await supabase
+async function fetchClientQuotes(userEmail: string, userId?: string): Promise<ClientQuote[]> {
+  let query = supabase
     .from("quote_requests")
     .select("*, project:project_request_id(project_name), order:orders!quote_request_id(deposit_paid_at), product:product_id(image_url, category)")
-    .eq("email", userEmail)
     .order("created_at", { ascending: false });
+
+  // Match by email OR client_user_id to catch all quotes
+  if (userId) {
+    query = query.or(`email.eq.${userEmail},client_user_id.eq.${userId}`);
+  } else {
+    query = query.eq("email", userEmail);
+  }
+
+  const { data: quotes, error } = await query;
 
   if (error || !quotes) return [];
 
@@ -223,12 +231,13 @@ export function useClientProjects() {
 }
 
 export function useClientQuotes() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const email = profile?.email;
+  const userId = user?.id;
 
   return useQuery({
-    queryKey: ["client-quotes", email],
-    queryFn: () => fetchClientQuotes(email!),
+    queryKey: ["client-quotes", email, userId],
+    queryFn: () => fetchClientQuotes(email!, userId),
     enabled: !!email,
   });
 }

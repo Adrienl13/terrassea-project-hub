@@ -144,9 +144,9 @@ export function usePaymentFlow() {
       const depositAmount = Math.round((totalPrice * paymentSettings.depositPercent) / 100 * 100) / 100;
       const balanceAmount = Math.round((totalPrice - depositAmount) * 100) / 100;
 
-      // 3. Generate references
-      const paymentReference = generatePaymentReference();
-      const invoiceNumber = generateInvoiceNumber();
+      // 3. Generate references (sequential via DB)
+      const paymentReference = await generatePaymentReference();
+      const invoiceNumber = await generateInvoiceNumber();
 
       // Due dates
       const now = new Date();

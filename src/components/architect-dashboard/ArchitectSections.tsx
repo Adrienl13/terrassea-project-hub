@@ -144,11 +144,22 @@ interface ArchitectQuote {
   amount: number;
   dateSent: string;
   dateReply?: string;
-  status: "pending" | "replied" | "accepted" | "expired" | "declined";
+  status: "pending" | "replied" | "accepted" | "signed" | "expired" | "declined";
   validUntil?: string;
   supplierMessage?: string;
   products: QuoteProduct[];
   attachments?: string[];
+  // Extra fields for RecapCard and PDF
+  unitPrice?: number | null;
+  totalAmount?: number | null;
+  tvaRate?: number | null;
+  deliveryDelayDays?: number | null;
+  deliveryConditions?: string | null;
+  paymentConditions?: string | null;
+  validityDays?: number | null;
+  validityExpiresAt?: string | null;
+  partnerConditions?: string | null;
+  pdfPath?: string | null;
 }
 
 interface ResponseProduct {
@@ -256,6 +267,7 @@ const QUOTE_STATUS_STYLES: Record<string, { labelKey: string; style: string }> =
   pending:  { labelKey: "ad.quoteStatus.pending",   style: "bg-amber-50 text-amber-700" },
   replied:  { labelKey: "ad.quoteStatus.replied",   style: "bg-blue-50 text-blue-700" },
   accepted: { labelKey: "ad.quoteStatus.accepted",  style: "bg-green-50 text-green-700" },
+  signed:   { labelKey: "ad.quoteStatus.signed",    style: "bg-emerald-50 text-emerald-700" },
   expired:  { labelKey: "ad.quoteStatus.expired",   style: "bg-muted text-muted-foreground" },
   declined: { labelKey: "ad.quoteStatus.declined",  style: "bg-red-50 text-red-700" },
 };
@@ -1218,11 +1230,17 @@ export function ArchitectProjectsSection({
 // ── QUOTE DETAIL VIEW ───────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
+const QuoteRecapCard = lazy(() => import("@/components/quotes/QuoteRecapCard"));
+const QuotePdfAccessSection = lazy(() => import("@/components/quotes/QuotePdfAccessSection"));
+
 function QuoteDetail({ quote, onBack }: { quote: ArchitectQuote; onBack: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const qst = QUOTE_STATUS_STYLES[quote.status];
+  const [showSignConfirm, setShowSignConfirm] = useState(false);
+  const [signing, setSigning] = useState(false);
 
   const handleAccept = async () => {
     const { error } = await supabase
@@ -1234,14 +1252,41 @@ function QuoteDetail({ quote, onBack }: { quote: ArchitectQuote; onBack: () => v
     } else {
       toast.success(t('ad.quoteDetail.acceptSuccess', 'Quote accepted'));
       queryClient.invalidateQueries({ queryKey: ["architect-quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["client-quotes"] });
+
+      // Auto-create order (non-blocking)
+      supabase.functions.invoke("auto-workflow", {
+        body: { action: "auto_create_order", quoteRequestId: quote.id },
+      }).catch((err) => console.error("auto_create_order failed:", err));
+
       onBack();
+    }
+  };
+
+  const handleSign = async () => {
+    setSigning(true);
+    try {
+      const { signQuoteRequest } = await import("@/lib/quoteDocuments");
+      if (user?.id) {
+        await signQuoteRequest({ quoteRequestId: quote.id, signedBy: user.id, provider: "platform" });
+      }
+      toast.success(t('ad.quoteDetail.signSuccess', 'Quote signed'));
+      queryClient.invalidateQueries({ queryKey: ["architect-quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["client-quotes"] });
+      setShowSignConfirm(false);
+      onBack();
+    } catch (e) {
+      console.error("Sign failed:", e);
+      toast.error(t('ad.quoteDetail.signError', 'Failed to sign quote'));
+    } finally {
+      setSigning(false);
     }
   };
 
   const handleDecline = async () => {
     const { error } = await supabase
       .from("quote_requests")
-      .update({ status: "declined" })
+      .update({ status: "cancelled" })
       .eq("id", quote.id);
     if (error) {
       toast.error(t('ad.quoteDetail.declineError', 'Failed to decline quote'));
@@ -1269,11 +1314,37 @@ function QuoteDetail({ quote, onBack }: { quote: ArchitectQuote; onBack: () => v
 
       {/* Key info */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard value={`€${quote.amount.toLocaleString()}`} label={t('ad.quoteDetail.totalAmount')} icon={TrendingUp} />
+        <StatCard value={quote.amount ? `€${quote.amount.toLocaleString()}` : "—"} label={t('ad.quoteDetail.totalAmount')} icon={TrendingUp} />
         <StatCard value={`${quote.products.length}`} label={t('ad.quoteDetail.products')} icon={FolderOpen} />
         <StatCard value={quote.dateSent} label={t('ad.quoteDetail.sentDate')} icon={Send} />
         <StatCard value={quote.validUntil || "—"} label={t('ad.quoteDetail.validUntil')} icon={Calendar} />
       </div>
+
+      {/* Structured recap card */}
+      {(quote.unitPrice || quote.totalAmount) && (
+        <Suspense fallback={<div className="h-32 animate-pulse bg-card rounded-xl" />}>
+          <QuoteRecapCard quote={{
+            productName: quote.productSummary,
+            quantity: quote.products[0]?.qty || 0,
+            unitPrice: quote.unitPrice ?? null,
+            totalPrice: quote.totalAmount ?? null,
+            tvaRate: quote.tvaRate ?? null,
+            deliveryDelayDays: quote.deliveryDelayDays ?? null,
+            deliveryConditions: quote.deliveryConditions ?? null,
+            paymentConditions: quote.paymentConditions ?? null,
+            validityDays: quote.validityDays ?? null,
+            validityExpiresAt: quote.validityExpiresAt ?? null,
+            partnerConditions: quote.partnerConditions ?? null,
+          }} />
+        </Suspense>
+      )}
+
+      {/* PDF access */}
+      {quote.pdfPath && (
+        <Suspense fallback={<div className="h-16 animate-pulse bg-card rounded-xl" />}>
+          <QuotePdfAccessSection quoteRequestId={quote.id} status={quote.status} />
+        </Suspense>
+      )}
 
       {/* Supplier message */}
       {quote.supplierMessage && (
@@ -1304,48 +1375,62 @@ function QuoteDetail({ quote, onBack }: { quote: ArchitectQuote; onBack: () => v
                 <tr key={i} className={i % 2 === 0 ? "" : "bg-muted/20"}>
                   <td className="px-4 py-2.5 text-[11px] font-body text-foreground">{prod.name}</td>
                   <td className="px-2 py-2.5 text-[11px] font-body text-foreground text-center">{prod.qty}</td>
-                  <td className="px-2 py-2.5 text-[11px] font-body text-muted-foreground text-right">€{prod.unitPrice.toLocaleString()}</td>
-                  <td className="px-4 py-2.5 text-[11px] font-display font-semibold text-foreground text-right">€{prod.total.toLocaleString()}</td>
+                  <td className="px-2 py-2.5 text-[11px] font-body text-muted-foreground text-right">{prod.unitPrice ? `€${prod.unitPrice.toLocaleString()}` : "—"}</td>
+                  <td className="px-4 py-2.5 text-[11px] font-display font-semibold text-foreground text-right">{prod.total ? `€${prod.total.toLocaleString()}` : "—"}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-border bg-muted/30">
                 <td colSpan={3} className="px-4 py-2.5 text-xs font-display font-bold text-foreground text-right">{t('ad.quoteDetail.total')}</td>
-                <td className="px-4 py-2.5 text-xs font-display font-bold text-foreground text-right">€{quote.amount.toLocaleString()}</td>
+                <td className="px-4 py-2.5 text-xs font-display font-bold text-foreground text-right">{quote.amount ? `€${quote.amount.toLocaleString()}` : "—"}</td>
               </tr>
             </tfoot>
           </table>
         </div>
       </div>
 
-      {/* Attachments */}
-      {quote.attachments && quote.attachments.length > 0 && (
-        <div>
-          <p className="font-display font-bold text-sm text-foreground mb-3">{t('ad.quoteDetail.attachments')}</p>
-          <div className="space-y-1.5">
-            {quote.attachments.map((file, i) => (
-              <div key={i} className="flex items-center gap-2 px-3 py-2 border border-border rounded-sm hover:border-foreground/20 transition-colors cursor-pointer">
-                <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-[11px] font-body text-foreground">{file}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Actions */}
-      {quote.status === "replied" && (
+      {(quote.status === "replied" || quote.status === "accepted") && (
         <div className="flex items-center gap-3 pt-2">
-          <button onClick={handleAccept} className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
-            <CheckCircle2 className="h-3.5 w-3.5" /> {t('ad.quoteDetail.accept')}
-          </button>
-          <button onClick={() => navigate("/messages")} className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold border border-border text-foreground rounded-full hover:border-foreground transition-colors">
+          {quote.status === "replied" && (
+            <button onClick={handleAccept} className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
+              <CheckCircle2 className="h-3.5 w-3.5" /> {t('ad.quoteDetail.accept')}
+            </button>
+          )}
+          {(quote.status === "replied" || quote.status === "accepted") && (
+            <button onClick={() => setShowSignConfirm(true)} className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold bg-emerald-600 text-white rounded-full hover:opacity-90 transition-opacity">
+              <FileText className="h-3.5 w-3.5" /> {t('ad.quoteDetail.sign', 'Signer le devis')}
+            </button>
+          )}
+          <button onClick={() => navigate("/account?tab=messages")} className="flex items-center gap-2 px-5 py-2.5 text-xs font-display font-semibold border border-border text-foreground rounded-full hover:border-foreground transition-colors">
             <MessageSquare className="h-3.5 w-3.5" /> {t('ad.quoteDetail.negotiate')}
           </button>
           <button onClick={handleDecline} className="text-xs font-body text-muted-foreground hover:text-red-500 transition-colors">
             {t('ad.quoteDetail.decline')}
           </button>
+        </div>
+      )}
+
+      {/* Sign confirmation dialog */}
+      {showSignConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-background border border-border rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 space-y-4">
+            <h3 className="font-display font-bold text-lg text-foreground">{t('ad.quoteDetail.signConfirmTitle', 'Confirmer la signature')}</h3>
+            <p className="text-sm font-body text-muted-foreground">{t('ad.quoteDetail.signConfirmBody', 'En signant ce devis, vous acceptez les conditions proposées par le fournisseur. Cette action est irréversible.')}</p>
+            <div className="border border-border rounded-lg p-3 bg-card">
+              <p className="text-xs font-display font-semibold">{quote.productSummary}</p>
+              <p className="text-xs font-body text-muted-foreground">{quote.amount ? `€${quote.amount.toLocaleString()}` : "—"}</p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setShowSignConfirm(false)} className="flex-1 py-2.5 text-xs font-display font-semibold border border-border rounded-xl hover:border-foreground/30 transition-colors">
+                {t('ad.quoteDetail.cancel', 'Annuler')}
+              </button>
+              <button onClick={handleSign} disabled={signing} className="flex-1 py-2.5 text-sm font-display font-bold bg-emerald-600 text-white rounded-xl hover:opacity-90 transition-opacity disabled:opacity-40">
+                {signing ? "..." : t('ad.quoteDetail.confirmSign', 'Signer')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -1358,18 +1443,25 @@ function QuoteDetail({ quote, onBack }: { quote: ArchitectQuote; onBack: () => v
 
 export function ArchitectQuotesSection({ tier }: { tier: ArchitectTier }) {
   const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [filter, setFilter] = useState<string>("all");
   const [selectedQuote, setSelectedQuote] = useState<string | null>(null);
 
   const { data: dbQuotes = [] } = useQuery({
-    queryKey: ["architect-quotes", profile?.email],
+    queryKey: ["architect-quotes", profile?.email, user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      let query = supabase
         .from("quote_requests")
         .select("*, project:project_request_id(project_name)")
-        .eq("email", profile?.email ?? "")
         .order("created_at", { ascending: false });
+
+      if (user?.id) {
+        query = query.or(`email.eq.${profile?.email ?? ""},client_user_id.eq.${user.id}`);
+      } else {
+        query = query.eq("email", profile?.email ?? "");
+      }
+
+      const { data } = await query;
       return data || [];
     },
     enabled: !!profile?.email,
@@ -1382,9 +1474,10 @@ export function ArchitectQuotesSection({ tier }: { tier: ArchitectTier }) {
       sent: "pending",
       replied: "replied",
       accepted: "accepted",
+      signed: "signed",
       expired: "expired",
       declined: "declined",
-      signed: "accepted",
+      cancelled: "declined",
     };
     return {
       id: row.id,
@@ -1399,6 +1492,17 @@ export function ArchitectQuotesSection({ tier }: { tier: ArchitectTier }) {
       validUntil: row.validity_expires_at ? new Date(row.validity_expires_at).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) : undefined,
       supplierMessage: row.message || undefined,
       products: row.product_name ? [{ name: row.product_name, qty: row.quantity || 1, unitPrice: Number(row.unit_price || 0), total: Number(row.total_price || 0) }] : [],
+      // Extra fields for RecapCard & PDF
+      unitPrice: row.unit_price ? Number(row.unit_price) : null,
+      totalAmount: row.total_price ? Number(row.total_price) : null,
+      tvaRate: row.tva_rate ?? null,
+      deliveryDelayDays: row.delivery_delay_days ?? null,
+      deliveryConditions: row.delivery_conditions ?? null,
+      paymentConditions: row.payment_conditions ?? null,
+      validityDays: row.validity_days ?? null,
+      validityExpiresAt: row.validity_expires_at ?? null,
+      partnerConditions: row.partner_conditions ?? null,
+      pdfPath: row.latest_pdf_path ?? null,
     };
   });
 
@@ -1407,6 +1511,7 @@ export function ArchitectQuotesSection({ tier }: { tier: ArchitectTier }) {
     { id: "pending", label: t('ad.quotes.pending') },
     { id: "replied", label: t('ad.quotes.replied') },
     { id: "accepted", label: t('ad.quotes.accepted') },
+    { id: "signed", label: t('ad.quotes.signed', 'Signé') },
     { id: "expired", label: t('ad.quotes.expired') },
   ];
 

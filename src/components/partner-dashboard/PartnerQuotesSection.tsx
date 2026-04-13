@@ -368,7 +368,21 @@ export function PartnerQuotesSection({ plan }: { plan: PartnerPlan }) {
                             className="flex items-center gap-1.5 px-4 py-2 text-[10px] font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity">
                             <Send className="h-3 w-3" /> {t('pd.quotes.sendProposal', { defaultValue: "Envoyer la proposition" })}
                           </button>
-                          <button onClick={() => { updateStatus({ quoteId: q.id, status: "replied" }); toast.success("Demande acceptée"); setExpandedQuote(null); }}
+                          <button onClick={() => {
+                            const raw = realQuotes.find(r => r.id === q.id);
+                            const existingTotal = raw?.total_price ? Number(raw.total_price) : null;
+                            const existingUnit = raw?.unit_price ? Number(raw.unit_price) : null;
+                            updateStatus({
+                              quoteId: q.id,
+                              status: "replied",
+                              ...(existingUnit != null ? { unitPrice: existingUnit } : {}),
+                              ...(existingTotal != null ? { totalPrice: existingTotal } : {}),
+                              tvaRate: 20,
+                              validityDays: 30,
+                            });
+                            toast.success("Demande acceptée");
+                            setExpandedQuote(null);
+                          }}
                             className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-display font-semibold border border-green-200 text-green-700 rounded-full hover:bg-green-50 transition-colors">
                             <CheckCircle2 className="h-3 w-3" /> {t('pd.quotes.acceptDirect', { defaultValue: "Accepter tel quel" })}
                           </button>

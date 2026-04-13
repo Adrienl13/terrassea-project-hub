@@ -4,6 +4,7 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
 const ADMIN_EMAIL    = Deno.env.get("ADMIN_EMAIL")    || "";
 const FROM_EMAIL     = "Terrassea <noreply@terrassea.com>";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const TRIGGER_SECRET = Deno.env.get("TRIGGER_SECRET") || "terrassea-trigger-secret-change-me";
 
 async function sendEmail(to: string, subject: string, html: string) {
   const res = await fetch("https://api.resend.com/emails", {
@@ -99,9 +100,12 @@ function partnerApprovedEmail(r: any): string {
 }
 
 Deno.serve(async (req) => {
-  // Auth: require service-role key (called by DB webhook)
+  // Auth: accept service-role key OR trigger secret (from DB webhooks via vault)
   const authHeader = req.headers.get("Authorization");
-  if (authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
+  const triggerSecret = req.headers.get("X-Trigger-Secret");
+  const isServiceRole = authHeader === `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
+  const isTrigger = triggerSecret === TRIGGER_SECRET && TRIGGER_SECRET !== "";
+  if (!isServiceRole && !isTrigger) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { "Content-Type": "application/json" },
     });
@@ -123,14 +127,16 @@ Deno.serve(async (req) => {
     }
 
     if (table === "partner_applications" && type === "INSERT") {
+      const applicantEmail = record.email || record.contact_email;
       await Promise.all([
-        record.contact_email && sendEmail(record.contact_email, "Application received — Terrassea Partner Programme", applicationConfirmationClient(record)),
+        applicantEmail && sendEmail(applicantEmail, "Application received — Terrassea Partner Programme", applicationConfirmationClient(record)),
         sendEmail(ADMIN_EMAIL, `🤝 New partner application — ${record.company_name} (${record.country})`, applicationAlertAdmin(record)),
       ]);
     }
 
     if (table === "partner_applications" && type === "UPDATE" && record.status === "approved") {
-      if (record.contact_email) await sendEmail(record.contact_email, "🎉 Your Terrassea partner application is approved", partnerApprovedEmail(record));
+      const applicantEmail = record.email || record.contact_email;
+      if (applicantEmail) await sendEmail(applicantEmail, "🎉 Your Terrassea partner application is approved", partnerApprovedEmail(record));
     }
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
