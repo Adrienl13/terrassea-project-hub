@@ -3341,6 +3341,7 @@
     "badgeFastest": "Más rápido",
     "badgeBestProjectFit": "Mejor ajuste al proyecto",
     "badgeTopRated": "Mejor valorado",
+    "badgeMoqMismatch": "MOQ no coincide",
     "selected": "Seleccionado",
     "selectSupplier": "Seleccionar proveedor",
     "selectForQuote": "Seleccionar para presupuesto",

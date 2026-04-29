@@ -25,6 +25,7 @@ import AdminPartnerVisibility from "@/components/admin/AdminPartnerVisibility";
 import AdminQuoteWorkflow from "@/components/admin/AdminQuoteWorkflow";
 import AdminOrderTracking from "@/components/admin/AdminOrderTracking";
 import AdminAnalyticsDashboard from "@/components/admin/AdminAnalyticsDashboard";
+import AdminConceptAnalytics from "@/components/admin/AdminConceptAnalytics";
 import AdminSettings from "@/components/admin/AdminSettings";
 import AdminRatingsModeration from "@/components/admin/AdminRatingsModeration";
 import AdminProductReviews from "@/components/admin/AdminProductReviews";
@@ -45,7 +46,7 @@ import type { ColorVariant, DimensionVariant } from "@/lib/products";
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "product_reviews" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "product_reviews" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "concept_analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -2097,8 +2098,9 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     label: "INSIGHTS",
     items: [
-      { id: "analytics",   icon: TrendingUp, label: "Analytics" },
-      { id: "pro_service",  icon: Users,      label: "Pro Service" },
+      { id: "analytics",         icon: TrendingUp, label: "Analytics" },
+      { id: "concept_analytics", icon: BarChart3,  label: "Moteur concepts" },
+      { id: "pro_service",       icon: Users,      label: "Pro Service" },
     ],
   },
 ];
@@ -2120,6 +2122,8 @@ const TAB_TITLES: Record<Tab, string> = {
   settings: "Parametres",
   partner_visibility: "Visibilite partenaires",
   analytics: "Analytics",
+  concept_analytics: "Observation du moteur de concepts",
+  product_reviews: "Avis produits",
   pro_service: "Pro Service",
   brands: "Gestion des marques",
   ai_scanner: "AI Scanner",
@@ -2325,6 +2329,7 @@ const Admin = () => {
           {tab === "quotes"       && <AdminQuoteWorkflow />}
           {tab === "orders"       && <AdminOrderTracking />}
           {tab === "analytics"    && <AdminAnalyticsDashboard />}
+          {tab === "concept_analytics" && <AdminConceptAnalytics />}
           {tab === "settings"     && <AdminSettings />}
           {tab === "pro_service"  && <QuoteRequestsTab type="pro" />}
           {tab === "products"     && <ProductsTab />}

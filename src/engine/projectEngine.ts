@@ -1298,17 +1298,24 @@ function computePercentiles(scores: number[]): number[] {
 
 function inferBOMRole(product: DBProduct): BOMSlotRole {
   const cat = (product.category || "").toLowerCase();
+  const sub = (product.subcategory || "").toLowerCase();
+  const ptt: ProductTypeTags = product.product_type_tags || {};
   if (cat.includes("armchair"))    return "armchair";
   if (cat.includes("chair"))       return "chair";
   if (cat.includes("stool"))       return "bar_stool";
+  if (cat.includes("banquette") || sub.includes("banquette")) return "banquette";
   if (cat.includes("sofa") || cat.includes("lounge seating")) return "sofa";
   if (cat.includes("lounger") || cat.includes("daybed"))      return "sun_lounger";
   if (cat.includes("parasol") || cat.includes("shade"))       return "parasol";
+  if (cat.includes("heater") || sub.includes("heater") || cat.includes("chauffage")) return "patio_heater";
   if (cat.includes("bench"))       return "bench";
   if (cat.includes("table")) {
-    const ptt: ProductTypeTags = product.product_type_tags || {};
     if (ptt.table_type === "base-only") return "table_base";
     if (ptt.table_type === "top-only")  return "tabletop";
+    // High-bar / cocktail table → high_table; coffee / low → low_table
+    const heightType = (ptt.height_type || "").toLowerCase();
+    if (heightType === "high-bar" || heightType === "high") return "high_table";
+    if (heightType === "coffee" || heightType === "low")    return "low_table";
     return "complete_table";
   }
   return "other";
@@ -1357,11 +1364,16 @@ function buildConceptBOM(
   const coveredRoles = new Set(slots.map(s => s.role));
   const roleForCategory = (cat: string): BOMSlotRole => {
     const c = cat.toLowerCase();
-    if (c.includes("chair"))   return "chair";
-    if (c.includes("table"))   return "complete_table";
-    if (c.includes("parasol")) return "parasol";
-    if (c.includes("lounger")) return "sun_lounger";
-    if (c.includes("stool"))   return "bar_stool";
+    if (c.includes("high table"))                              return "high_table";
+    if (c.includes("low table") || c.includes("coffee"))       return "low_table";
+    if (c.includes("lounge seating") || c.includes("sofa"))    return "sofa";
+    if (c.includes("banquette"))                               return "banquette";
+    if (c.includes("heater") || c.includes("chauffage"))       return "patio_heater";
+    if (c.includes("stool"))                                   return "bar_stool";
+    if (c.includes("chair"))                                   return "chair";
+    if (c.includes("table"))                                   return "complete_table";
+    if (c.includes("parasol"))                                 return "parasol";
+    if (c.includes("lounger"))                                 return "sun_lounger";
     return "other";
   };
   const missingSlots: BOMSlotRole[] = venueNeeds.mandatory
@@ -1678,23 +1690,31 @@ function generateReason(
 function inferRequirementType(product: DBProduct): LayoutRequirementType {
   const cat = (product.category || "").toLowerCase().replace(/[_\s-]/g, "");
   const sub = (product.subcategory || "").toLowerCase().replace(/[_\s-]/g, "");
+  const ptt: ProductTypeTags = product.product_type_tags || {};
   // Armchairs map to "chair" requirement (unified seating slot)
   if (cat.includes("armchair") || sub.includes("armchair")) return "chair";
   if (cat.includes("chair")    || sub.includes("chair"))    return "chair";
   if (cat.includes("stool"))                                return "bar_stool";
+  if (cat.includes("banquette") || sub.includes("banquette")) return "banquette";
   if (cat.includes("parasol"))                              return "parasol";
+  if (cat.includes("heater") || sub.includes("heater") || cat.includes("chauffage")) return "patio_heater";
   if (cat.includes("lounger") || cat.includes("daybed"))    return "sun_lounger";
   if (cat.includes("sofa")    || cat.includes("lounge"))    return "sofa";
   if (cat.includes("table")) {
-    const ptt: ProductTypeTags = product.product_type_tags || {};
     if (ptt.table_type === "base-only") return "table_base";
     if (ptt.table_type === "top-only")  return "tabletop";
+    const heightType = (ptt.height_type || "").toLowerCase();
+    if (heightType === "high-bar" || heightType === "high") return "high_table";
+    if (heightType === "coffee" || heightType === "low")    return "low_table";
     return "complete_table";
   }
   return "other";
 }
 
-function buildLayoutRequirements(layout: LayoutRecommendation): LayoutRequirement[] {
+function buildLayoutRequirements(
+  layout: LayoutRecommendation,
+  params?: ProjectParameters
+): LayoutRequirement[] {
   const reqs: LayoutRequirement[] = [];
 
   // Seating: ONE chair requirement (not chair + armchair — the engine picks the right product)
@@ -1724,6 +1744,40 @@ function buildLayoutRequirements(layout: LayoutRecommendation): LayoutRequiremen
       tableFormat: group.tableFormat,
     });
   });
+
+  // ── Venue-specific extensions (Chantier 3) ──
+  // Standing / cocktail zones for bar, beach-club, rooftop, event venues;
+  // patio heaters for outdoor + cool-season contexts.
+  if (params) {
+    const venue = (params.establishmentType || "").toLowerCase();
+    const zone  = (params.projectZone || "").toLowerCase();
+    const hasStandingZone = /bar|beach|rooftop|event|club|lounge/.test(venue + " " + zone);
+
+    if (hasStandingZone && layout.totalSeats >= 20) {
+      const highTableQty = Math.min(6, Math.max(2, Math.round(layout.totalSeats / 8)));
+      reqs.push({
+        id: "high-tables-main",
+        type: "high_table",
+        label: `Cocktail / standing tables (×${highTableQty})`,
+        requiredQuantity: highTableQty,
+      });
+    }
+
+    const timeline = (params.timeline || "").toLowerCase();
+    const ambience = (params.ambience || []).join(" ").toLowerCase();
+    const coolSeason = /autumn|winter|automne|hiver|off-season/.test(
+      timeline + " " + ambience
+    );
+    if (params.isOutdoor && coolSeason && layout.totalSeats >= 20) {
+      const heaterQty = Math.max(1, Math.round(layout.totalSeats / 12));
+      reqs.push({
+        id: "heaters-main",
+        type: "patio_heater",
+        label: `Patio heaters (×${heaterQty})`,
+        requiredQuantity: heaterQty,
+      });
+    }
+  }
 
   return reqs;
 }
@@ -1796,7 +1850,7 @@ export function generateProjectConcepts(
     }));
 
     // Assign layout requirements
-    const requirements = layout ? buildLayoutRequirements(layout) : [];
+    const requirements = layout ? buildLayoutRequirements(layout, parameters) : [];
     if (requirements.length > 0) {
       assignLayoutRequirements(recommended, products, requirements);
     }

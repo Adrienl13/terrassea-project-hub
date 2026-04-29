@@ -36,6 +36,33 @@ export interface ProjectParameters {
   tableMix?:            TableMixEntry[];
   /** Selected product categories — null = "complete proposal" (all venue-relevant) */
   selectedCategories?:  ProductCategorySelection[] | null;
+  /** Country code for regulatory overlay (Chantier 2 compliance engine) */
+  countryCode?:         string | null;
+  /** Multi-zone projects (Chantier 2) — optional; when set, each zone is
+   *  generated independently and results are aggregated. Backwards compatible:
+   *  when absent, the root-level params behave as a single implicit zone. */
+  zones?:               ProjectZone[];
+}
+
+/**
+ * A single zone within a multi-zone project (hotel = pool + restaurant +
+ * rooftop + bar). Each zone keeps its own sizing and design intent but
+ * inherits top-level context (establishment, client country, timeline).
+ */
+export interface ProjectZone {
+  id:                string;
+  label:             string;
+  projectZone:       string;
+  seatingCapacity:   number | null;
+  terraceSurfaceM2:  number | null;
+  seatingLayout?:    string;
+  layoutPriority?:   string;
+  /** Zone-specific style override (falls back to parent project style) */
+  style?:            string[];
+  ambience?:         string[];
+  isOutdoor?:        boolean;
+  /** Zone-specific category filter (falls back to parent selection) */
+  selectedCategories?: ProductCategorySelection[] | null;
 }
 
 export interface TableMixEntry {
@@ -58,6 +85,10 @@ export type LayoutRequirementType =
   | "sun_lounger"
   | "bar_stool"
   | "sofa"
+  | "high_table"
+  | "low_table"
+  | "banquette"
+  | "patio_heater"
   | "other";
 
 export interface LayoutRequirement {
@@ -117,6 +148,10 @@ export type BOMSlotRole =
   | "sun_lounger"
   | "sofa"
   | "bench"
+  | "high_table"
+  | "low_table"
+  | "banquette"
+  | "patio_heater"
   | "accessory"
   | "other";
 

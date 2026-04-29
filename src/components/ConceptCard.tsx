@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Plus, Check, AlertTriangle, ChevronRight, ArrowLeftRight } from "lucide-react";
@@ -7,11 +7,17 @@ import type { DBProduct } from "@/lib/products";
 import { useProjectCart, type CartItemLayoutMeta } from "@/contexts/ProjectCartContext";
 import { toast } from "sonner";
 import EditableLayoutDisplay from "./project-builder/EditableLayoutDisplay";
+import {
+  trackAlternativeToggled,
+  trackConceptViewed,
+  trackProductAddedToCart,
+} from "@/lib/conceptTracking";
 
 interface ConceptCardProps {
   concept: ProjectConcept;
   index: number;
   products: DBProduct[];
+  snapshotId?: string | null;
 }
 
 type ConceptProduct = DBProduct & {
@@ -35,6 +41,10 @@ const ROLE_LABELS: Record<BOMSlotRole, string> = {
   sun_lounger:    "Loungers",
   sofa:           "Sofas",
   bench:          "Benches",
+  high_table:     "High tables",
+  low_table:      "Low tables",
+  banquette:      "Banquettes",
+  patio_heater:   "Patio heaters",
   accessory:      "Accessories",
   other:          "Other",
 };
@@ -50,6 +60,10 @@ const ROLE_COLORS: Record<BOMSlotRole, string> = {
   sun_lounger:    "bg-teal-500/10 text-teal-700 border-teal-500/20",
   sofa:           "bg-purple-500/10 text-purple-700 border-purple-500/20",
   bench:          "bg-stone-500/10 text-stone-700 border-stone-500/20",
+  high_table:     "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+  low_table:      "bg-sky-500/10 text-sky-700 border-sky-500/20",
+  banquette:      "bg-rose-500/10 text-rose-700 border-rose-500/20",
+  patio_heater:   "bg-red-500/10 text-red-700 border-red-500/20",
   accessory:      "bg-muted text-muted-foreground border-border",
   other:          "bg-muted text-muted-foreground border-border",
 };
@@ -186,11 +200,28 @@ function TerraseaScore({ score }: { score: number }) {
 
 // ── Main ConceptCard ──────────────────────────────────────
 
-const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
+const ConceptCard = ({ concept, index, products, snapshotId }: ConceptCardProps) => {
   const { t } = useTranslation();
   const { addItem, items, updateQuantity } = useProjectCart();
   const [layout, setLayout] = useState<LayoutRecommendation | undefined>(concept.layout);
   const [showAlternative, setShowAlternative] = useState(false);
+
+  // Track concept view once snapshot id is available.
+  useEffect(() => {
+    if (!snapshotId) return;
+    void trackConceptViewed(snapshotId, concept);
+  }, [snapshotId, concept]);
+
+  // Track alternative toggles (skip the initial render).
+  const altInitialisedRef = useRef(false);
+  useEffect(() => {
+    if (!snapshotId) return;
+    if (!altInitialisedRef.current) {
+      altInitialisedRef.current = true;
+      return;
+    }
+    void trackAlternativeToggled(snapshotId, concept, showAlternative);
+  }, [showAlternative, snapshotId, concept]);
 
   // Resolve which set of products to display
   // Priority: BOM slots (new) → fallback to legacy concept.products
@@ -252,10 +283,26 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
     if (existing) {
       updateQuantity(product.id, qty, layoutMeta);
       toast.success(`Updated in project cart — quantity set to ${qty}`);
+      void trackProductAddedToCart(
+        snapshotId ?? null,
+        concept.id,
+        concept.title,
+        product.id,
+        qty,
+        { source: showAlternative ? "alternative" : "main", update: true }
+      );
       return;
     }
 
     addItem(product, concept.title, qty, layoutMeta);
+    void trackProductAddedToCart(
+      snapshotId ?? null,
+      concept.id,
+      concept.title,
+      product.id,
+      qty,
+      { source: showAlternative ? "alternative" : "main" }
+    );
     if (qty > 1) {
       toast.success(`${product.name} added — ×${qty} based on your layout`);
     } else {
@@ -283,6 +330,14 @@ const ConceptCard = ({ concept, index, products }: ConceptCardProps) => {
         return;
       }
       addItem(product, concept.title, qty, layoutMeta);
+      void trackProductAddedToCart(
+        snapshotId ?? null,
+        concept.id,
+        concept.title,
+        product.id,
+        qty,
+        { source: showAlternative ? "alternative" : "main", bulk: true }
+      );
       added++;
     });
 

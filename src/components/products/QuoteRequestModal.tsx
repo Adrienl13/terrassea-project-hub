@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import type { DBProduct } from "@/lib/products";
 import type { ProductOffer } from "@/lib/productOffers";
+import { trackQuoteRequested } from "@/lib/conceptTracking";
 
 interface QuoteRequestModalProps {
   open: boolean;
@@ -181,6 +182,9 @@ const QuoteRequestModal = ({
           if (error) console.error("auto-workflow failed:", error);
         }).catch((err) => console.error("auto-workflow network error:", err));
       }
+
+      // Log quote_requested event for conversion-funnel tracking (Chantier 1)
+      void trackQuoteRequested(null, undefined, [product.id]);
 
       // Notify all admins (batched insert)
       try {

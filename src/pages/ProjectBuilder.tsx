@@ -16,9 +16,11 @@ import CapacityStep from "@/components/project-builder/CapacityStep";
 import StyleStep from "@/components/project-builder/StyleStep";
 import CategorySelectionStep from "@/components/project-builder/CategorySelectionStep";
 import ProjectResults from "@/components/ProjectResults";
+import MultiZoneResults from "@/components/MultiZoneResults";
 import { ProjectParameters, ProjectConcept } from "@/engine/types";
 import { useProducts } from "@/hooks/useProducts";
 import { generateProjectConcepts } from "@/engine/projectEngine";
+import { generateMultiZoneProject, type MultiZoneResult } from "@/engine/multiZoneEngine";
 import { toast } from "sonner";
 
 const DRAFT_PARAMS_KEY = "terrassea_project_draft_params";
@@ -190,6 +192,7 @@ const ProjectBuilder = () => {
     concepts: ProjectConcept[];
     query: string;
   } | null>(null);
+  const [multiZoneResults, setMultiZoneResults] = useState<MultiZoneResult | null>(null);
 
   useEffect(() => {
     if (urlStyle && urlFrom === "inspirations") {
@@ -278,10 +281,17 @@ const ProjectBuilder = () => {
     const query = buildQuery(params);
 
     setTimeout(() => {
-      const { parameters, concepts } = generateProjectConcepts(query, products, params);
-      setResults({ parameters, concepts, query });
+      if (params.zones && params.zones.length > 0) {
+        const mz = generateMultiZoneProject(query, products, params);
+        setMultiZoneResults(mz);
+        setResults(null);
+      } else {
+        const { parameters, concepts } = generateProjectConcepts(query, products, params);
+        setResults({ parameters, concepts, query });
+        setMultiZoneResults(null);
+      }
       setIsGenerating(false);
-      clearDraft(); // Project generated — draft no longer needed
+      clearDraft();
     }, 1200);
   };
 
@@ -305,9 +315,32 @@ const ProjectBuilder = () => {
     setCurrentStep(0);
     setParams({ ...DEFAULT_PARAMS });
     setResults(null);
+    setMultiZoneResults(null);
     setShowResumeBanner(false);
     clearDraft();
   };
+
+  if (multiZoneResults) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="pt-24 pb-8 px-6">
+          <div className="container mx-auto">
+            <div className="flex items-center gap-4 mb-8">
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RotateCcw className="h-4 w-4" /> {t('projectBuilder.newProject')}
+              </button>
+            </div>
+          </div>
+        </div>
+        <MultiZoneResults result={multiZoneResults} products={products} />
+        <Footer />
+      </div>
+    );
+  }
 
   if (results) {
     return (

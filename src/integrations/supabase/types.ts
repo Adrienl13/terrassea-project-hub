@@ -652,6 +652,63 @@ export type Database = {
         }
         Relationships: []
       }
+      concept_events: {
+        Row: {
+          concept_id: string | null
+          concept_title: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          product_id: string | null
+          quantity: number | null
+          session_id: string
+          snapshot_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          concept_id?: string | null
+          concept_title?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          quantity?: number | null
+          session_id: string
+          snapshot_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          concept_id?: string | null
+          concept_title?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          quantity?: number | null
+          session_id?: string
+          snapshot_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_events_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "concept_funnel"
+            referencedColumns: ["snapshot_id"]
+          },
+          {
+            foreignKeyName: "concept_events_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "scoring_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -3889,6 +3946,45 @@ export type Database = {
         }
         Relationships: []
       }
+      scoring_snapshots: {
+        Row: {
+          concept_ids: string[]
+          concept_titles: string[]
+          created_at: string
+          generation_context: Json | null
+          id: string
+          parameters: Json
+          scoring_version: string
+          selected_product_ids: string[]
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          concept_ids?: string[]
+          concept_titles?: string[]
+          created_at?: string
+          generation_context?: Json | null
+          id?: string
+          parameters: Json
+          scoring_version: string
+          selected_product_ids?: string[]
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          concept_ids?: string[]
+          concept_titles?: string[]
+          created_at?: string
+          generation_context?: Json | null
+          id?: string
+          parameters?: Json
+          scoring_version?: string
+          selected_product_ids?: string[]
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       stock_sync_logs: {
         Row: {
           connection_id: string | null
@@ -4265,6 +4361,23 @@ export type Database = {
       }
     }
     Views: {
+      concept_funnel: {
+        Row: {
+          budget_level: string | null
+          concepts_generated: number | null
+          distinct_concepts_expanded: number | null
+          establishment_type: string | null
+          expansions: number | null
+          generated_at: string | null
+          products_added: number | null
+          quotes_requested: number | null
+          scoring_version: string | null
+          seating_capacity: number | null
+          snapshot_id: string | null
+          views: number | null
+        }
+        Relationships: []
+      }
       partner_ratings_summary: {
         Row: {
           avg_rating: number | null

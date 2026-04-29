@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   CheckCircle2, Zap, Star, Package, Truck, FileText, MessageSquare,
-  ChevronDown, ChevronUp, TrendingUp,
+  ChevronDown, ChevronUp, TrendingUp, AlertTriangle,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { scoreSupplierOffers, type ScoredOffer, type SupplierBadge } from "@/engine/supplierEngine";
@@ -40,6 +40,11 @@ const BADGE_CONFIG: Record<SupplierBadge, { labelKey: string; icon: typeof Star;
     labelKey: "supplierRecs.badgeTopRated",
     icon: Star,
     className: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+  },
+  moq_mismatch: {
+    labelKey: "supplierRecs.badgeMoqMismatch",
+    icon: AlertTriangle,
+    className: "bg-orange-500/10 text-orange-700 border-orange-500/20",
   },
 };
 
@@ -91,7 +96,14 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
     let cancelled = false;
     setLoading(true);
 
-    scoreSupplierOffers(productId, projectProductIds).then((scored) => {
+    scoreSupplierOffers(
+      productId,
+      projectProductIds,
+      false,
+      [],
+      currentItem?.selectedDimension || null,
+      currentItem?.quantity,
+    ).then((scored) => {
       if (!cancelled) {
         setOffers(scored);
         setLoading(false);
@@ -106,7 +118,7 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
 
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productId, items.length]);
+  }, [productId, items.length, currentItem?.quantity, currentItem?.selectedDimension]);
 
   const handleSelectSupplier = (offer: ScoredOffer, index: number) => {
     selectSupplier(productId, offerToSelectedSupplier(offer, index, t));

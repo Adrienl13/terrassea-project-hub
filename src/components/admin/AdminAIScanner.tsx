@@ -182,11 +182,13 @@ export default function AdminAIScanner() {
         const batch = toScan.slice(i, i + BATCH_SIZE);
 
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) { toast.error("Session expirée"); break; }
+        if (!session) {
+          toast.error("Session expirée");
+          break;
+        }
 
         const res = await supabase.functions.invoke("enrich-products", {
           body: { products: batch },
-          headers: { Authorization: `Bearer ${session.access_token}` },
         });
 
         if (res.error) {

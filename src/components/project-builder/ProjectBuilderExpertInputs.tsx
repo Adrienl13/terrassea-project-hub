@@ -4,8 +4,9 @@ import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ProjectParameters, TableMixEntry } from "@/engine/types";
+import { ProjectParameters, ProjectZone, TableMixEntry } from "@/engine/types";
 import { getDensityInfo, getMaxSeats } from "@/engine/spatialEngine";
+import ZoneEditor from "./ZoneEditor";
 
 interface Props {
   params: ProjectParameters;
@@ -302,6 +303,21 @@ const ProjectBuilderExpertInputs = ({ params, onChange, onBack, onNext }: Props)
               ))}
             </div>
           </div>
+        </fieldset>
+
+        {/* ── Multi-zones (Chantier 2) ───────────────────────────── */}
+        <fieldset className="mt-8 pt-6 border-t border-border">
+          <ZoneEditor
+            zones={params.zones ?? []}
+            onChange={(zones: ProjectZone[]) =>
+              onChange({ zones: zones.length > 0 ? zones : undefined })
+            }
+          />
+          {(params.zones?.length ?? 0) > 0 && (
+            <p className="text-xs text-muted-foreground mt-3 italic">
+              Mode multi-zones actif : la capacité et la surface saisies plus haut seront ignorées. Chaque zone est analysée indépendamment.
+            </p>
+          )}
         </fieldset>
       </div>
 

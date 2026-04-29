@@ -13,16 +13,25 @@ interface TableFormat {
   maxSeats: number;
   combinable: boolean;
   combinedSeats: number; // seats when two tables are joined
+  /** "standard" dining height (~75cm), "high" cocktail/bar (~110cm), "low" lounge (~45cm) */
+  heightClass?: "standard" | "high" | "low";
 }
 
 const TABLE_FORMATS: TableFormat[] = [
-  { format: "70×70", shape: "square", seats: 2, minSeats: 2, maxSeats: 2, combinable: true, combinedSeats: 4 },
-  { format: "80×80", shape: "square", seats: 4, minSeats: 2, maxSeats: 4, combinable: true, combinedSeats: 6 },
-  { format: "120×70", shape: "rectangular", seats: 4, minSeats: 4, maxSeats: 4, combinable: true, combinedSeats: 6 },
-  { format: "120×80", shape: "rectangular", seats: 4, minSeats: 4, maxSeats: 6, combinable: true, combinedSeats: 8 },
-  { format: "160×80", shape: "rectangular", seats: 6, minSeats: 6, maxSeats: 6, combinable: false, combinedSeats: 0 },
-  { format: "Ø80", shape: "round", seats: 4, minSeats: 2, maxSeats: 4, combinable: false, combinedSeats: 0 },
-  { format: "Ø120", shape: "round", seats: 6, minSeats: 4, maxSeats: 6, combinable: false, combinedSeats: 0 },
+  { format: "70×70", shape: "square", seats: 2, minSeats: 2, maxSeats: 2, combinable: true, combinedSeats: 4, heightClass: "standard" },
+  { format: "80×80", shape: "square", seats: 4, minSeats: 2, maxSeats: 4, combinable: true, combinedSeats: 6, heightClass: "standard" },
+  { format: "120×70", shape: "rectangular", seats: 4, minSeats: 4, maxSeats: 4, combinable: true, combinedSeats: 6, heightClass: "standard" },
+  { format: "120×80", shape: "rectangular", seats: 4, minSeats: 4, maxSeats: 6, combinable: true, combinedSeats: 8, heightClass: "standard" },
+  { format: "160×80", shape: "rectangular", seats: 6, minSeats: 6, maxSeats: 6, combinable: false, combinedSeats: 0, heightClass: "standard" },
+  { format: "Ø80", shape: "round", seats: 4, minSeats: 2, maxSeats: 4, combinable: false, combinedSeats: 0, heightClass: "standard" },
+  { format: "Ø120", shape: "round", seats: 6, minSeats: 4, maxSeats: 6, combinable: false, combinedSeats: 0, heightClass: "standard" },
+  // ── Mange-debout / cocktail tables (standing zones) ──
+  { format: "70×70 H110", shape: "square", seats: 2, minSeats: 2, maxSeats: 4, combinable: false, combinedSeats: 0, heightClass: "high" },
+  { format: "Ø70 H110", shape: "round", seats: 4, minSeats: 2, maxSeats: 4, combinable: false, combinedSeats: 0, heightClass: "high" },
+  { format: "80×80 H110", shape: "square", seats: 4, minSeats: 2, maxSeats: 4, combinable: false, combinedSeats: 0, heightClass: "high" },
+  // ── Low / lounge tables ──
+  { format: "120×60 H45", shape: "rectangular", seats: 0, minSeats: 0, maxSeats: 0, combinable: false, combinedSeats: 0, heightClass: "low" },
+  { format: "Ø60 H40", shape: "round", seats: 0, minSeats: 0, maxSeats: 0, combinable: false, combinedSeats: 0, heightClass: "low" },
 ];
 
 // ── Distribution ratios per layout preference ──

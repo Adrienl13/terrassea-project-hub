@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
@@ -6,6 +6,7 @@ import { ProjectParameters, ProjectConcept } from "@/engine/types";
 import type { DBProduct } from "@/lib/products";
 import ConceptCard from "./ConceptCard";
 import ProjectResultsEditor from "./ProjectResultsEditor";
+import { logGenerationSnapshot } from "@/lib/conceptTracking";
 
 interface ProjectResultsProps {
   parameters: ProjectParameters;
@@ -18,8 +19,21 @@ interface ProjectResultsProps {
 
 // Budget estimate removed — the BOM total in ConceptCard is the single source of truth
 
-const ProjectResults = ({ parameters, concepts, query, products, onRegenerate, isRegenerating }: ProjectResultsProps) => {
+const ProjectResults = ({ parameters, concepts, products, onRegenerate, isRegenerating }: ProjectResultsProps) => {
   const { t } = useTranslation();
+  const [snapshotId, setSnapshotId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (concepts.length === 0) return;
+    let cancelled = false;
+    void logGenerationSnapshot({ parameters, concepts }).then((id) => {
+      if (!cancelled) setSnapshotId(id);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [parameters, concepts]);
+
   return (
     <section className="py-16 px-6">
       <div className="container mx-auto">
@@ -74,6 +88,7 @@ const ProjectResults = ({ parameters, concepts, query, products, onRegenerate, i
               concept={concept}
               index={i}
               products={products}
+              snapshotId={snapshotId}
             />
           ))}
         </div>

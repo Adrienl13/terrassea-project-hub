@@ -16,9 +16,21 @@ export interface ScoredOffer extends ProductOffer {
   badges: SupplierBadge[];
   isRecommended: boolean;
   recommendationReason?: string;
+  moqWarning?: MoqWarning;
 }
 
-export type SupplierBadge = "best_stock" | "fastest" | "best_project_fit" | "recommended" | "top_rated";
+/**
+ * Minimum order quantity diagnostic. Exposed to the UI so buyers see why a
+ * supplier is penalised (e.g. needs to buy extra units they don't need).
+ */
+export interface MoqWarning {
+  minimumOrder: number;
+  requestedQuantity: number;
+  excessUnits: number;
+  excessRatio: number; // excessUnits / requestedQuantity
+}
+
+export type SupplierBadge = "best_stock" | "fastest" | "best_project_fit" | "recommended" | "top_rated" | "moq_mismatch";
 
 interface ScoringWeights {
   consistency: number;
@@ -211,6 +223,13 @@ function assignBadges(scoredOffers: ScoredOffer[]): void {
   const bestRated = scoredOffers.reduce((a, b) => a.scores.reputation > b.scores.reputation ? a : b);
   if (bestRated.scores.reputation >= 75) bestRated.badges.push("top_rated");
 
+  // MOQ mismatch — flag offers where the buyer would be forced to overbuy
+  for (const offer of scoredOffers) {
+    if (offer.moqWarning && offer.moqWarning.excessRatio > 0.25) {
+      offer.badges.push("moq_mismatch");
+    }
+  }
+
   // Recommended = highest total
   const best = scoredOffers.reduce((a, b) => a.scores.total > b.scores.total ? a : b);
   best.badges.push("recommended");
@@ -245,7 +264,8 @@ export async function scoreSupplierOffers(
   projectProductIds: string[],
   isUrgent: boolean = false,
   arrivals: ProductArrival[] = [],
-  selectedDimension?: string | null
+  selectedDimension?: string | null,
+  requestedQuantity?: number
 ): Promise<ScoredOffer[]> {
   // Fetch all offers across the project
   const uniqueIds = [...new Set([...projectProductIds, targetProductId])];
@@ -290,11 +310,39 @@ export async function scoreSupplierOffers(
       total += 15;
     }
 
+    // ── MOQ scoring (Chantier 3) ──
+    // Real-world hospitality sourcing: outdoor furniture suppliers often impose
+    // minimum order quantities. If the requested quantity is below MOQ, the
+    // buyer must buy extras — so we penalise these offers proportionally.
+    //
+    // Data-quality note (audit 2026-04-20): 21% of active offers have
+    // `minimum_order` set and 0% have a realistic MOQ (>1). Today the platform
+    // is reseller-dominated; brand-direct offers (when onboarded) will start
+    // carrying real MOQs and this scoring block will gain signal. Keep
+    // forward-looking — no behaviour change needed when the field is null.
+    let moqWarning: MoqWarning | undefined;
+    const moq = offer.minimum_order ?? 0;
+    if (requestedQuantity && requestedQuantity > 0 && moq > requestedQuantity) {
+      const excessUnits = moq - requestedQuantity;
+      const excessRatio = excessUnits / requestedQuantity;
+      moqWarning = {
+        minimumOrder: moq,
+        requestedQuantity,
+        excessUnits,
+        excessRatio,
+      };
+      // Scale penalty with excess ratio, cap at -25 to avoid eliminating
+      // the offer outright (MOQ is negotiable on many contracts).
+      const penalty = Math.min(25, Math.round(excessRatio * 20));
+      total -= penalty;
+    }
+
     return {
       ...offer,
       scores: { consistency, availability, leadTime, price, reputation, total },
       badges: [],
       isRecommended: false,
+      moqWarning,
     };
   });
 

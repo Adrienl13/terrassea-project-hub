@@ -19,6 +19,7 @@ import type { DBProduct } from "@/lib/products";
 import type { CartItem } from "@/contexts/ProjectCartContext";
 import { exportCartAsPdf } from "@/lib/cartPdfExport";
 import FinancingCTA from "@/components/financing/FinancingCTA";
+import { trackQuoteRequested } from "@/lib/conceptTracking";
 
 // ── Progress steps ────────────────────────────────────────────────────────────
 
@@ -386,6 +387,14 @@ const ProjectCart = () => {
       localStorage.removeItem("terrassea_cart_items");
       localStorage.removeItem("terrassea_cart_notes");
       await markCartSubmitted();
+
+      // Log quote_requested for funnel tracking (Chantier 1)
+      void trackQuoteRequested(
+        null,
+        items[0]?.conceptName,
+        items.map((i) => i.product.id),
+      );
+
       clearCart();
       setSubmitted(true);
       toast.success(t('projectCart.submitSuccess'));

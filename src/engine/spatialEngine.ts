@@ -45,6 +45,13 @@ const TABLE_PHYSICAL_DIMS: Record<string, TableDimensions> = {
   "200×90": { width: 0.90, length: 2.00 },
   "Ø80":    { width: 0.80, length: 0.80 },
   "Ø120":   { width: 1.20, length: 1.20 },
+  // Mange-debout (standing; smaller floor footprint, reduced clearance)
+  "70×70 H110": { width: 0.70, length: 0.70 },
+  "Ø70 H110":   { width: 0.70, length: 0.70 },
+  "80×80 H110": { width: 0.80, length: 0.80 },
+  // Low / lounge tables (paired with sofas — footprint dominated by seating)
+  "120×60 H45": { width: 0.60, length: 1.20 },
+  "Ø60 H40":    { width: 0.60, length: 0.60 },
 };
 
 // ── Core functions ──
