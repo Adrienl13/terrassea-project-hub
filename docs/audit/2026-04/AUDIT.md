@@ -475,6 +475,286 @@ Les top 7 fichiers concentrent **167 / 548 ≈ 30 %** des appels Supabase. Risqu
 
 ---
 
-## 7-10.
+## 7. Tests
 
-*[À remplir au fil de l'audit — bloc 3]*
+### État observé
+
+**Vitest** (`bun run test`)
+- **6 fichiers** : `engines.test.ts`, `bom-validation.test.ts`, `multiZone.test.ts`, `compliance.test.ts`, `palette-validation.test.ts`, `search-categories.test.ts` + `setup.ts`.
+- **153 tests, tous passent** (run du 2026-04-29 16:22, durée 985 ms).
+- Setup minimal : juste un mock `matchMedia` pour jsdom (`src/test/setup.ts`).
+- Tous les tests ciblent l'engine (`projectEngine`, `intentDetector`, `multiZoneEngine`, `complianceEngine`, BOM/palette/categories).
+
+**Couverture qualitative observée**
+- ✅ **Engine** : couverture forte. 49 tests dans `engines.test.ts` seul, mock factory pour `DBProduct` riche, scénarios divers (project parsing, missing fields, applyAnswer, generateProjectConcepts).
+- ❌ **Composants UI** : 0 test.
+- ❌ **Hooks** : 0 test (incluant les hooks "data + logique" gros comme `useArchitectProjects` 925 lignes).
+- ❌ **Pages** : 0 test.
+- ❌ **Contexts** : 0 test.
+- ❌ **`src/lib/`** : 0 test (utils, paymentUtils, productOffers, etc.).
+- ❌ **Edge functions** : 0 test Deno.
+
+**Tests E2E**
+- `playwright.config.ts` réfère un package externe `lovable-agent-playwright-config`. Aucun fichier `*.spec.ts` E2E dans le repo. CI ne lance pas Playwright.
+- Statut effectif : **aucun test E2E**.
+
+**Coverage automatique**
+- Pas de `--coverage` configuré dans les scripts npm. Aucun rapport HTML/JSON généré ni dans CI ni en local. **Coverage globale inconnue**, estimation manuelle ~ 5-10 % du codebase (engine = quelques % du LOC total mais bien testé ; tout le reste = 0).
+
+### Problèmes identifiés
+
+| Sévérité | Problème | Fichier(s) concerné(s) | Impact |
+|---|---|---|---|
+| **Élevée** | **Aucun test E2E** sur les flows critiques (signup → project → quote → checkout, login admin → action utilisateur, partner submit → admin approve). Toute régression UI/data passe silencieusement. | absence | Phase 1 chantiers (Pricing, Concierge, Engine 2.0) vont impacter ces flows — sans E2E, chaque déploiement est un saut dans le vide. |
+| **Élevée** | **0 test sur les hooks "data + logique" gros** (`useArchitectProjects`, `useProductSubmissions`, `usePaymentFlow`). Ces hooks contiennent la logique métier critique côté client. | `src/hooks/use*.ts` | Refactor risqué (cf. Thème 4 P1.3). Bug régression non détectable. |
+| **Moyenne** | **0 test sur `src/lib/`** (`partnerConstants`, `productOffers`, `paymentUtils`, `searchNormalizer`, `quoteDocuments`, etc.). | `src/lib/*.ts` | Logique transverse non protégée. Modification → risque silencieux. |
+| **Moyenne** | **Pas de coverage report** (`vitest --coverage`). Pas de visibilité sur ce qui est testé vs non testé. | `vitest.config.ts`, `package.json` scripts | Aveugle sur où la dette de tests est. |
+| **Moyenne** | **0 test sur les edge functions Deno**. Logique critique (`stripe-webhook`, `auto-workflow`, `chatbot`) non testée. Une régression peut casser le paiement ou les notifications en silence. | `supabase/functions/*/index.ts` | Le `stripe-webhook` notamment est central — toute modification doit être testée. |
+| **Moyenne** | **Pas de test d'intégration** entre engine ↔ lib ↔ contexts. Les engines sont testés isolément, mais le glue code (transformer un payload Supabase en `ProjectParameters` puis en `ProjectConcept`) ne l'est pas. | absence | Bug d'intégration possible (mauvais mapping). |
+| **Basse** | **`setup.ts`** très minimaliste (juste matchMedia). Pas de `cleanup()` entre tests, pas de mock global Supabase. Les tests engines marchent car ils n'appellent jamais Supabase, mais si un test composant est ajouté sans setup propre → flaky. | `src/test/setup.ts` | Préventif. |
+| **Basse** | Le test `engines.test.ts` recrée un `mockProduct` factory (49 lignes de boilerplate) **dupliqué dans `multiZone.test.ts`**. À factoriser. | `src/test/engines.test.ts:16-50`, `src/test/multiZone.test.ts:13-45` | Cosmétique, mais maintenance fragmentée. |
+
+### Points forts
+
+- **6 fichiers de tests, 153 tests, tous verts** : le harness Vitest fonctionne, le pipeline CI les exécute, on a une base saine.
+- **Tests engines variés** : not just happy path. `bom-validation.test.ts` vérifie l'absence de duplicates, `multiZone.test.ts` couvre 15 cas multi-zone, `palette-validation.test.ts` valide les contraintes de cohérence couleurs.
+- **CI bloquante** sur les tests : pas de merge avec test rouge.
+- **Vitest 3.2 + jsdom + testing-library/react** : stack moderne, pourrait supporter des tests composants sans réinstall.
+- **Pattern mockProduct factory** : déjà présent, réutilisable pour de futurs tests intégration.
+
+### Recommandations priorisées
+
+1. **P1 — Activer coverage** (effort : 30 min). Ajouter `bun run test:coverage` qui lance `vitest --coverage`, baseline initial, target gradient (engine 90 % en 1 mois, lib 60 % en 3 mois). Configurer `c8` ou `v8` provider.
+2. **P1 — 5 smoke tests E2E Playwright** (effort : 1-2 j). (1) signup client → project → quote, (2) login admin → approve partner, (3) login partner → upload product, (4) checkout Stripe success path, (5) chatbot anonymous chat. Ces 5 sentinelles couvrent 80 % du risque régression. Lancer dans CI sur PR.
+3. **P2 — Tests hooks critiques** (effort : 2-3 j). Cible : `useArchitectProjects`, `useProductSubmissions`, `usePaymentFlow`. Mock Supabase via MSW (mock service worker) ou `@supabase/ssr` test helpers.
+4. **P2 — Tests `src/lib/`** (effort : 1-2 j). `partnerConstants`, `searchNormalizer`, `productQualityScore`. Pure functions → tests rapides à écrire.
+5. **P2 — Factoriser `mockProduct`** (effort : 30 min). `src/test/factories/product.ts` exporté, importé partout. Aligné avec recommandation Thème 5.
+6. **P3 — Tests edge functions Deno** (effort : 2-3 j cumulés). Stack : `deno test`. Rentable seulement quand Phase 1 modifiera ces functions.
+7. **P3 — Test d'intégration engine↔Supabase** (effort : 1-2 j). Avec une DB de test (branch Supabase ou Docker compose), faire 5 scénarios end-to-end DB.
+
+---
+
+## 8. Dépendances
+
+### État observé
+
+**Production deps** (50) — versions toutes récentes :
+- React 18.3.1 (React 19 dispo, pas urgent)
+- @tanstack/react-query 5.83.0 (récent)
+- @supabase/supabase-js 2.99.1 (récent)
+- react-router-dom 7.13.2 (récent, v7)
+- i18next 25.8.19 + react-i18next 16.5.8 (récent)
+- 27 packages `@radix-ui/*` (cohérent shadcn)
+- framer-motion 12.36.0 (récent)
+- pdf-lib 1.17.1, xlsx 0.18.5 (stables)
+- zod 3.25.76 (récent), react-hook-form 7.61.1 (récent)
+- recharts 2.15.4 (récent), sonner 1.7.4, cmdk 1.1.1
+- lucide-react 0.462.0 (un peu en arrière, dernière 0.5xx)
+- react-day-picker 8.10.1 (v9 dispo, pas urgent)
+- vaul 0.9.9, embla-carousel-react 8.6.0, input-otp 1.4.2
+- class-variance-authority 0.7.1, clsx 2.1.1, tailwind-merge 2.6.0
+
+**Dev deps** (18)
+- TypeScript 5.8.3, vite 5.4.19, vitest 3.2.4 (récents)
+- ESLint 9.32.0 + typescript-eslint 8.38.0 (récents)
+- @vitejs/plugin-react-swc 3.11.0
+- @playwright/test 1.57.0 (récent)
+- @types/react 18.3.23, @types/node 22.16.5
+- jsdom 20.0.3 (un peu en arrière, jsdom 27 dispo) ⚠
+- tailwindcss 3.4.17 (Tailwind 4 dispo, breaking change major)
+- **`lovable-tagger 1.1.13`** : dev only, marqueur Lovable
+- **`@playwright/test`** vs config externe `lovable-agent-playwright-config` (vu Thème 3)
+
+**Heuristique de fraîcheur** : aucun package n'a > 12 mois de retard évident. Pas de packages "abandonware" identifiables visuellement (pas de `momentjs`, pas de `request`, etc.). `npm audit` non lancé (pas d'install autorisé).
+
+**Doublons fonctionnels potentiels**
+- Aucun doublon de routing, state mgmt, forms, animations.
+- `pdf-lib` (génération) + pas de doublon parser PDF.
+- `xlsx` SheetJS uniquement — pas de doublon csv-parser.
+
+**Lockfiles** (cf. Thème 3) : 3 lockfiles co-existent (`bun.lock` + `bun.lockb` + `package-lock.json`). Confusion package manager.
+
+### Problèmes identifiés
+
+| Sévérité | Problème | Fichier(s) concerné(s) | Impact |
+|---|---|---|---|
+| **Moyenne** | **`npm audit` non lancé** dans cet audit (read-only, pas d'install possible). Risque de CVE non détecté. | absence | Faille tierce non visible. |
+| **Moyenne** | **`lovable-tagger 1.1.13`** : dev dependency Lovable. Si Lovable change ou retire le package, build dev casse. À évaluer : nécessaire ? | `package.json:87`, `vite.config.ts:4` | Dépendance externe non contrôlée. |
+| **Moyenne** | **`lovable-agent-playwright-config`** : config Playwright externalisée chez Lovable. Idem couplage. | `playwright.config.ts:1` | Mêmes risques. |
+| **Moyenne** | **3 lockfiles** (`bun.lock`, `bun.lockb`, `package-lock.json`) — vu Thème 3. | racine | Drift install, audit ambigu. |
+| **Basse** | **`jsdom 20.0.3`** : jsdom 27 dispo (bonds majors). Tests passent → pas urgent, mais à monter en même temps que vitest 4 si dispo. | `package.json:86` | Cosmétique. |
+| **Basse** | **`react-day-picker 8.10`** : v9 dispo. Simple upgrade. | `package.json:57` | Cosmétique. |
+| **Basse** | **`tailwindcss 3.4`** : v4 dispo (rewrite Rust, breaking changes). Ne pas migrer en Phase 1, mais à planifier 2027. | `package.json:89` | Bénéfice perf marginal aujourd'hui. |
+| **Basse** | **`react 18.3.1`** : React 19 stable. Migration majeur, pas critique tant que React 18 supporté. | `package.json:56` | Décision Phase 2-3. |
+| **Basse** | **`framer-motion 12.36`** : 128 KB chunk (cf. Thème 6). Alternative `motion-one` (~ 20 KB) si optimisation perf. | `package.json:50` | Optimisation marginale. |
+
+### Points forts
+
+- **Stack quasi-entièrement à jour**. Pas de package "vieux" dangereux.
+- **shadcn/ui via Radix** : 27 packages cohérents, tous récents.
+- **Pas de Moment.js, lodash entier, jquery, request** : codebase aligné sur les standards modernes.
+- **Pas de doublons fonctionnels** : un router, un state mgmt, un form lib, une animation lib.
+- **TypeScript / Vite / Vitest / ESLint** sur leurs versions courantes.
+- **Bun comme package manager** : install rapide, lockfile compact.
+- **`bun install --frozen-lockfile`** dans CI : reproducibility garantie.
+
+### Recommandations priorisées
+
+1. **P1 — `npm audit` / `bun audit`** (effort : 5 min). Lancer en local manuellement, traiter les `high`/`critical` immédiatement. À répéter trimestriellement.
+2. **P1 — Cleanup lockfiles** (effort : 15 min, déjà recommandé Thème 3 P2). Garder `bun.lock` ou `bun.lockb` (pas les deux), supprimer `package-lock.json`.
+3. **P2 — Décider Lovable couplage** (effort : 1-2 h). Supprimer `lovable-tagger` et `lovable-agent-playwright-config` si plus utilisés. Sinon documenter dans `CLAUDE.md` qu'ils sont nécessaires (et pourquoi).
+4. **P2 — Renovate ou Dependabot** (effort : 30 min). GitHub config minimale pour PR auto sur upgrades majeurs. Réduit la dette à terme sans effort manuel.
+5. **P3 — Plan migration Tailwind 4 / React 19** (effort : 5-10 j cumulés, 2027). Ne pas faire en Phase 1.
+6. **P3 — Évaluer `motion-one` vs `framer-motion`** (effort : 1 j) si bundle size devient un sujet vraiment serré.
+
+---
+
+## 9. Observabilité & Ops
+
+### État observé
+
+**Outils d'observabilité produit / erreur**
+- ❌ **Aucun** : pas de Sentry, PostHog, Plausible, Mixpanel, Amplitude, Datadog, GTM, gtag, etc. Vérifié par `grep` exhaustif sur `src/` → 0 fichier match.
+- ❌ **Pas d'integration GA/GTM** dans `index.html`.
+- ❌ **Pas de tracking custom** vers une autre URL (autre que les logs Supabase Edge functions).
+
+**Logging**
+- **`console.log/error/warn`** : 107 occurrences dans 39 fichiers de `src/`, 27 occurrences dans 11 fichiers de `supabase/functions/`. **Pas de logger structuré.**
+- Fichiers les plus loggés : `src/lib/quoteDocuments.ts` (11), `src/hooks/useArchitectProjects.ts` (7), `src/hooks/useFavouritesDB.ts` (5), `src/lib/trackingService.ts` (5), `src/components/architect-dashboard/ArchitectSections.tsx` (5).
+- Edge functions : `run-scheduled-tasks` (5), `stripe-webhook` (3), `check-abandoned-carts` (3) — tous via `console.error`.
+
+**Monitoring infra**
+- Supabase Studio expose des logs Edge Functions (vu via `mcp__supabase__get_logs`).
+- Vercel expose des logs serverless via leur dashboard (non vérifié).
+- Pas de **uptime monitoring** externe (Pingdom, UptimeRobot, BetterStack) identifié.
+- Pas d'alerting configuré.
+
+**Notifications utilisateur** : table `notifications` + edge functions `send-notification-email`, `send-quote-notification`, `send-review-request`. Bien outillé pour les notifs métier.
+
+**Crons** : Vercel cron `/api/cron-reminders` 9h, pg_cron 3 jobs (`send-review-requests` 10h, `check-abandoned-carts` 6h, `daily-reminders` 9h). Pas de monitoring "did the cron run successfully?".
+
+**Erreurs côté front** : `ErrorBoundary` racine présent (`src/components/ErrorBoundary.tsx`). Si une page crashe → blank page mais pas de remontée. Pas d'`window.onerror` global, pas de `unhandledrejection` handler.
+
+**`tracking_service.ts`** observé via grep — c'est probablement un wrapper d'envoi de tracking côté shipment (pas analytics produit). À confirmer.
+
+### Problèmes identifiés
+
+| Sévérité | Problème | Fichier(s) concerné(s) | Impact |
+|---|---|---|---|
+| **Élevée** | **Aucun outil d'observabilité produit** (Sentry, PostHog, etc.). Si un user a une erreur en prod, le founder ne le sait pas. Pas de funnel analytics, pas d'erreur agrégation, pas de session replay. | absence | Bugs prod invisibles. Pas de data pour décisions produit. Critique en Phase 1 où plein de nouvelles features arrivent. |
+| **Élevée** | **`send-review-requests` pg_cron job 1 fait actuellement 401** (vu logs Thème 1) sans alerte. Le founder ne le sait probablement pas. C'est un exemple typique de cron broken silencieusement → pas d'observabilité. | `cron.job` jobid=1, `supabase/functions/send-review-request/index.ts` | Reviews jamais demandées. Conversion data perdue. Bug invisible. |
+| **Élevée** | **107 + 27 `console.log/error/warn`** sans logger structuré ni transport externe. En prod : la majorité des logs front-end sont perdus (browser console fermée). Edge functions logs visibles seulement via Supabase Studio. | 50 fichiers cumulés | Debug post-mortem impossible. Pas de search/filter sur les erreurs. |
+| **Moyenne** | **Pas d'`window.onerror` ni `unhandledrejection` handler** côté front. Erreurs JS non capturées passent inaperçues. | `src/main.tsx`, `src/App.tsx` | Crash silencieux. |
+| **Moyenne** | **Pas d'uptime monitoring**. Si terrassea.com est down, le founder le découvre par accident. | absence | Downtime invisible. |
+| **Moyenne** | **Pas d'alerting cron**. Si `daily-reminders` échoue silencieusement, personne n'est notifié. | `cron.job` (3 jobs) | Régression silencieuse. |
+| **Moyenne** | **`ErrorBoundary` racine seulement**. Une erreur dans `Admin` provoque blank page complète plutôt que blank section. (Déjà noté Thème 5.) | `src/App.tsx` | Mauvais UX. |
+| **Basse** | `console.error` utilisés à la place d'un logger qui pourrait préfixer (`[Auth]`, `[Stripe]`, etc.). Quelques fichiers le font (`AuthContext.tsx` : `[Auth] Failed to fetch ...`), pas systématique. | divers | Cosmétique mais aide debug. |
+
+### Points forts
+
+- **`ErrorBoundary` racine** présent (mieux que rien).
+- **Supabase Edge logs** accessibles via MCP — utiles pour debug.
+- **Vercel deploy logs** intégrés au dashboard.
+- **`AuthContext.tsx`** utilise un préfixe `[Auth]` cohérent → bonne pratique à généraliser.
+- **`vercel.json` security headers** + `Strict-Transport-Security` → couche défensive solide.
+- **`stripe-webhook`** logge `console.error` aux bons endroits (signature invalid, erreurs DB) → trace claire.
+
+### Recommandations priorisées
+
+1. **P0 — Sentry** (effort : 2 h). `@sentry/react` côté front + `@sentry/deno` côté edge functions. Free tier suffit jusqu'à 5k events/mois. ROI gigantesque : tout crash prod remonte avec stack trace, breadcrumbs, browser context. **Sans cet outil, la Phase 1 sera aveugle.**
+2. **P0 — Investiguer `send-review-requests` 401** (effort : 30 min). Vu dans logs Thème 1. Soit fix la function pour accepter l'auth, soit fix le cron pour passer un secret. À décider en même temps que le pattern `check-abandoned-carts`.
+3. **P1 — PostHog ou Plausible** (effort : 2 h). Analytics produit basique : pageviews, conversion funnel signup→quote→checkout. Plausible si privacy-first (RGPD-friendly). PostHog si feature flags + session replay voulus. Décision business à arbitrer founder.
+4. **P1 — Logger structuré** (effort : 1 j). Wrapper `src/lib/logger.ts` avec preset `[Module] message {context}`. Remplacer les 107 `console.*` côté front. Côté edge functions : pareil. Bénéfice : grep facile, prefix cohérent, futur transport vers Sentry.
+5. **P1 — `window.addEventListener('error')` + `unhandledrejection`** (effort : 30 min). Catcher global → forwarder vers Sentry. Réduit les crashes silencieux.
+6. **P1 — `ErrorBoundary` par section** (déjà recommandé Thème 5 P2). Rappel.
+7. **P2 — Uptime monitoring externe** (effort : 30 min). UptimeRobot free tier sur `https://terrassea.com/api/health` (à créer). Alerte SMS / email si down 5 min.
+8. **P2 — Alerting cron** (effort : 2-3 h). Wrapper qui ping un endpoint healthcheck (BetterStack Heartbeats, Cronitor) à chaque run. Si pas de ping en N minutes → alerte.
+9. **P3 — Dashboard `/admin?tab=health`** (effort : 1 j). Pour le founder : statut Stripe, Supabase, edge functions, last cron runs. Quick visibility.
+
+---
+
+## 10. Documentation & Maintenabilité
+
+### État observé
+
+**`README.md`** (racine)
+- **74 lignes, contenu Lovable boilerplate.** Mentions `https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID` (URL templated jamais remplacée), `npm i / npm run dev` (alors que le projet utilise `bun`), instructions GitHub Codespaces et "Use Lovable" comme première option.
+- **Aucune référence** à : Terrassea, B2B furniture, architecture, stack réelle, contributing, déploiement Vercel, env vars requises, comment lancer Supabase local.
+- **Inutile pour un dev arrivant**, et factuellement faux (npm vs bun).
+
+**`CLAUDE.md`** (racine)
+- ✅ **Refait correctement le 2026-04-29** (199 lignes, index version actuelle = `d1de4be`+`6e5e9c5`). Documente stack, repo layout, engine, edge functions, tables, partner plans, architects, routing, conventions, tech debt connu.
+
+**`docs/audit/2026-04/`** (créé pendant cet audit)
+- `RECON.md` (557 lignes) : reconnaissance complète.
+- `STRATEGIC_DECISIONS.md` (36 lignes) : log append-only.
+- `HOTFIX_RLS_PROSPECTS.md` (417 lignes) : doc complète du hotfix RLS.
+- `DRIFT_PROD_FUNCTIONS.md` (~ 280 lignes) : doc complète du drift code/prod.
+- `AUDIT.md` (en cours) : audit thématique.
+
+**Documentation per-feature**
+- 3 `README.md` créés aujourd'hui dans `supabase/functions/<chatbot|analyze-terrace|check-abandoned-carts>/` (purpose, secrets, tables, follow-ups). **Premier exemple de docs per-edge-function du repo.**
+- Aucun autre `README.md` dans `supabase/functions/` (10 functions sans doc).
+- Aucune doc dans `src/engine/` malgré sa centralité (10 modules de logique métier).
+- Aucun `ARCHITECTURE.md` ou diagramme.
+
+**Commentaires dans le code**
+- `src/integrations/supabase/client.ts:8-9` : 2 lignes utiles ("Import the supabase client like this:").
+- `src/contexts/AuthContext.tsx:68-78` : commentaire utile expliquant le pourquoi du `detectedRecovery` synchronous.
+- Migrations SQL : très bien documentées (entête de chaque migration commente le contexte, ex. `20260411100000_restrict_user_profiles_self_update.sql`).
+- Edge functions : commentaires utiles dans `stripe-webhook` (idempotency comments), `is_admin()` migration.
+- Engines : pas beaucoup de commentaires inline ; tests servent de doc.
+
+**Commits**
+- `git log` montre des messages descriptifs (cf. `Fix quote system: 39 issues across 3 phases`, `Full platform audit: security, performance, ...`). Pattern emergent mais pas conventionnel commits ou similar.
+
+**Conventions documentées**
+- Naming files : pas de doc explicite mais cohérent (PascalCase pour composants, camelCase pour hooks/lib, snake_case pour SQL).
+- Path alias `@/` : documenté dans `CLAUDE.md`.
+- Pas de `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`.
+
+**`.github/`**
+- Juste `workflows/ci.yml`. Pas de templates issue/PR.
+
+### Problèmes identifiés
+
+| Sévérité | Problème | Fichier(s) concerné(s) | Impact |
+|---|---|---|---|
+| **Élevée** | **`README.md` racine = template Lovable jamais customisé.** Mentions de `npm i` (faux), URL `REPLACE_WITH_PROJECT_ID` littérale, "Use Lovable" comme première option. Aucune info sur le projet, la stack, le déploiement, les env vars. Le README est vu en premier sur GitHub. | `README.md` | Mauvaise impression première (recruteurs/contributeurs/investisseurs). Pas un guide démarrage utile. |
+| **Moyenne** | **0 doc dans `supabase/functions/`** sauf les 3 créées aujourd'hui. 10 autres edge functions sans README — purpose, secrets, tables touchées, callers tous implicites. | `supabase/functions/{analyze-csv-products, analyze-product-image, auto-workflow, enrich-products, merge-descriptions, run-scheduled-tasks, send-notification-email, send-quote-notification, send-review-request, stock-sync-webhook, stripe-checkout, stripe-webhook}/` | Onboarding edge functions opaque. Maintenance plus lente. |
+| **Moyenne** | **0 doc dans `src/engine/`** (10 modules, ~ 6000 lignes de logique métier). Pas d'`ARCHITECTURE.md`, pas de diagramme du flow `intentDetector → projectEngine → supplierEngine`. | `src/engine/` | Le cœur métier est compréhensible seulement via lecture du code. |
+| **Moyenne** | **Pas de `CONTRIBUTING.md` / `SECURITY.md`**. Inutile en mode solo founder mais devient bloquant à l'arrivée d'un 2e contributeur. | `.github/`, racine | Onboarding futur. |
+| **Moyenne** | **Pas de templates issue / PR** dans `.github/`. | `.github/` | Discipline review/issue moins forte. |
+| **Basse** | Commentaires inline rares dans engines. Le test sert de doc mais un futur dev devra lire 1966 lignes de `projectEngine.ts` pour comprendre la séquence. | `src/engine/projectEngine.ts` | Apprentissage lent. |
+| **Basse** | Pas de convention de commit explicite (Conventional Commits). Messages quand même descriptifs. | git | Nice-to-have. |
+
+### Points forts
+
+- **`CLAUDE.md` actuel** : excellent niveau de détail, à jour, source unique de vérité.
+- **Migrations SQL extrêmement bien commentées** (entêtes contextualisés).
+- **`src/contexts/AuthContext.tsx`** : commentaires pédagogiques sur les race conditions PASSWORD_RECOVERY.
+- **`stripe-webhook/index.ts`** : commentaires "IDEMPOTENCY", "Atomic update" → bonne hygiène défensive.
+- **3 READMEs edge functions créés aujourd'hui** : pattern à généraliser.
+- **`docs/audit/2026-04/`** : 4 docs (RECON, STRATEGIC, HOTFIX, DRIFT, AUDIT) créés en parallèle, traçabilité parfaite.
+- **Messages de commits descriptifs** : facile à reconstruire l'historique.
+- **`is_admin()` migration documente le pourquoi du `SECURITY DEFINER`** (évite circular RLS).
+
+### Recommandations priorisées
+
+1. **P0 — Réécrire `README.md`** (effort : 1-2 h). Sections : 1-line pitch (B2B outdoor furniture sourcing for hospitality), stack résumée, quickstart `bun install` / `bun run dev`, env vars (`.env.example` reference), structure repo (renvoi `CLAUDE.md`), déploiement Vercel/Supabase, lien `docs/audit/2026-04/`. Supprimer toutes les mentions Lovable périmées.
+2. **P1 — Étendre le pattern README aux 10 autres edge functions** (effort : 2-3 h). Format aligné sur les 3 d'aujourd'hui. Priorité aux critiques (`stripe-webhook`, `auto-workflow`).
+3. **P1 — `ARCHITECTURE.md` 1 page** (effort : 1-2 h). Diagramme ASCII ou Mermaid : front (React) → Supabase (DB + Edge + Auth + Storage) → Vercel (cron + serverless) → Stripe / Anthropic. Flux key : project_builder → projectEngine → BOM → suppliers → quote_request → notifications → stripe-checkout. Aide tout futur agent ou contributeur.
+4. **P2 — `SECURITY.md`** (effort : 30 min). Politique de divulgation responsable (email contact), périmètre, scope (in vs out). Pré-requis pour bug bounty futur ou audit externe.
+5. **P2 — Templates issue / PR** (effort : 30 min). `.github/ISSUE_TEMPLATE/bug_report.md`, `.github/PULL_REQUEST_TEMPLATE.md`. Discipline review + lien CLAUDE.md/AUDIT/etc.
+6. **P3 — Conventional Commits** (effort : 0). Adopter manuellement (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`). Le commit `chore(supabase): align config.toml ...` d'aujourd'hui suit déjà ce pattern.
+7. **P3 — Commentaires inline `src/engine/`** (effort : 0.5-1 j). Headers de section dans les 10 modules engine. Pas de micro-comments par fonction (les noms parlent), mais 1 paragraphe doc en haut du fichier.
+
+---
+
+## Note sur `TRIGGER_SECRET` (vérification 1 du Thème 1)
+
+Au moment de boucler le bloc 3, le founder n'a pas encore renvoyé son verdict sur la présence de `TRIGGER_SECRET` côté Supabase Studio Edge Functions Secrets. La sévérité finale du fallback hardcodé `"terrassea-trigger-secret-change-me"` (`send-quote-notification:7`) reste **conditionnelle à confirmer** :
+- Si var configurée prod → **Moyenne** (fallback inactif, mais mauvais pattern à corriger).
+- Si var non configurée → **Critique** (spoofing possible, à fix urgent).
+
+À mettre à jour dans la synthèse Étape 3.
