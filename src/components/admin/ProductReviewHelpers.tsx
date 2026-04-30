@@ -8,7 +8,21 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { computeProductQuality, type QualityReport } from "@/lib/productQualityScore";
-import type { DBProduct } from "@/lib/products";
+import {
+  TableSpecsSection,
+  ParasolSpecsSection,
+  SunLoungerSpecsSection,
+  SofaSpecsSection,
+  BarStoolSpecsSection,
+  HighTableSpecsSection,
+  type TableSpecs,
+  type ParasolSpecs,
+  type SunLoungerSpecs,
+  type SofaSpecs,
+  type BarStoolSpecs,
+  type HighTableSpecs,
+  type SubdivisionOption,
+} from "@/components/products/specs";
 
 // ── Re-export for convenience ──
 
@@ -304,6 +318,68 @@ export function FeaturePill({ label, active }: { label: string; active: boolean 
 
 // ── Product Detail Card ──
 
+function pdToTableSpecs(pd: Record<string, any>): TableSpecs {
+  return {
+    built_in_umbrella_hole: pd.built_in_umbrella_hole ?? false,
+    umbrella_hole_diameter_mm: pd.umbrella_hole_diameter_mm ?? null,
+    top_thickness_cm: pd.top_thickness_cm != null ? Number(pd.top_thickness_cm) : null,
+    is_tippable: pd.is_tippable ?? false,
+    extension_capability: pd.extension_capability ?? false,
+    extension_max_length_cm: pd.extension_max_length_cm ?? null,
+    outdoor_anchor_compatible: pd.outdoor_anchor_compatible ?? false,
+  };
+}
+
+function pdToParasolSpecs(pd: Record<string, any>): ParasolSpecs {
+  return {
+    fabric_g_m2: pd.fabric_g_m2 ?? null,
+    fabric_certification: pd.fabric_certification ?? "Unknown",
+    min_base_weight_kg: pd.min_base_weight_kg ?? null,
+    pole_diameter_mm: pd.pole_diameter_mm ?? null,
+    heating_compatible: pd.heating_compatible ?? false,
+    wind_beaufort_max: pd.wind_beaufort_max ?? null,
+  };
+}
+
+function pdToSunLoungerSpecs(pd: Record<string, any>): SunLoungerSpecs {
+  return {
+    cushion_quick_dry: pd.cushion_quick_dry ?? false,
+    salt_water_resistance: pd.salt_water_resistance ?? false,
+    chlorine_resistance: pd.chlorine_resistance ?? false,
+    sand_drainage: pd.sand_drainage ?? false,
+    nesting_capacity: pd.nesting_capacity ?? null,
+  };
+}
+
+function pdToSofaSpecs(pd: Record<string, any>): SofaSpecs {
+  return {
+    available_modules: Array.isArray(pd.available_modules) ? pd.available_modules : [],
+    seat_depth_cm: pd.seat_depth_cm != null ? Number(pd.seat_depth_cm) : null,
+    cushion_replacement_available: pd.cushion_replacement_available ?? false,
+    acoustic_nrc: pd.acoustic_nrc != null ? Number(pd.acoustic_nrc) : null,
+  };
+}
+
+function pdToBarStoolSpecs(pd: Record<string, any>): BarStoolSpecs {
+  return {
+    seat_height_cm: pd.seat_height_cm != null ? Number(pd.seat_height_cm) : null,
+    subdivision: (pd.subdivision as SubdivisionOption) ?? "unknown",
+    footrest: pd.footrest ?? false,
+    swivel: pd.swivel ?? false,
+  };
+}
+
+function pdToHighTableSpecs(pd: Record<string, any>): HighTableSpecs {
+  return {
+    table_top_height_cm: pd.table_top_height_cm != null ? Number(pd.table_top_height_cm) : null,
+    subdivision: (pd.subdivision as SubdivisionOption) ?? "unknown",
+  };
+}
+
+function isHighTable(pd: Record<string, any>): boolean {
+  return pd.category === "tables" && typeof pd.subcategory === "string" && pd.subcategory.toLowerCase().includes("high");
+}
+
 export function ProductDetailCard({ pd, title }: { pd: Record<string, any>; title: string }) {
   const galleryUrls = (pd.gallery_urls || []) as string[];
   const allImages = [pd.image_url, ...galleryUrls].filter(Boolean);
@@ -431,6 +507,72 @@ export function ProductDetailCard({ pd, title }: { pd: Record<string, any>; titl
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Table specs — read-only display when category is Tables (chantier vocab 2026) */}
+      {pd.category === "tables" && (
+        <div className="border border-border rounded-xl p-4 bg-card/50">
+          <TableSpecsSection
+            value={pdToTableSpecs(pd)}
+            onChange={() => {}}
+            disabled
+          />
+        </div>
+      )}
+
+      {/* Parasol specs — read-only display when category is Parasols */}
+      {pd.category === "parasols" && (
+        <div className="border border-border rounded-xl p-4 bg-card/50">
+          <ParasolSpecsSection
+            value={pdToParasolSpecs(pd)}
+            onChange={() => {}}
+            disabled
+          />
+        </div>
+      )}
+
+      {/* Sun lounger specs — read-only display when category is Sun Loungers */}
+      {pd.category === "loungers" && (
+        <div className="border border-border rounded-xl p-4 bg-card/50">
+          <SunLoungerSpecsSection
+            value={pdToSunLoungerSpecs(pd)}
+            onChange={() => {}}
+            disabled
+          />
+        </div>
+      )}
+
+      {/* Sofa specs — read-only display when category is Sofas / Lounge Seating */}
+      {pd.category === "sofas" && (
+        <div className="border border-border rounded-xl p-4 bg-card/50">
+          <SofaSpecsSection
+            value={pdToSofaSpecs(pd)}
+            onChange={() => {}}
+            disabled
+          />
+        </div>
+      )}
+
+      {/* Bar stool specs — read-only display when category is Bar Stools */}
+      {pd.category === "bar-stools" && (
+        <div className="border border-border rounded-xl p-4 bg-card/50">
+          <BarStoolSpecsSection
+            value={pdToBarStoolSpecs(pd)}
+            onChange={() => {}}
+            disabled
+          />
+        </div>
+      )}
+
+      {/* High table specs — read-only display when Tables with subcategory "high" */}
+      {isHighTable(pd) && (
+        <div className="border border-border rounded-xl p-4 bg-card/50">
+          <HighTableSpecsSection
+            value={pdToHighTableSpecs(pd)}
+            onChange={() => {}}
+            disabled
+          />
         </div>
       )}
     </div>

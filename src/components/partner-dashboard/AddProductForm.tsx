@@ -12,6 +12,27 @@ import {
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
 import type { DimensionVariant } from "@/lib/products";
 import { validateImageUpload } from "@/lib/validateUpload";
+import {
+  TableSpecsSection,
+  ParasolSpecsSection,
+  SunLoungerSpecsSection,
+  SofaSpecsSection,
+  BarStoolSpecsSection,
+  HighTableSpecsSection,
+  type TableSpecs,
+  type ParasolSpecs,
+  type SunLoungerSpecs,
+  type SofaSpecs,
+  type BarStoolSpecs,
+  type HighTableSpecs,
+  type SubdivisionOption,
+  defaultTableSpecs,
+  defaultParasolSpecs,
+  defaultSunLoungerSpecs,
+  defaultSofaSpecs,
+  defaultBarStoolSpecs,
+  defaultHighTableSpecs,
+} from "@/components/products/specs";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -82,6 +103,12 @@ interface ProductFormData {
   warranty: string;
   dimension_variants: DimensionVariant[];
   product_type_tags: Record<string, any>;
+  tableSpecs: TableSpecs;
+  parasolSpecs: ParasolSpecs;
+  sunLoungerSpecs: SunLoungerSpecs;
+  sofaSpecs: SofaSpecs;
+  barStoolSpecs: BarStoolSpecs;
+  highTableSpecs: HighTableSpecs;
 }
 
 const EMPTY_FORM: ProductFormData = {
@@ -97,16 +124,28 @@ const EMPTY_FORM: ProductFormData = {
   country_of_manufacture: "", warranty: "",
   dimension_variants: [],
   product_type_tags: {},
+  tableSpecs: defaultTableSpecs,
+  parasolSpecs: defaultParasolSpecs,
+  sunLoungerSpecs: defaultSunLoungerSpecs,
+  sofaSpecs: defaultSofaSpecs,
+  barStoolSpecs: defaultBarStoolSpecs,
+  highTableSpecs: defaultHighTableSpecs,
 };
 
 const CATEGORIES = [
-  { value: "seating",     label: "Assises" },
+  { value: "chairs",      label: "Chaises" },
   { value: "tables",      label: "Tables" },
-  { value: "parasols",    label: "Parasols" },
-  { value: "loungers",    label: "Bains de soleil" },
+  { value: "armchairs",   label: "Fauteuils" },
   { value: "sofas",       label: "Canapés / Banquettes" },
+  { value: "loungers",    label: "Bains de soleil" },
+  { value: "parasols",    label: "Parasols" },
+  { value: "bar-stools",  label: "Tabourets de bar" },
   { value: "accessories", label: "Accessoires" },
 ];
+
+const SEATING_LIKE_CATEGORIES = ["chairs", "armchairs", "bar-stools"] as const;
+const isSeatingLike = (cat: string): boolean =>
+  (SEATING_LIKE_CATEGORIES as readonly string[]).includes(cat);
 
 const COLOR_OPTIONS = [
   "white", "black", "grey", "anthracite", "brown", "natural", "beige", "cream",
@@ -195,6 +234,46 @@ export default function AddProductForm({
         warranty: d.warranty || "",
         dimension_variants: Array.isArray(d.dimension_variants) ? d.dimension_variants : [],
         product_type_tags: (d as any).product_type_tags || {},
+        tableSpecs: {
+          built_in_umbrella_hole: d.built_in_umbrella_hole ?? false,
+          umbrella_hole_diameter_mm: d.umbrella_hole_diameter_mm ?? null,
+          top_thickness_cm: d.top_thickness_cm != null ? Number(d.top_thickness_cm) : null,
+          is_tippable: d.is_tippable ?? false,
+          extension_capability: d.extension_capability ?? false,
+          extension_max_length_cm: d.extension_max_length_cm ?? null,
+          outdoor_anchor_compatible: d.outdoor_anchor_compatible ?? false,
+        },
+        parasolSpecs: {
+          fabric_g_m2: d.fabric_g_m2 ?? null,
+          fabric_certification: d.fabric_certification ?? "Unknown",
+          min_base_weight_kg: d.min_base_weight_kg ?? null,
+          pole_diameter_mm: d.pole_diameter_mm ?? null,
+          heating_compatible: d.heating_compatible ?? false,
+          wind_beaufort_max: d.wind_beaufort_max ?? null,
+        },
+        sunLoungerSpecs: {
+          cushion_quick_dry: d.cushion_quick_dry ?? false,
+          salt_water_resistance: d.salt_water_resistance ?? false,
+          chlorine_resistance: d.chlorine_resistance ?? false,
+          sand_drainage: d.sand_drainage ?? false,
+          nesting_capacity: d.nesting_capacity ?? null,
+        },
+        sofaSpecs: {
+          available_modules: Array.isArray(d.available_modules) ? d.available_modules : [],
+          seat_depth_cm: d.seat_depth_cm != null ? Number(d.seat_depth_cm) : null,
+          cushion_replacement_available: d.cushion_replacement_available ?? false,
+          acoustic_nrc: d.acoustic_nrc != null ? Number(d.acoustic_nrc) : null,
+        },
+        barStoolSpecs: {
+          seat_height_cm: d.seat_height_cm != null ? Number(d.seat_height_cm) : null,
+          subdivision: (d.subdivision as SubdivisionOption) ?? "unknown",
+          footrest: d.footrest ?? false,
+          swivel: d.swivel ?? false,
+        },
+        highTableSpecs: {
+          table_top_height_cm: d.table_top_height_cm != null ? Number(d.table_top_height_cm) : null,
+          subdivision: (d.subdivision as SubdivisionOption) ?? "unknown",
+        },
       };
     }
     return EMPTY_FORM;
@@ -474,6 +553,46 @@ export default function AddProductForm({
         warranty: form.warranty || null,
         dimension_variants: form.dimension_variants.length > 0 ? form.dimension_variants : null,
         collection: collectionName || null,
+        ...(isTableCategory ? {
+          built_in_umbrella_hole: form.tableSpecs.built_in_umbrella_hole,
+          umbrella_hole_diameter_mm: form.tableSpecs.umbrella_hole_diameter_mm,
+          top_thickness_cm: form.tableSpecs.top_thickness_cm,
+          is_tippable: form.tableSpecs.is_tippable,
+          extension_capability: form.tableSpecs.extension_capability,
+          extension_max_length_cm: form.tableSpecs.extension_max_length_cm,
+          outdoor_anchor_compatible: form.tableSpecs.outdoor_anchor_compatible,
+        } : {}),
+        ...(form.category === "parasols" ? {
+          fabric_g_m2: form.parasolSpecs.fabric_g_m2,
+          fabric_certification: form.parasolSpecs.fabric_certification,
+          min_base_weight_kg: form.parasolSpecs.min_base_weight_kg,
+          pole_diameter_mm: form.parasolSpecs.pole_diameter_mm,
+          heating_compatible: form.parasolSpecs.heating_compatible,
+          wind_beaufort_max: form.parasolSpecs.wind_beaufort_max,
+        } : {}),
+        ...(form.category === "loungers" ? {
+          cushion_quick_dry: form.sunLoungerSpecs.cushion_quick_dry,
+          salt_water_resistance: form.sunLoungerSpecs.salt_water_resistance,
+          chlorine_resistance: form.sunLoungerSpecs.chlorine_resistance,
+          sand_drainage: form.sunLoungerSpecs.sand_drainage,
+          nesting_capacity: form.sunLoungerSpecs.nesting_capacity,
+        } : {}),
+        ...(form.category === "sofas" ? {
+          available_modules: form.sofaSpecs.available_modules,
+          seat_depth_cm: form.sofaSpecs.seat_depth_cm,
+          cushion_replacement_available: form.sofaSpecs.cushion_replacement_available,
+          acoustic_nrc: form.sofaSpecs.acoustic_nrc,
+        } : {}),
+        ...(form.category === "bar-stools" ? {
+          seat_height_cm: form.barStoolSpecs.seat_height_cm,
+          subdivision: form.barStoolSpecs.subdivision,
+          footrest: form.barStoolSpecs.footrest,
+          swivel: form.barStoolSpecs.swivel,
+        } : {}),
+        ...(form.category === "tables" && form.subcategory.toLowerCase().includes("high") ? {
+          table_top_height_cm: form.highTableSpecs.table_top_height_cm,
+          subdivision: form.highTableSpecs.subdivision,
+        } : {}),
       } as any;
 
       // If editing an existing submission, update it in place instead of creating a new one
@@ -939,7 +1058,7 @@ export default function AddProductForm({
           {section === "specs" && (
             <div className="space-y-5">
               {/* ── Category-specific fields ── */}
-              {(form.category === "seating") && (
+              {isSeatingLike(form.category) && (
                 <>
                   <p className="text-xs font-display font-semibold text-foreground">Spécifications — Assises</p>
                   <div className="grid grid-cols-2 gap-3">
@@ -1055,7 +1174,7 @@ export default function AddProductForm({
                 {renderInput("Longueur", "dimensions_length_cm", "number", false, "—", "cm")}
                 {renderInput("Largeur", "dimensions_width_cm", "number", false, "—", "cm")}
                 {renderInput("Hauteur", "dimensions_height_cm", "number", false, "—", "cm")}
-                {form.category === "seating" && renderInput("Haut. assise", "seat_height_cm", "number", false, "—", "cm")}
+                {isSeatingLike(form.category) && renderInput("Haut. assise", "seat_height_cm", "number", false, "—", "cm")}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {renderInput("Poids", "weight_kg", "number", false, "—", "kg")}
@@ -1066,7 +1185,7 @@ export default function AddProductForm({
               <p className="text-xs font-display font-semibold text-foreground pt-2">Propriétés</p>
               <div className="grid grid-cols-2 gap-3">
                 {renderToggle("Usage extérieur", "is_outdoor")}
-                {form.category === "seating" && renderToggle("Empilable", "is_stackable")}
+                {isSeatingLike(form.category) && renderToggle("Empilable", "is_stackable")}
                 {renderToggle("Usage CHR intensif", "is_chr_heavy_use")}
                 {renderToggle("Résistant aux intempéries", "weather_resistant")}
                 {renderToggle("Résistant UV", "uv_resistant")}
@@ -1095,6 +1214,66 @@ export default function AddProductForm({
                   Indiquez votre prix HT. La commission Terrassea de {config.commission}% sera ajoutée au prix présenté au client.
                 </div>
               </div>
+
+              {/* Table specs (chantier vocab 2026 — caractéristiques techniques) */}
+              {form.category === "tables" && (
+                <div className="border border-border rounded-md p-4 mb-4 bg-card/30">
+                  <TableSpecsSection
+                    value={form.tableSpecs}
+                    onChange={(next) => setForm(prev => ({ ...prev, tableSpecs: next }))}
+                  />
+                </div>
+              )}
+
+              {/* Parasol specs (chantier vocab 2026) */}
+              {form.category === "parasols" && (
+                <div className="border border-border rounded-md p-4 mb-4 bg-card/30">
+                  <ParasolSpecsSection
+                    value={form.parasolSpecs}
+                    onChange={(next) => setForm(prev => ({ ...prev, parasolSpecs: next }))}
+                  />
+                </div>
+              )}
+
+              {/* Sun lounger specs (chantier vocab 2026) */}
+              {form.category === "loungers" && (
+                <div className="border border-border rounded-md p-4 mb-4 bg-card/30">
+                  <SunLoungerSpecsSection
+                    value={form.sunLoungerSpecs}
+                    onChange={(next) => setForm(prev => ({ ...prev, sunLoungerSpecs: next }))}
+                  />
+                </div>
+              )}
+
+              {/* Sofa / lounge seating specs (chantier vocab 2026) */}
+              {form.category === "sofas" && (
+                <div className="border border-border rounded-md p-4 mb-4 bg-card/30">
+                  <SofaSpecsSection
+                    value={form.sofaSpecs}
+                    onChange={(next) => setForm(prev => ({ ...prev, sofaSpecs: next }))}
+                  />
+                </div>
+              )}
+
+              {/* Bar stool specs (chantier vocab 2026) */}
+              {form.category === "bar-stools" && (
+                <div className="border border-border rounded-md p-4 mb-4 bg-card/30">
+                  <BarStoolSpecsSection
+                    value={form.barStoolSpecs}
+                    onChange={(next) => setForm(prev => ({ ...prev, barStoolSpecs: next }))}
+                  />
+                </div>
+              )}
+
+              {/* High table specs (chantier vocab 2026 — Tables with subcategory "high") */}
+              {form.category === "tables" && form.subcategory.toLowerCase().includes("high") && (
+                <div className="border border-border rounded-md p-4 mb-4 bg-card/30">
+                  <HighTableSpecsSection
+                    value={form.highTableSpecs}
+                    onChange={(next) => setForm(prev => ({ ...prev, highTableSpecs: next }))}
+                  />
+                </div>
+              )}
 
               {/* Dimension variants for tables */}
               {form.category === "tables" && (

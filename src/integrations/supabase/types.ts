@@ -257,6 +257,13 @@ export type Database = {
             referencedRelation: "material_boards"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "board_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
         ]
       }
       brand_collections: {
@@ -693,6 +700,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "concept_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "concept_events_snapshot_id_fkey"
             columns: ["snapshot_id"]
@@ -1395,6 +1409,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "orders_project_request_id_fkey"
             columns: ["project_request_id"]
             isOneToOne: false
@@ -1671,6 +1692,13 @@ export type Database = {
             columns: ["offer_id"]
             isOneToOne: false
             referencedRelation: "product_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_arrival_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -2289,6 +2317,13 @@ export type Database = {
             columns: ["arrival_item_id"]
             isOneToOne: false
             referencedRelation: "partner_arrival_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preorders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -2925,19 +2960,25 @@ export type Database = {
       }
       products: {
         Row: {
+          acoustic_nrc: number | null
           ambience_tags: string[] | null
           archetype_confidence: number | null
           archetype_id: string | null
           availability_type: string | null
           available_colors: string[] | null
+          available_modules: Json | null
           brand_source: string | null
+          built_in_umbrella_hole: boolean | null
           category: string
+          chlorine_resistance: boolean | null
           collection: string | null
           color_variants: Json | null
           combinable: boolean | null
           combined_capacity_if_joined: number | null
           country_of_manufacture: string | null
           created_at: string | null
+          cushion_quick_dry: boolean | null
+          cushion_replacement_available: boolean | null
           customizable: boolean | null
           data_quality_score: number | null
           default_seating_capacity: number | null
@@ -2951,8 +2992,14 @@ export type Database = {
           easy_maintenance: boolean | null
           environment_urls: string[] | null
           estimated_delivery_days: number | null
+          extension_capability: boolean | null
+          extension_max_length_cm: number | null
+          fabric_certification: string | null
+          fabric_g_m2: number | null
           fire_retardant: boolean | null
+          footrest: boolean | null
           gallery_urls: string[] | null
+          heating_compatible: boolean | null
           id: string
           image_url: string | null
           indicative_price: string | null
@@ -2960,6 +3007,7 @@ export type Database = {
           is_chr_heavy_use: boolean | null
           is_outdoor: boolean | null
           is_stackable: boolean | null
+          is_tippable: boolean | null
           lightweight: boolean | null
           long_description: string | null
           long_description_es: string | null
@@ -2973,12 +3021,16 @@ export type Database = {
           material_seat: string | null
           material_structure: string | null
           material_tags: string[] | null
+          min_base_weight_kg: number | null
           name: string
           name_es: string | null
           name_fr: string | null
           name_it: string | null
+          nesting_capacity: number | null
+          outdoor_anchor_compatible: boolean | null
           palette_tags: string[] | null
           partner_id: string | null
+          pole_diameter_mm: number | null
           popularity_score: number | null
           price_max: number | null
           price_min: number | null
@@ -2989,6 +3041,9 @@ export type Database = {
           recommended_seating_max: number | null
           recommended_seating_min: number | null
           requires_assembly: boolean | null
+          salt_water_resistance: boolean | null
+          sand_drainage: boolean | null
+          seat_depth_cm: number | null
           seat_height_cm: number | null
           secondary_color: string | null
           short_description: string | null
@@ -2999,30 +3054,42 @@ export type Database = {
           stock_status: string | null
           style_tags: string[] | null
           subcategory: string | null
+          subdivision: string | null
           supplier_internal: string | null
+          swivel: boolean | null
           table_shape: string | null
+          table_top_height_cm: number | null
           technical_tags: string[] | null
+          top_thickness_cm: number | null
+          umbrella_hole_diameter_mm: number | null
           updated_at: string | null
           use_case_tags: string[] | null
           uv_resistant: boolean | null
           warranty: string | null
           weather_resistant: boolean | null
           weight_kg: number | null
+          wind_beaufort_max: number | null
         }
         Insert: {
+          acoustic_nrc?: number | null
           ambience_tags?: string[] | null
           archetype_confidence?: number | null
           archetype_id?: string | null
           availability_type?: string | null
           available_colors?: string[] | null
+          available_modules?: Json | null
           brand_source?: string | null
+          built_in_umbrella_hole?: boolean | null
           category: string
+          chlorine_resistance?: boolean | null
           collection?: string | null
           color_variants?: Json | null
           combinable?: boolean | null
           combined_capacity_if_joined?: number | null
           country_of_manufacture?: string | null
           created_at?: string | null
+          cushion_quick_dry?: boolean | null
+          cushion_replacement_available?: boolean | null
           customizable?: boolean | null
           data_quality_score?: number | null
           default_seating_capacity?: number | null
@@ -3036,8 +3103,14 @@ export type Database = {
           easy_maintenance?: boolean | null
           environment_urls?: string[] | null
           estimated_delivery_days?: number | null
+          extension_capability?: boolean | null
+          extension_max_length_cm?: number | null
+          fabric_certification?: string | null
+          fabric_g_m2?: number | null
           fire_retardant?: boolean | null
+          footrest?: boolean | null
           gallery_urls?: string[] | null
+          heating_compatible?: boolean | null
           id?: string
           image_url?: string | null
           indicative_price?: string | null
@@ -3045,6 +3118,7 @@ export type Database = {
           is_chr_heavy_use?: boolean | null
           is_outdoor?: boolean | null
           is_stackable?: boolean | null
+          is_tippable?: boolean | null
           lightweight?: boolean | null
           long_description?: string | null
           long_description_es?: string | null
@@ -3058,12 +3132,16 @@ export type Database = {
           material_seat?: string | null
           material_structure?: string | null
           material_tags?: string[] | null
+          min_base_weight_kg?: number | null
           name: string
           name_es?: string | null
           name_fr?: string | null
           name_it?: string | null
+          nesting_capacity?: number | null
+          outdoor_anchor_compatible?: boolean | null
           palette_tags?: string[] | null
           partner_id?: string | null
+          pole_diameter_mm?: number | null
           popularity_score?: number | null
           price_max?: number | null
           price_min?: number | null
@@ -3074,6 +3152,9 @@ export type Database = {
           recommended_seating_max?: number | null
           recommended_seating_min?: number | null
           requires_assembly?: boolean | null
+          salt_water_resistance?: boolean | null
+          sand_drainage?: boolean | null
+          seat_depth_cm?: number | null
           seat_height_cm?: number | null
           secondary_color?: string | null
           short_description?: string | null
@@ -3084,30 +3165,42 @@ export type Database = {
           stock_status?: string | null
           style_tags?: string[] | null
           subcategory?: string | null
+          subdivision?: string | null
           supplier_internal?: string | null
+          swivel?: boolean | null
           table_shape?: string | null
+          table_top_height_cm?: number | null
           technical_tags?: string[] | null
+          top_thickness_cm?: number | null
+          umbrella_hole_diameter_mm?: number | null
           updated_at?: string | null
           use_case_tags?: string[] | null
           uv_resistant?: boolean | null
           warranty?: string | null
           weather_resistant?: boolean | null
           weight_kg?: number | null
+          wind_beaufort_max?: number | null
         }
         Update: {
+          acoustic_nrc?: number | null
           ambience_tags?: string[] | null
           archetype_confidence?: number | null
           archetype_id?: string | null
           availability_type?: string | null
           available_colors?: string[] | null
+          available_modules?: Json | null
           brand_source?: string | null
+          built_in_umbrella_hole?: boolean | null
           category?: string
+          chlorine_resistance?: boolean | null
           collection?: string | null
           color_variants?: Json | null
           combinable?: boolean | null
           combined_capacity_if_joined?: number | null
           country_of_manufacture?: string | null
           created_at?: string | null
+          cushion_quick_dry?: boolean | null
+          cushion_replacement_available?: boolean | null
           customizable?: boolean | null
           data_quality_score?: number | null
           default_seating_capacity?: number | null
@@ -3121,8 +3214,14 @@ export type Database = {
           easy_maintenance?: boolean | null
           environment_urls?: string[] | null
           estimated_delivery_days?: number | null
+          extension_capability?: boolean | null
+          extension_max_length_cm?: number | null
+          fabric_certification?: string | null
+          fabric_g_m2?: number | null
           fire_retardant?: boolean | null
+          footrest?: boolean | null
           gallery_urls?: string[] | null
+          heating_compatible?: boolean | null
           id?: string
           image_url?: string | null
           indicative_price?: string | null
@@ -3130,6 +3229,7 @@ export type Database = {
           is_chr_heavy_use?: boolean | null
           is_outdoor?: boolean | null
           is_stackable?: boolean | null
+          is_tippable?: boolean | null
           lightweight?: boolean | null
           long_description?: string | null
           long_description_es?: string | null
@@ -3143,12 +3243,16 @@ export type Database = {
           material_seat?: string | null
           material_structure?: string | null
           material_tags?: string[] | null
+          min_base_weight_kg?: number | null
           name?: string
           name_es?: string | null
           name_fr?: string | null
           name_it?: string | null
+          nesting_capacity?: number | null
+          outdoor_anchor_compatible?: boolean | null
           palette_tags?: string[] | null
           partner_id?: string | null
+          pole_diameter_mm?: number | null
           popularity_score?: number | null
           price_max?: number | null
           price_min?: number | null
@@ -3159,6 +3263,9 @@ export type Database = {
           recommended_seating_max?: number | null
           recommended_seating_min?: number | null
           requires_assembly?: boolean | null
+          salt_water_resistance?: boolean | null
+          sand_drainage?: boolean | null
+          seat_depth_cm?: number | null
           seat_height_cm?: number | null
           secondary_color?: string | null
           short_description?: string | null
@@ -3169,15 +3276,21 @@ export type Database = {
           stock_status?: string | null
           style_tags?: string[] | null
           subcategory?: string | null
+          subdivision?: string | null
           supplier_internal?: string | null
+          swivel?: boolean | null
           table_shape?: string | null
+          table_top_height_cm?: number | null
           technical_tags?: string[] | null
+          top_thickness_cm?: number | null
+          umbrella_hole_diameter_mm?: number | null
           updated_at?: string | null
           use_case_tags?: string[] | null
           uv_resistant?: boolean | null
           warranty?: string | null
           weather_resistant?: boolean | null
           weight_kg?: number | null
+          wind_beaufort_max?: number | null
         }
         Relationships: [
           {
@@ -3586,6 +3699,13 @@ export type Database = {
           zone_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "project_zone_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "project_zone_products_project_id_fkey"
             columns: ["project_id"]
@@ -4497,19 +4617,25 @@ export type Database = {
           search_query: string
         }
         Returns: {
+          acoustic_nrc: number | null
           ambience_tags: string[] | null
           archetype_confidence: number | null
           archetype_id: string | null
           availability_type: string | null
           available_colors: string[] | null
+          available_modules: Json | null
           brand_source: string | null
+          built_in_umbrella_hole: boolean | null
           category: string
+          chlorine_resistance: boolean | null
           collection: string | null
           color_variants: Json | null
           combinable: boolean | null
           combined_capacity_if_joined: number | null
           country_of_manufacture: string | null
           created_at: string | null
+          cushion_quick_dry: boolean | null
+          cushion_replacement_available: boolean | null
           customizable: boolean | null
           data_quality_score: number | null
           default_seating_capacity: number | null
@@ -4523,8 +4649,14 @@ export type Database = {
           easy_maintenance: boolean | null
           environment_urls: string[] | null
           estimated_delivery_days: number | null
+          extension_capability: boolean | null
+          extension_max_length_cm: number | null
+          fabric_certification: string | null
+          fabric_g_m2: number | null
           fire_retardant: boolean | null
+          footrest: boolean | null
           gallery_urls: string[] | null
+          heating_compatible: boolean | null
           id: string
           image_url: string | null
           indicative_price: string | null
@@ -4532,6 +4664,7 @@ export type Database = {
           is_chr_heavy_use: boolean | null
           is_outdoor: boolean | null
           is_stackable: boolean | null
+          is_tippable: boolean | null
           lightweight: boolean | null
           long_description: string | null
           long_description_es: string | null
@@ -4545,12 +4678,16 @@ export type Database = {
           material_seat: string | null
           material_structure: string | null
           material_tags: string[] | null
+          min_base_weight_kg: number | null
           name: string
           name_es: string | null
           name_fr: string | null
           name_it: string | null
+          nesting_capacity: number | null
+          outdoor_anchor_compatible: boolean | null
           palette_tags: string[] | null
           partner_id: string | null
+          pole_diameter_mm: number | null
           popularity_score: number | null
           price_max: number | null
           price_min: number | null
@@ -4561,6 +4698,9 @@ export type Database = {
           recommended_seating_max: number | null
           recommended_seating_min: number | null
           requires_assembly: boolean | null
+          salt_water_resistance: boolean | null
+          sand_drainage: boolean | null
+          seat_depth_cm: number | null
           seat_height_cm: number | null
           secondary_color: string | null
           short_description: string | null
@@ -4571,15 +4711,21 @@ export type Database = {
           stock_status: string | null
           style_tags: string[] | null
           subcategory: string | null
+          subdivision: string | null
           supplier_internal: string | null
+          swivel: boolean | null
           table_shape: string | null
+          table_top_height_cm: number | null
           technical_tags: string[] | null
+          top_thickness_cm: number | null
+          umbrella_hole_diameter_mm: number | null
           updated_at: string | null
           use_case_tags: string[] | null
           uv_resistant: boolean | null
           warranty: string | null
           weather_resistant: boolean | null
           weight_kg: number | null
+          wind_beaufort_max: number | null
         }[]
         SetofOptions: {
           from: "*"
@@ -4753,3 +4899,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

@@ -1,4 +1,8 @@
 import type { DBProduct, ProductTypeTags } from "@/lib/products";
+import {
+  TERM_TO_FABRIC_BRAND_SLUG,
+  type FabricBrandSlug,
+} from "@/engine/dictionaries/fabricBrands";
 
 export type SearchIntent = "product_search" | "project_creation";
 
@@ -333,6 +337,53 @@ const AMBIGUOUS_TERMS: Record<string, { color: string; style: string }> = {
   naturale:  { color: "natural", style: "natural" },
   "natürlich": { color: "natural", style: "natural" },
 };
+
+// ============================================================================
+// TERM_TO_TREND_TAG — Vocabulaire 2026 (chantier vocab 2026, ÉTAPE 7.2)
+//
+// Maps emerging hospitality / outdoor design terms to canonical slugs used by
+// the matching Engine for trend-based filtering and concept generation.
+//
+// Three families :
+//   - Design trends 2026     : resimercial, soft-modern, biophilic, …
+//   - Hospitality experience : linger-worthy, quiet-zone, vip-zone, acoustic-comfort
+//   - Sustainability         : repairable, reconfigurable, replacement-parts-available
+//
+// Non-destructive addition : no existing term was removed. Used by future
+// Engine extensions (concept generation, supplier scoring boost). Currently
+// exported for downstream modules and tests.
+// ============================================================================
+
+export const TERM_TO_TREND_TAG: Record<string, string> = {
+  // ── Design trends 2026 ──
+  resimercial: "resimercial",
+  "soft modern": "soft-modern", "soft-modern": "soft-modern",
+  biophilic: "biophilic", biophilique: "biophilic", biofílico: "biophilic", biofilico: "biophilic",
+  "layered maximalism": "layered-maximalism", "layered-maximalism": "layered-maximalism",
+  cocooning: "cocooning", cocon: "cocooning",
+  "material honesty": "material-honesty", "material-honesty": "material-honesty",
+
+  // ── Hospitality experience ──
+  "linger worthy": "linger-worthy", "linger-worthy": "linger-worthy",
+  "quiet zone": "quiet-zone", "quiet-zone": "quiet-zone",
+  "social zone": "social-zone", "social-zone": "social-zone",
+  "vip zone": "vip-zone", "vip-zone": "vip-zone",
+  "acoustic comfort": "acoustic-comfort", "acoustic-comfort": "acoustic-comfort",
+  "confort acoustique": "acoustic-comfort",
+
+  // ── Sustainability ──
+  repairable: "repairable", réparable: "repairable", reparable: "repairable",
+  reconfigurable: "reconfigurable", reconfigurable_fr: "reconfigurable",
+  "replacement parts": "replacement-parts-available",
+  "replacement-parts-available": "replacement-parts-available",
+  "pieces detachees": "replacement-parts-available",
+  "pièces détachées": "replacement-parts-available",
+};
+
+// Re-export the fabric brand dictionary for consumers that import from
+// intentDetector (avoid forcing them to know about `dictionaries/fabricBrands`).
+export { TERM_TO_FABRIC_BRAND_SLUG };
+export type { FabricBrandSlug };
 
 // ── Normalized query structure ────────────────────────────
 
@@ -1090,4 +1141,10 @@ export function filterProducts(query: string, products: DBProduct[]): DBProduct[
 }
 
 // ── Export normalization helpers for use in other modules ──
-export { normalizeQuery, TERM_TO_COLOR_SLUG, TERM_TO_CATEGORY_SLUG, TERM_TO_USE_CASE_SLUG, TERM_TO_STYLE_SLUG };
+export {
+  normalizeQuery,
+  TERM_TO_COLOR_SLUG,
+  TERM_TO_CATEGORY_SLUG,
+  TERM_TO_USE_CASE_SLUG,
+  TERM_TO_STYLE_SLUG,
+};

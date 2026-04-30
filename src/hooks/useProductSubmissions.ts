@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { fetchProducts, type DBProduct } from "@/lib/products";
 import { findSimilarProducts, type SimilarityResult } from "@/engine/similarityEngine";
 import { computeProductQuality } from "@/lib/productQualityScore";
+import { normalizeProductCategory } from "@/lib/categoryNormalizer";
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -226,13 +227,13 @@ export function useAdminSubmissions() {
         throw new Error("Le produit soumis n'a pas de nom ou de catégorie");
       }
 
-      // Normalize category slugs to standard labels
-      const CATEGORY_NORMALIZE: Record<string, string> = {
-        seating: "Chairs", chairs: "Chairs", stools: "Bar Stools", "bar stools": "Bar Stools",
-        tables: "Tables", parasols: "Parasols", armchairs: "Armchairs",
-      };
-      const rawCat = (pd.category as string).trim();
-      pd.category = CATEGORY_NORMALIZE[rawCat.toLowerCase()] ?? rawCat;
+      // Normalize category to the canonical lowercase-kebab slug used by the
+      // frontend CATEGORIES list and the (post-2026-04-30) DB taxonomy.
+      // Legacy "seating" is resolved via name/subcategory heuristic.
+      pd.category = normalizeProductCategory(pd.category as string, {
+        name: pd.name as string | undefined,
+        subcategory: pd.subcategory as string | undefined,
+      });
 
       // Convert base64 images to Storage URLs
       let finalImageUrl = (pd.image_url as string) ?? null;

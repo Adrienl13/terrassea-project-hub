@@ -1,8 +1,8 @@
 # CLAUDE.md
 
 > Reference for any agent (Claude Code, sub-agents, future devs) working on the codebase.
-> **Read this BEFORE editing.** Last updated 2026-04-29 after a full RECON of the codebase.
-> Companion docs: `docs/audit/2026-04/RECON.md`, `docs/audit/2026-04/STRATEGIC_DECISIONS.md`.
+> **Read this BEFORE editing.** Last updated 2026-04-30 after the chantier vocabulaire 2026.
+> Companion docs: `docs/audit/2026-04/RECON.md`, `docs/audit/2026-04/STRATEGIC_DECISIONS.md`, `docs/chantiers/2026-05/PLAN_VOCAB_FIELDS.md`, `docs/chantiers/2026-05/CHANGELOG.md`.
 
 ---
 
@@ -121,6 +121,10 @@ Important real names that differ from older briefs:
 
 Helper function for admin-only RLS: `public.is_admin()` (SECURITY DEFINER, defined in migration `20260408200000`). Use it in policies — do not duplicate the `user_type='admin'` check inline.
 
+**Products schema — vocabulary 2026 (chantier 2026-04-30) :** `public.products` was extended with **27 critical-spec columns** across 5 priority categories — Tables (7), Parasols (6), Sun Loungers (5), Sofas/Lounge Seating (4 incl. 1 jsonb `available_modules`), Bar Stools & High Tables (5 incl. 1 shared `subdivision`). All columns have CHECK constraints + sane defaults ; jsonb arrays validated app-side via zod schemas in `src/components/products/specs/shared/types.ts`. The `auto_derive_product_tags` trigger derives 8 new technical_tags (`premium-fabric`, `high-wind`, `heating-compat`, `modular`, `pool-resistant`, `beach-resistant`, `acoustic`, `repairable`).
+
+**Categories normalized 2026-04-30 (chantier vocab) :** product category is now lowercase-kebab. Canonical slugs : `chairs` / `armchairs` / `bar-stools` / `tables` / `parasols` / `loungers` / `sofas` / `accessories`. The slug `seating` is intentionally conserved as semantic concept in 2 distinct contexts: architect need briefs (ArchitectSections) and Resources page topic — NOT as a product category slug. Helper `src/lib/categoryNormalizer.ts` resolves legacy AI/CSV inputs (incl. heuristic for ambiguous `seating` → `chairs` / `armchairs` / `bar-stools` by name keyword).
+
 ---
 
 ## Partner plans (source of truth: `src/lib/partnerConstants.ts`)
@@ -176,25 +180,30 @@ User types in `user_profiles.user_type`: `client | partner | architect | admin`.
 - **No new files unless asked.** Prefer editing existing files.
 - **shadcn/ui primitives** in `src/components/ui/` — do not edit manually. Use `bunx shadcn@latest add <name>` to add new ones.
 - **i18n** : every user-facing string goes through `useTranslation()` and the 4 locale JSONs (en/fr/es/it). Adding new locales is allowed but not currently planned for 2026 — focus is content quality on existing locales, not expansion to DE/NL/PT.
-- **Migrations** : new SQL goes to `supabase/migrations/` with `YYYYMMDDHHMMSS_descriptive_snake.sql` naming. **Never edit existing migrations.** Apply via `mcp__supabase__apply_migration` for atomicity + traceability.
+- **Migrations** : new SQL goes to `supabase/migrations/` with `YYYYMMDDHHMMSS_descriptive_snake.sql` naming. **Never edit existing migrations.** Apply via `mcp__supabase__apply_migration` for atomicity + traceability. **CRITICAL — drift prevention :** when applying a migration via `mcp__supabase__apply_migration` (or any Supabase MCP migration tool), the matching SQL file MUST also be created in `supabase/migrations/` with the same timestamp BEFORE commit. Otherwise the repo is no longer the source of truth and `supabase db reset` will diverge from production. Lesson learned 2026-04-30 chantier vocab : 11 migrations were applied prod-only and had to be back-extracted via `supabase_migrations.schema_migrations` before push.
 - **Edge functions** : every edge function deployed to production MUST be versioned in `supabase/functions/<slug>/index.ts` BEFORE deployment. **No direct Studio deploy.** Each function has its own `README.md` documenting purpose, required secrets, tables touched, and re-enable procedure if guarded. The 2026-04-29 audit found 4 functions ACTIVE in prod missing from the repo — this rule exists to prevent that drift from recurring.
 - **RLS** : every new table must have RLS enabled and a deliberate policy set. The 2026-04-29 hotfix exists because three CRM tables were missed. Use `public.is_admin()` for admin-only access.
 - **Server-side validation** : never trust the client. Edge functions and RPCs validate inputs.
 - **Stripe** : payment-related code lives in `stripe-checkout` and `stripe-webhook` edge functions. Never trust client-side Stripe events. Always verify webhook signatures server-side. Never log raw card data or full Stripe customer secrets.
+- **Vocabulary 2026 dictionaries** : product specs use canonical dictionaries — `src/engine/dictionaries/fabricBrands.ts` (FABRIC_BRAND_SLUGS, TERM_TO_FABRIC_BRAND_SLUG, PREMIUM_FABRIC_BRANDS) ; `src/engine/intentDetector.ts` exports `TERM_TO_TREND_TAG` (~14 design-trend slugs : resimercial, soft-modern, biophilic, layered-maximalism, cocooning, material-honesty, linger-worthy, quiet/social/vip-zone, acoustic-comfort, repairable, reconfigurable, replacement-parts-available). Per-category UI sub-components live in `src/components/products/specs/` (TableSpecsSection / ParasolSpecsSection / SunLoungerSpecsSection / SofaSpecsSection / BarStoolSpecsSection / HighTableSpecsSection). Their zod schemas + types are centralized in `specs/shared/types.ts`. **Reuse these dictionaries — do not redefine fabric brands or trend slugs inline.**
 - **Mobile-first** : Tailwind breakpoints, no desktop-only assumptions.
 - **No `any`** unless justified inline. ESLint rule is currently disabled — treat that as tech debt, not as license.
 
 ---
 
-## Known tech debt (snapshot 2026-04-29)
+## Known tech debt (snapshot 2026-04-30)
 
 To be expanded by ÉTAPE 2 of the audit. Current visible items:
 
-1. TypeScript `strict: false` everywhere — gradual tightening planned.
+1. TypeScript `strict: false` everywhere — gradual tightening planned. New sub-components (`products/specs/*`) are already strict-conformant.
 2. Three lockfiles co-exist: `bun.lock`, `bun.lockb`, `package-lock.json`. CI uses `bun install --frozen-lockfile`.
 3. `playwright.config.ts` references an external lib; no actual E2E tests in repo.
 4. Duplicate `use-toast`: `src/hooks/use-toast.ts` AND `src/components/ui/use-toast.ts`.
-5. Supabase advisors WARN remaining (post-hotfix): `function_search_path_mutable` on `update_product_review_timestamp`, `materialized_view_in_api` on `product_review_stats`, `rls_policy_always_true` on `concept_events`.
+5. Supabase advisors WARN remaining (post-hotfix + chantier vocab) : `function_search_path_mutable` on `update_product_review_timestamp`, `materialized_view_in_api` on `product_review_stats`, `rls_policy_always_true` on `concept_events`. **`auth_rls_initplan` resolved 7 → 0** in chantier vocab. **`unindexed_foreign_keys` reduced 8 → 3** (3 residuals on `concept_events.user_id`, `product_reviews.order_id`, `product_reviews.quote_request_id` — pre-existing, out of vocab scope).
 6. Pricing details (monthly fees, commission tiers) are partially in `partnerConstants.ts` and partially in `platform_settings` (58 rows) — to be unified.
+7. **`multiple_permissive_policies` : 623 advisor entries** across 53 tables (verified 2026-04-30 via `get_advisors`). Pattern admin + owner-policy generates 2 policies per (action × role), and Postgres evaluates both at every query. Reported to Bucket 3 backlog (`docs/chantiers/2026-05/BACKLOG_POST_VOCAB.md` §5) — Q3 2026, 1-2 days estimated, target < 100. **Out of scope for vocab chantier** (touches 53 tables incl. critical flows : auth, payments, conversations).
+8. **Edge function prompts mismatch the new lowercase-kebab category taxonomy.** `enrich-products`, `analyze-csv-products`, `analyze-terrace`, `analyze-product-image` still return capitalized/mixed labels (`"Chairs"`, `"Bar Stools"`, `"Lounge Seating"`). Workaround : `src/lib/categoryNormalizer.ts` absorbs the divergence client-side. Proper fix tracked in `BACKLOG_POST_VOCAB.md` §6 (Q3 2026, ~1-2h).
+9. **`AdminAIScanner` : the AI re-tag flow doesn't yet propose values for the 27 new critical-spec columns** (extension_capability, fabric_certification, etc.). The form fields render via the new sub-components (chantier ÉTAPE 2.5/3.5/4.5/5.5/6.5 admin integration), but bulk AI suggestions on those fields are pending. Tracked in `BACKLOG_POST_VOCAB.md` §3 (Q3 2026).
+10. **Demo catalogue thin** : only **9 products active in DB** as of 2026-04-30. The new category UIs + dictionaries are validated by tests but not exercised by production data. Tracked in `BACKLOG_POST_VOCAB.md` §1 (semaine 5-6, target 30-50 products before Salone relaunch mid-June 2026).
 
-See `docs/audit/2026-04/RECON.md` §17 for the full list of open questions.
+See `docs/audit/2026-04/RECON.md` §17 for the full list of open questions and `docs/chantiers/2026-05/CHANGELOG.md` for the chantier vocab synthesis.
