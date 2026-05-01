@@ -6,6 +6,10 @@ import { fetchProducts, type DBProduct } from "@/lib/products";
 import { findSimilarProducts, type SimilarityResult } from "@/engine/similarityEngine";
 import { computeProductQuality } from "@/lib/productQualityScore";
 import { normalizeProductCategory } from "@/lib/categoryNormalizer";
+import {
+  type LocalVariantRow,
+  variantRowSchema,
+} from "@/lib/variantsGridHelpers";
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -37,11 +41,39 @@ export function useProductSubmission() {
     async (productData: Partial<DBProduct>, options?: {
       editMode?: boolean;
       targetProductId?: string;
+      variants?: LocalVariantRow[];
     }): Promise<{
       submissionId: string;
       duplicate: SimilarityResult | null;
     }> => {
       if (!user?.id) throw new Error("Not authenticated");
+
+      // Defense-in-depth validation des variants (déjà validés côté UI mais
+      // on re-vérifie ici pour blinder le contrat hook).
+      const variants = options?.variants ?? [];
+      if (variants.length > 0) {
+        const defaultCount = variants.filter((v) => v.is_default).length;
+        if (defaultCount === 0) {
+          const msg = "Au moins une variante doit être marquée comme défaut";
+          setError(msg);
+          throw new Error(msg);
+        }
+        if (defaultCount > 1) {
+          const msg = "Une seule variante peut être marquée comme défaut";
+          setError(msg);
+          throw new Error(msg);
+        }
+        for (let i = 0; i < variants.length; i++) {
+          const parsed = variantRowSchema.safeParse(variants[i]);
+          if (!parsed.success) {
+            const issue = parsed.error.issues[0];
+            const path = issue?.path.join(".") || "field";
+            const msg = `Variante #${i + 1} invalide : ${path} — ${issue?.message ?? "unknown"}`;
+            setError(msg);
+            throw new Error(msg);
+          }
+        }
+      }
 
       setIsSubmitting(true);
       setError(null);
@@ -88,9 +120,27 @@ export function useProductSubmission() {
 
         // 5. Upsert into product_submissions (replace existing pending edit for same product)
         const isEdit = options?.editMode && options?.targetProductId;
+
+        // Embed variants[] dans product_data (jsonb).
+        // ÉTAPE 6c : on sérialise les variants côté partner submit. La
+        // matérialisation en lignes product_variants se fera côté admin
+        // approval (ÉTAPE 7 — refonte ProductReviewHelpers).
+        // Le _localId React est strippé (interne au front, pas pertinent en DB).
+        const productDataPayload =
+          variants.length > 0
+            ? {
+                ...productData,
+                variants: variants.map((v) => {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  const { _localId, ...rest } = v;
+                  return rest;
+                }),
+              }
+            : productData;
+
         const submissionPayload = {
           partner_id: resolvedPartnerId,
-          product_data: productData as Record<string, unknown>,
+          product_data: productDataPayload as Record<string, unknown>,
           status: "pending_review",
           similarity_score: bestMatch ? bestMatch.score : null,
           detected_duplicate_id: bestMatch ? bestMatch.product.id : null,
