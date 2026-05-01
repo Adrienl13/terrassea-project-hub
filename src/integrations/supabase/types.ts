@@ -555,6 +555,41 @@ export type Database = {
           },
         ]
       }
+      brand_users: {
+        Row: {
+          brand_id: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          brand_id: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          brand_id?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_users_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certifications: {
         Row: {
           category: string
@@ -5211,6 +5246,14 @@ export type Database = {
       generate_partner_slug: { Args: { company: string }; Returns: string }
       invoke_scheduled_tasks: { Args: never; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
+      is_brand_member: {
+        Args: { check_brand_id: string; check_user_id: string }
+        Returns: boolean
+      }
+      is_brand_owner: {
+        Args: { check_brand_id: string; check_user_id: string }
+        Returns: boolean
+      }
       next_invoice_number: { Args: never; Returns: string }
       next_payment_reference: { Args: never; Returns: string }
       reserve_preorder: {
