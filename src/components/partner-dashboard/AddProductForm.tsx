@@ -12,6 +12,10 @@ import {
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
 import VariantsSection from "./VariantsSection";
 import type { DimensionVariant } from "@/lib/products";
+import {
+  type LocalVariantRow,
+  makeEmptyVariantRow,
+} from "@/lib/variantsGridHelpers";
 import { validateImageUpload } from "@/lib/validateUpload";
 import {
   TableSpecsSection,
@@ -279,6 +283,14 @@ export default function AddProductForm({
     }
     return EMPTY_FORM;
   });
+  // Variants state — branché sur VariantsGrid via VariantsSection (ÉTAPE 6c).
+  // Initialisé avec une variante default vide ; les valeurs du form modèle
+  // (dimensions, prix, color) sont reflétées dans cette variante par défaut
+  // au moment du Save (cf. handleSave) si la grid est restée vide.
+  const [variants, setVariants] = useState<LocalVariantRow[]>(() => [
+    makeEmptyVariantRow(true),
+  ]);
+
   const [imagePreview, setImagePreview] = useState<string | null>(editInitialData?.image_url ? editInitialData.image_url : null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<{ file: File; preview: string }[]>([]);
@@ -610,10 +622,29 @@ export default function AddProductForm({
         return;
       }
 
-      const { duplicate } = await submitProduct(productPayload, editMode && editProductId ? {
-        editMode: true,
-        targetProductId: editProductId,
-      } : undefined);
+      // Pre-fill default variant with form model values if grid wasn't customised
+      // (zero regression : si le partner ne touche pas l'onglet Variantes,
+      // sa default variant reflète les dimensions/prix saisies dans le form).
+      const enrichedVariants: LocalVariantRow[] = variants.map((v) =>
+        v.is_default
+          ? {
+              ...v,
+              width_cm: v.width_cm ?? form.dimensions_length_cm,
+              depth_cm: v.depth_cm ?? form.dimensions_width_cm,
+              price_eur: v.price_eur ?? form.price_min,
+              in_stock:
+                v.in_stock ||
+                (form.stock_status === "in_stock" || form.stock_status === "low_stock"),
+            }
+          : v,
+      );
+
+      const { duplicate } = await submitProduct(productPayload, {
+        ...(editMode && editProductId
+          ? { editMode: true, targetProductId: editProductId }
+          : {}),
+        variants: enrichedVariants,
+      });
 
       toast.success(
         editMode ? "Modification soumise" : "Produit soumis pour validation",
@@ -1384,8 +1415,10 @@ export default function AddProductForm({
             </div>
           )}
 
-          {/* ── Variantes (placeholder ÉTAPE 6a, vrai contenu ÉTAPE 6b) ── */}
-          {section === "variants" && <VariantsSection />}
+          {/* ── Variantes (grid editable ÉTAPE 6b/6c) ── */}
+          {section === "variants" && (
+            <VariantsSection initial={variants} onChange={setVariants} />
+          )}
         </div>
 
         {/* Footer */}
