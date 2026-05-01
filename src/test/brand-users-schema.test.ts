@@ -13,7 +13,6 @@ import {
   WRITE_ACCESS_ROLES,
   DELETE_ACCESS_ROLES,
   type DBBrandUser,
-  type BrandUserRole,
 } from "@/lib/brandUsers";
 
 const BRAND_UUID = "11111111-1111-4111-8111-111111111111";
