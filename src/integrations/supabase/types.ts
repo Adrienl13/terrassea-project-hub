@@ -3386,13 +3386,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "product_variants_price_currency_fkey"
-            columns: ["price_currency"]
-            isOneToOne: false
-            referencedRelation: "markets"
-            referencedColumns: ["code"]
-          },
-          {
             foreignKeyName: "product_variants_primary_media_id_fkey"
             columns: ["primary_media_id"]
             isOneToOne: false
