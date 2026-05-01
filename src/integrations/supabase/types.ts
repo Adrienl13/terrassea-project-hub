@@ -3420,6 +3420,7 @@ export type Database = {
           brand_source: string | null
           built_in_umbrella_hole: boolean | null
           category: string
+          chair_structure_type: string | null
           chlorine_resistance: boolean | null
           collection: string | null
           color_variants: Json | null
@@ -3449,6 +3450,7 @@ export type Database = {
           fire_retardant: boolean | null
           footrest: boolean | null
           gallery_urls: string[] | null
+          has_armrests: boolean | null
           heating_compatible: boolean | null
           id: string
           image_url: string | null
@@ -3478,12 +3480,15 @@ export type Database = {
           name_it: string | null
           nesting_capacity: number | null
           outdoor_anchor_compatible: boolean | null
+          outdoor_classification: string | null
+          owner_brand_id: string | null
           palette_tags: string[] | null
           partner_id: string | null
           pole_diameter_mm: number | null
           popularity_score: number | null
           price_max: number | null
           price_min: number | null
+          primary_designer: string | null
           priority_score: number | null
           product_family: string | null
           product_type_tags: Json | null
@@ -3513,6 +3518,7 @@ export type Database = {
           top_thickness_cm: number | null
           umbrella_hole_diameter_mm: number | null
           updated_at: string | null
+          usage_mode: string | null
           use_case_tags: string[] | null
           uv_resistant: boolean | null
           warranty: string | null
@@ -3531,6 +3537,7 @@ export type Database = {
           brand_source?: string | null
           built_in_umbrella_hole?: boolean | null
           category: string
+          chair_structure_type?: string | null
           chlorine_resistance?: boolean | null
           collection?: string | null
           color_variants?: Json | null
@@ -3560,6 +3567,7 @@ export type Database = {
           fire_retardant?: boolean | null
           footrest?: boolean | null
           gallery_urls?: string[] | null
+          has_armrests?: boolean | null
           heating_compatible?: boolean | null
           id?: string
           image_url?: string | null
@@ -3589,12 +3597,15 @@ export type Database = {
           name_it?: string | null
           nesting_capacity?: number | null
           outdoor_anchor_compatible?: boolean | null
+          outdoor_classification?: string | null
+          owner_brand_id?: string | null
           palette_tags?: string[] | null
           partner_id?: string | null
           pole_diameter_mm?: number | null
           popularity_score?: number | null
           price_max?: number | null
           price_min?: number | null
+          primary_designer?: string | null
           priority_score?: number | null
           product_family?: string | null
           product_type_tags?: Json | null
@@ -3624,6 +3635,7 @@ export type Database = {
           top_thickness_cm?: number | null
           umbrella_hole_diameter_mm?: number | null
           updated_at?: string | null
+          usage_mode?: string | null
           use_case_tags?: string[] | null
           uv_resistant?: boolean | null
           warranty?: string | null
@@ -3642,6 +3654,7 @@ export type Database = {
           brand_source?: string | null
           built_in_umbrella_hole?: boolean | null
           category?: string
+          chair_structure_type?: string | null
           chlorine_resistance?: boolean | null
           collection?: string | null
           color_variants?: Json | null
@@ -3671,6 +3684,7 @@ export type Database = {
           fire_retardant?: boolean | null
           footrest?: boolean | null
           gallery_urls?: string[] | null
+          has_armrests?: boolean | null
           heating_compatible?: boolean | null
           id?: string
           image_url?: string | null
@@ -3700,12 +3714,15 @@ export type Database = {
           name_it?: string | null
           nesting_capacity?: number | null
           outdoor_anchor_compatible?: boolean | null
+          outdoor_classification?: string | null
+          owner_brand_id?: string | null
           palette_tags?: string[] | null
           partner_id?: string | null
           pole_diameter_mm?: number | null
           popularity_score?: number | null
           price_max?: number | null
           price_min?: number | null
+          primary_designer?: string | null
           priority_score?: number | null
           product_family?: string | null
           product_type_tags?: Json | null
@@ -3735,6 +3752,7 @@ export type Database = {
           top_thickness_cm?: number | null
           umbrella_hole_diameter_mm?: number | null
           updated_at?: string | null
+          usage_mode?: string | null
           use_case_tags?: string[] | null
           uv_resistant?: boolean | null
           warranty?: string | null
@@ -3755,6 +3773,13 @@ export type Database = {
             columns: ["duplicate_of"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_owner_brand_id_fkey"
+            columns: ["owner_brand_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
           {
@@ -5077,6 +5102,7 @@ export type Database = {
           brand_source: string | null
           built_in_umbrella_hole: boolean | null
           category: string
+          chair_structure_type: string | null
           chlorine_resistance: boolean | null
           collection: string | null
           color_variants: Json | null
@@ -5106,6 +5132,7 @@ export type Database = {
           fire_retardant: boolean | null
           footrest: boolean | null
           gallery_urls: string[] | null
+          has_armrests: boolean | null
           heating_compatible: boolean | null
           id: string
           image_url: string | null
@@ -5135,12 +5162,15 @@ export type Database = {
           name_it: string | null
           nesting_capacity: number | null
           outdoor_anchor_compatible: boolean | null
+          outdoor_classification: string | null
+          owner_brand_id: string | null
           palette_tags: string[] | null
           partner_id: string | null
           pole_diameter_mm: number | null
           popularity_score: number | null
           price_max: number | null
           price_min: number | null
+          primary_designer: string | null
           priority_score: number | null
           product_family: string | null
           product_type_tags: Json | null
@@ -5170,6 +5200,7 @@ export type Database = {
           top_thickness_cm: number | null
           umbrella_hole_diameter_mm: number | null
           updated_at: string | null
+          usage_mode: string | null
           use_case_tags: string[] | null
           uv_resistant: boolean | null
           warranty: string | null
