@@ -7,9 +7,10 @@ import { toast } from "sonner";
 import {
   X, Upload, Sparkles, Camera, Check, Loader2, AlertTriangle,
   ChevronDown, ChevronUp, Package, Image as ImageIcon, Info,
-  Plus, Trash2,
+  Plus, Trash2, Layers,
 } from "lucide-react";
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
+import VariantsSection from "./VariantsSection";
 import type { DimensionVariant } from "@/lib/products";
 import { validateImageUpload } from "@/lib/validateUpload";
 import {
@@ -286,7 +287,7 @@ export default function AddProductForm({
   const [aiConfidence, setAiConfidence] = useState<number | null>(null);
   const [aiApplied, setAiApplied] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [section, setSection] = useState<"photo" | "basics" | "specs" | "pricing">("photo");
+  const [section, setSection] = useState<"photo" | "basics" | "specs" | "pricing" | "variants">("photo");
   const [expandedTags, setExpandedTags] = useState(false);
 
   const set = useCallback((key: keyof ProductFormData, val: unknown) =>
@@ -699,6 +700,7 @@ export default function AddProductForm({
     { id: "basics", label: "Informations", icon: Package },
     { id: "specs", label: "Caractéristiques", icon: Info },
     { id: "pricing", label: "Prix & Stock", icon: AlertTriangle },
+    { id: "variants", label: "Variantes", icon: Layers },
   ];
 
   const filledCount = [
@@ -1381,6 +1383,9 @@ export default function AddProductForm({
               {renderInput("Délai de livraison estimé", "estimated_delivery_days", "number", false, "—", "jours")}
             </div>
           )}
+
+          {/* ── Variantes (placeholder ÉTAPE 6a, vrai contenu ÉTAPE 6b) ── */}
+          {section === "variants" && <VariantsSection />}
         </div>
 
         {/* Footer */}
@@ -1392,17 +1397,20 @@ export default function AddProductForm({
             Annuler
           </button>
           <div className="flex items-center gap-3">
-            {section !== "pricing" ? (
+            {section !== "pricing" && section !== "variants" ? (
               <button
                 onClick={() => {
+                  // Suivant s'arrête à pricing — la tab "variants" est un
+                  // placeholder Phase 1 (ÉTAPE 6a) accessible uniquement par
+                  // clic direct sur l'onglet, pas via le flow Suivant.
                   const order = ["photo", "basics", "specs", "pricing"] as const;
-                  const idx = order.indexOf(section);
+                  const idx = order.indexOf(section as "photo" | "basics" | "specs" | "pricing");
                   // Gate: require category before advancing past basics
                   if (section === "basics" && !form.category) {
                     toast.error("Veuillez sélectionner une catégorie avant de continuer");
                     return;
                   }
-                  if (idx < order.length - 1) setSection(order[idx + 1]);
+                  if (idx >= 0 && idx < order.length - 1) setSection(order[idx + 1]);
                 }}
                 disabled={section === "basics" && !form.category}
                 className="flex items-center gap-2 px-5 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-40 transition-opacity"
