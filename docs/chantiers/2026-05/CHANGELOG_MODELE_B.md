@@ -361,6 +361,26 @@ Total tests : 367 → 384 (+17).
 - ❌ Edge function transactionnelle (Phase 2 si besoin observé)
 - ❌ Modification de `approveAsNew` (différée ÉTAPE 7)
 
+### Validation E2E ÉTAPE 6c
+
+50% validation manuelle browser par founder + 50% vérification croisée
+Claude Code via lecture des chemins de code (state init, enrichissement
+handleSave, validation hook, bulk handlers). Approche pragmatique acceptée
+2026-05-02.
+
+Validation E2E complète **différée à la fin du chantier (post-ÉTAPE 9)**
+via `docs/testing/E2E_VALIDATION_NOTEBOOK.md` (32 cas structurés en 6 blocs,
+90-120 min de validation consolidée). Cohérent avec stratégie de validation
+consolidée fin de chantier plutôt que validation au fil de l'eau qui dilue
+la vigilance founder sur Day 4-5.
+
+Edge case identifié pendant l'audit code : le scenario "2 rows is_default=true
+simultanément" est **structurellement empêché par le radio exclusif** dans
+`setDefault` (VariantsGrid.tsx). Le warning UI "Plusieurs default" + la
+validation hook restent un garde-fou défensif (defense in depth) jamais
+déclenché via flow normal. La validation reste néanmoins couverte par les
+9 tests `use-product-submissions-variants.test.ts`.
+
 ### Préparation ÉTAPE 7
 
 Note pour la refonte ProductReviewHelpers :
@@ -373,14 +393,139 @@ Note pour la refonte ProductReviewHelpers :
   manuellement via `mcp__supabase__execute_sql` ou un script admin one-shot
 - Tests d'admin approval avec variants à écrire en ÉTAPE 7
 
-## Cibles ÉTAPE 6d (à venir)
+## ÉTAPE 6d — Tests intégration + dépréciation legacy editors (2026-05-02)
 
-- Tests d'intégration React Testing Library : workflow complet création modèle + 3 variants
-- Dépréciation soft :
-  - `ColorVariantEditor.tsx` : commentaire "DEPRECATED Phase 1, will be removed Phase 2"
-  - `DimensionVariantEditor.tsx` : idem
-  - Pas de suppression du fichier (backward compat)
-- Lecture critique : tsc, lint, advisors
-- Cible tests finale : 390+
+### Tests d'intégration React Testing Library
 
-Effort estimé : 0.5-1 jour.
+`src/test/variants-integration.test.tsx` (nouveau, 7 tests) :
+- Stratégie : tests behavioral isolés sur VariantsGrid + bulk actions déjà
+  livrés ÉTAPES 6b/6c. Les tests intégration vérifient la chaîne
+  `VariantsGrid (state) → onChange → parent state → submit payload`
+  bout-en-bout sans rendre le composant AddProductForm entier (évite la
+  fragilité des mocks i18n + Auth + supabase storage).
+- Wrapper `FormHarness` réplique l'orchestration AddProductForm avec un
+  state local + bouton "Simulated Save" qui invoque un callback de submit.
+- Helper `simulateSubmitPayload` réplique la logique du hook
+  (validation cross-row + sérialisation avec strip _localId).
+
+Tests livrés :
+1. Submit avec 1 default variant initiale (régression zéro flow)
+2. Submit avec 3 variants après ajout manuel via "Ajouter une variante"
+3. Rejet validation no-default
+4. Rejet validation multiple-default
+5. Strip `_localId` de chaque variant sérialisée
+6. Backward compat : variants vide → product_data sans clé `variants`
+7. VariantsSection rend le help text + grid empty state au mount
+
+### Dépréciation soft des éditeurs legacy
+
+JSDoc `@deprecated` ajouté en tête de :
+- `src/components/admin/ColorVariantEditor.tsx` (167 lignes)
+- `src/components/admin/DimensionVariantEditor.tsx` (276 lignes)
+
+Note : les fichiers sont en réalité dans `src/components/admin/` (pas
+`src/components/partner-dashboard/` comme indiqué initialement dans le
+brief). Ils éditent les champs legacy `products.color_variants` et
+`products.dimension_variants` (jsonb). Conservés pour backward compat
+du UI admin actuel — suppression Phase 2 quand le code applicatif sera
+entièrement aligné sur `product_variants` (Q5 reco A).
+
+Aucune suppression de fichier ÉTAPE 6d. Aucun retrait d'import.
+
+### Vérifications finales ÉTAPE 6d + ÉTAPE 6 globale
+
+- `bunx vitest run` : **391 / 391 verts** ✅ (cible 390+ atteinte)
+- `bunx tsc --noEmit` : passe ✅
+- `bun run lint` : 612 baseline préservé ✅
+- Advisors : `multiple_permissive_policies` **638** (stable depuis ÉTAPE 5) ✅
+
+---
+
+## ÉTAPE 6 — Synthèse consolidée (clôture 2026-05-02)
+
+### Vue d'ensemble
+
+| Sub-étape | Date | Effort réel | Cible spec | Livraison |
+|---|---|---|---|---|
+| 6a | 2026-05-02 | 2h30 | 1j | ProductModelForm alias + VariantsSection placeholder + tab Variantes |
+| 6b | 2026-05-02 | ~5h | 1j | VariantsGrid (HTML table + Combobox shadcn + Zod inline) + 21 tests |
+| 6c | 2026-05-02 | ~5h | 1j | useProductSubmissions adapté (variants[] in product_data) + state plumbing + VariantBulkActions (3 ops) + 17 tests |
+| 6d | 2026-05-02 | ~2h | 0.5-1j | Tests intégration RTL (7) + dépréciation legacy editors |
+| **Total** | | **~14-15h** | **3.5-4j** | sous le budget initial |
+
+### Décisions techniques majeures (arbitrages 2026-05-02)
+
+1. **Option B "semantic split"** ÉTAPE 6a : pas d'extraction JSX complète vers
+   ProductModelForm (1.5j risque régression élevé), alias documentaire +
+   nouveau placeholder à la place. Vraie extraction différée Phase 2.
+2. **Pas de Tanstack Table** ÉTAPE 6b : HTML table + React state suffit
+   pour <100 variants typiques, économise une dependency.
+3. **Option B "asynchronous variant materialization"** ÉTAPE 6c : variants[]
+   sérialisée dans `product_submissions.product_data` au submit partner ;
+   matérialisation en lignes `product_variants` différée à ÉTAPE 7
+   (refonte ProductReviewHelpers admin).
+
+### Code livré ÉTAPE 6 (récapitulatif)
+
+| Fichier | Type | Lignes |
+|---|---|---:|
+| `src/components/partner-dashboard/VariantsSection.tsx` | nouveau (puis refondu 6b) | 30 |
+| `src/components/partner-dashboard/ProductModelForm.tsx` | nouveau (alias) | 28 |
+| `src/components/partner-dashboard/VariantsGrid.tsx` | nouveau | 480 |
+| `src/components/partner-dashboard/VariantBulkActions.tsx` | nouveau | 180 |
+| `src/lib/variantsGridHelpers.ts` | nouveau | 67 |
+| `src/components/partner-dashboard/AddProductForm.tsx` | modifié | +50 lignes |
+| `src/hooks/useProductSubmissions.ts` | modifié | +60 lignes |
+| `src/components/admin/ColorVariantEditor.tsx` | annoté @deprecated | +12 |
+| `src/components/admin/DimensionVariantEditor.tsx` | annoté @deprecated | +12 |
+| Tests (5 fichiers) | nouveau | ~750 |
+
+### Tests cumulés ÉTAPE 6
+
+| Fichier de test | Tests | ÉTAPE |
+|---|---:|---|
+| variants-section-placeholder.test.tsx | 2 | 6a (mis à jour 6b) |
+| variants-grid-helpers.test.ts | 11 | 6b |
+| variants-grid.test.tsx | 10 | 6b |
+| use-product-submissions-variants.test.ts | 9 | 6c |
+| variants-bulk-actions.test.tsx | 8 | 6c |
+| variants-integration.test.tsx | 7 | 6d |
+| **Total ÉTAPE 6** | **47** | |
+
+Évolution tests Vitest globale : 344 (fin ÉTAPE 5) → **391** (fin ÉTAPE 6).
+
+### Validation E2E ÉTAPE 6
+
+- 50% manuelle browser par founder + 50% vérification croisée Claude Code
+  via lecture chemins de code (state init, enrichissement handleSave,
+  validation hook, bulk handlers)
+- Validation E2E complète différée à la fin du chantier (post-ÉTAPE 9)
+  via `docs/testing/E2E_VALIDATION_NOTEBOOK.md` (32 cas en 6 blocs)
+- Cohérent avec stratégie de validation consolidée fin de chantier
+
+### Limitations connues post-ÉTAPE 6 (différées Phase 1+ ou Phase 2)
+
+| Limite | Reportée à |
+|---|---|
+| Variants pas matérialisées en lignes `product_variants` au submit (jsonb embedded) | ÉTAPE 7 (admin approval) |
+| Bulk delete | Phase 2 (UX risk) |
+| Drag&drop reorder | Phase 2 |
+| Smart suggestions IA | Phase 2 |
+| Bulk paste depuis Excel/CSV | Phase 2 ingestion |
+| Génération auto SKU | Phase 2 backlog |
+| i18n français hardcodé | ÉTAPE 6c+ ou Phase 2 |
+| Inline image upload par variant | ÉTAPE 7+ |
+
+## Cibles ÉTAPE 7 (à venir, 2-3j)
+
+- Refonte `ProductReviewHelpers.tsx` (591 lignes) admin
+- Adaptation `approveAsNew` dans `useProductSubmissions` (ligne ~280) pour
+  matérialiser `product_data.variants` en lignes `product_variants` après
+  INSERT products
+- Pattern : Phase A INSERT product / Phase B INSERT variants / cleanup
+  applicatif `DELETE products WHERE id = newProductId` si Phase B fail
+- Tests d'admin approval avec variants
+- UI admin pour visualiser/éditer les variants par submission avant approval
+- Cible tests : ~410+
+
+Effort estimé : 2-3 jours.
