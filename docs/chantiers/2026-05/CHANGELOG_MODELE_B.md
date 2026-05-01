@@ -201,14 +201,83 @@ Commits ÉTAPE 6a : (à venir).
 
 ---
 
-## Cibles ÉTAPE 6b
+## ÉTAPE 6b — VariantsGrid avec autocomplete + validation Zod (2026-05-02)
 
-- Création réelle de `VariantsGrid.tsx` (Tanstack Table mode tableur editable)
-- Colonnes : sku, dimensions, fabric_color, frame_finish, price_eur, in_stock, is_default
-- Autocomplete sur material_brand_id, color_slug, finish_slug
-- Add row / delete row inline
-- Validation Zod par row via `productVariantDraftSchema`
-- Intégration dans `VariantsSection.tsx` (remplace le placeholder)
-- 5-7 tests Vitest sur le grid
+**Décision technique** : Tanstack Table **non installé** (n'était pas dans les
+deps), pattern HTML table + React state retenu. Avantages :
+- 0 nouvelle dependency
+- Plus simple à maintenir Phase 1
+- Performance suffisante pour <100 variants typiques
+- shadcn/ui `command` + `popover` couvrent l'autocomplete
+
+Fichiers livrés :
+- `src/lib/variantsGridHelpers.ts` — types + zod schema + makeEmptyVariantRow
+  (extrait de VariantsGrid pour éviter le warning eslint
+  react-refresh/only-export-components)
+- `src/components/partner-dashboard/VariantsGrid.tsx` — grille editable HTML
+  table + Combobox shadcn (popover + command + cmdk) + validation Zod inline.
+  ~430 lignes. 9 colonnes : SKU / L / l / Tissu / Couleur / Finition / Prix /
+  Stock / Default + bouton supprimer.
+- `src/components/partner-dashboard/VariantsSection.tsx` — wrapper qui rend
+  VariantsGrid + texte d'aide. Le placeholder ÉTAPE 6a est remplacé.
+
+Référentiels chargés via React Query (staleTime 5 min) :
+- material_brands filtré category='fabric' → 12 lignes en DB
+- colors_canonical → 49 lignes
+- finishes_canonical → 30 lignes
+
+Validation et UX :
+- Validation Zod par row inline (variantRowSchema slim, sans product_id)
+- Counter global "X / Y valides" coloré (rouge si invalid, vert si OK)
+- Warnings cross-row : "plusieurs default" et "aucun default"
+- Add row : si premier row, marqué is_default=true automatiquement
+- Delete row : si on supprime le default et qu'il reste des rows, le premier
+  remaining devient default (pas de cas "aucun default" possible suite à delete)
+- Radio is_default : exclusif (changer = retirer des autres)
+
+State management :
+- State local au composant VariantsGrid (useState array)
+- Prop `onChange` pour notifier le parent (préparation ÉTAPE 6c)
+- Prop `initial` pour fournir des rows existantes (préparation édition)
+- ÉTAPE 6c branchera ce state au form parent + persistance via
+  useProductSubmissions adapté
+
+Tests : 346 → 367 (+21 tests : 11 helpers + 10 grid behavioral).
+- variants-grid-helpers.test.ts : defaults, schema valid/invalid (price negatif,
+  width hors borne, uuid, sku trop long, etc.)
+- variants-grid.test.tsx : empty state, render initial rows, add row, first row
+  is_default automatique, delete row, default radio, multiple-defaults warning,
+  no-default warning, onChange notifications, delete default promotes first
+- variants-section-placeholder.test.tsx : mis à jour pour le nouveau contenu
+
+Cumul commits ÉTAPE 6 : 6a (3) + 6b (4 prévus) = 7.
+
+## Phase 2 backlog (non implémenté Phase 1)
+
+Pendant ÉTAPE 6b, plusieurs idées d'amélioration UX ont été identifiées mais
+volontairement non implémentées (R-9 mitigation, MVP strict Phase 1) :
+
+- **Drag&drop reorder de rows** : UX cool mais non bloquant
+- **Bulk paste depuis Excel/CSV** : utile mais Phase 2 ingestion IA
+- **Smart suggestions IA** : "vous avez créé 3 variants Sunbrella, ajouter
+  automatiquement les 5 couleurs Sunbrella populaires"
+- **Inline image upload par variant** : à scoper avec product_media en ÉTAPE 7+
+- **Tooltips d'aide contextuelle riches** : ergonomie Phase 2
+- **Génération automatique de SKU** depuis nom modèle + dimensions + couleur
+- **Filtre/recherche dans la grid** : utile au-delà de ~50 variants
+- **Markdown WYSIWYG par variant** : hors scope
+
+## Cibles ÉTAPE 6c
+
+- Adaptation `useProductSubmissions.ts` (831 lignes) pour soumettre
+  modèle + variants[] en batch
+- Validation cross : au moins 1 variant `is_default=true` requise au submit
+- Gestion erreurs partielles (modèle OK mais 1 variant échoue → cleanup
+  product orphelin ?)
+- Bulk operations dans VariantsGrid :
+  - Apply to all selected (price, fabric, finish)
+  - Duplicate (créer N variants similaires en changeant 1 dim)
+  - Publish/draft bulk
+- 5-7 tests sur useProductSubmissions adapté
 
 Effort estimé : 1 jour.
