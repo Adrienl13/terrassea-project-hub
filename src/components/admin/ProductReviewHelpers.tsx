@@ -387,6 +387,18 @@ export function ProductDetailCard({ pd, title }: { pd: Record<string, any>; titl
   const materialTags = (pd.material_tags || []) as string[];
   const colorVariants = (pd.available_colors || pd.color_variants || []) as string[];
   const dimensionVariants = (pd.dimension_variants || []) as { dimension_tag: string; label?: string; seats?: number; price?: number }[];
+  // Modèle B variants (ÉTAPE 6c) — sérialisées dans product_data.variants
+  const modelBVariants = (pd.variants || []) as Array<{
+    sku?: string | null;
+    width_cm?: number | null;
+    depth_cm?: number | null;
+    fabric_color_slug?: string | null;
+    frame_finish_slug?: string | null;
+    material_brand_id?: string | null;
+    price_eur?: number | null;
+    in_stock?: boolean;
+    is_default?: boolean;
+  }>;
 
   return (
     <div className="space-y-5">
@@ -507,6 +519,74 @@ export function ProductDetailCard({ pd, title }: { pd: Record<string, any>; titl
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────────
+       * Variantes Modèle B (chantier 2026-05) — sérialisées par
+       * useProductSubmission ÉTAPE 6c dans product_data.variants. Affichage
+       * read-only Phase 1 (édition admin = stretch goal Phase 2). À
+       * l'approval, ces variants seront matérialisées en lignes
+       * product_variants via approveAsNew Phase B (ÉTAPE 7).
+       * ─────────────────────────────────────────────────────────────────── */}
+      {modelBVariants.length > 0 && (
+        <div className="border border-border rounded-xl p-4 bg-card/50 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-display font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Layers className="h-3 w-3" />
+              Variantes proposées ({modelBVariants.length})
+            </p>
+            <span className="text-[9px] font-body text-muted-foreground">
+              {modelBVariants.filter((v) => v.is_default).length} marquée{modelBVariants.filter((v) => v.is_default).length > 1 ? "s" : ""} default
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-[10px] font-body">
+              <thead className="border-b border-border">
+                <tr className="text-left">
+                  <th className="px-2 py-1.5 font-display font-semibold text-muted-foreground">SKU</th>
+                  <th className="px-2 py-1.5 font-display font-semibold text-muted-foreground">L × l (cm)</th>
+                  <th className="px-2 py-1.5 font-display font-semibold text-muted-foreground">Tissu</th>
+                  <th className="px-2 py-1.5 font-display font-semibold text-muted-foreground">Couleur</th>
+                  <th className="px-2 py-1.5 font-display font-semibold text-muted-foreground">Finition</th>
+                  <th className="px-2 py-1.5 font-display font-semibold text-muted-foreground">Prix €</th>
+                  <th className="px-2 py-1.5 font-display font-semibold text-muted-foreground text-center">Stock</th>
+                  <th className="px-2 py-1.5 font-display font-semibold text-muted-foreground text-center">Default</th>
+                </tr>
+              </thead>
+              <tbody>
+                {modelBVariants.map((v, i) => (
+                  <tr key={i} className="border-b border-border last:border-0">
+                    <td className="px-2 py-1.5 font-mono">{v.sku ?? <span className="text-muted-foreground/50">—</span>}</td>
+                    <td className="px-2 py-1.5">
+                      {v.width_cm != null || v.depth_cm != null
+                        ? `${v.width_cm ?? "?"} × ${v.depth_cm ?? "?"}`
+                        : <span className="text-muted-foreground/50">—</span>}
+                    </td>
+                    <td className="px-2 py-1.5 font-mono text-[9px]">
+                      {v.material_brand_id
+                        ? `${v.material_brand_id.slice(0, 8)}…`
+                        : <span className="text-muted-foreground/50">—</span>}
+                    </td>
+                    <td className="px-2 py-1.5">{v.fabric_color_slug ?? <span className="text-muted-foreground/50">—</span>}</td>
+                    <td className="px-2 py-1.5">{v.frame_finish_slug ?? <span className="text-muted-foreground/50">—</span>}</td>
+                    <td className="px-2 py-1.5 text-[#D4603A] font-semibold">
+                      {v.price_eur != null ? `${v.price_eur}` : <span className="text-muted-foreground/50">—</span>}
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      {v.in_stock ? "✓" : <span className="text-muted-foreground/50">—</span>}
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      {v.is_default ? <span className="text-emerald-600 font-bold">●</span> : <span className="text-muted-foreground/50">○</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[9px] font-body text-muted-foreground italic">
+            Ces variantes seront matérialisées en lignes product_variants à l&apos;approbation (Phase B). Édition Phase 2.
+          </p>
         </div>
       )}
 

@@ -6,6 +6,24 @@
 
 ---
 
+## Note sur la numérotation des étapes
+
+Le `PLAN_MODELE_B_VARIANTS.md` initial (ÉTAPE 1) prévoyait une numérotation
+qui a légèrement divergé en cours de chantier. Mapping pour audit futur :
+
+| Plan ÉTAPE 1 (initial) | Réalité chantier (suivie) |
+|---|---|
+| ÉTAPE 7 — UI partner-dashboard refondue | Livrée en ÉTAPE 6 (sub-étapes 6a/6b/6c/6d) |
+| ÉTAPE 8 — UI admin + edge functions | Devient ÉTAPE 7 (UI admin matérialisation) + ÉTAPE 8 (UI admin référentiels) |
+| ÉTAPE 9 — UI publique | Reste ÉTAPE 9 |
+| ÉTAPE 10 — Doc finale | Reste ÉTAPE 10 |
+
+Justification : la numérotation chantier est plus granulaire et reflète mieux
+la séparation matérialisation variants / gestion référentiels que la
+numérotation plan initial.
+
+---
+
 ## ÉTAPE 1 — Plan détaillé (2026-05-01)
 
 Plan créé dans `docs/chantiers/2026-05/PLAN_MODELE_B_VARIANTS.md` (1019 lignes).
@@ -516,16 +534,113 @@ Aucune suppression de fichier ÉTAPE 6d. Aucun retrait d'import.
 | i18n français hardcodé | ÉTAPE 6c+ ou Phase 2 |
 | Inline image upload par variant | ÉTAPE 7+ |
 
-## Cibles ÉTAPE 7 (à venir, 2-3j)
+## ÉTAPE 7 — UI admin matérialisation variants (2026-05-02)
 
-- Refonte `ProductReviewHelpers.tsx` (591 lignes) admin
-- Adaptation `approveAsNew` dans `useProductSubmissions` (ligne ~280) pour
-  matérialiser `product_data.variants` en lignes `product_variants` après
-  INSERT products
-- Pattern : Phase A INSERT product / Phase B INSERT variants / cleanup
-  applicatif `DELETE products WHERE id = newProductId` si Phase B fail
-- Tests d'admin approval avec variants
-- UI admin pour visualiser/éditer les variants par submission avant approval
-- Cible tests : ~410+
+### Pattern 2-phase + cleanup applicatif (livré)
 
-Effort estimé : 2-3 jours.
+L'admin approval (`approveAsNew` dans `useProductSubmissions.ts`) implémente
+maintenant le pattern défensif suivant :
+
+```
+Phase A : INSERT products  (existant, inchangé)
+   ↓
+Phase B : INSERT product_variants[]  (NOUVEAU ÉTAPE 7)
+   ↓
+   ├─ succès    → continue product_offers + update submission
+   └─ échec     → DELETE products WHERE id = newProduct.id (cleanup)
+                  → throw "Échec création variantes. Produit nettoyé."
+```
+
+Si le DELETE de cleanup échoue lui-même (cas extrême) : log critical +
+throw avec id du produit orphelin pour suppression manuelle. Logging vers
+Sentry/audit prévu Phase 2 (cf. backlog).
+
+### Décisions techniques
+
+- **Logique pure extraite** dans `src/lib/variantsMaterialization.ts` :
+  - `buildVariantInserts(productId, serializedVariants, productDataFallback, validatedBy)` :
+    - Cas nominal (variants présentes) : map chaque variant à un insert payload
+    - Cas fallback (variants absent ou vide → submissions legacy pré-ÉTAPE 6c) :
+      retourne 1 default variant pré-rempli depuis productDataFallback
+      (dimensions_*, price_min, stock_status, weight_kg)
+  - `assertExactlyOneDefault(variants)` : defense in depth pour les variants
+    arrivant côté admin (rejet si 0 ou >1 default)
+- **Source-of-truth séparée** : la transformation est testable purement
+  (10 tests Vitest) sans monter supabase ni React.
+- **Régression zéro** : les submissions legacy (pas de `product_data.variants`)
+  reçoivent automatiquement 1 default variant via le path fallback.
+- **`validated_by` reste null Phase 1** — track admin user_id Phase 2 (nécessite
+  passer `useAuth` à `useAdminSubmissions`, refactor mineur reporté).
+
+### Affichage admin (read-only)
+
+`src/components/admin/ProductReviewHelpers.tsx` (`ProductDetailCard`) :
+- Section "Variantes proposées (X)" affichée si `product_data.variants`
+  contient des éléments
+- Tableau read-only : SKU / L × l / Tissu / Couleur / Finition / Prix / Stock / Default
+- Compteur "X marquée default" en header
+- Note explicative : "Ces variantes seront matérialisées en lignes
+  product_variants à l'approbation (Phase B). Édition Phase 2."
+
+Édition admin des variants AVANT approval **différée Phase 2** (stretch goal
+du brief, peu de valeur ajoutée Phase 1 puisque le partner garde la main
+sur sa submission jusqu'à la validation).
+
+### Code livré ÉTAPE 7
+
+| Fichier | Type | Lignes |
+|---|---|---:|
+| `src/lib/variantsMaterialization.ts` | nouveau | 130 |
+| `src/hooks/useProductSubmissions.ts` (`approveAsNew`) | modifié | +75 |
+| `src/components/admin/ProductReviewHelpers.tsx` (`ProductDetailCard`) | modifié | +75 |
+| `src/test/variants-materialization.test.ts` | nouveau (10 tests) | 145 |
+
+### Tests cumulés
+
+`src/test/variants-materialization.test.ts` (10 tests) :
+- Cas nominal : N variants matérialisées avec champs mappés directement
+- Préservation null pour champs optionnels
+- Fallback legacy : 1 default depuis productDataFallback (variants absent)
+- Fallback : objets quasi-vides traités proprement
+- Conversion `price_min` string → number
+- `in_stock=true` si stock_status='in_stock' ou 'low_stock'
+- `in_stock=false` pour stock_status non-stock
+- `assertExactlyOneDefault` : ok / no_default / multiple_default
+
+Total tests : 391 → **401 verts**.
+
+### Vérifications ÉTAPE 7
+
+- `bunx vitest run` : 401 / 401 ✅
+- `bunx tsc --noEmit` : passe ✅
+- `bun run lint` : 612 baseline ✅
+- Advisors : inchangés (aucune migration DDL ÉTAPE 7) — `multiple_permissive_policies`
+  toujours 638
+- Régression flow admin : approval submissions legacy → 1 default variant
+  auto-créée (path fallback) ✅
+
+### Hors scope (rappel)
+
+- ❌ Édition admin des variants AVANT approval (Phase 2)
+- ❌ Edge function transactionnelle (Phase 2 si besoin)
+- ❌ Bulk approve plusieurs submissions (Phase 2)
+- ❌ Track `validated_by` admin user_id (refactor `useAdminSubmissions`
+  Phase 2, nécessite `useAuth` import)
+- ❌ Sentry/audit log pour cleanup catastrophique (Phase 2)
+
+### Phase 2 backlog
+
+Si la stratégie cleanup applicatif rencontre des limites en pratique
+(concurrent inserts entre products INSERT et variants INSERT, race
+conditions FK), créer une edge function "approve-with-variants"
+transactionnelle côté serveur (Postgres BEGIN / COMMIT / ROLLBACK).
+
+## Cibles ÉTAPE 8 (à venir, 1-2j)
+
+ÉTAPE 8 = UI admin pour gérer les référentiels Phase 1 :
+- Page admin liste `material_brands` avec CRUD
+- Page admin liste `certifications` avec CRUD
+- Pages admin légères pour `colors_canonical` et `finishes_canonical`
+  (nice-to-have, peut être différé Phase 2 si trop)
+
+Effort estimé : 1-2 jours.
