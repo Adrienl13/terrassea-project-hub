@@ -10,6 +10,12 @@ import {
   type LocalVariantRow,
   variantRowSchema,
 } from "@/lib/variantsGridHelpers";
+import {
+  buildVariantInserts,
+  assertExactlyOneDefault,
+  type SerializedVariant,
+  type ProductDataFallback,
+} from "@/lib/variantsMaterialization";
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -419,6 +425,81 @@ export function useAdminSubmissions() {
         .single();
 
       if (productError) throw productError;
+
+      // ─────────────────────────────────────────────────────────────────────
+      // Phase B — Matérialisation des variants (ÉTAPE 7 chantier Modèle B)
+      //
+      // Lit product_data.variants (sérialisée par submitProduct ÉTAPE 6c) et
+      // INSERT batch dans product_variants. Si la submission est legacy
+      // (pré-ÉTAPE 6c, pas de variants), buildVariantInserts crée 1 default
+      // variant pré-rempli depuis les champs products (dimensions, prix).
+      //
+      // Cleanup applicatif si Phase B fail : DELETE products WHERE id =
+      // newProduct.id pour éviter un produit orphelin sans variant.
+      // ─────────────────────────────────────────────────────────────────────
+      try {
+        const serializedVariants = (pd.variants as SerializedVariant[] | undefined) ?? [];
+
+        // Defense-in-depth : si la submission contient variants, on vérifie
+        // qu'exactement 1 default est présente avant de matérialiser.
+        if (serializedVariants.length > 0) {
+          const check = assertExactlyOneDefault(serializedVariants);
+          if (!check.ok) {
+            throw new Error(
+              `Submission contient ${check.count} variantes default (attendu : 1, raison : ${check.reason})`,
+            );
+          }
+        }
+
+        const productDataFallback: ProductDataFallback = {
+          dimensions_length_cm: pd.dimensions_length_cm as number | null,
+          dimensions_width_cm: pd.dimensions_width_cm as number | null,
+          dimensions_height_cm: pd.dimensions_height_cm as number | null,
+          price_min: pd.price_min as number | string | null,
+          stock_status: pd.stock_status as string | null,
+          weight_kg: pd.weight_kg as number | string | null,
+          main_color: pd.main_color as string | null,
+        };
+
+        const variantInserts = buildVariantInserts(
+          newProduct.id as string,
+          serializedVariants,
+          productDataFallback,
+          null, // validated_by reste null Phase 1 — track admin user_id Phase 2
+        );
+
+        const { error: variantsError } = await supabase
+          .from("product_variants")
+          .insert(variantInserts);
+
+        if (variantsError) throw variantsError;
+      } catch (variantsError) {
+        const variantsMsg = variantsError instanceof Error ? variantsError.message : "unknown";
+        console.error("Phase B (variants insert) failed:", variantsMsg);
+
+        // Cleanup applicatif : DELETE products
+        const { error: cleanupError } = await supabase
+          .from("products")
+          .delete()
+          .eq("id", newProduct.id);
+
+        if (cleanupError) {
+          // Cleanup lui-même a échoué — produit orphelin sans variants
+          // L'admin doit nettoyer manuellement. Loggué pour Sentry/audit Phase 2.
+          console.error(
+            "CRITICAL: cleanup also failed, orphan product remains:",
+            cleanupError.message,
+          );
+          throw new Error(
+            `Échec création variantes ET nettoyage. Produit orphelin id=${newProduct.id} ` +
+              `nécessite suppression manuelle. Erreur initiale : ${variantsMsg}`,
+          );
+        }
+
+        throw new Error(
+          `Échec création variantes. Produit nettoyé (rollback). Détails : ${variantsMsg}`,
+        );
+      }
 
       // Create product_offers — one per dimension variant (tables) or one standard offer
       const dimVariants = (pd.dimension_variants as any[]) ?? [];
