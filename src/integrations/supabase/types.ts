@@ -555,6 +555,42 @@ export type Database = {
           },
         ]
       }
+      certifications: {
+        Row: {
+          category: string
+          created_at: string
+          description_i18n: Json | null
+          id: string
+          logo_url: string | null
+          name: string
+          official_website: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description_i18n?: Json | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          official_website?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description_i18n?: Json | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          official_website?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chatbot_conversations: {
         Row: {
           created_at: string | null
@@ -656,6 +692,36 @@ export type Database = {
           messages_count?: number | null
           quote_conversions?: number | null
           usage_date?: string
+        }
+        Relationships: []
+      }
+      colors_canonical: {
+        Row: {
+          created_at: string
+          display_order: number
+          family: string | null
+          hex: string
+          is_active: boolean
+          label_i18n: Json
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          family?: string | null
+          hex: string
+          is_active?: boolean
+          label_i18n: Json
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          family?: string | null
+          hex?: string
+          is_active?: boolean
+          label_i18n?: Json
+          slug?: string
         }
         Relationships: []
       }
@@ -1018,6 +1084,33 @@ export type Database = {
           },
         ]
       }
+      finishes_canonical: {
+        Row: {
+          category: string | null
+          created_at: string
+          display_order: number
+          is_active: boolean
+          label_i18n: Json
+          slug: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          display_order?: number
+          is_active?: boolean
+          label_i18n: Json
+          slug: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          display_order?: number
+          is_active?: boolean
+          label_i18n?: Json
+          slug?: string
+        }
+        Relationships: []
+      }
       image_analyses: {
         Row: {
           analysis_result: Json | null
@@ -1042,6 +1135,33 @@ export type Database = {
           image_path?: string
           matched_product_ids?: string[] | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      markets: {
+        Row: {
+          code: string
+          created_at: string
+          currency: string
+          display_order: number
+          is_active: boolean
+          label_i18n: Json
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          currency: string
+          display_order?: number
+          is_active?: boolean
+          label_i18n: Json
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          currency?: string
+          display_order?: number
+          is_active?: boolean
+          label_i18n?: Json
         }
         Relationships: []
       }
@@ -1091,6 +1211,95 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "architect_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_brand_certifications: {
+        Row: {
+          certification_id: string
+          created_at: string
+          material_brand_id: string
+        }
+        Insert: {
+          certification_id: string
+          created_at?: string
+          material_brand_id: string
+        }
+        Update: {
+          certification_id?: string
+          created_at?: string
+          material_brand_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_brand_certifications_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_brand_certifications_material_brand_id_fkey"
+            columns: ["material_brand_id"]
+            isOneToOne: false
+            referencedRelation: "material_brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_brands: {
+        Row: {
+          category: string
+          created_at: string
+          description_i18n: Json | null
+          id: string
+          is_premium: boolean
+          is_proprietary: boolean
+          logo_url: string | null
+          name: string
+          official_website: string | null
+          parent_brand_id: string | null
+          parent_company: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description_i18n?: Json | null
+          id?: string
+          is_premium?: boolean
+          is_proprietary?: boolean
+          logo_url?: string | null
+          name: string
+          official_website?: string | null
+          parent_brand_id?: string | null
+          parent_company?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description_i18n?: Json | null
+          id?: string
+          is_premium?: boolean
+          is_proprietary?: boolean
+          logo_url?: string | null
+          name?: string
+          official_website?: string | null
+          parent_brand_id?: string | null
+          parent_company?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_brands_parent_brand_id_fkey"
+            columns: ["parent_brand_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]
@@ -4899,4 +5108,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
