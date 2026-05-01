@@ -1,3 +1,14 @@
+/**
+ * @deprecated Phase 1 ÉTAPE 6 — Remplacé par VariantsGrid (mode tableur
+ * editable avec autocomplete référentiels et validation Zod inline).
+ *
+ * Ce composant édite le champ legacy `products.dimension_variants` (jsonb)
+ * créé avant le chantier Modèle B. Il est conservé pour la backward compat
+ * du UI admin actuel mais ne devrait plus être utilisé pour les nouvelles
+ * intégrations. Sera supprimé Phase 2 quand le code applicatif sera
+ * entièrement aligné sur product_variants (cf. PLAN_MODELE_B_VARIANTS.md
+ * §3, Q5 reco A "deprecate Phase 2").
+ */
 import { Plus, Trash2, GripVertical, Package } from "lucide-react";
 import type { DimensionVariant } from "@/lib/products";
 
