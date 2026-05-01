@@ -2914,6 +2914,69 @@ export type Database = {
         }
         Relationships: []
       }
+      product_media: {
+        Row: {
+          alt_text_i18n: Json | null
+          bytes: number | null
+          created_at: string
+          display_order: number
+          height_px: number | null
+          id: string
+          is_primary: boolean
+          kind: string
+          product_id: string | null
+          updated_at: string
+          url: string
+          variant_id: string | null
+          width_px: number | null
+        }
+        Insert: {
+          alt_text_i18n?: Json | null
+          bytes?: number | null
+          created_at?: string
+          display_order?: number
+          height_px?: number | null
+          id?: string
+          is_primary?: boolean
+          kind: string
+          product_id?: string | null
+          updated_at?: string
+          url: string
+          variant_id?: string | null
+          width_px?: number | null
+        }
+        Update: {
+          alt_text_i18n?: Json | null
+          bytes?: number | null
+          created_at?: string
+          display_order?: number
+          height_px?: number | null
+          id?: string
+          is_primary?: boolean
+          kind?: string
+          product_id?: string | null
+          updated_at?: string
+          url?: string
+          variant_id?: string | null
+          width_px?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_media_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_media_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_offers: {
         Row: {
           collection_name: string | null
@@ -3161,6 +3224,184 @@ export type Database = {
           {
             foreignKeyName: "product_submissions_target_product_id_fkey"
             columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_variants: {
+        Row: {
+          available_in_markets: string[] | null
+          confidence_score: number | null
+          configuration_module: string | null
+          created_at: string
+          delivery_weeks_max: number | null
+          delivery_weeks_min: number | null
+          depth_cm: number | null
+          diameter_cm: number | null
+          discontinued_at: string | null
+          extracted_at: string | null
+          fabric_color_hex: string | null
+          fabric_color_label_i18n: Json | null
+          fabric_color_slug: string | null
+          frame_finish_label_i18n: Json | null
+          frame_finish_slug: string | null
+          has_armrests: boolean | null
+          has_cushion: boolean | null
+          has_wheels: boolean | null
+          height_cm: number | null
+          id: string
+          in_stock: boolean
+          is_default: boolean
+          is_made_to_order: boolean
+          is_published: boolean
+          is_stackable: boolean | null
+          material_brand_id: string | null
+          price_currency: string
+          price_eur: number | null
+          primary_media_id: string | null
+          product_id: string
+          shape: string | null
+          sku: string | null
+          source_type: string | null
+          source_url: string | null
+          stock_quantity: number | null
+          subdivision: string | null
+          updated_at: string
+          validated_at: string | null
+          validated_by: string | null
+          variant_name: string | null
+          weight_kg: number | null
+          width_cm: number | null
+        }
+        Insert: {
+          available_in_markets?: string[] | null
+          confidence_score?: number | null
+          configuration_module?: string | null
+          created_at?: string
+          delivery_weeks_max?: number | null
+          delivery_weeks_min?: number | null
+          depth_cm?: number | null
+          diameter_cm?: number | null
+          discontinued_at?: string | null
+          extracted_at?: string | null
+          fabric_color_hex?: string | null
+          fabric_color_label_i18n?: Json | null
+          fabric_color_slug?: string | null
+          frame_finish_label_i18n?: Json | null
+          frame_finish_slug?: string | null
+          has_armrests?: boolean | null
+          has_cushion?: boolean | null
+          has_wheels?: boolean | null
+          height_cm?: number | null
+          id?: string
+          in_stock?: boolean
+          is_default?: boolean
+          is_made_to_order?: boolean
+          is_published?: boolean
+          is_stackable?: boolean | null
+          material_brand_id?: string | null
+          price_currency?: string
+          price_eur?: number | null
+          primary_media_id?: string | null
+          product_id: string
+          shape?: string | null
+          sku?: string | null
+          source_type?: string | null
+          source_url?: string | null
+          stock_quantity?: number | null
+          subdivision?: string | null
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+          variant_name?: string | null
+          weight_kg?: number | null
+          width_cm?: number | null
+        }
+        Update: {
+          available_in_markets?: string[] | null
+          confidence_score?: number | null
+          configuration_module?: string | null
+          created_at?: string
+          delivery_weeks_max?: number | null
+          delivery_weeks_min?: number | null
+          depth_cm?: number | null
+          diameter_cm?: number | null
+          discontinued_at?: string | null
+          extracted_at?: string | null
+          fabric_color_hex?: string | null
+          fabric_color_label_i18n?: Json | null
+          fabric_color_slug?: string | null
+          frame_finish_label_i18n?: Json | null
+          frame_finish_slug?: string | null
+          has_armrests?: boolean | null
+          has_cushion?: boolean | null
+          has_wheels?: boolean | null
+          height_cm?: number | null
+          id?: string
+          in_stock?: boolean
+          is_default?: boolean
+          is_made_to_order?: boolean
+          is_published?: boolean
+          is_stackable?: boolean | null
+          material_brand_id?: string | null
+          price_currency?: string
+          price_eur?: number | null
+          primary_media_id?: string | null
+          product_id?: string
+          shape?: string | null
+          sku?: string | null
+          source_type?: string | null
+          source_url?: string | null
+          stock_quantity?: number | null
+          subdivision?: string | null
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+          variant_name?: string | null
+          weight_kg?: number | null
+          width_cm?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_fabric_color_slug_fkey"
+            columns: ["fabric_color_slug"]
+            isOneToOne: false
+            referencedRelation: "colors_canonical"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "product_variants_frame_finish_slug_fkey"
+            columns: ["frame_finish_slug"]
+            isOneToOne: false
+            referencedRelation: "finishes_canonical"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "product_variants_material_brand_id_fkey"
+            columns: ["material_brand_id"]
+            isOneToOne: false
+            referencedRelation: "material_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_variants_price_currency_fkey"
+            columns: ["price_currency"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "product_variants_primary_media_id_fkey"
+            columns: ["primary_media_id"]
+            isOneToOne: false
+            referencedRelation: "product_media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
