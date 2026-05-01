@@ -267,17 +267,120 @@ volontairement non implémentées (R-9 mitigation, MVP strict Phase 1) :
 - **Filtre/recherche dans la grid** : utile au-delà de ~50 variants
 - **Markdown WYSIWYG par variant** : hors scope
 
-## Cibles ÉTAPE 6c
+## ÉTAPE 6c — useProductSubmissions adapté + bulk actions (2026-05-02)
 
-- Adaptation `useProductSubmissions.ts` (831 lignes) pour soumettre
-  modèle + variants[] en batch
-- Validation cross : au moins 1 variant `is_default=true` requise au submit
-- Gestion erreurs partielles (modèle OK mais 1 variant échoue → cleanup
-  product orphelin ?)
-- Bulk operations dans VariantsGrid :
-  - Apply to all selected (price, fabric, finish)
-  - Duplicate (créer N variants similaires en changeant 1 dim)
-  - Publish/draft bulk
-- 5-7 tests sur useProductSubmissions adapté
+### Découverte architecturale et arbitrage Option B
 
-Effort estimé : 1 jour.
+Au début d'ÉTAPE 6c, l'analyse de `useProductSubmissions.ts` a révélé que le
+flow partner submit n'insère PAS dans `products` directement — il insère dans
+`product_submissions` (queue de validation). C'est l'admin via `approveAsNew`
+qui crée la ligne `products` plus tard.
+
+Le pattern "Phase A INSERT product / Phase B INSERT variants / cleanup" du
+brief initial était basé sur une hypothèse incorrecte sur le flow. Trois
+options proposées au founder :
+- **Option A** : périmètre étendu (partner submit + admin approval matérialise
+  variants) — 1.5j
+- **Option B** retenue : partner submit sérialise variants[] dans
+  `product_submissions.product_data` ; matérialisation différée à ÉTAPE 7
+  (refonte ProductReviewHelpers) — 1j
+- **Option C** : 6c-bis admin séparé — refusée pour ne pas fragmenter
+
+Justification Option B :
+- Respecte le calendrier ÉTAPE 6 (3-4j initial)
+- Zéro régression sur le flow admin existant
+- Démo Salone crédible (partner voit la saisie + sérialisation)
+- 30-50 produits démo × 3-5 variants = ~150-250 variants à matérialiser
+  manuellement avant Salone si besoin = 30 min de travail SQL pas un goulot
+
+### Fichiers modifiés / créés
+
+`src/hooks/useProductSubmissions.ts` (831 → ~890 lignes) :
+- Signature `submitProduct` étendue avec `options.variants?: LocalVariantRow[]`
+- Defense-in-depth validation côté hook (en plus de la validation côté UI) :
+  - Si `variants.length > 0` : exactement 1 variant `is_default=true` requise
+  - Validation `variantRowSchema` par row (zod)
+- Sérialisation : `variants[]` est embedded dans `product_data` (jsonb) avec
+  `_localId` strippé (champ React-only, pas pertinent en DB)
+- Rétrocompat 100% : si `variants` undefined ou vide, payload identique à
+  avant ÉTAPE 6c
+
+`src/components/partner-dashboard/AddProductForm.tsx` :
+- Ajout state local `variants: LocalVariantRow[]` initialisé avec
+  `[makeEmptyVariantRow(true)]` (1 variant default vide)
+- VariantsSection reçoit `initial={variants}` + `onChange={setVariants}`
+- Au Save, pré-remplissage de la default variant depuis le form modèle
+  (dimensions / prix / stock) si valeurs grid laissées vides — préserve
+  régression zéro pour partners qui ne touchent pas l'onglet Variantes
+- `submitProduct` reçoit `enrichedVariants` dans options
+
+`src/components/partner-dashboard/VariantsGrid.tsx` :
+- Ajout colonne checkbox de sélection (header avec "select all")
+- Ajout state `selectedIds: Set<string>`
+- 4 nouveaux callbacks bulk : `bulkApplyPrice`, `bulkToggleStock`,
+  `bulkDuplicateWithDimensions`, `clearSelection`
+- Render `<VariantBulkActions />` au-dessus de la table quand selection > 0
+- Highlight bleu sur les rows sélectionnées (cohérence visuelle)
+
+`src/components/partner-dashboard/VariantBulkActions.tsx` (nouveau, ~180 lignes) :
+- Composant présentationnal (props in / callbacks out)
+- 3 bulk operations Phase 1 :
+  1. **Apply price** : popover avec input numérique, applique à toutes les rows sélectionnées
+  2. **Duplicate with dimensions** : popover avec input "100, 120, 140",
+     duplique 1 row sélectionnée N fois en variant width_cm + auto-suffixe SKU
+     (ex: "A" → "A-w100", "A-w120")
+  3. **Toggle stock** : 2 boutons (En stock / Hors stock) qui marquent les
+     rows sélectionnées
+- Bouton "Désélectionner" pour clear
+
+### Tests Vitest
+
+Total tests : 367 → 384 (+17).
+
+`src/test/use-product-submissions-variants.test.ts` (9 tests) :
+- Validation logic isolée (rétrocompat 0 variants, exactement 1 default,
+  rejet no-default, rejet multiple-default, rejet row invalide)
+- Payload serialization (productData inchangé sans variants, embedded avec,
+  `_localId` strippé)
+
+`src/test/variants-bulk-actions.test.tsx` (8 tests behavioral) :
+- Toolbar caché si 0 row sélectionnée, affiché si >0
+- Select all → 3/3 sélectionnées
+- Apply price : seules les rows sélectionnées sont mises à jour
+- Toggle stock : in_stock=true sur sélectionnées
+- Duplicate : 3 + 2 widths = 5 rows, SKU auto-suffixé "A-w100"
+- Duplicate button disabled si 0 ou >1 sélection
+- Clear selection → toolbar disparaît
+
+### Hors scope (rappel)
+
+- ❌ Bulk delete (UX risk, déléter accidentellement)
+- ❌ Bulk apply fabric_color (trop spécifique Phase 1)
+- ❌ Import CSV (Phase 2 ingestion)
+- ❌ Drag&drop reorder (Phase 2)
+- ❌ Edge function transactionnelle (Phase 2 si besoin observé)
+- ❌ Modification de `approveAsNew` (différée ÉTAPE 7)
+
+### Préparation ÉTAPE 7
+
+Note pour la refonte ProductReviewHelpers :
+- `approveAsNew` (ligne ~280 de useProductSubmissions) devra être adapté pour
+  matérialiser `product_data.variants` en lignes `product_variants` après
+  l'INSERT products
+- Pattern attendu : 2-phase (Phase A INSERT product / Phase B INSERT variants /
+  cleanup applicatif `DELETE products WHERE id = newProductId` si Phase B fail)
+- Si en attendant ÉTAPE 7 il faut matérialiser des variants pour Salone : faire
+  manuellement via `mcp__supabase__execute_sql` ou un script admin one-shot
+- Tests d'admin approval avec variants à écrire en ÉTAPE 7
+
+## Cibles ÉTAPE 6d (à venir)
+
+- Tests d'intégration React Testing Library : workflow complet création modèle + 3 variants
+- Dépréciation soft :
+  - `ColorVariantEditor.tsx` : commentaire "DEPRECATED Phase 1, will be removed Phase 2"
+  - `DimensionVariantEditor.tsx` : idem
+  - Pas de suppression du fichier (backward compat)
+- Lecture critique : tsc, lint, advisors
+- Cible tests finale : 390+
+
+Effort estimé : 0.5-1 jour.

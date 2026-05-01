@@ -39,6 +39,7 @@ import {
   variantRowSchema,
   makeEmptyVariantRow,
 } from "@/lib/variantsGridHelpers";
+import VariantBulkActions from "./VariantBulkActions";
 
 // ── Référentiels (React Query) ─────────────────────────────────────────────
 
@@ -199,10 +200,69 @@ interface VariantsGridProps {
 
 export default function VariantsGrid({ initial = [], onChange }: VariantsGridProps) {
   const [rows, setRows] = useState<LocalVariantRow[]>(initial);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const fabrics = useFabricBrands();
   const colors = useColorsCanonical();
   const finishes = useFinishesCanonical();
+
+  // ── Bulk actions handlers ─────────────────────────────────────────────────
+
+  const toggleRowSelection = useCallback((localId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(localId)) next.delete(localId);
+      else next.add(localId);
+      return next;
+    });
+  }, []);
+
+  const toggleAllSelection = useCallback(() => {
+    setSelectedIds((prev) =>
+      prev.size === rows.length ? new Set() : new Set(rows.map((r) => r._localId)),
+    );
+  }, [rows]);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const bulkApplyPrice = useCallback(
+    (price: number) => {
+      setRows((prev) =>
+        prev.map((r) => (selectedIds.has(r._localId) ? { ...r, price_eur: price } : r)),
+      );
+    },
+    [selectedIds],
+  );
+
+  const bulkToggleStock = useCallback(
+    (inStock: boolean) => {
+      setRows((prev) =>
+        prev.map((r) => (selectedIds.has(r._localId) ? { ...r, in_stock: inStock } : r)),
+      );
+    },
+    [selectedIds],
+  );
+
+  const bulkDuplicateWithDimensions = useCallback(
+    (widths: number[]) => {
+      setRows((prev) => {
+        // Find the first selected row to use as template
+        const template = prev.find((r) => selectedIds.has(r._localId));
+        if (!template) return prev;
+        // Duplicate N times with overridden width_cm. Reset is_default on copies.
+        const copies: LocalVariantRow[] = widths.map((w) => ({
+          ...template,
+          _localId: makeEmptyVariantRow(false)._localId, // fresh local id
+          width_cm: w,
+          is_default: false,
+          sku: template.sku ? `${template.sku}-w${w}` : null,
+        }));
+        return [...prev, ...copies];
+      });
+      // Don't keep the duplicated rows selected — leave selection on the template
+    },
+    [selectedIds],
+  );
 
   // Notify parent on changes
   useEffect(() => {
@@ -277,10 +337,29 @@ export default function VariantsGrid({ initial = [], onChange }: VariantsGridPro
         )}
       </div>
 
+      {/* Bulk actions toolbar — visible only when rows selected */}
+      <VariantBulkActions
+        selectedCount={selectedIds.size}
+        totalCount={rows.length}
+        onApplyPrice={bulkApplyPrice}
+        onDuplicateWithDimensions={bulkDuplicateWithDimensions}
+        onToggleStock={bulkToggleStock}
+        onClearSelection={clearSelection}
+      />
+
       <div className="border border-border rounded-sm overflow-x-auto">
         <table className="min-w-full text-xs font-body">
           <thead className="bg-muted/40 border-b border-border">
             <tr>
+              <th className="w-8 px-1 py-2 text-center">
+                <input
+                  type="checkbox"
+                  checked={rows.length > 0 && selectedIds.size === rows.length}
+                  onChange={toggleAllSelection}
+                  aria-label="Select all variants"
+                  className="h-3.5 w-3.5 cursor-pointer"
+                />
+              </th>
               <th className="px-2 py-2 text-left font-display font-semibold uppercase tracking-wider text-[10px] text-muted-foreground">SKU</th>
               <th className="px-2 py-2 text-left font-display font-semibold uppercase tracking-wider text-[10px] text-muted-foreground">L (cm)</th>
               <th className="px-2 py-2 text-left font-display font-semibold uppercase tracking-wider text-[10px] text-muted-foreground">l (cm)</th>
@@ -296,7 +375,7 @@ export default function VariantsGrid({ initial = [], onChange }: VariantsGridPro
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={11} className="px-3 py-8 text-center text-muted-foreground">
                   Aucune variante. Cliquez sur le bouton ci-dessous pour ajouter une déclinaison.
                 </td>
               </tr>
@@ -304,6 +383,7 @@ export default function VariantsGrid({ initial = [], onChange }: VariantsGridPro
               rows.map((row, idx) => {
                 const validation = validations[idx];
                 const rowError = !validation.success;
+                const isSelected = selectedIds.has(row._localId);
                 return (
                   <tr
                     key={row._localId}
@@ -311,8 +391,18 @@ export default function VariantsGrid({ initial = [], onChange }: VariantsGridPro
                     className={cn(
                       "border-b border-border last:border-0",
                       rowError && "bg-red-50/30",
+                      isSelected && "bg-blue-50/40",
                     )}
                   >
+                    <td className="px-1 py-1 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleRowSelection(row._localId)}
+                        aria-label={`Select variant ${idx + 1}`}
+                        className="h-3.5 w-3.5 cursor-pointer"
+                      />
+                    </td>
                     <td className="px-1 py-1">
                       <input
                         type="text"
