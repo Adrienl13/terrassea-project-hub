@@ -16,6 +16,8 @@
 
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import { applyCommission } from "@/lib/products";
 
 // ── Re-exports of supabase types under semantic names ───────────────────────
 
@@ -205,4 +207,59 @@ export function variantDimensionLabel(
   if (v.depth_cm != null) dims.push(`${v.depth_cm}`);
   if (v.height_cm != null) dims.push(`${v.height_cm}`);
   return dims.length > 0 ? `${dims.join(" × ")} cm` : null;
+}
+
+// ── Fetcher (ÉTAPE 9a) ──────────────────────────────────────────────────────
+
+/**
+ * Fetch all published variants of a product, with partner commission applied
+ * to `price_eur` (cohérent avec `fetchProductById` qui applique la même
+ * commission sur products.price_min).
+ *
+ * RLS prend en charge la visibilité publique (variant publishée OU parent
+ * publié) — ce fetcher reflète donc strictement ce que l'acheteur peut voir.
+ */
+export async function fetchProductVariantsByProductId(
+  productId: string,
+): Promise<DBProductVariant[]> {
+  const { data, error } = await supabase
+    .from("product_variants")
+    .select("*")
+    .eq("product_id", productId)
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  if (!data || data.length === 0) return [];
+
+  // Récupérer le partner plan + commission rate pour appliquer le markup
+  // (mêmes règles que fetchProductById).
+  const { data: product } = await supabase
+    .from("products")
+    .select("partner_id")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (!product?.partner_id) return data as DBProductVariant[];
+
+  const [{ data: partner }, { data: sub }] = await Promise.all([
+    supabase
+      .from("partners")
+      .select("plan")
+      .eq("id", product.partner_id)
+      .maybeSingle(),
+    supabase
+      .from("partner_subscriptions")
+      .select("commission_rate")
+      .eq("partner_id", product.partner_id)
+      .maybeSingle(),
+  ]);
+  const plan = partner?.plan || "starter";
+  const commissionRate = sub?.commission_rate != null ? Number(sub.commission_rate) : null;
+
+  return (data as DBProductVariant[]).map((v) => ({
+    ...v,
+    price_eur:
+      v.price_eur != null ? applyCommission(Number(v.price_eur), plan, commissionRate) : v.price_eur,
+  }));
 }
