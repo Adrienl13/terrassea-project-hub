@@ -536,6 +536,31 @@ Aucune suppression de fichier ÉTAPE 6d. Aucun retrait d'import.
 
 ## ÉTAPE 7 — UI admin matérialisation variants (2026-05-02)
 
+### Note méthodologique — drift prevention
+
+Pendant la validation ÉTAPE 7 le 2026-05-02, le founder a supprimé
+manuellement 2 products tests (matérialisés via approbation de submissions
+tests) hors migration versionnée. Cette suppression hors-migration enfreint
+la règle "drift prevention" actée 2026-04-30 dans `CLAUDE.md`. Pour
+préserver la cohérence audit trail, la migration
+`20260502091832_document_etape_7_test_products_cleanup.sql` documente
+officiellement cet événement (DO block validation sans DELETE puisque la
+suppression est déjà faite).
+
+À éviter à l'avenir : toute modification DB doit passer par une migration
+versionnée locale AVANT apply.
+
+Snapshot CSV pré-suppression : **non disponible** (suppression hors-process).
+Audit trail des données détruites perdu.
+
+Products tests supprimés manuellement :
+- `bbac50af-bd78-473f-8bfd-75c5da256328` ("TEST ÉTAPE 7 - Variants", injecté SQL Phase 1)
+- `8069f268-3bf6-4365-ab15-f1f7576fed61` ("Test Vari Tables", flow partner Phase 2)
+
+Submissions associées (laissées en DB, FK SET NULL → `approved_product_id` NULL) :
+- `db567bcb-2c9e-4bfc-96a7-f7d8b0f58f93`
+- `8c8f43e8-6b6f-4a31-8216-7fb11513039b`
+
 ### Pattern 2-phase + cleanup applicatif (livré)
 
 L'admin approval (`approveAsNew` dans `useProductSubmissions.ts`) implémente
