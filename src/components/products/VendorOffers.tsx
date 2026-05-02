@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -27,6 +27,13 @@ interface VendorOffersProps {
   arrivals?: ProductArrival[];
   selectedColor?: string | null;
   selectedDimension?: string | null;
+  /**
+   * Variante Modèle B sélectionnée (ÉTAPE 9a-fix). Si présent, override
+   * le prix et le stock affichés par offer card pour refléter la variante
+   * choisie par l'acheteur, plutôt que le prix legacy de product_offers.
+   * NULL pour les products legacy avec ≤1 variant (comportement préservé).
+   */
+  selectedModelBVariant?: import("@/lib/productVariants").DBProductVariant | null;
 }
 
 // ── Country flags ─────────────────────────────────────────────────────────────
@@ -204,7 +211,7 @@ function SupplierAvatar({ index, isAdmin, offer }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin = false, arrivals = [], selectedColor = null, selectedDimension = null }: VendorOffersProps) => {
+const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin = false, arrivals = [], selectedColor = null, selectedDimension = null, selectedModelBVariant = null }: VendorOffersProps) => {
   const { t } = useTranslation();
   const [quantity, setQuantity] = useState(defaultQuantity);
   const { addItem, selectSupplier } = useProjectCart();
@@ -287,10 +294,39 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
   };
 
 
+  // ÉTAPE 9a-fix : si une variante Modèle B est sélectionnée, override le
+  // prix de chaque offer pour refléter le prix de la variante (déjà
+  // commission-applied par fetchProductVariantsByProductId).
+  // Helpers wrappés avec useCallback pour stabiliser les références (sinon
+  // exhaustive-deps rule complique la useMemo summary).
+  const effectivePriceOf = useCallback(
+    (offer: ProductOffer): number | null => {
+      if (selectedModelBVariant?.price_eur != null) {
+        return Number(selectedModelBVariant.price_eur);
+      }
+      return offer.price;
+    },
+    [selectedModelBVariant],
+  );
+
+  const effectiveStockStatusOf = useCallback(
+    (offer: ProductOffer): string | null => {
+      if (selectedModelBVariant) {
+        if (selectedModelBVariant.is_made_to_order) return "on_order";
+        if (selectedModelBVariant.in_stock) return "in_stock";
+        return "out_of_stock";
+      }
+      return offer.stock_status;
+    },
+    [selectedModelBVariant],
+  );
+
   const summary = useMemo(() => {
     if (offers.length === 0) return { lowestTotal: null, fastestDelivery: null, bestStockIndex: null };
-    const priced = offers.filter((o) => o.price !== null);
-    const lowestPrice = priced.length > 0 ? Math.min(...priced.map((o) => o.price!)) : null;
+    const priced = offers
+      .map((o) => effectivePriceOf(o))
+      .filter((p): p is number => p !== null);
+    const lowestPrice = priced.length > 0 ? Math.min(...priced) : null;
     const lowestTotal = lowestPrice !== null ? lowestPrice * quantity : null;
     const withDelivery = offers.filter((o) => o.delivery_delay_days !== null);
     const fastestDelivery = withDelivery.length > 0
@@ -302,13 +338,15 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
     offers.forEach((o, i) => {
       const fit = evaluateQuantityFit(o, quantity);
       const cover = fit === "full_match" ? 2 : fit === "partial_stock" ? 1 : 0;
-      if (cover > bestStockCover || (cover === bestStockCover && (o.price ?? Infinity) < (offers[bestStockIndex ?? 0]?.price ?? Infinity))) {
+      const oPrice = effectivePriceOf(o) ?? Infinity;
+      const bestPrice = bestStockIndex !== null ? (effectivePriceOf(offers[bestStockIndex]) ?? Infinity) : Infinity;
+      if (cover > bestStockCover || (cover === bestStockCover && oPrice < bestPrice)) {
         bestStockCover = cover;
         bestStockIndex = i;
       }
     });
     return { lowestTotal, fastestDelivery, bestStockIndex };
-  }, [offers, quantity]);
+  }, [offers, quantity, effectivePriceOf]);
 
   if (offers.length === 0) {
     // When a dimension is selected but no offers match, show variant info + quote CTA
@@ -369,8 +407,11 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
     partnerId: offer.partner_id,
     partnerName: getDisplayName(offer, index),
     partnerCountry: offer.partner?.country,
-    price: offer.price,
-    stockStatus: offer.stock_status,
+    // ÉTAPE 9a-fix : prix de la variante Modèle B sélectionnée si présent
+    // (sinon offer.price legacy). Permet à l'acheteur de voir et acheter
+    // le prix correspondant à sa déclinaison.
+    price: effectivePriceOf(offer),
+    stockStatus: effectiveStockStatusOf(offer),
     stockQuantity: offer.stock_quantity,
     deliveryDelayDays: offer.delivery_delay_days,
     purchaseType: offer.purchase_type,
@@ -488,11 +529,14 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
           </thead>
           <tbody>
             {offers.map((offer, index) => {
-              const stockKey = offer.stock_status || "available";
+              // ÉTAPE 9a-fix : effective price/stock = variante Modèle B si sélectionnée
+              const effectivePrice = effectivePriceOf(offer);
+              const effectiveStockStatus = effectiveStockStatusOf(offer);
+              const stockKey = effectiveStockStatus || "available";
               const stockDot = STOCK_DOT[stockKey] || STOCK_DOT.available;
               const stockLabel = t(STOCK_I18N_KEY[stockKey] || STOCK_I18N_KEY.available);
               const fit = evaluateQuantityFit(offer, quantity);
-              const total = offer.price !== null ? offer.price * quantity : null;
+              const total = effectivePrice !== null ? effectivePrice * quantity : null;
               const flag = getFlag(offer.partner?.country);
               const displayName = getDisplayName(offer, index);
 
@@ -546,7 +590,7 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
                       </span>
                     ) : (
                       <span className="font-display font-bold text-foreground">
-                        {offer.price ? `€${offer.price.toFixed(2)}` : t("vendorOffers.onRequest")}
+                        {effectivePrice ? `€${effectivePrice.toFixed(2)}` : t("vendorOffers.onRequest")}
                       </span>
                     )}
                   </td>
@@ -562,7 +606,7 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
                   {/* Stock */}
                   <td className="py-4">
                     <RestockBadge
-                      stockStatus={offer.stock_status}
+                      stockStatus={effectiveStockStatus}
                       stockQuantity={offer.stock_quantity}
                       arrivals={getOfferArrivals(offer.partner_id)}
                       onPreorder={handlePreorder}
@@ -609,11 +653,14 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
         {offers.map((offer, index) => {
-          const stockKey = offer.stock_status || "available";
+          // ÉTAPE 9a-fix : effective price/stock = variante Modèle B si sélectionnée
+          const effectivePrice = effectivePriceOf(offer);
+          const effectiveStockStatus = effectiveStockStatusOf(offer);
+          const stockKey = effectiveStockStatus || "available";
           const stockDot = STOCK_DOT[stockKey] || STOCK_DOT.available;
           const stockLabel = t(STOCK_I18N_KEY[stockKey] || STOCK_I18N_KEY.available);
           const fit = evaluateQuantityFit(offer, quantity);
-          const total = offer.price !== null ? offer.price * quantity : null;
+          const total = effectivePrice !== null ? effectivePrice * quantity : null;
           const flag = getFlag(offer.partner?.country);
           const displayName = isAdmin ? (offer.partner?.name || "Unknown") : getMaskedName(index);
 
@@ -647,7 +694,7 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
                   ) : (
                     <>
                       <span className="font-display font-bold text-foreground text-sm">
-                        {offer.price ? `€${offer.price.toFixed(2)}` : t("vendorOffers.onRequest")}
+                        {effectivePrice ? `€${effectivePrice.toFixed(2)}` : t("vendorOffers.onRequest")}
                       </span>
                       {total !== null && (
                         <p className="text-[10px] text-muted-foreground">
@@ -660,7 +707,7 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
               </div>
               <div className="flex flex-wrap items-start gap-4 text-xs text-muted-foreground">
                 <RestockBadge
-                  stockStatus={offer.stock_status}
+                  stockStatus={effectiveStockStatus}
                   stockQuantity={offer.stock_quantity}
                   arrivals={getOfferArrivals(offer.partner_id)}
                   onPreorder={handlePreorder}

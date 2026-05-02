@@ -5,6 +5,8 @@ import SEO from "@/components/SEO";
 import QuoteRequestModal from "@/components/products/QuoteRequestModal";
 import ColorVariantSelector from "@/components/products/ColorVariantSelector";
 import DimensionVariantSelector from "@/components/products/DimensionVariantSelector";
+import VariantSelector from "@/components/products/VariantSelector";
+import { fetchProductVariantsByProductId, defaultVariantOf, type DBProductVariant } from "@/lib/productVariants";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -41,6 +43,8 @@ const ProductDetail = () => {
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [selectedDimension, setSelectedDimension] = useState<string | null>(null);
+  // ÉTAPE 9a — sélection de la variante Modèle B (par id)
+  const [selectedModelBVariantId, setSelectedModelBVariantId] = useState<string | null>(null);
   const isArchitect = profile?.user_type === "architect";
 
   const { data: product, isLoading } = useQuery({
@@ -48,6 +52,27 @@ const ProductDetail = () => {
     queryFn: () => fetchProductById(id!),
     enabled: !!id,
   });
+
+  // ÉTAPE 9a — fetch les variants Modèle B (avec commission appliquée)
+  const { data: modelBVariants = [] } = useQuery<DBProductVariant[]>({
+    queryKey: ["product-variants", id],
+    queryFn: () => fetchProductVariantsByProductId(id!),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Sélection initiale : la variant default si disponible, sinon la première
+  useEffect(() => {
+    if (modelBVariants.length > 0 && selectedModelBVariantId === null) {
+      const defaultV = defaultVariantOf(modelBVariants);
+      if (defaultV) setSelectedModelBVariantId(defaultV.id);
+    }
+  }, [modelBVariants, selectedModelBVariantId]);
+
+  const selectedModelBVariant = useMemo<DBProductVariant | null>(() => {
+    if (!selectedModelBVariantId) return null;
+    return modelBVariants.find((v) => v.id === selectedModelBVariantId) ?? null;
+  }, [modelBVariants, selectedModelBVariantId]);
 
   // Fetch only similar products (same category) — NOT the full 2000-product catalog
   const { data: similarProducts = [] } = useQuery({
@@ -346,29 +371,50 @@ const ProductDetail = () => {
                       {t('productDetail.collection')}: {product.collection}
                     </p>
                   )}
-                  {product.color_variants.length > 1 && (
+                  {/* ─── Modèle B variant selector (ÉTAPE 9a) ────────────
+                       Si le product a 2+ variants Modèle B, on les affiche
+                       en priorité. Les selectors legacy color/dimension ne
+                       s'affichent que si modelBVariants <= 1 (backward compat
+                       pour les 51/52 products avec 1 default unique). */}
+                  {modelBVariants.length >= 2 ? (
                     <div className="mt-3">
-                      <ColorVariantSelector
-                        variants={product.color_variants}
-                        selectedColor={effectiveVariant}
-                        onSelectColor={setSelectedVariant}
-                        size="md"
+                      <VariantSelector
+                        variants={modelBVariants}
+                        selectedId={selectedModelBVariantId}
+                        onSelect={setSelectedModelBVariantId}
                       />
                     </div>
-                  )}
-                  {product.dimension_variants.length > 1 && (
-                    <div className="mt-3">
-                      <DimensionVariantSelector
-                        variants={product.dimension_variants}
-                        selectedDimension={selectedDimension}
-                        onSelectDimension={setSelectedDimension}
-                      />
-                    </div>
+                  ) : (
+                    <>
+                      {product.color_variants.length > 1 && (
+                        <div className="mt-3">
+                          <ColorVariantSelector
+                            variants={product.color_variants}
+                            selectedColor={effectiveVariant}
+                            onSelectColor={setSelectedVariant}
+                            size="md"
+                          />
+                        </div>
+                      )}
+                      {product.dimension_variants.length > 1 && (
+                        <div className="mt-3">
+                          <DimensionVariantSelector
+                            variants={product.dimension_variants}
+                            selectedDimension={selectedDimension}
+                            onSelectDimension={setSelectedDimension}
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
                    <div className="flex items-center gap-3 mt-3">
                     <span className="text-lg font-display font-bold text-foreground">
                       {(() => {
-                        // Show selected dimension price if available
+                        // ÉTAPE 9a — priorité au prix de la variante Modèle B sélectionnée
+                        if (selectedModelBVariant?.price_eur != null) {
+                          return `€${Number(selectedModelBVariant.price_eur).toFixed(2)}`;
+                        }
+                        // Fallback legacy : dimension_variants jsonb (avant Modèle B)
                         const dimVariant = selectedDimension
                           ? product.dimension_variants.find(v => v.dimension_tag === selectedDimension)
                           : null;
@@ -378,7 +424,14 @@ const ProductDetail = () => {
                       })()}
                     </span>
                     <StockBadge status={
-                      selectedDimension
+                      // ÉTAPE 9a — priorité au stock de la variante Modèle B sélectionnée
+                      selectedModelBVariant
+                        ? (selectedModelBVariant.in_stock
+                            ? "in_stock"
+                            : selectedModelBVariant.is_made_to_order
+                            ? "made_to_order"
+                            : "out_of_stock")
+                        : selectedDimension
                         ? (product.dimension_variants?.find((v: any) => v.dimension_tag === selectedDimension)?.stock_status
                           ?? product.stock_status)
                         : (offers.length > 0 ? (offers[0].stock_status ?? product.stock_status) : product.stock_status)
@@ -544,7 +597,7 @@ const ProductDetail = () => {
         {/* Vendor offers */}
         <section className="px-6 mt-4">
           <div className="container mx-auto">
-            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} selectedColor={effectiveVariant} selectedDimension={selectedDimension} />
+            <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} selectedColor={effectiveVariant} selectedDimension={selectedDimension} selectedModelBVariant={selectedModelBVariant} />
           </div>
         </section>
 
