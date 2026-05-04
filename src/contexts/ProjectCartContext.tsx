@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from "react";
 import type { DBProduct } from "@/lib/products";
+import { fetchProductsByIds } from "@/lib/products";
 import type { LayoutRequirementType } from "@/engine/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { cartItemMatchesIdentity } from "@/lib/cartHelpers";
 
 export interface CartItemLayoutMeta {
   requirementType?: LayoutRequirementType;
@@ -32,8 +34,25 @@ export interface CartItem {
   layoutRequirementLabel?: string;
   layoutSuggestedQuantity?: number;
   selectedSupplier?: SelectedSupplier;
+  /**
+   * @deprecated Phase 1 ÉTAPE 9a-fix-2 — Champ legacy hérité du chantier
+   * vocab. Remplacé par selectedModelBVariantId pour les products Modèle B.
+   * Conservé pour backward compat sur les 51/52 products avec dimension_variants
+   * jsonb. À retirer Phase 2.
+   */
   selectedColor?: string;
+  /**
+   * @deprecated Phase 1 ÉTAPE 9a-fix-2 — Idem selectedColor.
+   */
   selectedDimension?: string;
+  /**
+   * ID de la variante Modèle B sélectionnée (product_variants.id). Permet :
+   * - 2 lignes panier distinctes pour 2 variants du même product
+   * - prix exact via variant.price_eur (commission déjà appliquée par fetcher)
+   * - persistance au reload via saved_carts.cart_data jsonb
+   * Undefined pour les products legacy (1 default variant unique).
+   */
+  selectedModelBVariantId?: string;
 }
 
 export type QuotationStatus =
@@ -44,11 +63,42 @@ export type QuotationStatus =
 
 interface ProjectCartContextType {
   items: CartItem[];
-  addItem: (product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta, selectedColor?: string, selectedDimension?: string) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number, layoutMeta?: CartItemLayoutMeta) => void;
-  selectSupplier: (productId: string, supplier: SelectedSupplier) => void;
-  clearSupplier: (productId: string) => void;
+  /**
+   * Ajoute un product au cart. Le 7e param `selectedModelBVariantId` permet
+   * de différencier 2 variants Modèle B du même product (2 lignes distinctes).
+   * Backward compat : appel sans variant_id se comporte comme avant
+   * (matching par product_id seul, quantity++ sur l'item existant).
+   */
+  addItem: (
+    product: DBProduct,
+    conceptName?: string,
+    quantity?: number,
+    layoutMeta?: CartItemLayoutMeta,
+    selectedColor?: string,
+    selectedDimension?: string,
+    selectedModelBVariantId?: string,
+  ) => void;
+  /**
+   * Supprime un item du cart. Si `variantId` fourni → supprime SEULEMENT
+   * l'item (productId, variantId). Sans variantId, comportement legacy
+   * (supprime tous les items avec ce product_id — utilisé pour les 51/52
+   * products sans variants Modèle B). δ-1-bis : nécessaire pour ne pas
+   * supprimer les 2 variants d'un même product Modèle B en un clic.
+   */
+  removeItem: (productId: string, variantId?: string) => void;
+  /**
+   * Modifie la quantité. `variantId` même sémantique que removeItem :
+   * filtre strict (product_id, variant_id) si fourni.
+   */
+  updateQuantity: (productId: string, quantity: number, layoutMeta?: CartItemLayoutMeta, variantId?: string) => void;
+  /**
+   * Attache un supplier à l'item (productId, [variantId]). Si variantId passé,
+   * filtre par couple (product_id, variant_id) — évite d'écraser le supplier
+   * d'une autre variant du même product. Backward compat : sans variantId,
+   * filtre par product_id (comportement legacy).
+   */
+  selectSupplier: (productId: string, supplier: SelectedSupplier, variantId?: string) => void;
+  clearSupplier: (productId: string, variantId?: string) => void;
   itemCount: number;
   notes: string;
   setNotes: (notes: string) => void;
@@ -65,6 +115,11 @@ interface SerializableCartItem {
   selectedSupplier?: SelectedSupplier;
   selectedColor?: string;
   selectedDimension?: string;
+  /**
+   * ID de la variante Modèle B persistée (ÉTAPE 9a-fix-2). Le jsonb
+   * saved_carts.cart_data accepte ce champ supplémentaire sans DDL.
+   */
+  selectedModelBVariantId?: string;
 }
 
 function serializeCartItems(items: CartItem[]): SerializableCartItem[] {
@@ -75,6 +130,7 @@ function serializeCartItems(items: CartItem[]): SerializableCartItem[] {
     selectedSupplier: i.selectedSupplier,
     selectedColor: i.selectedColor,
     selectedDimension: i.selectedDimension,
+    selectedModelBVariantId: i.selectedModelBVariantId,
   }));
 }
 
@@ -186,18 +242,18 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
           if (localItems.length === 0 && Array.isArray(data.cart_data)) {
             const serverItems = data.cart_data as unknown as SerializableCartItem[];
             if (serverItems.length > 0) {
-              // Hydrate: fetch full product objects for the stored IDs
+              // Hydrate: fetch full product objects (avec commission appliquée
+              // par fetchProductsByIds — cohérence avec listing/detail).
               const productIds = serverItems.map((si) => si.productId);
-              const { data: products, error: prodErr } = await supabase
-                .from("products")
-                .select("*")
-                .in("id", productIds);
-
-              if (prodErr || !products) {
+              let products: DBProduct[];
+              try {
+                products = await fetchProductsByIds(productIds);
+              } catch {
                 return;
               }
+              if (products.length === 0) return;
 
-              const productMap = new Map(products.map((p) => [p.id, p as unknown as DBProduct]));
+              const productMap = new Map(products.map((p) => [p.id, p]));
               const hydrated: CartItem[] = serverItems
                 .filter((si) => productMap.has(si.productId))
                 .map((si) => ({
@@ -207,6 +263,7 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
                   selectedSupplier: si.selectedSupplier,
                   selectedColor: si.selectedColor,
                   selectedDimension: si.selectedDimension,
+                  selectedModelBVariantId: si.selectedModelBVariantId,
                 }));
 
               if (hydrated.length > 0) {
@@ -287,15 +344,36 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  const addItem = useCallback((product: DBProduct, conceptName?: string, quantity?: number, layoutMeta?: CartItemLayoutMeta, selectedColor?: string, selectedDimension?: string) => {
+  const addItem = useCallback((
+    product: DBProduct,
+    conceptName?: string,
+    quantity?: number,
+    layoutMeta?: CartItemLayoutMeta,
+    selectedColor?: string,
+    selectedDimension?: string,
+    selectedModelBVariantId?: string,
+  ) => {
     const qty = quantity ?? 1;
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
+      // ÉTAPE 9a-fix-2-α : merge identity = (product_id, selectedModelBVariantId).
+      // 2 variants Modèle B du même product → 2 items distincts.
+      // 2 add legacy (variant_id undefined) → 1 item, quantity++.
+      const existing = prev.find((i) =>
+        cartItemMatchesIdentity(i, product.id, selectedModelBVariantId),
+      );
       if (existing) {
         return prev.map((i) =>
-          i.product.id === product.id
-            ? applyLayoutMeta({ ...i, quantity: i.quantity + qty, selectedColor: selectedColor ?? i.selectedColor, selectedDimension: selectedDimension ?? i.selectedDimension }, layoutMeta)
-            : i
+          cartItemMatchesIdentity(i, product.id, selectedModelBVariantId)
+            ? applyLayoutMeta(
+                {
+                  ...i,
+                  quantity: i.quantity + qty,
+                  selectedColor: selectedColor ?? i.selectedColor,
+                  selectedDimension: selectedDimension ?? i.selectedDimension,
+                },
+                layoutMeta,
+              )
+            : i,
         );
       }
       const newItem: CartItem = {
@@ -307,42 +385,78 @@ export function ProjectCartProvider({ children }: { children: ReactNode }) {
         layoutSuggestedQuantity: layoutMeta?.suggestedQuantity,
         selectedColor,
         selectedDimension,
+        selectedModelBVariantId,
       };
       return [...prev, newItem];
     });
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
-  }, []);
-
-  const updateQuantity = useCallback((productId: string, quantity: number, layoutMeta?: CartItemLayoutMeta) => {
-    if (quantity <= 0) {
-      setItems((prev) => prev.filter((i) => i.product.id !== productId));
-      return;
-    }
+  const removeItem = useCallback((productId: string, variantId?: string) => {
     setItems((prev) =>
-      prev.map((i) =>
-        i.product.id === productId
-          ? applyLayoutMeta({ ...i, quantity }, layoutMeta)
-          : i
-      )
+      prev.filter((i) =>
+        variantId !== undefined
+          ? !cartItemMatchesIdentity(i, productId, variantId)
+          : i.product.id !== productId,
+      ),
     );
   }, []);
 
-  const selectSupplier = useCallback((productId: string, supplier: SelectedSupplier) => {
-    setItems((prev) =>
-      prev.map((i) =>
-        i.product.id === productId ? { ...i, selectedSupplier: supplier } : i
-      )
-    );
-  }, []);
+  const updateQuantity = useCallback(
+    (productId: string, quantity: number, layoutMeta?: CartItemLayoutMeta, variantId?: string) => {
+      if (quantity <= 0) {
+        setItems((prev) =>
+          prev.filter((i) =>
+            variantId !== undefined
+              ? !cartItemMatchesIdentity(i, productId, variantId)
+              : i.product.id !== productId,
+          ),
+        );
+        return;
+      }
+      setItems((prev) =>
+        prev.map((i) => {
+          const match =
+            variantId !== undefined
+              ? cartItemMatchesIdentity(i, productId, variantId)
+              : i.product.id === productId;
+          return match ? applyLayoutMeta({ ...i, quantity }, layoutMeta) : i;
+        }),
+      );
+    },
+    [],
+  );
 
-  const clearSupplier = useCallback((productId: string) => {
+  const selectSupplier = useCallback(
+    (productId: string, supplier: SelectedSupplier, variantId?: string) => {
+      setItems((prev) =>
+        prev.map((i) => {
+          // ÉTAPE 9a-fix-2-α : si variantId passé, match strict (product_id,
+          // variant_id) pour ne pas écraser le supplier d'une autre variant
+          // du même product. Sans variantId, comportement legacy (filtre
+          // par product_id seul).
+          const matchProduct = i.product.id === productId;
+          if (!matchProduct) return i;
+          if (variantId !== undefined) {
+            return i.selectedModelBVariantId === variantId
+              ? { ...i, selectedSupplier: supplier }
+              : i;
+          }
+          return { ...i, selectedSupplier: supplier };
+        }),
+      );
+    },
+    [],
+  );
+
+  const clearSupplier = useCallback((productId: string, variantId?: string) => {
     setItems((prev) =>
-      prev.map((i) =>
-        i.product.id === productId ? { ...i, selectedSupplier: undefined } : i
-      )
+      prev.map((i) => {
+        const match =
+          variantId !== undefined
+            ? cartItemMatchesIdentity(i, productId, variantId)
+            : i.product.id === productId;
+        return match ? { ...i, selectedSupplier: undefined } : i;
+      }),
     );
   }, []);
 
