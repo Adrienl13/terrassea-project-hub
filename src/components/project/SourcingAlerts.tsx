@@ -1,8 +1,17 @@
 import { AlertTriangle, Info, CheckCircle2, ShieldAlert } from "lucide-react";
 import type { CartItem } from "@/contexts/ProjectCartContext";
+import type { DBProductVariant } from "@/lib/productVariants";
+import { getEffectiveStockStatus } from "@/lib/cartHelpers";
 
 interface SourcingAlertsProps {
   items: CartItem[];
+  /**
+   * ζ — variants Modèle B des items du cart. Permet à computeAlerts
+   * de détecter les items dont la VARIANT est out_of_stock /
+   * made_to_order (pas seulement le supplier offer). Optionnel pour
+   * backward compat sur les pages qui ne les fetchent pas.
+   */
+  variants?: DBProductVariant[];
 }
 
 interface SourcingAlert {
@@ -10,7 +19,7 @@ interface SourcingAlert {
   message: string;
 }
 
-function computeAlerts(items: CartItem[]): SourcingAlert[] {
+function computeAlerts(items: CartItem[], variants?: DBProductVariant[]): SourcingAlert[] {
   if (items.length === 0) return [];
 
   const alerts: SourcingAlert[] = [];
@@ -36,7 +45,7 @@ function computeAlerts(items: CartItem[]): SourcingAlert[] {
     }
   }
 
-  // Uncertain stock
+  // Uncertain stock (offer-level: low_stock/production/on_order)
   const uncertainStock = withSupplier.filter((i) => {
     const s = i.selectedSupplier!.stockStatus?.toLowerCase();
     return s === "low_stock" || s === "production" || s === "on_order";
@@ -48,9 +57,23 @@ function computeAlerts(items: CartItem[]): SourcingAlert[] {
     });
   }
 
-  // All sourced
+  // ζ : variant-level availability check (separate de uncertainStock supplier-level).
+  // Capture les items dont la VARIANT Modèle B est out_of_stock / made_to_order,
+  // même si l'offer du supplier sélectionné a du stock.
+  const variantUnavailable = items.filter((i) => {
+    const status = getEffectiveStockStatus(i, variants);
+    return status === "made_to_order" || status === "availability_on_request";
+  });
+  if (variantUnavailable.length > 0) {
+    alerts.push({
+      type: "warning",
+      message: `${variantUnavailable.length} item${variantUnavailable.length > 1 ? "s" : ""} require${variantUnavailable.length === 1 ? "s" : ""} availability confirmation — review your selection before submitting`,
+    });
+  }
+
+  // All sourced + all available
   if (withoutSupplier.length === 0 && items.length > 0) {
-    const allConfirmed = uncertainStock.length === 0;
+    const allConfirmed = uncertainStock.length === 0 && variantUnavailable.length === 0;
     if (allConfirmed) {
       alerts.push({
         type: "success",
@@ -74,8 +97,8 @@ const STYLE_MAP = {
   success: "bg-green-500/5 border-green-500/20 text-green-800",
 };
 
-const SourcingAlerts = ({ items }: SourcingAlertsProps) => {
-  const alerts = computeAlerts(items);
+const SourcingAlerts = ({ items, variants }: SourcingAlertsProps) => {
+  const alerts = computeAlerts(items, variants);
   if (alerts.length === 0) return null;
 
   return (

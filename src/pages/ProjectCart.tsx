@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler, Truck, X, Save, FileDown } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowLeft, Layers, Ruler, Truck, X, Save, FileDown, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +18,9 @@ import SourcingSummary from "@/components/project/SourcingSummary";
 import SourcingAlerts from "@/components/project/SourcingAlerts";
 import type { DBProduct } from "@/lib/products";
 import type { CartItem } from "@/contexts/ProjectCartContext";
+import type { DBProductVariant } from "@/lib/productVariants";
+import { fetchVariantsByIds, variantDimensionLabel } from "@/lib/productVariants";
+import { getEffectiveCartPrice, getEffectiveStockStatus, type EffectiveStockStatus } from "@/lib/cartHelpers";
 import { exportCartAsPdf } from "@/lib/cartPdfExport";
 import FinancingCTA from "@/components/financing/FinancingCTA";
 import { trackQuoteRequested } from "@/lib/conceptTracking";
@@ -31,6 +35,41 @@ function getCurrentStep(items: CartItem[]): number {
   const allHaveSupplier = items.every((i) => i.selectedSupplier);
   if (!allHaveSupplier) return 2;
   return 3;
+}
+
+// ζ — Stock badge per item (variant-aware via getEffectiveStockStatus).
+// Tags FR par défaut (audience CHR France 2026), cohérent avec dette i18n
+// pré-existante du drawer documentée en ε.
+const STOCK_BADGE_CONFIG: Record<EffectiveStockStatus, { label: string; icon: typeof CheckCircle2; className: string }> = {
+  in_stock: {
+    label: "En stock",
+    icon: CheckCircle2,
+    className: "bg-green-50 text-green-700 border-green-200",
+  },
+  made_to_order: {
+    label: "Sur commande",
+    icon: Clock,
+    className: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+  availability_on_request: {
+    label: "Disponibilité à confirmer",
+    icon: AlertTriangle,
+    className: "bg-amber-50 text-amber-800 border-amber-200",
+  },
+};
+
+function StockBadge({ status }: { status: EffectiveStockStatus | null }) {
+  if (!status) return null;
+  const config = STOCK_BADGE_CONFIG[status];
+  const Icon = config.icon;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-display font-semibold border ${config.className}`}
+    >
+      <Icon className="h-2.5 w-2.5" />
+      {config.label}
+    </span>
+  );
 }
 
 function ProgressSteps({ current, t }: {current: number; t: (k: string) => string}) {
@@ -111,6 +150,7 @@ const ProjectCart = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<DBProduct | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>(undefined);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // ── localStorage persistence ────────────────────────────────────────────────
@@ -165,19 +205,35 @@ const ProjectCart = () => {
     return acc;
   }, {});
 
+  // ── Variants Modèle B fetch (ÉTAPE 9a-fix-2-γ-1) ────────────────────────────
+  // Batch query unique pour tous les selectedModelBVariantId présents dans le
+  // cart. Évite N+1 ; commission appliquée upstream par fetchVariantsByIds.
+  const variantIds = useMemo(
+    () =>
+      items
+        .map((i) => i.selectedModelBVariantId)
+        .filter((id): id is string => !!id),
+    [items],
+  );
+  const sortedVariantIdsKey = useMemo(() => [...variantIds].sort().join(","), [variantIds]);
+  const { data: variants = [] } = useQuery<DBProductVariant[]>({
+    queryKey: ["cart-variants", sortedVariantIdsKey],
+    queryFn: () => fetchVariantsByIds(variantIds),
+    enabled: variantIds.length > 0,
+    staleTime: 2 * 60 * 1000,
+  });
+  const variantsById = useMemo(() => {
+    const m = new Map<string, DBProductVariant>();
+    for (const v of variants) m.set(v.id, v);
+    return m;
+  }, [variants]);
+
   // ── Indicative budget ────────────────────────────────────────────────────────
-  const getDimensionPrice = (item: CartItem): number | null => {
-    if (!item.selectedDimension) return null;
-    const v = item.product.dimension_variants?.find((v: any) => v.dimension_tag === item.selectedDimension);
-    return v?.price ?? null;
-  };
   const totalBudget = items.reduce((sum, item) => {
-    const price = item.selectedSupplier?.price ?? getDimensionPrice(item) ?? item.product.price_min ?? null;
+    const price = getEffectiveCartPrice(item, variants);
     return price !== null ? sum + price * item.quantity : sum;
   }, 0);
-  const hasBudget = items.some(
-    (i) => i.selectedSupplier?.price != null || getDimensionPrice(i) != null || i.product.price_min != null
-  );
+  const hasBudget = items.some((i) => getEffectiveCartPrice(i, variants) != null);
 
   const currentStep = getCurrentStep(items);
 
@@ -526,8 +582,8 @@ const ProjectCart = () => {
           {/* Sourcing summary + alerts */}
           {items.length > 0 &&
           <>
-              <SourcingSummary items={items} quotationStatus={quotationStatus} />
-              <SourcingAlerts items={items} />
+              <SourcingSummary items={items} quotationStatus={quotationStatus} variants={variants} />
+              <SourcingAlerts items={items} variants={variants} />
             </>
           }
 
@@ -554,62 +610,72 @@ const ProjectCart = () => {
                       </div>
 
                       <div className="space-y-2">
-                        {conceptItems.map(({ product, quantity, layoutRequirementLabel, selectedSupplier, selectedColor, selectedDimension }) => {
+                        {conceptItems.map((cartItem) => {
+                      const { product, quantity, selectedSupplier, selectedColor, selectedDimension, selectedModelBVariantId } = cartItem;
+                      const modelBVariant = selectedModelBVariantId
+                        ? variantsById.get(selectedModelBVariantId) ?? null
+                        : null;
+                      const variantDims = modelBVariant ? variantDimensionLabel(modelBVariant) : null;
+                      const stockStatus = getEffectiveStockStatus(cartItem, variants);
                       return (
                         <motion.div
-                          key={product.id}
+                          key={product.id + (selectedModelBVariantId ?? "")}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           className="grid items-center gap-3 px-3 py-2 bg-card rounded-sm border border-border group"
                           style={{ gridTemplateColumns: "36px 1fr 100px 80px 20px" }}>
-                          
+
                               {/* Image */}
-                              <button onClick={() => {setSelectedProduct(product);setDrawerOpen(true);}} className="focus:outline-none">
+                              <button onClick={() => {setSelectedProduct(product);setSelectedVariantId(selectedModelBVariantId);setDrawerOpen(true);}} className="focus:outline-none">
                                 <img
                               src={product.image_url || "/placeholder.svg"}
                               alt={product.name}
                               className="w-9 h-9 object-cover rounded-sm hover:opacity-80 transition-opacity" />
-                            
+
                               </button>
 
                               {/* Info */}
                               <div className="min-w-0">
-                                <button onClick={() => {setSelectedProduct(product);setDrawerOpen(true);}} className="text-left focus:outline-none w-full">
+                                <button onClick={() => {setSelectedProduct(product);setSelectedVariantId(selectedModelBVariantId);setDrawerOpen(true);}} className="text-left focus:outline-none w-full">
                                   <p className="font-display font-semibold text-xs text-foreground hover:underline truncate">
                                     {product.name}
-                                    {selectedColor && (() => {
+                                    {modelBVariant?.variant_name && ` — ${modelBVariant.variant_name}`}
+                                    {!modelBVariant && selectedColor && (() => {
                                       const variant = product.color_variants?.find((v) => v.color_slug === selectedColor);
                                       return variant ? ` — ${variant.label_en}` : "";
                                     })()}
-                                    {selectedDimension && (() => {
+                                    {!modelBVariant && selectedDimension && (() => {
                                       const dimVariant = product.dimension_variants?.find((v: any) => v.dimension_tag === selectedDimension);
                                       return dimVariant ? ` — ${dimVariant.label || selectedDimension}` : ` — ${selectedDimension}`;
                                     })()}
                                   </p>
                                   <p className="text-[10px] text-muted-foreground font-body truncate">
-                                    {product.category}{product.main_color ? ` · ${product.main_color}` : ""}
+                                    {variantDims ? `${variantDims} · ` : ""}{product.category}{product.main_color ? ` · ${product.main_color}` : ""}
                                   </p>
                                 </button>
-                                {selectedSupplier ?
-                            <div className="inline-flex items-center gap-1.5 mt-0.5 px-1.5 py-0.5 rounded-full bg-card border border-border text-[10px] font-body text-muted-foreground">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
-                                    {selectedSupplier.partnerName} · {selectedSupplier.price != null ? `€${selectedSupplier.price.toFixed(2)}/u` : t('projectCart.onRequest')}
-                                    {selectedSupplier.deliveryDelayDays != null && ` · ${selectedSupplier.deliveryDelayDays}d`}
-                                    <button onClick={() => clearSupplier(product.id)} className="hover:text-destructive ml-0.5">
-                                      <X className="h-2.5 w-2.5" />
-                                    </button>
-                                  </div> :
+                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                  <StockBadge status={stockStatus} />
+                                  {selectedSupplier ?
+                              <div className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full bg-card border border-border text-[10px] font-body text-muted-foreground">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                                      {selectedSupplier.partnerName} · {selectedSupplier.price != null ? `€${selectedSupplier.price.toFixed(2)}/u` : t('projectCart.onRequest')}
+                                      {selectedSupplier.deliveryDelayDays != null && ` · ${selectedSupplier.deliveryDelayDays}d`}
+                                      <button onClick={() => clearSupplier(product.id, selectedModelBVariantId)} className="hover:text-destructive ml-0.5">
+                                        <X className="h-2.5 w-2.5" />
+                                      </button>
+                                    </div> :
 
-                            <div className="inline-flex items-center gap-1.5 mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-body" style={{ background: "rgba(186,117,23,.08)", color: "#854F0B", border: "0.5px solid rgba(186,117,23,.2)" }}>
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-                                    {t('projectCart.noSupplier')}
-                                  </div>
-                            }
+                              <div className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-body" style={{ background: "rgba(186,117,23,.08)", color: "#854F0B", border: "0.5px solid rgba(186,117,23,.2)" }}>
+                                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                                      {t('projectCart.noSupplier')}
+                                    </div>
+                              }
+                                </div>
                               </div>
 
                               {/* Quantity */}
                               <div className="flex items-center justify-center gap-1">
-                                <button onClick={() => updateQuantity(product.id, quantity - 1)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
+                                <button onClick={() => updateQuantity(product.id, quantity - 1, undefined, selectedModelBVariantId)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
                                   <Minus className="h-2.5 w-2.5" />
                                 </button>
                                 <input
@@ -618,11 +684,11 @@ const ProjectCart = () => {
                               value={quantity}
                               onChange={(e) => {
                                 const val = parseInt(e.target.value);
-                                if (!isNaN(val) && val > 0) updateQuantity(product.id, val);
+                                if (!isNaN(val) && val > 0) updateQuantity(product.id, val, undefined, selectedModelBVariantId);
                               }}
                               className="w-10 text-center text-xs font-display font-medium text-foreground bg-transparent border border-border rounded-sm py-0.5 focus:outline-none focus:border-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                            
-                                <button onClick={() => updateQuantity(product.id, quantity + 1)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
+
+                                <button onClick={() => updateQuantity(product.id, quantity + 1, undefined, selectedModelBVariantId)} className="w-5 h-5 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors">
                                   <Plus className="h-2.5 w-2.5" />
                                 </button>
                               </div>
@@ -630,10 +696,7 @@ const ProjectCart = () => {
                               {/* Price */}
                               <div className="text-right">
                                 {(() => {
-                                  const dimPrice = selectedDimension
-                                    ? product.dimension_variants?.find((v: any) => v.dimension_tag === selectedDimension)?.price ?? null
-                                    : null;
-                                  const effectivePrice = selectedSupplier?.price ?? dimPrice ?? product.price_min ?? null;
+                                  const effectivePrice = getEffectiveCartPrice(cartItem, variants);
                                   return effectivePrice != null ? (
                                     <>
                                       <p className="text-[10px] text-muted-foreground font-body">×€{effectivePrice.toFixed(2)}</p>
@@ -647,7 +710,7 @@ const ProjectCart = () => {
                               </div>
 
                               {/* Delete */}
-                              <button onClick={() => removeItem(product.id)} className="text-muted-foreground hover:text-foreground transition-colors opacity-40 group-hover:opacity-100 justify-self-center">
+                              <button onClick={() => removeItem(product.id, selectedModelBVariantId)} className="text-muted-foreground hover:text-foreground transition-colors opacity-40 group-hover:opacity-100 justify-self-center">
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </motion.div>);
@@ -863,7 +926,17 @@ const ProjectCart = () => {
         product={selectedProduct}
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        quantity={selectedProduct ? items.find((i) => i.product.id === selectedProduct.id)?.quantity : undefined}
+        variantId={selectedVariantId}
+        quantity={
+          selectedProduct
+            ? items.find((i) =>
+                selectedVariantId
+                  ? i.product.id === selectedProduct.id &&
+                    i.selectedModelBVariantId === selectedVariantId
+                  : i.product.id === selectedProduct.id,
+              )?.quantity
+            : undefined
+        }
         showSuppliers
         onAddToQuotation={() => {
           toast.success(`${selectedProduct?.name} ${t('projectCart.confirmed')}`);

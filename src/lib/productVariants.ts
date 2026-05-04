@@ -263,3 +263,68 @@ export async function fetchProductVariantsByProductId(
       v.price_eur != null ? applyCommission(Number(v.price_eur), plan, commissionRate) : v.price_eur,
   }));
 }
+
+/**
+ * Batch fetcher for variants by ID — used for cart hydration / display.
+ * Applies partner commission to price_eur (groupé par partner pour éviter
+ * N+1 queries). Variants whose IDs are not found are simply absent from
+ * the result (caller must handle missing entries via fallback price).
+ *
+ * Performance : 3 queries totales quel que soit le nombre de variants
+ * (variants + products parent + partners + subscriptions).
+ */
+export async function fetchVariantsByIds(
+  variantIds: string[],
+): Promise<DBProductVariant[]> {
+  if (variantIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("product_variants")
+    .select("*")
+    .in("id", variantIds);
+
+  if (error) throw error;
+  if (!data || data.length === 0) return [];
+
+  const productIds = [...new Set(data.map((v) => v.product_id))];
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, partner_id")
+    .in("id", productIds);
+
+  const partnerByProduct = new Map<string, string | null>();
+  const partnerIds = new Set<string>();
+  for (const p of products ?? []) {
+    partnerByProduct.set(p.id, p.partner_id);
+    if (p.partner_id) partnerIds.add(p.partner_id);
+  }
+
+  if (partnerIds.size === 0) return data as DBProductVariant[];
+
+  const partnerIdArr = [...partnerIds];
+  const [{ data: partners }, { data: subs }] = await Promise.all([
+    supabase.from("partners").select("id, plan").in("id", partnerIdArr),
+    supabase.from("partner_subscriptions").select("partner_id, commission_rate").in("partner_id", partnerIdArr),
+  ]);
+
+  const planByPartner = new Map<string, string>();
+  const commissionByPartner = new Map<string, number | null>();
+  for (const p of partners ?? []) planByPartner.set(p.id, p.plan || "starter");
+  for (const s of subs ?? []) {
+    if (s.commission_rate != null) commissionByPartner.set(s.partner_id, Number(s.commission_rate));
+  }
+
+  return (data as DBProductVariant[]).map((v) => {
+    const partnerId = partnerByProduct.get(v.product_id);
+    if (!partnerId) return v;
+    const plan = planByPartner.get(partnerId) || "starter";
+    const commissionRate = commissionByPartner.get(partnerId) ?? null;
+    return {
+      ...v,
+      price_eur:
+        v.price_eur != null
+          ? applyCommission(Number(v.price_eur), plan, commissionRate)
+          : v.price_eur,
+    };
+  });
+}

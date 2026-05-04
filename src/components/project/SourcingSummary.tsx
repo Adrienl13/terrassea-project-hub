@@ -1,10 +1,18 @@
 import { Package, Users, TrendingUp, Clock, BarChart3, DollarSign } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { CartItem, QuotationStatus } from "@/contexts/ProjectCartContext";
+import type { DBProductVariant } from "@/lib/productVariants";
+import { getEffectiveCartPrice } from "@/lib/cartHelpers";
 
 interface SourcingSummaryProps {
   items: CartItem[];
   quotationStatus: QuotationStatus;
+  /**
+   * Variants Modèle B des items du cart (γ-1). Permet à computeStats
+   * d'utiliser le prix variant pour les products Modèle B au lieu de
+   * tomber bêtement sur product.price_min. Optionnel pour backward compat.
+   */
+  variants?: DBProductVariant[];
 }
 
 const STATUS_CONFIG: Record<QuotationStatus, { label: string; className: string; step: number }> = {
@@ -15,7 +23,7 @@ const STATUS_CONFIG: Record<QuotationStatus, { label: string; className: string;
 };
 
 
-function computeStats(items: CartItem[]) {
+function computeStats(items: CartItem[], variants?: DBProductVariant[]) {
   const withSupplier = items.filter((i) => i.selectedSupplier);
   const coveredCount  = withSupplier.length;
   const totalCount    = items.length;
@@ -37,13 +45,11 @@ function computeStats(items: CartItem[]) {
   else if (supplierCount > 1 || coveredCount < totalCount) complexity = "medium";
 
   const totalBudget = items.reduce((sum, item) => {
-    const price = item.selectedSupplier?.price ?? item.product.price_min ?? null;
+    const price = getEffectiveCartPrice(item, variants);
     if (price === null) return sum;
     return sum + price * item.quantity;
   }, 0);
-  const hasBudget = items.some((i) =>
-    i.selectedSupplier?.price != null || i.product.price_min != null
-  );
+  const hasBudget = items.some((i) => getEffectiveCartPrice(i, variants) != null);
 
   return {
     coveredCount, totalCount, supplierCount,
@@ -58,11 +64,11 @@ const COMPLEXITY_STYLE: Record<string, string> = {
   high:   "text-destructive",
 };
 
-const SourcingSummary = ({ items, quotationStatus }: SourcingSummaryProps) => {
+const SourcingSummary = ({ items, quotationStatus, variants }: SourcingSummaryProps) => {
   const { t } = useTranslation();
   if (items.length === 0) return null;
 
-  const stats        = computeStats(items);
+  const stats        = computeStats(items, variants);
   const statusConfig = STATUS_CONFIG[quotationStatus];
 
   return (

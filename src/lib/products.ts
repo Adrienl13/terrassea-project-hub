@@ -340,7 +340,38 @@ export async function fetchProductsByIds(ids: string[]): Promise<DBProduct[]> {
     .neq("availability_type", "discontinued");
 
   if (error) throw error;
-  return (data ?? []).map(normalizeProduct);
+  const products = (data ?? []).map(normalizeProduct);
+  if (products.length === 0) return products;
+
+  const partnerIds = [...new Set(products.map((p) => p.partner_id).filter(Boolean) as string[])];
+  if (partnerIds.length === 0) return products;
+
+  const [{ data: partners }, { data: subs }] = await Promise.all([
+    supabase.from("partners").select("id, plan").in("id", partnerIds),
+    supabase.from("partner_subscriptions").select("partner_id, commission_rate").in("partner_id", partnerIds),
+  ]);
+  const partnerPlans = new Map<string, string>();
+  const partnerCommissions = new Map<string, number | null>();
+  for (const p of partners ?? []) partnerPlans.set(p.id, p.plan || "starter");
+  for (const s of subs ?? []) {
+    if (s.commission_rate != null) partnerCommissions.set(s.partner_id, Number(s.commission_rate));
+  }
+
+  return products.map((product) => {
+    if (!product.partner_id) return product;
+    const plan = partnerPlans.get(product.partner_id) || "starter";
+    const commissionRate = partnerCommissions.get(product.partner_id) ?? null;
+    if (!BRAND_VISIBLE_PLANS.includes(plan)) {
+      product.brand_source = null;
+    }
+    if (product.price_min != null) {
+      product.price_min = applyCommission(product.price_min, plan, commissionRate);
+    }
+    if (product.price_max != null) {
+      product.price_max = applyCommission(product.price_max, plan, commissionRate);
+    }
+    return product;
+  });
 }
 
 // ── Fetch products by archetype ───────────────────────────
