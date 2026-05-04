@@ -3938,6 +3938,8 @@
   },
   "restock": {
     "inStock": "{{count}} disponibili",
+    "inStockGeneric": "Disponibile",
+    "madeToOrder": "Su ordinazione",
     "outOfStock": "Esaurito",
     "arrivingOn": "In arrivo il {{date}}",
     "arrivingIn": "+{{qty}} in arrivo {{date}}",

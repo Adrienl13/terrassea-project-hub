@@ -31,7 +31,38 @@ const RestockBadge = ({ stockStatus, stockQuantity, arrivals, onPreorder }: Prop
   const [preorderOpen, setPreorderOpen] = useState<string | null>(null);
   const [preorderQty, setPreorderQty] = useState(1);
 
-  const inStock = stockQuantity !== null && stockQuantity > 0;
+  // ÉTAPE 9a-fix-2-δ-1 : stockStatus est autoritatif quand il est défini
+  // (typiquement passé par effectiveStockStatusOf qui dérive du variant Modèle B
+  // sélectionné). Avant ce fix, RestockBadge ignorait stockStatus et calculait
+  // tout depuis stockQuantity → bug : badge ne reflétait pas la variant choisie.
+  const status = stockStatus?.toLowerCase() ?? null;
+
+  // Made-to-order / on-order : badge bleu spécifique, pas de logique stock
+  if (status === "made_to_order" || status === "on_order") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-body text-blue-600">
+        <Package className="h-3 w-3" />
+        {t("restock.madeToOrder")}
+      </span>
+    );
+  }
+
+  // out_of_stock authoritatif : court-circuite la logique stockQuantity
+  // (le partner peut avoir stock_quantity > 0 mais variant.in_stock=false)
+  const forcedOutOfStock = status === "out_of_stock";
+  // in_stock authoritatif : badge "En stock" même sans stockQuantity numérique
+  const forcedInStock = status === "in_stock" && (stockQuantity == null || stockQuantity <= 0);
+
+  if (forcedInStock) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-body text-green-700">
+        <CheckCircle2 className="h-3 w-3" />
+        {t("restock.inStockGeneric")}
+      </span>
+    );
+  }
+
+  const inStock = !forcedOutOfStock && stockQuantity !== null && stockQuantity > 0;
   const nextArrival = arrivals.length > 0 ? arrivals[0] : null;
   const availableToPreorder = nextArrival?.available ?? 0;
 

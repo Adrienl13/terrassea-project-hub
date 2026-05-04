@@ -267,12 +267,28 @@ const ProductDetail = () => {
       setProjectModalOpen(true);
       return;
     }
-    addItem(product, undefined, undefined, undefined, effectiveVariant ?? undefined, selectedDimension ?? undefined);
+    addItem(
+      product,
+      undefined,
+      undefined,
+      undefined,
+      effectiveVariant ?? undefined,
+      selectedDimension ?? undefined,
+      selectedModelBVariantId ?? undefined,
+    );
     toast.success(`${localName} ${t('success.addedToProject').toLowerCase()}`);
   };
 
   const handleArchitectAddConfirm = (projectId: string, projectName: string, zoneName?: string) => {
-    addItem(product, zoneName || projectName, undefined, undefined, undefined, selectedDimension ?? undefined);
+    addItem(
+      product,
+      zoneName || projectName,
+      undefined,
+      undefined,
+      undefined,
+      selectedDimension ?? undefined,
+      selectedModelBVariantId ?? undefined,
+    );
     toast.success(`${localName} → ${projectName}${zoneName ? ` · ${zoneName}` : ""}`);
   };
 

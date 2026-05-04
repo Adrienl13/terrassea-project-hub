@@ -321,6 +321,20 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
     [selectedModelBVariant],
   );
 
+  // ÉTAPE 9a-fix-2-δ-1 : pour le badge stock, le stock_quantity du variant
+  // override celui de l'offer. Si variant.stock_quantity null mais variant
+  // in_stock, on retourne null (RestockBadge utilisera stockStatus pour
+  // afficher "En stock" générique).
+  const effectiveStockQuantityOf = useCallback(
+    (offer: ProductOffer): number | null => {
+      if (selectedModelBVariant) {
+        return selectedModelBVariant.stock_quantity;
+      }
+      return offer.stock_quantity;
+    },
+    [selectedModelBVariant],
+  );
+
   const summary = useMemo(() => {
     if (offers.length === 0) return { lowestTotal: null, fastestDelivery: null, bestStockIndex: null };
     const priced = offers
@@ -427,15 +441,33 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
       return;
     }
 
-    addItem(product, undefined, quantity, undefined, selectedColor ?? undefined, selectedDimension ?? undefined);
-    selectSupplier(product.id, supplier);
+    // ÉTAPE 9a-fix-2-β : passer le variant_id pour distinguer les lignes cart
+    // et attacher le supplier à la bonne variant (sinon écrasement).
+    addItem(
+      product,
+      undefined,
+      quantity,
+      undefined,
+      selectedColor ?? undefined,
+      selectedDimension ?? undefined,
+      selectedModelBVariant?.id,
+    );
+    selectSupplier(product.id, supplier, selectedModelBVariant?.id);
     toast.success(t("vendorOffers.addedToProject", { count: quantity, name: product.name }));
   };
 
   const handleArchitectConfirm = (projectId: string, projectName: string, zoneName?: string) => {
-    addItem(product, zoneName || projectName, quantity, undefined, selectedColor ?? undefined, selectedDimension ?? undefined);
+    addItem(
+      product,
+      zoneName || projectName,
+      quantity,
+      undefined,
+      selectedColor ?? undefined,
+      selectedDimension ?? undefined,
+      selectedModelBVariant?.id,
+    );
     if (pendingSupplier) {
-      selectSupplier(product.id, pendingSupplier);
+      selectSupplier(product.id, pendingSupplier, selectedModelBVariant?.id);
     }
     toast.success(t("vendorOffers.addedToProjectZone", {
       count: quantity,
@@ -607,7 +639,7 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
                   <td className="py-4">
                     <RestockBadge
                       stockStatus={effectiveStockStatus}
-                      stockQuantity={offer.stock_quantity}
+                      stockQuantity={effectiveStockQuantityOf(offer)}
                       arrivals={getOfferArrivals(offer.partner_id)}
                       onPreorder={handlePreorder}
                     />
@@ -708,7 +740,7 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
               <div className="flex flex-wrap items-start gap-4 text-xs text-muted-foreground">
                 <RestockBadge
                   stockStatus={effectiveStockStatus}
-                  stockQuantity={offer.stock_quantity}
+                  stockQuantity={effectiveStockQuantityOf(offer)}
                   arrivals={getOfferArrivals(offer.partner_id)}
                   onPreorder={handlePreorder}
                 />
