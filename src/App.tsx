@@ -72,6 +72,9 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/products/compare" element={<ProductCompare />} />
+                  {/* ÉTAPE 9b-2a — canonical SEO URLs */}
+                  <Route path="/products/:brandSlug/:productSlug" element={<ProductDetail />} />
+                  {/* Legacy UUID URL — redirects to canonical at runtime */}
                   <Route path="/products/:id" element={<ProductDetail />} />
                   <Route path="/project-cart" element={<ProtectedRoute><ProjectCart /></ProtectedRoute>} />
                   <Route path="/projects/new" element={<ProtectedRoute><ProjectBuilder /></ProtectedRoute>} />

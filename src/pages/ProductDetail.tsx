@@ -7,7 +7,7 @@ import ColorVariantSelector from "@/components/products/ColorVariantSelector";
 import DimensionVariantSelector from "@/components/products/DimensionVariantSelector";
 import VariantSelector from "@/components/products/VariantSelector";
 import { fetchProductVariantsByProductId, defaultVariantOf, type DBProductVariant } from "@/lib/productVariants";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
@@ -20,6 +20,7 @@ import ProductGallery from "@/components/products/ProductGallery";
 import VendorOffers from "@/components/products/VendorOffers";
 import CompatibleProducts from "@/components/products/CompatibleProducts";
 import { fetchProductById, type DBProduct } from "@/lib/products";
+import { resolveProductBySlugs, urlForProduct } from "@/lib/productRoutes";
 import { fetchProductOffers } from "@/lib/productOffers";
 import { useProductArrivals } from "@/hooks/useArrivals";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
@@ -33,7 +34,13 @@ import AddToProjectModal from "@/components/architect-dashboard/AddToProjectModa
 import { toast } from "sonner";
 
 const ProductDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  // ÉTAPE 9b-2a : route /products/:brandSlug/:productSlug (canonical) OR
+  // legacy /products/:id (UUID, redirected to canonical at runtime).
+  const params = useParams<{ id?: string; brandSlug?: string; productSlug?: string }>();
+  const { id, brandSlug, productSlug } = params;
+  const isLegacyRoute = !!id && !brandSlug && !productSlug;
+  const isCanonicalRoute = !!brandSlug && !!productSlug;
+
   const { t, i18n } = useTranslation();
   const { addItem, items } = useProjectCart();
   const { addToCompare, isInCompare } = useCompare();
@@ -48,16 +55,44 @@ const ProductDetail = () => {
   const isArchitect = profile?.user_type === "architect";
 
   const { data: product, isLoading } = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => fetchProductById(id!),
-    enabled: !!id,
+    queryKey: isCanonicalRoute
+      ? ["product-by-slugs", brandSlug, productSlug]
+      : ["product", id],
+    queryFn: () =>
+      isCanonicalRoute
+        ? resolveProductBySlugs(brandSlug!, productSlug!)
+        : fetchProductById(id!),
+    enabled: isCanonicalRoute || !!id,
   });
+
+  // ÉTAPE 9b-2a : si la route est legacy /products/:id, rediriger vers
+  // l'URL canonique /products/:brandSlug/:productSlug une fois product +
+  // partner chargés. Pas de "vrai" 301 HTTP côté client (Phase 2 via Vercel
+  // ou prerender), mais Navigate replace assure la cohérence UX.
+  const { data: ownerPartner } = useQuery({
+    queryKey: ["product-owner-partner", product?.owner_brand_id, product?.partner_id],
+    queryFn: async () => {
+      const ownerId = product?.owner_brand_id ?? product?.partner_id;
+      if (!ownerId) return null;
+      const { data } = await supabase
+        .from("partners")
+        .select("slug")
+        .eq("id", ownerId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!product,
+  });
+
+  // Effective product id: legacy `:id` URL param OR resolved product.id from
+  // canonical slug route. Used by all downstream useQueries.
+  const productId = id ?? product?.id;
 
   // ÉTAPE 9a — fetch les variants Modèle B (avec commission appliquée)
   const { data: modelBVariants = [] } = useQuery<DBProductVariant[]>({
-    queryKey: ["product-variants", id],
-    queryFn: () => fetchProductVariantsByProductId(id!),
-    enabled: !!id,
+    queryKey: ["product-variants", productId],
+    queryFn: () => fetchProductVariantsByProductId(productId!),
+    enabled: !!productId,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -76,7 +111,7 @@ const ProductDetail = () => {
 
   // Fetch only similar products (same category) — NOT the full 2000-product catalog
   const { data: similarProducts = [] } = useQuery({
-    queryKey: ["similar-products", product?.category, id],
+    queryKey: ["similar-products", product?.category, productId],
     queryFn: async () => {
       if (!product) return [];
       const { data } = await supabase
@@ -96,7 +131,7 @@ const ProductDetail = () => {
 
   // Fetch complementary products (different category, matching style)
   const { data: complementaryProducts = [] } = useQuery({
-    queryKey: ["complementary-products", product?.style_tags, product?.category, id],
+    queryKey: ["complementary-products", product?.style_tags, product?.category, productId],
     queryFn: async () => {
       if (!product || product.style_tags.length === 0) return [];
       const { data } = await supabase
@@ -116,13 +151,13 @@ const ProductDetail = () => {
   });
 
   const { data: offers = [] } = useQuery({
-    queryKey: ["product-offers", id],
-    queryFn: () => fetchProductOffers(id!),
-    enabled: !!id,
+    queryKey: ["product-offers", productId],
+    queryFn: () => fetchProductOffers(productId!),
+    enabled: !!productId,
   });
 
-  const { arrivals } = useProductArrivals(id);
-  const { stats: reviewStats } = useProductReviews(id);
+  const { arrivals } = useProductArrivals(productId);
+  const { stats: reviewStats } = useProductReviews(productId);
 
   const isAdmin = profile?.user_type === "admin";
   const { data: currentPartner } = useQuery({
@@ -177,7 +212,7 @@ const ProductDetail = () => {
       name: ml(product, "name"),
       description: ml(product, "short_description") || ml(product, "description") || undefined,
       image: product.image_url || undefined,
-      url: `https://terrassea.com/products/${product.id}`,
+      url: `https://terrassea.com${urlForProduct(product, product.owner_brand_slug)}`,
       category: product.category,
       sku: product.supplier_internal || product.id,
       brand: product.brand_source ? { "@type": "Brand", name: product.brand_source } : undefined,
@@ -208,6 +243,12 @@ const ProductDetail = () => {
     document.head.appendChild(script);
     return () => { script.remove(); };
   }, [product, offers.length, reviewStats]);
+
+  // ÉTAPE 9b-2a — legacy /products/:id → canonical redirect.
+  // Placé après tous les hooks pour respecter rules-of-hooks.
+  if (isLegacyRoute && product && ownerPartner?.slug && product.product_slug) {
+    return <Navigate to={urlForProduct(product, ownerPartner.slug)} replace />;
+  }
 
   if (isLoading) {
     return (
@@ -329,7 +370,7 @@ const ProductDetail = () => {
         description={ml(product, "short_description") || `${localName} — professional outdoor furniture available on Terrassea. Compare supplier offers and request quotes.`}
         image={product.image_url || undefined}
         type="product"
-        url={`https://terrassea.com/products/${product.id}`}
+        url={`https://terrassea.com${urlForProduct(product, product.owner_brand_slug)}`}
       />
       <Header />
       <main className="pt-24 pb-16">
@@ -728,7 +769,7 @@ function RelatedCard({ product, onAdd }: { product: DBProduct; onAdd: () => void
       transition={{ duration: 0.4 }}
       className="group"
     >
-      <Link to={`/products/${product.id}`}>
+      <Link to={urlForProduct(product, product.owner_brand_slug)}>
         <div className="aspect-[4/5] overflow-hidden bg-white rounded-sm mb-3">
           <img
             src={product.image_url || "/placeholder.svg"}
@@ -740,7 +781,7 @@ function RelatedCard({ product, onAdd }: { product: DBProduct; onAdd: () => void
       </Link>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <Link to={`/products/${product.id}`}>
+          <Link to={urlForProduct(product, product.owner_brand_slug)}>
             <h3 className="font-display font-semibold text-xs text-foreground truncate hover:underline leading-tight">
               {relatedName}
             </h3>
