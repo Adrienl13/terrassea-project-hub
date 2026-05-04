@@ -1,0 +1,134 @@
+-- ============================================================================
+-- ÉTAPE 9b-1 (2026-05-04) — Add products.product_slug + backfill 53 products
+--
+-- Goal: prepare canonical SEO-friendly URLs `/products/[brand-slug]/[product-slug]`
+--   - brand-slug already exists as partners.slug (NOT NULL, populated)
+--   - product-slug new column added here, backfilled by slugify(name) with
+--     per-owner_brand_id collision suffixes (-2, -3, …)
+--
+-- Routing + 301 redirect HTML are scoped to ÉTAPE 9b-2 (separate chantier).
+-- The new column is nullable initially → backfilled → flipped to NOT NULL.
+--
+-- Drift prevention: this file mirrors the SQL applied via mcp_supabase
+-- apply_migration. Source of truth = supabase/migrations/.
+-- ============================================================================
+
+-- ── 1. Ensure unaccent extension (in `extensions` schema per Supabase convention) ─
+CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA extensions;
+
+-- ── 2. Add column nullable ──────────────────────────────────────────────────
+ALTER TABLE public.products
+  ADD COLUMN IF NOT EXISTS product_slug text;
+
+-- ── 3. PL/pgSQL helper: slugify (mirror of src/lib/slug.ts) ─────────────────
+-- Pure function, immutable. Used by backfill + later by trigger if needed.
+-- search_path includes `extensions` so unaccent() resolves cleanly.
+CREATE OR REPLACE FUNCTION public.slugify(input text)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+SET search_path = public, extensions
+AS $$
+DECLARE
+  result text;
+BEGIN
+  IF input IS NULL OR length(trim(input)) = 0 THEN
+    RETURN '';
+  END IF;
+  -- NFD normalize + strip diacritics
+  result := unaccent(input);
+  -- lowercase
+  result := lower(result);
+  -- Replace non-alnum with '-'
+  result := regexp_replace(result, '[^a-z0-9]+', '-', 'g');
+  -- Trim leading/trailing '-'
+  result := regexp_replace(result, '^-+|-+$', '', 'g');
+  RETURN result;
+END;
+$$;
+
+-- ── 3. Backfill product_slug with per-owner_brand_id uniqueness ─────────────
+-- Strategy: for each owner_brand_id namespace, walk products in stable order
+-- (created_at ASC) and assign slugify(name) with `-2`, `-3` suffix on
+-- collision. Products without owner_brand_id still get a slug (uniqueness
+-- only enforced for owner_brand_id IS NOT NULL via partial index — see §4).
+DO $$
+DECLARE
+  rec RECORD;
+  base_slug text;
+  candidate text;
+  n int;
+BEGIN
+  FOR rec IN
+    SELECT id, name, owner_brand_id, created_at
+    FROM public.products
+    WHERE product_slug IS NULL
+    ORDER BY owner_brand_id NULLS FIRST, created_at ASC NULLS FIRST, id ASC
+  LOOP
+    base_slug := public.slugify(rec.name);
+    -- Empty name fallback: use first 8 chars of UUID
+    IF base_slug = '' THEN
+      base_slug := 'product-' || substring(rec.id::text, 1, 8);
+    END IF;
+    candidate := base_slug;
+    n := 2;
+    -- Collision check : same owner_brand_id, different product, slug taken
+    WHILE EXISTS (
+      SELECT 1 FROM public.products
+      WHERE product_slug = candidate
+        AND id != rec.id
+        AND owner_brand_id IS NOT DISTINCT FROM rec.owner_brand_id
+    ) LOOP
+      candidate := base_slug || '-' || n;
+      n := n + 1;
+    END LOOP;
+    UPDATE public.products SET product_slug = candidate WHERE id = rec.id;
+  END LOOP;
+END
+$$;
+
+-- ── 4. Validation: 0 NULL slugs after backfill ──────────────────────────────
+DO $$
+DECLARE
+  null_count int;
+BEGIN
+  SELECT COUNT(*) INTO null_count FROM public.products WHERE product_slug IS NULL;
+  IF null_count > 0 THEN
+    RAISE EXCEPTION 'Backfill incomplete: % products still have NULL product_slug', null_count;
+  END IF;
+END
+$$;
+
+-- ── 5. Validation: per-(owner_brand_id, product_slug) uniqueness ────────────
+DO $$
+DECLARE
+  dup_count int;
+BEGIN
+  SELECT COUNT(*) INTO dup_count FROM (
+    SELECT owner_brand_id, product_slug
+    FROM public.products
+    WHERE owner_brand_id IS NOT NULL
+    GROUP BY owner_brand_id, product_slug
+    HAVING COUNT(*) > 1
+  ) t;
+  IF dup_count > 0 THEN
+    RAISE EXCEPTION 'Backfill produced % duplicate (owner_brand_id, product_slug) tuples', dup_count;
+  END IF;
+END
+$$;
+
+-- ── 6. Flip product_slug to NOT NULL ────────────────────────────────────────
+ALTER TABLE public.products
+  ALTER COLUMN product_slug SET NOT NULL;
+
+-- ── 7. Partial unique index per brand ───────────────────────────────────────
+-- WHERE owner_brand_id IS NOT NULL : products without an owner brand
+-- (currently 1 product, the demo) bypass uniqueness — they'll be routed
+-- by partner_id slug in 9b-2 if needed.
+CREATE UNIQUE INDEX IF NOT EXISTS products_owner_brand_slug_unique
+  ON public.products (owner_brand_id, product_slug)
+  WHERE owner_brand_id IS NOT NULL;
+
+-- ── 8. Comment for future devs ──────────────────────────────────────────────
+COMMENT ON COLUMN public.products.product_slug IS
+  'URL-safe slug (lowercase ASCII, dash-separated) for canonical /products/[brand-slug]/[product-slug] routing (ÉTAPE 9b). Generated by public.slugify(name) at submission approval (useProductSubmissions). Unique per owner_brand_id (partial index products_owner_brand_slug_unique).';

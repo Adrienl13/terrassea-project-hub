@@ -3519,6 +3519,7 @@ export type Database = {
           primary_designer: string | null
           priority_score: number | null
           product_family: string | null
+          product_slug: string
           product_type_tags: Json | null
           publish_status: string | null
           recommended_seating_max: number | null
@@ -3636,6 +3637,7 @@ export type Database = {
           primary_designer?: string | null
           priority_score?: number | null
           product_family?: string | null
+          product_slug?: string
           product_type_tags?: Json | null
           publish_status?: string | null
           recommended_seating_max?: number | null
@@ -3753,6 +3755,7 @@ export type Database = {
           primary_designer?: string | null
           priority_score?: number | null
           product_family?: string | null
+          product_slug?: string
           product_type_tags?: Json | null
           publish_status?: string | null
           recommended_seating_max?: number | null
@@ -5201,6 +5204,7 @@ export type Database = {
           primary_designer: string | null
           priority_score: number | null
           product_family: string | null
+          product_slug: string
           product_type_tags: Json | null
           publish_status: string | null
           recommended_seating_max: number | null

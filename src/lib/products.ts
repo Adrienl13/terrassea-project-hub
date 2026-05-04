@@ -78,6 +78,8 @@ export interface DBProduct {
   category:       string;
   subcategory:    string | null;
   product_family: string | null;
+  /** ÉTAPE 9b-1 : URL-safe slug for canonical /products/[brand-slug]/[product-slug] routing. NOT NULL post-migration 20260504092533. */
+  product_slug:   string;
   collection:     string | null;
   brand_source:   string | null;
   supplier_internal: string | null;
