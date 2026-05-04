@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import {
   CheckCircle2, Zap, Star, Package, Truck, FileText, MessageSquare,
   ChevronDown, ChevronUp, TrendingUp, AlertTriangle,
@@ -8,11 +9,22 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { scoreSupplierOffers, type ScoredOffer, type SupplierBadge } from "@/engine/supplierEngine";
 import { useProjectCart, type SelectedSupplier } from "@/contexts/ProjectCartContext";
+import { cartItemMatchesIdentity } from "@/lib/cartHelpers";
+import { fetchVariantsByIds } from "@/lib/productVariants";
 import { toast } from "sonner";
 
 interface SupplierRecommendationsProps {
   productId: string;
   productName: string;
+  /**
+   * δ-1-bis Bug B : variant_id du cart item d'origine. Quand fourni :
+   *  - currentItem matche par (product_id, variant_id) au lieu de product_id
+   *  - prix display = variant.price_eur (commission appliquée par
+   *    fetchVariantsByIds) au lieu de offer.price brut
+   *  - selectSupplier transmet variantId pour filtrer le bon item au cart
+   * Sans variantId → comportement legacy 100 % inchangé.
+   */
+  variantId?: string;
 }
 
 const BADGE_CONFIG: Record<SupplierBadge, { labelKey: string; icon: typeof Star; className: string }> = {
@@ -67,30 +79,77 @@ function isBrandOffer(offer: ScoredOffer): boolean {
   return offer.pricing_mode === "on_request";
 }
 
-function offerToSelectedSupplier(offer: ScoredOffer, index: number, t: (k: string, o?: Record<string, unknown>) => string): SelectedSupplier {
-  return {
-    offerId: offer.id,
-    partnerId: offer.partner_id,
-    partnerName: getSupplierDisplayName(offer, index, t),
-    partnerCountry: offer.partner?.country,
-    price: offer.price,
-    stockStatus: offer.stock_status,
-    stockQuantity: offer.stock_quantity,
-    deliveryDelayDays: offer.delivery_delay_days,
-    purchaseType: offer.purchase_type,
-    score: offer.scores.total,
-  };
-}
-
-const SupplierRecommendations = ({ productId, productName }: SupplierRecommendationsProps) => {
+const SupplierRecommendations = ({ productId, productName, variantId }: SupplierRecommendationsProps) => {
   const { t } = useTranslation();
   const { items, selectSupplier } = useProjectCart();
   const [offers, setOffers] = useState<ScoredOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
 
-  const currentItem = items.find((i) => i.product.id === productId);
+  // δ-1-bis : si variantId fourni, match strict (product_id, variant_id).
+  // Sinon comportement legacy (premier item ce product). Évite que 2 variants
+  // partagent le même `currentItem` et écrasent leurs suppliers mutuellement.
+  const currentItem = items.find((i) =>
+    variantId !== undefined
+      ? cartItemMatchesIdentity(i, productId, variantId)
+      : i.product.id === productId,
+  );
   const projectProductIds = items.map((i) => i.product.id);
+
+  // δ-1-bis : fetch la variant Modèle B (commission appliquée upstream).
+  // Cache 2 min cohérent avec ProjectCart cart-variants useQuery.
+  const { data: variants = [] } = useQuery({
+    queryKey: ["supplier-recs-variant", variantId ?? null],
+    queryFn: () => (variantId ? fetchVariantsByIds([variantId]) : Promise.resolve([])),
+    enabled: !!variantId,
+    staleTime: 2 * 60 * 1000,
+  });
+  const variant = variants[0] ?? null;
+
+  // Helper : prix effectif d'une offer côté display + selectSupplier.
+  // Variant (commission appliquée) prioritaire, sinon offer.price legacy.
+  // NB : le scoring upstream (engine) reste sur offer.price brut — ce qui
+  // est cohérent car toutes les offers d'un même product partagent la même
+  // variant, donc le ranking relatif n'est pas affecté.
+  const effectivePriceOf = (offer: ScoredOffer): number | null => {
+    if (variant?.price_eur != null) {
+      const n = Number(variant.price_eur);
+      if (Number.isFinite(n)) return n;
+    }
+    return offer.price;
+  };
+
+  // ε : stock status / quantity dérivés de la variant Modèle B (3 mappings).
+  // Si variant absente → fallback offer.stock_status / offer.stock_quantity legacy.
+  const effectiveStockStatusOf = (offer: ScoredOffer): string | null => {
+    if (variant) {
+      if (variant.is_made_to_order) return "made_to_order";
+      if (variant.in_stock) return "in_stock";
+      return "out_of_stock";
+    }
+    return offer.stock_status;
+  };
+
+  const effectiveStockQuantityOf = (offer: ScoredOffer): number | null => {
+    if (variant) return variant.stock_quantity;
+    return offer.stock_quantity;
+  };
+
+  const offerToSelectedSupplier = (
+    offer: ScoredOffer,
+    index: number,
+  ): SelectedSupplier => ({
+    offerId: offer.id,
+    partnerId: offer.partner_id,
+    partnerName: getSupplierDisplayName(offer, index, t),
+    partnerCountry: offer.partner?.country,
+    price: effectivePriceOf(offer),
+    stockStatus: offer.stock_status,
+    stockQuantity: offer.stock_quantity,
+    deliveryDelayDays: offer.delivery_delay_days,
+    purchaseType: offer.purchase_type,
+    score: offer.scores.total,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -121,7 +180,8 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
   }, [productId, items.length, currentItem?.quantity, currentItem?.selectedDimension]);
 
   const handleSelectSupplier = (offer: ScoredOffer, index: number) => {
-    selectSupplier(productId, offerToSelectedSupplier(offer, index, t));
+    // δ-1-bis : transmet variantId pour cibler le bon (product_id, variant_id)
+    selectSupplier(productId, offerToSelectedSupplier(offer, index), variantId);
     const name = getSupplierDisplayName(offer, index, t);
     toast.success(t("supplierRecs.selectedFor", { supplier: name, product: productName }));
   };
@@ -231,11 +291,22 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
 
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <span className="font-display font-bold text-sm text-foreground">
-                  {recommended.price ? `€${recommended.price.toFixed(2)}` : t("supplierRecs.onRequest")}
+                  {(() => {
+                    const p = effectivePriceOf(recommended);
+                    return p ? `€${p.toFixed(2)}` : t("supplierRecs.onRequest");
+                  })()}
                 </span>
                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                  <span className={`w-1.5 h-1.5 rounded-full ${STOCK_DOT[recommended.stock_status] || STOCK_DOT.available}`} />
-                  {recommended.stock_quantity != null ? t("supplierRecs.units", { count: recommended.stock_quantity }) : recommended.stock_status || "available"}
+                  {(() => {
+                    const eStatus = effectiveStockStatusOf(recommended);
+                    const eQty = effectiveStockQuantityOf(recommended);
+                    return (
+                      <>
+                        <span className={`w-1.5 h-1.5 rounded-full ${STOCK_DOT[eStatus ?? "available"] || STOCK_DOT.available}`} />
+                        {eQty != null ? t("supplierRecs.units", { count: eQty }) : eStatus || "available"}
+                      </>
+                    );
+                  })()}
                 </span>
                 {recommended.delivery_delay_days && (
                   <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
@@ -310,11 +381,21 @@ const SupplierRecommendations = ({ productId, productName }: SupplierRecommendat
               </div>
               <div className="flex items-center gap-3 mt-1 flex-wrap">
                 <span className="font-display font-bold text-xs text-foreground">
-                  {offer.price ? `€${offer.price.toFixed(2)}` : t("supplierRecs.onRequest")}
+                  {(() => {
+                    const p = effectivePriceOf(offer);
+                    return p ? `€${p.toFixed(2)}` : t("supplierRecs.onRequest");
+                  })()}
                 </span>
                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                  <span className={`w-1.5 h-1.5 rounded-full ${STOCK_DOT[offer.stock_status] || STOCK_DOT.available}`} />
-                  {offer.stock_status || "available"}
+                  {(() => {
+                    const eStatus = effectiveStockStatusOf(offer);
+                    return (
+                      <>
+                        <span className={`w-1.5 h-1.5 rounded-full ${STOCK_DOT[eStatus ?? "available"] || STOCK_DOT.available}`} />
+                        {eStatus || "available"}
+                      </>
+                    );
+                  })()}
                 </span>
                 {offer.delivery_delay_days && (
                   <span className="flex items-center gap-1 text-[10px] text-muted-foreground">

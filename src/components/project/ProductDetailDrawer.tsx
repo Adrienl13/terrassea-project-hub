@@ -7,7 +7,10 @@ import {
   Flame, Wind, Package, CheckCircle2, AlertTriangle, Clock, RefreshCw,
   Palette, Shield, Wrench, ArrowRightLeft,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import type { DBProduct } from "@/lib/products";
+import { fetchVariantsByIds } from "@/lib/productVariants";
+import { getAvailabilityFromVariant, type AvailabilityInfo as VariantAvailabilityInfo } from "@/lib/productAvailability";
 import { ml } from "@/lib/i18nFields";
 import SupplierRecommendations from "./SupplierRecommendations";
 
@@ -19,6 +22,13 @@ interface ProductDetailDrawerProps {
   onAddToQuotation?: () => void;
   onReplaceVariant?: () => void;
   showSuppliers?: boolean;
+  /**
+   * δ-1-bis Bug B : variant_id du cart item d'origine. Permet à
+   * SupplierRecommendations d'afficher prix variant + commission cohérents
+   * avec ProjectCart, et de matcher le bon `currentItem` quand 2 variants
+   * du même product sont au cart.
+   */
+  variantId?: string;
 }
 
 // ── Availability logic ──
@@ -82,6 +92,23 @@ function getAvailability(product: DBProduct): AvailabilityInfo {
   };
 }
 
+// ── ε : map iconKey from variant availability helper to lucide icons ──
+const ICON_BY_KEY = {
+  check: CheckCircle2,
+  alert: AlertTriangle,
+  clock: Clock,
+  package: Package,
+} as const;
+
+function adaptVariantAvailability(info: VariantAvailabilityInfo): AvailabilityInfo {
+  return {
+    label: info.label,
+    variant: info.variant,
+    icon: ICON_BY_KEY[info.iconKey],
+    description: info.description,
+  };
+}
+
 // ── Dimension formatter ──
 
 function formatDimensions(p: DBProduct): string | null {
@@ -102,10 +129,23 @@ const ProductDetailDrawer = ({
   onAddToQuotation,
   onReplaceVariant,
   showSuppliers = false,
+  variantId,
 }: ProductDetailDrawerProps) => {
+  // ε : fetch la variant Modèle B (commission appliquée upstream — même
+  // pattern que SupplierRecommendations / ProjectCart). Cache 2 min cohérent.
+  const { data: variants = [] } = useQuery({
+    queryKey: ["drawer-variant", variantId ?? null],
+    queryFn: () => (variantId ? fetchVariantsByIds([variantId]) : Promise.resolve([])),
+    enabled: !!variantId && !!product,
+    staleTime: 2 * 60 * 1000,
+  });
+  const variant = variants[0] ?? null;
+
   if (!product) return null;
 
-  const availability = getAvailability(product);
+  const availability: AvailabilityInfo = variant
+    ? adaptVariantAvailability(getAvailabilityFromVariant(variant, product))
+    : getAvailability(product);
   const AvailIcon = availability.icon;
   const dims = formatDimensions(product);
   const leadTimeWeeks = product.estimated_delivery_days
@@ -211,6 +251,7 @@ const ProductDetailDrawer = ({
               <SupplierRecommendations
                 productId={product.id}
                 productName={product.name}
+                variantId={variantId}
               />
             )}
 
