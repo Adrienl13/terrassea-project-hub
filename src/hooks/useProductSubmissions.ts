@@ -6,6 +6,7 @@ import { fetchProducts, type DBProduct } from "@/lib/products";
 import { findSimilarProducts, type SimilarityResult } from "@/engine/similarityEngine";
 import { computeProductQuality } from "@/lib/productQualityScore";
 import { normalizeProductCategory } from "@/lib/categoryNormalizer";
+import { uniqueSlug } from "@/lib/slug";
 import {
   type LocalVariantRow,
   variantRowSchema,
@@ -324,10 +325,26 @@ export function useAdminSubmissions() {
         }
       }
 
+      // ÉTAPE 9b-1 : génère product_slug (unique per partner_id namespace).
+      // Le DB partial unique index (owner_brand_id, product_slug) catch les
+      // collisions à l'INSERT pour les products avec owner_brand_id ; on
+      // pré-génère ici par safety + pour éviter les retry. Si la submission
+      // a un nom vide ou non-ascii pur, fallback sur 'product-{uuid prefix}'.
+      const { data: existingSlugRows } = await supabase
+        .from("products")
+        .select("product_slug")
+        .eq("partner_id", submission.partner_id)
+        .neq("product_slug", "");
+      const existingSlugs = new Set<string>(
+        (existingSlugRows ?? []).map((r) => r.product_slug).filter(Boolean),
+      );
+      const productSlug = uniqueSlug(pd.name as string, existingSlugs);
+
       // Explicitly map fields to avoid unknown JSONB keys in products table
       const productInsert: Record<string, unknown> = {
         // Identity
         name: pd.name,
+        product_slug: productSlug || `product-${crypto.randomUUID().slice(0, 8)}`,
         category: pd.category,
         subcategory: pd.subcategory ?? null,
         product_family: pd.product_family ?? null,
