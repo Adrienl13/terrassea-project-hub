@@ -21,6 +21,7 @@ import VendorOffers from "@/components/products/VendorOffers";
 import CompatibleProducts from "@/components/products/CompatibleProducts";
 import { fetchProductById, type DBProduct } from "@/lib/products";
 import { resolveProductBySlugs, urlForProduct } from "@/lib/productRoutes";
+import ProductSchemaOrg from "@/components/seo/ProductSchemaOrg";
 import { fetchProductOffers } from "@/lib/productOffers";
 import { useProductArrivals } from "@/hooks/useArrivals";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
@@ -76,7 +77,7 @@ const ProductDetail = () => {
       if (!ownerId) return null;
       const { data } = await supabase
         .from("partners")
-        .select("slug")
+        .select("slug, name")
         .eq("id", ownerId)
         .maybeSingle();
       return data;
@@ -202,47 +203,9 @@ const ProductDetail = () => {
     return null;
   }, [product, selectedVariant]);
 
-  // Inject Product JSON-LD for search engines and AI crawlers
-  // (must be before early returns to respect Rules of Hooks)
-  useEffect(() => {
-    if (!product) return;
-    const schema: Record<string, unknown> = {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      name: ml(product, "name"),
-      description: ml(product, "short_description") || ml(product, "description") || undefined,
-      image: product.image_url || undefined,
-      url: `https://terrassea.com${urlForProduct(product, product.owner_brand_slug)}`,
-      category: product.category,
-      sku: product.supplier_internal || product.id,
-      brand: product.brand_source ? { "@type": "Brand", name: product.brand_source } : undefined,
-      material: product.material_tags?.join(", ") || undefined,
-    };
-    if (product.price_min != null) {
-      schema.offers = {
-        "@type": "AggregateOffer",
-        lowPrice: product.price_min.toFixed(2),
-        priceCurrency: "EUR",
-        availability: "https://schema.org/InStock",
-        offerCount: offers.length || 1,
-      };
-    }
-    if (reviewStats?.review_count && reviewStats.review_count > 0) {
-      schema.aggregateRating = {
-        "@type": "AggregateRating",
-        ratingValue: reviewStats.avg_rating,
-        reviewCount: reviewStats.review_count,
-        bestRating: 5,
-        worstRating: 1,
-      };
-    }
-    const script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.setAttribute("data-jsonld", "product");
-    script.textContent = JSON.stringify(schema);
-    document.head.appendChild(script);
-    return () => { script.remove(); };
-  }, [product, offers.length, reviewStats]);
+  // ÉTAPE 9b-3 : JSON-LD injection now lives in <ProductSchemaOrg>, rendered
+  // conditionally below once `product` is loaded. ProductGroup with hasVariant
+  // is emitted automatically when modelBVariants.length > 1.
 
   // ÉTAPE 9b-2a — legacy /products/:id → canonical redirect.
   // Placé après tous les hooks pour respecter rules-of-hooks.
@@ -371,6 +334,13 @@ const ProductDetail = () => {
         image={product.image_url || undefined}
         type="product"
         url={`https://terrassea.com${urlForProduct(product, product.owner_brand_slug)}`}
+      />
+      <ProductSchemaOrg
+        product={product}
+        variants={modelBVariants}
+        partnerName={(ownerPartner as { name?: string | null } | null)?.name ?? null}
+        offerCount={offers.length}
+        reviewStats={reviewStats}
       />
       <Header />
       <main className="pt-24 pb-16">
