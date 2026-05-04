@@ -10,6 +10,7 @@ import { useCompare } from "@/contexts/CompareContext";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { toast } from "sonner";
 import type { DBProduct } from "@/lib/products";
+import { urlForProduct } from "@/lib/productRoutes";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -390,7 +391,7 @@ const ProductCompare = () => {
                         >
                           <X className="h-3 w-3 text-muted-foreground" />
                         </button>
-                        <Link to={`/products/${product.id}`}>
+                        <Link to={urlForProduct(product, product.owner_brand_slug)}>
                           <div className="aspect-square w-full max-w-[160px] mx-auto overflow-hidden bg-card rounded-sm mb-3">
                             <img
                               src={product.image_url || "/placeholder.svg"}
@@ -400,7 +401,7 @@ const ProductCompare = () => {
                           </div>
                         </Link>
                         <Link
-                          to={`/products/${product.id}`}
+                          to={urlForProduct(product, product.owner_brand_slug)}
                           className="font-display font-semibold text-xs text-foreground hover:underline block"
                         >
                           {product.name}

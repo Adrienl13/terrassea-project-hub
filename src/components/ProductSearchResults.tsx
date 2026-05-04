@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import type { DBProduct } from "@/lib/products";
+import { urlForProduct } from "@/lib/productRoutes";
 import { ml } from "@/lib/i18nFields";
 import ProductCard from "./ProductCard";
 
@@ -226,7 +227,7 @@ function ProductSearchCard({
       transition={{ duration: 0.5 }}
       className="group"
     >
-      <Link to={`/products/${product.id}`} className="block">
+      <Link to={urlForProduct(product, product.owner_brand_slug)} className="block">
         <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4 relative">
           <img
             src={product.image_url || "/placeholder.svg"}

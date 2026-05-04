@@ -26,6 +26,7 @@ import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { DBProduct } from "@/lib/products";
+import { urlForProduct } from "@/lib/productRoutes";
 import { useFavourites } from "@/contexts/FavouritesContext";
 import { toast } from "sonner";
 import {
@@ -579,7 +580,7 @@ function ProductGridCard({ product, onAdd, isBrandProduct }: { product: DBProduc
       transition={{ duration: 0.5 }}
       className="group"
     >
-      <Link to={`/products/${product.id}`} className="block">
+      <Link to={urlForProduct(product, product.owner_brand_slug)} className="block">
         <div className="aspect-[4/5] overflow-hidden bg-white rounded-sm mb-3 relative">
           <img
             src={product.image_url || "/placeholder.svg"}
@@ -628,7 +629,7 @@ function ProductGridCard({ product, onAdd, isBrandProduct }: { product: DBProduc
         </div>
       </Link>
       <div>
-        <Link to={`/products/${product.id}`}>
+        <Link to={urlForProduct(product, product.owner_brand_slug)}>
           <h3 className="font-display font-semibold text-xs text-foreground truncate hover:underline leading-tight">
             {localName}
           </h3>

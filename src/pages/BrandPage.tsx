@@ -11,6 +11,7 @@ import SEO from "@/components/SEO";
 import ProjectBriefModal from "@/components/products/ProjectBriefModal";
 import type { ProductOffer } from "@/lib/productOffers";
 import type { DBProduct } from "@/lib/products";
+import { urlForProduct } from "@/lib/productRoutes";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -466,7 +467,7 @@ export default function BrandPage() {
                             </p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                               {linkedProducts.map((p) => (
-                                <Link key={p.id} to={`/products/${p.id}`} className="group border border-border rounded-xl overflow-hidden hover:border-[#D4603A] hover:shadow-sm transition-all">
+                                <Link key={p.id} to={urlForProduct(p, p.owner_brand_slug)} className="group border border-border rounded-xl overflow-hidden hover:border-[#D4603A] hover:shadow-sm transition-all">
                                   <div className="aspect-square bg-muted overflow-hidden">
                                     {p.image_url ? (
                                       <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />

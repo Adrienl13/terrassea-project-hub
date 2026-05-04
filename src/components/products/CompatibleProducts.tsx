@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Link2, Plus, Package } from "lucide-react";
 import { findCompatibleProducts, type CompatibleProduct } from "@/engine/compatibilityEngine";
 import type { DBProduct } from "@/lib/products";
+import { urlForProduct } from "@/lib/productRoutes";
 import { ml } from "@/lib/i18nFields";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { toast } from "sonner";
@@ -55,7 +56,7 @@ function CompactCard({
       transition={{ duration: 0.35 }}
       className="flex-shrink-0 w-36"
     >
-      <Link to={`/products/${p.id}`}>
+      <Link to={urlForProduct(p, p.owner_brand_slug)}>
         <div className="aspect-square overflow-hidden bg-card rounded-sm mb-2">
           <img
             src={p.image_url || "/placeholder.svg"}
@@ -66,7 +67,7 @@ function CompactCard({
         </div>
       </Link>
       <div className="space-y-1">
-        <Link to={`/products/${p.id}`}>
+        <Link to={urlForProduct(p, p.owner_brand_slug)}>
           <h4 className="font-display font-semibold text-[11px] text-foreground truncate hover:underline leading-tight">
             {ml(p, "name")}
           </h4>

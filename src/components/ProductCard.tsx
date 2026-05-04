@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Plus, BarChart3, Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { DBProduct } from "@/lib/products";
+import { urlForProduct } from "@/lib/productRoutes";
 import { ml } from "@/lib/i18nFields";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
@@ -51,7 +52,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       transition={{ duration: 0.5 }}
       className="group"
     >
-      <Link to={`/products/${product.id}`} className="block">
+      <Link to={urlForProduct(product, product.owner_brand_slug)} className="block">
         <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4 relative">
           <img
             src={product.image_url || "/placeholder.svg"}
@@ -94,7 +95,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </Link>
 
       <div className="space-y-1">
-        <Link to={`/products/${product.id}`}>
+        <Link to={urlForProduct(product, product.owner_brand_slug)}>
           <h3 className="font-display font-semibold text-sm text-foreground truncate group-hover:underline">
             {localName}
           </h3>

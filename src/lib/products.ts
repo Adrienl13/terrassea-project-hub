@@ -80,6 +80,8 @@ export interface DBProduct {
   product_family: string | null;
   /** ÉTAPE 9b-1 : URL-safe slug for canonical /products/[brand-slug]/[product-slug] routing. NOT NULL post-migration 20260504092533. */
   product_slug:   string;
+  /** ÉTAPE 9b-2b : denormalized partners.slug joined via owner_brand_id (or partner_id fallback). Optional — null if no owner brand resolved. */
+  owner_brand_slug?: string | null;
   collection:     string | null;
   brand_source:   string | null;
   supplier_internal: string | null;
@@ -236,17 +238,23 @@ export async function fetchProducts(): Promise<DBProduct[]> {
 
   if (productsRes.error) throw productsRes.error;
 
-  // Fetch partner plans + subscription commission overrides
-  const partnerIds = [...new Set((productsRes.data ?? []).map(p => p.partner_id).filter(Boolean))];
+  // Fetch partner plans + subscription commission overrides + owner_brand slug (9b-2b)
+  const ownerBrandIds = [...new Set((productsRes.data ?? []).map(p => p.owner_brand_id).filter(Boolean))];
+  const partnerIds = [...new Set([
+    ...(productsRes.data ?? []).map(p => p.partner_id).filter(Boolean),
+    ...ownerBrandIds,
+  ])];
   const partnerPlans = new Map<string, string>();
   const partnerCommissions = new Map<string, number | null>();
+  const partnerSlugs = new Map<string, string>();
   if (partnerIds.length > 0) {
     const [{ data: partners }, { data: subs }] = await Promise.all([
-      supabase.from("partners").select("id, plan").in("id", partnerIds),
+      supabase.from("partners").select("id, plan, slug").in("id", partnerIds),
       supabase.from("partner_subscriptions").select("partner_id, commission_rate").in("partner_id", partnerIds),
     ]);
     for (const p of partners ?? []) {
       partnerPlans.set(p.id, p.plan || "starter");
+      if (p.slug) partnerSlugs.set(p.id, p.slug);
     }
     for (const s of subs ?? []) {
       if (s.commission_rate != null) {
@@ -271,6 +279,10 @@ export async function fetchProducts(): Promise<DBProduct[]> {
     if (product.partner_id && !BRAND_VISIBLE_PLANS.includes(plan)) {
       product.brand_source = null;
     }
+
+    // 9b-2b : denormalize owner_brand slug for canonical URL building
+    const ownerId = (raw as { owner_brand_id?: string | null }).owner_brand_id ?? product.partner_id;
+    product.owner_brand_slug = ownerId ? partnerSlugs.get(ownerId) ?? null : null;
 
     // Apply commission to client-facing prices (subscription override > plan default)
     if (product.price_min != null) {
@@ -326,6 +338,19 @@ export async function fetchProductById(id: string): Promise<DBProduct | null> {
     }
   }
 
+  // 9b-2b : denormalize owner_brand slug for canonical URL building
+  const ownerId = (data as { owner_brand_id?: string | null }).owner_brand_id ?? product.partner_id;
+  if (ownerId) {
+    const { data: ownerPartner } = await supabase
+      .from("partners")
+      .select("slug")
+      .eq("id", ownerId)
+      .maybeSingle();
+    product.owner_brand_slug = ownerPartner?.slug ?? null;
+  } else {
+    product.owner_brand_slug = null;
+  }
+
   return product;
 }
 
@@ -345,21 +370,43 @@ export async function fetchProductsByIds(ids: string[]): Promise<DBProduct[]> {
   const products = (data ?? []).map(normalizeProduct);
   if (products.length === 0) return products;
 
-  const partnerIds = [...new Set(products.map((p) => p.partner_id).filter(Boolean) as string[])];
+  // 9b-2b : include owner_brand_id in the partnerIds set so we can map slugs
+  const ownerBrandIds = (data ?? []).map((r) => (r as { owner_brand_id?: string | null }).owner_brand_id).filter(Boolean) as string[];
+  const partnerIds = [...new Set([
+    ...products.map((p) => p.partner_id).filter(Boolean) as string[],
+    ...ownerBrandIds,
+  ])];
   if (partnerIds.length === 0) return products;
 
   const [{ data: partners }, { data: subs }] = await Promise.all([
-    supabase.from("partners").select("id, plan").in("id", partnerIds),
+    supabase.from("partners").select("id, plan, slug").in("id", partnerIds),
     supabase.from("partner_subscriptions").select("partner_id, commission_rate").in("partner_id", partnerIds),
   ]);
   const partnerPlans = new Map<string, string>();
   const partnerCommissions = new Map<string, number | null>();
-  for (const p of partners ?? []) partnerPlans.set(p.id, p.plan || "starter");
+  const partnerSlugs = new Map<string, string>();
+  for (const p of partners ?? []) {
+    partnerPlans.set(p.id, p.plan || "starter");
+    if (p.slug) partnerSlugs.set(p.id, p.slug);
+  }
   for (const s of subs ?? []) {
     if (s.commission_rate != null) partnerCommissions.set(s.partner_id, Number(s.commission_rate));
   }
 
+  // Build a map of product.id → owner_brand_id for 9b-2b denormalization
+  const ownerBrandByProduct = new Map<string, string | null>();
+  for (const r of data ?? []) {
+    ownerBrandByProduct.set(
+      r.id as string,
+      ((r as { owner_brand_id?: string | null }).owner_brand_id ?? null) || null,
+    );
+  }
+
   return products.map((product) => {
+    // 9b-2b : denormalize owner_brand slug
+    const ownerId = ownerBrandByProduct.get(product.id) ?? product.partner_id;
+    product.owner_brand_slug = ownerId ? partnerSlugs.get(ownerId) ?? null : null;
+
     if (!product.partner_id) return product;
     const plan = partnerPlans.get(product.partner_id) || "starter";
     const commissionRate = partnerCommissions.get(product.partner_id) ?? null;
