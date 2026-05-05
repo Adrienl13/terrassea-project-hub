@@ -95,6 +95,41 @@ Patterns de collaboration :
 - Patterns qui empêchent la composabilité future
 - Drift entre DB et code source
 
+## Segments d'expansion identifiés
+
+### Marine (yachts / cruise / ferries)
+
+Le mobilier outdoor pour CHR a une synergie naturelle avec le mobilier marine outdoor :
+- Pool decks de cruise ships
+- Terrasses de superyachts
+- Lounges de ferries
+- Bars de pont
+
+Le segment marine est :
+- Moins price-sensitive (marges plus élevées)
+- Avec un référentiel certifications mature (IMO FTP / MED Wheelmark / MCA MGN 580 / USCG)
+- Internationalisé naturellement (les yachts naviguent partout)
+- Aligné avec les architectes navals que Terrassea cible déjà (mêmes designers de luxe que CHR)
+
+Phase 1 (fondation, livrée 2026-05-05) :
+- Référentiel marine ajouté en DB (6 certifications)
+- Catégorie 'marine' dans le CHECK constraint
+- Pas d'impact sur les forms partner existants
+
+Phase 2 (futur) :
+- Prospection active du segment marine
+- Page landing dédiée yachts/cruise
+- Partenariats avec architectes navals
+- SEO ciblé "yacht furniture", "cruise ship outdoor furniture"
+
+### Outdoor enrichi (bord de mer / pool decks)
+
+Au-delà des normes feu standard (M1, EN 1021), le mobilier outdoor pertinent pour bord de mer / pool deck nécessite :
+- Stabilité UV (ISO 4892)
+- Résistance corrosion saline (ASTM B117, EN ISO 9227)
+
+Ces certifications sont maintenant disponibles dans le référentiel pour permettre aux partners de qualifier leurs products outdoor avec précision pour les environnements marins ou côtiers.
+
 ## Dette technique vs simplification légitime
 
 Dette technique = solution simplifiée qui devra être refactorée.
