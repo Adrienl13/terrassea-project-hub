@@ -599,6 +599,7 @@ export type Database = {
           logo_url: string | null
           name: string
           official_website: string | null
+          scope: string
           slug: string
           updated_at: string
         }
@@ -610,6 +611,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           official_website?: string | null
+          scope: string
           slug: string
           updated_at?: string
         }
@@ -621,6 +623,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           official_website?: string | null
+          scope?: string
           slug?: string
           updated_at?: string
         }
@@ -1991,6 +1994,60 @@ export type Database = {
           },
         ]
       }
+      partner_certifications: {
+        Row: {
+          certificate_number: string | null
+          certificate_url: string | null
+          certification_id: string
+          created_at: string
+          id: string
+          issued_at: string | null
+          notes: string | null
+          partner_id: string
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          certificate_number?: string | null
+          certificate_url?: string | null
+          certification_id: string
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          notes?: string | null
+          partner_id: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          certificate_number?: string | null
+          certificate_url?: string | null
+          certification_id?: string
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          notes?: string | null
+          partner_id?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_certifications_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_certifications_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_commissions: {
         Row: {
           commission_amount: number | null
@@ -2949,6 +3006,63 @@ export type Database = {
         }
         Relationships: []
       }
+      product_certifications: {
+        Row: {
+          certification_id: string
+          created_at: string
+          id: string
+          issued_at: string | null
+          lab_name: string | null
+          notes: string | null
+          product_id: string
+          pv_document_url: string | null
+          pv_number: string | null
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          certification_id: string
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          lab_name?: string | null
+          notes?: string | null
+          product_id: string
+          pv_document_url?: string | null
+          pv_number?: string | null
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          certification_id?: string
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          lab_name?: string | null
+          notes?: string | null
+          product_id?: string
+          pv_document_url?: string | null
+          pv_number?: string | null
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_certifications_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_certifications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_media: {
         Row: {
           alt_text_i18n: Json | null
@@ -3637,7 +3751,7 @@ export type Database = {
           primary_designer?: string | null
           priority_score?: number | null
           product_family?: string | null
-          product_slug?: string
+          product_slug: string
           product_type_tags?: Json | null
           publish_status?: string | null
           recommended_seating_max?: number | null
@@ -5288,6 +5402,7 @@ export type Database = {
           relevance_score: number
         }[]
       }
+      slugify: { Args: { input: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
