@@ -7,10 +7,11 @@ import { toast } from "sonner";
 import {
   X, Upload, Sparkles, Camera, Check, Loader2, AlertTriangle,
   ChevronDown, ChevronUp, Package, Image as ImageIcon, Info,
-  Plus, Trash2, Layers,
+  Plus, Trash2, Layers, ShieldCheck,
 } from "lucide-react";
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
 import VariantsSection from "./VariantsSection";
+import ProductCertifications from "./ProductCertifications";
 import type { DimensionVariant } from "@/lib/products";
 import {
   type LocalVariantRow,
@@ -299,7 +300,7 @@ export default function AddProductForm({
   const [aiConfidence, setAiConfidence] = useState<number | null>(null);
   const [aiApplied, setAiApplied] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [section, setSection] = useState<"photo" | "basics" | "specs" | "pricing" | "variants">("photo");
+  const [section, setSection] = useState<"photo" | "basics" | "specs" | "pricing" | "variants" | "certifications">("photo");
   const [expandedTags, setExpandedTags] = useState(false);
 
   const set = useCallback((key: keyof ProductFormData, val: unknown) =>
@@ -732,6 +733,7 @@ export default function AddProductForm({
     { id: "specs", label: "Caractéristiques", icon: Info },
     { id: "pricing", label: "Prix & Stock", icon: AlertTriangle },
     { id: "variants", label: "Variantes", icon: Layers },
+    { id: "certifications", label: "Certifications", icon: ShieldCheck },
   ];
 
   const filledCount = [
@@ -1419,6 +1421,19 @@ export default function AddProductForm({
           {section === "variants" && (
             <VariantsSection initial={variants} onChange={setVariants} />
           )}
+          {section === "certifications" && (
+            editMode && editProductId ? (
+              <ProductCertifications productId={editProductId} />
+            ) : (
+              <div className="border border-dashed border-border rounded-md p-6 text-center">
+                <ShieldCheck className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                <p className="text-xs font-body text-muted-foreground max-w-md mx-auto">
+                  Vous pourrez ajouter des certifications spécifiques à ce produit (PV)
+                  après l'avoir enregistré.
+                </p>
+              </div>
+            )
+          )}
         </div>
 
         {/* Footer */}
@@ -1430,7 +1445,7 @@ export default function AddProductForm({
             Annuler
           </button>
           <div className="flex items-center gap-3">
-            {section !== "pricing" && section !== "variants" ? (
+            {section !== "pricing" && section !== "variants" && section !== "certifications" ? (
               <button
                 onClick={() => {
                   // Suivant s'arrête à pricing — la tab "variants" est un
