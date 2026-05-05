@@ -19,6 +19,8 @@ import Footer from "@/components/Footer";
 import ProductGallery from "@/components/products/ProductGallery";
 import VendorOffers from "@/components/products/VendorOffers";
 import CompatibleProducts from "@/components/products/CompatibleProducts";
+import ProductCertificationsPublic from "@/components/products/ProductCertificationsPublic";
+import ProductCertificationBadges from "@/components/products/ProductCertificationBadges";
 import { fetchProductById, type DBProduct } from "@/lib/products";
 import { resolveProductBySlugs, urlForProduct } from "@/lib/productRoutes";
 import ProductSchemaOrg from "@/components/seo/ProductSchemaOrg";
@@ -474,6 +476,12 @@ const ProductDetail = () => {
                       </span>
                     )}
                   </div>
+                  {(product.owner_brand_id || product.partner_id) && (
+                    <ProductCertificationBadges
+                      productId={product.id}
+                      partnerId={product.owner_brand_id ?? product.partner_id ?? ""}
+                    />
+                  )}
                 </div>
 
                 {/* Description */}
@@ -621,13 +629,23 @@ const ProductDetail = () => {
           </div>
         </section>
 
+        {/* Certifications (brand-level + product-level) — anchored for badge scroll */}
+        {(product.owner_brand_id || product.partner_id) && (
+          <div id="certifications-section">
+            <ProductCertificationsPublic
+              productId={product.id}
+              partnerId={product.owner_brand_id ?? product.partner_id ?? ""}
+              partnerName={(ownerPartner as { name?: string | null } | null)?.name ?? null}
+            />
+          </div>
+        )}
+
         {/* Vendor offers */}
         <section className="px-6 mt-4">
           <div className="container mx-auto">
             <VendorOffers offers={offers} product={product} defaultQuantity={projectQuantity} arrivals={arrivals} selectedColor={effectiveVariant} selectedDimension={selectedDimension} selectedModelBVariant={selectedModelBVariant} />
           </div>
         </section>
-
 
         {/* Customer reviews */}
         <ProductReviews productId={product.id} />
