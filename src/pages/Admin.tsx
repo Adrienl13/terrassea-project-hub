@@ -9,7 +9,7 @@ import {
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
   CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge, Landmark, Crown,
-  EyeOff, Trash2, ArrowUpDown, ChevronRight, Sparkles,
+  EyeOff, Trash2, ArrowUpDown, ChevronRight, Sparkles, Layers, ShieldCheck,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +35,8 @@ import AdminChatbotStats from "@/components/admin/AdminChatbotStats";
 import AdminFinancing from "@/components/admin/AdminFinancing";
 import AdminBrandManagement from "@/components/admin/AdminBrandManagement";
 import AdminAIScanner from "@/components/admin/AdminAIScanner";
+import AdminMaterialBrands from "@/components/admin/AdminMaterialBrands";
+import AdminCertifications from "@/components/admin/AdminCertifications";
 import ColorVariantEditor from "@/components/admin/ColorVariantEditor";
 import DimensionVariantEditor from "@/components/admin/DimensionVariantEditor";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
@@ -46,7 +48,7 @@ import type { ColorVariant, DimensionVariant } from "@/lib/products";
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "product_reviews" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "concept_analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "product_reviews" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "concept_analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings" | "referentials_brands" | "referentials_certifications";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -2075,6 +2077,8 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
       { id: "submissions", icon: Inbox,         label: "Soumissions",   badgeKey: "submissions" },
       { id: "subscriptions", icon: Star,        label: "Abonnements" },
       { id: "brands",        icon: Crown,       label: "Marques" },
+      { id: "referentials_brands", icon: Layers, label: "Marques de matériau" },
+      { id: "referentials_certifications", icon: ShieldCheck, label: "Certifications" },
       { id: "ai_scanner",    icon: Sparkles,    label: "AI Scanner" },
     ],
   },
@@ -2126,6 +2130,8 @@ const TAB_TITLES: Record<Tab, string> = {
   product_reviews: "Avis produits",
   pro_service: "Pro Service",
   brands: "Gestion des marques",
+  referentials_brands: "Référentiel — Marques de matériau",
+  referentials_certifications: "Référentiel — Certifications",
   ai_scanner: "AI Scanner",
 };
 
@@ -2336,6 +2342,8 @@ const Admin = () => {
           {tab === "submissions"  && <AdminProductReview />}
           {tab === "financing"    && <AdminFinancing />}
           {tab === "brands"       && <AdminBrandManagement />}
+          {tab === "referentials_brands" && <AdminMaterialBrands />}
+          {tab === "referentials_certifications" && <AdminCertifications />}
           {tab === "chatbot"      && <AdminChatbotStats />}
           {tab === "ai_scanner"   && <AdminAIScanner />}
         </div>
