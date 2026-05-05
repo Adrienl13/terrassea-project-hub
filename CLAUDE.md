@@ -6,6 +6,24 @@
 
 ---
 
+## Documents stratégiques (lecture obligatoire pour toute session)
+
+Avant toute action, lire ces 2 documents fondamentaux :
+
+- `docs/strategy/PRODUCT_PHILOSOPHY.md` — framing long-terme
+  du projet, principes architecturaux, trade-offs acceptables
+  vs non-acceptables
+- `docs/strategy/DETTE_TECHNIQUE_AUDIT.md` — liste des dettes
+  techniques accumulées avec niveaux de priorité, à respecter
+  pour éviter d'aggraver
+
+Ces documents reflètent les décisions stratégiques du founder
+et doivent guider toute proposition technique. En cas de
+conflit avec une instruction ponctuelle, signaler au founder
+avant d'agir.
+
+---
+
 ## Commands
 
 ```bash
