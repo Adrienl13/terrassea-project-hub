@@ -16,6 +16,12 @@ interface QuoteRequestModalProps {
   product: DBProduct;
   offers?: ProductOffer[];
   defaultQuantity?: number;
+  /**
+   * ID of the Modèle B variant selected on the product detail page (Dette 3).
+   * Persisted to quote_requests.variant_id so the partner knows exactly which
+   * variant the client wants. Undefined for legacy products without variants.
+   */
+  selectedVariantId?: string;
 }
 
 // ── SIREN lookup ──────────────────────────────────────────────────────────────
@@ -45,7 +51,7 @@ async function lookupSiren(siren: string): Promise<SirenResult | null> {
 // ── Main modal ────────────────────────────────────────────────────────────────
 
 const QuoteRequestModal = ({
-  open, onClose, product, offers = [], defaultQuantity = 1,
+  open, onClose, product, offers = [], defaultQuantity = 1, selectedVariantId,
 }: QuoteRequestModalProps) => {
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -152,6 +158,7 @@ const QuoteRequestModal = ({
 
       const { data: insertedRow, error: insertError } = await supabase.from("quote_requests").insert({
         product_id: product.id,
+        variant_id: selectedVariantId || null,
         product_name: product.name,
         offer_id: bestOffer?.id || null,
         // Don't pre-assign partner_id — let auto-workflow handle routing

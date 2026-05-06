@@ -408,6 +408,7 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
               product={product}
               offers={[quoteModalOffer]}
               onClose={() => setQuoteModalOffer(null)}
+              selectedVariantId={selectedModelBVariant?.id}
             />
           )}
         </div>
@@ -796,6 +797,7 @@ const VendorOffers = ({ offers: allOffers, product, defaultQuantity = 1, isAdmin
         product={product}
         offers={quoteModalOffer ? [quoteModalOffer] : []}
         defaultQuantity={quantity}
+        selectedVariantId={selectedModelBVariant?.id}
       />
       {projectBriefOffer && (
         <ProjectBriefModal

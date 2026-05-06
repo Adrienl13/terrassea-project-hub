@@ -694,6 +694,7 @@ const ProductDetail = () => {
         product={product}
         offers={offers}
         defaultQuantity={projectQuantity}
+        selectedVariantId={selectedModelBVariant?.id}
       />
       {isArchitect && (
         <AddToProjectModal

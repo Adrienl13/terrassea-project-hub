@@ -4112,6 +4112,7 @@ export type Database = {
           selected_partner_name: string | null
           selected_price: number | null
           selected_stock_status: string | null
+          variant_id: string | null
         }
         Insert: {
           concept_name?: string | null
@@ -4128,6 +4129,7 @@ export type Database = {
           selected_partner_name?: string | null
           selected_price?: number | null
           selected_stock_status?: string | null
+          variant_id?: string | null
         }
         Update: {
           concept_name?: string | null
@@ -4144,6 +4146,7 @@ export type Database = {
           selected_partner_name?: string | null
           selected_price?: number | null
           selected_stock_status?: string | null
+          variant_id?: string | null
         }
         Relationships: [
           {
@@ -4172,6 +4175,13 @@ export type Database = {
             columns: ["selected_partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_cart_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
             referencedColumns: ["id"]
           },
         ]
@@ -4494,6 +4504,7 @@ export type Database = {
           unit_price: number | null
           validity_days: number | null
           validity_expires_at: string | null
+          variant_id: string | null
         }
         Insert: {
           client_anonymous_id?: string | null
@@ -4535,6 +4546,7 @@ export type Database = {
           unit_price?: number | null
           validity_days?: number | null
           validity_expires_at?: string | null
+          variant_id?: string | null
         }
         Update: {
           client_anonymous_id?: string | null
@@ -4576,6 +4588,7 @@ export type Database = {
           unit_price?: number | null
           validity_days?: number | null
           validity_expires_at?: string | null
+          variant_id?: string | null
         }
         Relationships: [
           {
@@ -4604,6 +4617,13 @@ export type Database = {
             columns: ["project_request_id"]
             isOneToOne: false
             referencedRelation: "project_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_requests_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
             referencedColumns: ["id"]
           },
         ]

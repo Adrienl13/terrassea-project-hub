@@ -291,6 +291,7 @@ const ProjectCart = () => {
       const cartItems = items.map((item) => ({
         project_request_id: pr.id,
         product_id: item.product.id,
+        variant_id: item.selectedModelBVariantId || null,
         quantity: item.quantity,
         concept_name: item.conceptName || null,
         notes: item.layoutRequirementLabel || null,
@@ -374,6 +375,7 @@ const ProjectCart = () => {
           const { data: insertedQR } = await supabase.from("quote_requests").insert({
             project_request_id: pr.id,
             product_id: product.id,
+            variant_id: item.selectedModelBVariantId || null,
             product_name: product.name,
             offer_id: offerId,
             partner_id: partnerId || null,

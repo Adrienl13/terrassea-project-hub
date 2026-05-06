@@ -58,6 +58,10 @@ adaptation code persistence.
 dégradée.
 **Effort** : 0.5-1 jour
 
+**Statut FIXED 2026-05-06** : variant_id ajouté à `project_cart_items` (FK → product_variants(id) ON DELETE SET NULL, cohérent avec pattern existant des FK soft sur cette table). Frontend `ProjectCart.tsx:291-308` propage `item.selectedModelBVariantId`.
+
+**Note** : la dette était mal documentée à l'origine. Le cart côté client (`saved_carts.cart_data` jsonb via `selectedModelBVariantId`) gérait déjà le variant_id depuis chantier 9a-fix-2 — l'utilisateur ne perdait PAS la variant au reload. Le vrai problème était la perte du variant_id lors de la submission relationnelle (cart → `project_cart_items` lors de la création d'un project_request).
+
 ### Dette 3 — variant_id persistence dans quote_requests
 
 **Origine** : ÉTAPE 9a-fix-2
@@ -67,6 +71,15 @@ deviner ou re-demander.
 **Fix** : Idem dette 2 mais sur quote_requests.
 **Risque non-fix** : friction commerciale, pertes de deals.
 **Effort** : 0.5-1 jour
+
+**Statut FIXED 2026-05-06** : variant_id ajouté à `quote_requests` (FK → product_variants(id) ON DELETE SET NULL). Frontend refactoré sur 5 callsites :
+- `QuoteRequestModalProps` : nouveau prop `selectedVariantId?: string`
+- `QuoteRequestModal.tsx:153` : INSERT inclut `variant_id`
+- `ProductDetail.tsx:691` : passe `selectedVariantId={selectedModelBVariant?.id}`
+- `VendorOffers.tsx:406` + `:793` : 2 modales secondaires reçoivent aussi le selectedVariantId
+- `ProjectCart.tsx:374` : INSERT loop quote_requests inclut variant_id
+
+**Effort réel cumulé Dettes 2 + 3** : 1.5-2h (vs 1-2j estimation initiale). La moitié du travail (cart côté client) était déjà faite par chantier 9a-fix-2.
 
 ### Dette 19 — Notifications cross-user phishing risk
 
@@ -285,8 +298,8 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 |---|-------|--------|--------|--------|----------|
 | 9 | approveAsNew transactionnel | 1 | 0.5-1j | **FIXED ✅** | **2026-05-06** |
 | 10 | RLS refactor inline | 1 | 0.5j | **FIXED ✅** | **2026-05-05** |
-| 2 | variant_id cart | 1 | 0.5-1j | À fixer | - |
-| 3 | variant_id quote | 1 | 0.5-1j | À fixer | - |
+| 2 | variant_id cart | 1 | 0.5-1j | **FIXED ✅** | **2026-05-06** |
+| 3 | variant_id quote | 1 | 0.5-1j | **FIXED ✅** | **2026-05-06** |
 | **19** | **notifications phishing risk** | **1** | **0.5-1j** | **À fixer** | - |
 | 1+12 | i18n drawer | 2 | 1-2h | À fixer | - |
 | 11 | partner.slug | 2 | 30min | À fixer | - |
@@ -483,6 +496,22 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 — Dettes 2 + 3 FIXED ✅
+
+- ALTER TABLE project_cart_items ADD COLUMN variant_id uuid (FK product_variants ON DELETE SET NULL)
+- ALTER TABLE quote_requests ADD COLUMN variant_id uuid (FK product_variants ON DELETE SET NULL)
+- Pattern ON DELETE SET NULL aligné avec les FK soft existantes (product_id, offer_id, partner_id) sur les 2 tables — préserve l'historique commercial
+- 5 callsites frontend refactorés :
+  - `ProjectCart.tsx` : 2 inserts (project_cart_items + boucle quote_requests)
+  - `QuoteRequestModal.tsx` : nouveau prop `selectedVariantId`, INSERT propagé
+  - `ProductDetail.tsx` : passe `selectedVariantId={selectedModelBVariant?.id}` à QuoteRequestModal
+  - `VendorOffers.tsx` : 2 callsites secondaires (offer-specific quote modals) reçoivent aussi le selectedVariantId
+- DO block validation : colonnes créées + FK ON DELETE SET NULL vérifiée empiriquement
+- types.ts régénéré (15 occurrences variant_id incl. FK refs)
+- tsc 0 erreur, 615/615 tests passing
+- Effort réel cumulé : 1.5-2h (vs 1-2j estimé : la moitié du travail était déjà faite côté client par 9a-fix-2)
+- Découverte : la dette était mal documentée. Le cart côté client gérait déjà variant_id en jsonb depuis 9a-fix-2 ; le vrai problème était la submission relationnelle.
 
 ### 2026-05-06 — Dette 9 FIXED ✅
 
