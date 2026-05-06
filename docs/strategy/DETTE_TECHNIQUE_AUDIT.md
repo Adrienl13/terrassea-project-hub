@@ -178,3 +178,16 @@ il rejoint cette liste avec une justification.
 - REST API : HTTP 200 confirmed (was 401 during incident 2026-05-01)
 - Empirical evidence captured in Phase 3 récap (cf. transcript day 7 archive)
 - Helper functions kept in DB for 1-2 weeks observation period before final DROP
+
+## Initiatives stratégiques planifiées
+
+### SEO/GEO Strategy (Q3 2026)
+
+Voir docs/strategy/SEO_GEO_STRATEGY.md pour le plan complet.
+
+Approche progressive en 3 phases :
+- Phase 1 : Quick wins SEO/Schema sur l'existant (1-2j)
+- Phase 2 : 3 pages "Solutions" pilotes (3-5j)
+- Phase 3 : Industrialisation conditionnelle si Phase 2 positive (5-10j)
+
+Conditionné à la résolution préalable des dettes critiques (9, 2, 3) et de la Dette 18 (audit RLS warnings).
