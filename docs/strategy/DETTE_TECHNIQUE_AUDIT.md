@@ -150,13 +150,20 @@ Les RLS "Always True" sur tables sensibles peuvent être de vraies failles de s�
 **Risque non-fix** : Possible exposition de données privées ou exécution de fonctions sensibles depuis anon.
 **Effort** : 0.5-1 jour pour audit complet et fix prioritaires
 
-**Statut partiel 2026-05-06** : audit ciblé sur les 7 RLS Always True effectué (cf. session day 8). Résultat :
+**Statut partiel 2026-05-06 sprint 1** : audit ciblé sur les 7 RLS Always True effectué (cf. session day 8). Résultat :
 - 1 fix appliqué : salone_2026_visits (cat A, fuite PII potentielle)
 - 5 documentées en faux positifs (cat B, formulaires publics intentionnels — voir nouvelle section "RLS Always True justifiées et acceptées")
 - 1 nouvelle dette critique : Dette 19 (notifications, cat C, vecteur phishing inter-user)
 - 1 hors scope : Dette 20 (project_briefs.contact_email pattern incohérent)
 
-Reste à auditer : 54 autres warnings (Function Search Path Mutable, Materialized View in API, Public Bucket Allows Listing, Public Can Execute SECURITY DEFINER, etc.) — session dédiée future.
+**Statut partiel 2026-05-06 sprint 2** : audit ciblé sur les 25 functions SECURITY DEFINER public + 1 search_path mutable. Résultat :
+- 1 fix appliqué : `update_product_review_timestamp` (search_path explicite ajouté)
+- 21 REVOKE EXECUTE appliqués sur trigger functions (14), cron/internal RPCs (3), admin RPCs (2 — `next_invoice_number`, `next_payment_reference`), user-scoped RPCs (1 — `reserve_preorder` revoke anon, garde authenticated), orphan future-use (1 — `create_notification`)
+- 4 fonctions documentées en faux positifs (helpers RLS `is_admin`/`is_brand_member`/`is_brand_owner` + `fuzzy_search_products`, voir nouvelle section "Functions SECURITY DEFINER acceptées")
+- 1 nouvelle dette : Dette 21 (cleanup orphan trigger functions)
+- Réduction empirique : advisor 60 warnings → 19 warnings (-41).
+
+Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3 future.
 
 ## Niveau 3 — Cosmétiques (continues)
 
@@ -188,6 +195,20 @@ Beaucoup de scénarios validés uniquement par browser manuel.
 **Risque non-fix** : utilisateurs légitimes ne peuvent pas voir leurs briefs si emails désynchronisés.
 **Effort** : 30 min - 1h
 
+### Dette 21 — Cleanup orphan trigger functions
+
+**Origine** : Audit Dette 18 sprint 2 (2026-05-06)
+**Impact** : 3 functions sont SECURITY DEFINER mais n'ont aucun trigger associé ni aucun appel frontend :
+- `notify_application_approved()`
+- `notify_application_submitted()`
+- `notify_quote_submitted()`
+
+Code mort qui peut induire en erreur lors de futurs refactors. Permission EXECUTE déjà revoke dans le sprint 2, mais les fonctions restent en DB.
+
+**Fix** : DROP des 3 fonctions orphelines après confirmation qu'elles ne sont plus prévues pour usage futur.
+**Risque non-fix** : confusion lors de futurs développements, code mort persistant.
+**Effort** : 15 min
+
 ## Tableau de tracking
 
 | # | Dette | Niveau | Effort | Statut | Date fix |
@@ -209,7 +230,8 @@ Beaucoup de scénarios validés uniquement par browser manuel.
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |
 | 15 | Tests E2E Playwright | 3 | Continu | Continu | - |
-| **20** | **project_briefs pattern incohérent** | **3** | **30min-1h** | **À fixer** | - |
+| 20 | project_briefs pattern incohérent | 3 | 30min-1h | À fixer | - |
+| **21** | **cleanup orphan trigger functions** | **3** | **15min** | **À fixer** | - |
 
 ## Méta-règle
 
@@ -257,6 +279,32 @@ Certaines tables ont une RLS `WITH CHECK (true)` sur INSERT par design métier. 
 - **PII** : aucune (session_id, parameters jsonb, concept_ids[], etc.)
 - **Recommandation** : idem concept_events, rate limiting si abuse détecté.
 
+## Functions SECURITY DEFINER acceptées et justifiées
+
+Certaines fonctions doivent rester executable par anon/authenticated pour le fonctionnement légitime de l'app. L'advisor Supabase les flag mais ce sont des faux positifs documentés.
+
+### Helpers RLS (3 functions)
+
+- `is_admin()`
+- `is_brand_member(check_brand_id uuid, check_user_id uuid)`
+- `is_brand_owner(check_brand_id uuid, check_user_id uuid)`
+
+**Justification** : `is_admin()` est utilisée par 102 RLS policies (vérifié 2026-05-06). PostgreSQL vérifie la permission EXECUTE au PLANNING TIME, pas au runtime (incident 2026-05-01 a prouvé que REVOKE casse production pendant 4 jours).
+
+**Note** : `is_brand_member` et `is_brand_owner` ne sont plus utilisées en RLS depuis Dette 10 (refactor inline). Gardées pour observation 1-2 semaines, DROP planifié mi-mai 2026. À ce moment, ces 2 fonctions disparaîtront des warnings advisor naturellement.
+
+### RPCs publics légitimes (1 function)
+
+- `fuzzy_search_products(search_query text, lang text, category_filter text, limit_count integer)`
+
+**Justification** : recherche publique de produits depuis le catalogue. Anon doit pouvoir l'exécuter pour la search bar publique (cf. `src/hooks/useProducts.ts`).
+
+### RPC authenticated user (1 function)
+
+- `reserve_preorder(p_arrival_item_id uuid, p_user_id uuid, p_product_id uuid, p_quantity integer)`
+
+**Justification** : réservation pre-order par un utilisateur authentifié (cf. `src/hooks/useArrivals.ts`). EXECUTE retiré pour anon, conservé pour authenticated. Advisor flag persistant car authenticated peut toujours l'appeler — c'est intentionnel.
+
 ## Historique des fixes
 
 ### 2026-05-05 — Dette 10 (RLS refactor inline)
@@ -267,7 +315,7 @@ Certaines tables ont une RLS `WITH CHECK (true)` sur INSERT par design métier. 
 - Empirical evidence captured in Phase 3 récap (cf. transcript day 7 archive)
 - Helper functions kept in DB for 1-2 weeks observation period before final DROP
 
-### 2026-05-06 — Dette 18 partielle (audit RLS Always True)
+### 2026-05-06 — Dette 18 sprint 1 (audit RLS Always True)
 
 - Audit ciblé des 7 RLS "Always True" flagged par advisor
 - 1 fix appliqué : salone_2026_visits (cat A — anon avait SELECT/INSERT/UPDATE/DELETE sur PII)
@@ -276,7 +324,26 @@ Certaines tables ont une RLS `WITH CHECK (true)` sur INSERT par design métier. 
 - 5 documentées en faux positifs (cat B) : concept_events, partner_contact_requests, pro_service_requests, project_briefs, scoring_snapshots
 - 1 nouvelle dette critique identifiée : Dette 19 (notifications phishing risk)
 - 1 hors scope ajoutée : Dette 20 (project_briefs pattern incohérent)
-- Reste 54 autres warnings (Function Search Path Mutable, Materialized View in API, etc.) à auditer en session future
+
+### 2026-05-06 — Dette 18 sprint 2 (Cat E + Cat B)
+
+- Audit ciblé des 25 functions SECURITY DEFINER public + 1 search_path mutable
+- Classification :
+  - 1 fix simple : `update_product_review_timestamp` search_path explicite ajouté
+  - 21 REVOKE EXECUTE (PUBLIC, anon, authenticated) :
+    - 14 trigger functions (jamais appelées via RPC, exécutées par Postgres trigger context)
+    - 3 cron/internal RPCs (`expire_overdue_quotes`, `invoke_scheduled_tasks`, `run_reminder_notifications` — service_role only)
+    - 2 admin RPCs (`next_invoice_number`, `next_payment_reference` — investigation paymentUtils confirmée admin-only)
+    - 1 user-scoped RPC (`reserve_preorder` — anon revoked, authenticated kept)
+    - 1 orphan future-use (`create_notification` — kept service_role for future Dette 19)
+  - 4 documentées en faux positifs : `is_admin`, `is_brand_member`, `is_brand_owner`, `fuzzy_search_products`
+  - 1 nouvelle dette : Dette 21 (cleanup orphan trigger functions)
+- Empirical validation pre/post :
+  - Pre-apply : 25 SECURITY DEFINER functions executable by anon
+  - Post-apply : 4 (helpers RLS + public search) — conformément au plan
+  - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
+- Advisor reduction : 60 warnings → 19 warnings (-41)
+- Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3 future
 
 ## Initiatives stratégiques planifiées
 
