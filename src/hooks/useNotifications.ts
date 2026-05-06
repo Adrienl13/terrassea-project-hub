@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useCallback } from "react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export interface AppNotification {
   id: string;
@@ -74,9 +74,11 @@ export function useNotifications() {
             (prev = []) => [incoming, ...prev].slice(0, 20)
           );
 
-          // Show a toast for the new notification
-          toast({
-            title: incoming.title,
+          // Show a sonner toast for the new notification (Dette 39 fix
+          // 2026-05-06 : was previously calling shadcn use-toast hook
+          // whose <Toaster /> was never mounted in App.tsx, silently
+          // dropping ALL realtime notifications across all personas).
+          toast.info(incoming.title, {
             description: incoming.message || undefined,
           });
         }

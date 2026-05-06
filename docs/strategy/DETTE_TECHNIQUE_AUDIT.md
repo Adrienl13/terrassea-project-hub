@@ -590,6 +590,7 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | **41** | **Tracking number client copy/deeplink** | **3** | **0.5j** | **À fixer** | - |
 | 37 | Lowercase categories partner-side | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | 38 | Client profile non-editable | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
+| 39 | Partner notif arrivée devis | 3 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | **42** | **BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase** | **3** | **0.2j** | **À fixer** | - |
 | **43** | **Drift prevention process à renforcer** | **2** | **0.5-1j** | **À fixer** | - |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
@@ -778,6 +779,25 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 (Sprint Quick Wins #3) — Dette 39 FIXED ✅
+
+Fix transverse notifications realtime + bug latent silencieux découvert pendant la recon.
+
+- **Bug racine identifié** : `useNotifications.ts:5` importait `toast` depuis `@/hooks/use-toast` (système shadcn) MAIS `<Toaster />` shadcn n'était jamais monté dans `App.tsx` (seul `<Sonner />` du package `sonner` est monté). Conséquence : **TOUS les toasts realtime étaient muets** depuis la migration partielle vers sonner (Dette 4 dans CLAUDE.md "Duplicate use-toast").
+- **L'audit User Tools avait suggéré** un fix workaround "polling React Query sur usePartnerQuotes". C'était traiter le symptôme : la realtime subscription existait déjà (`useNotifications.ts:54-92` souscrit au channel `notifications:${user.id}`), elle était juste muette.
+- **Fix appliqué** :
+  - `useNotifications.ts:5` : import migré `@/hooks/use-toast` → `sonner`
+  - `useNotifications.ts:78-83` : signature adaptée `toast({title, description})` → `toast.info(title, { description })`
+- **Bénéfice transverse (collateral benefit)** : ce fix unmute **TOUTES les notifs realtime** pour les 4 personas :
+  - Partner quote arrivals (Dette 39 strict scope)
+  - Client order status updates
+  - Message arrivals (any persona)
+  - Review request notifications
+  - Tous les inserts dans `notifications` table
+- **Audit étendu use-toast** : 3 occurrences trouvées (`toaster.tsx` shadcn component + `use-toast.ts` re-export shim + `useNotifications.ts`). Seul `useNotifications` était un caller actif. Les 2 autres = infrastructure shadcn dead code (déjà tracé en Dette 4 CLAUDE.md). **Pas de Dette 44 nécessaire**.
+- Validation : tsc 0 erreur, 615/615 tests passing, lint stable (610 = baseline).
+- Smoke test browser empirique recommandé post-merge (login partner + client demande devis → toast visible côté partner).
 
 ### 2026-05-06 (Sprint Quick Wins #2) — Dette 38 FIXED ✅
 
