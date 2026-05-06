@@ -321,6 +321,27 @@ Cette dette est aggravante de la Dette 24.
 **Priorité** : Niveau 3 (quick win)
 **Statut** : à fixer
 
+### Dette 43 — Drift prevention process à renforcer
+
+**Origine** : recon Dette 38 (2026-05-06)
+**Description** : la migration `20260411100000_restrict_user_profiles_self_update.sql` a été créée le 2026-04-11 dans le repo mais **jamais appliquée à la DB**. Le frontend a été câblé à `supabase.rpc("update_own_profile", ...)` qui n'existait pas en DB. Les erreurs étaient catchées silencieusement (`} catch { /* keep editing mode open on failure */ }`), donnant à l'utilisateur l'illusion que ses modifications étaient sauvegardées. **Bug silencieux en prod pendant ~3 semaines.**
+
+**Cause root** : les guidelines CLAUDE.md (drift prevention strict, file BEFORE apply) ont été suivies lors d'autres chantiers (cf. Dette 18, 19, 26) mais visiblement pas systématiquement. La revue de code locale ne détecte pas ce type de drift car le fichier de migration EXISTE en repo (passe la review), mais le `mcp__supabase__list_migrations` n'est pas vérifié.
+
+**Fix process à mettre en place** :
+1. **Pre-commit hook** : avant tout commit qui ajoute `supabase/migrations/*.sql`, exiger soit (a) preuve `mcp__supabase__apply_migration` réussie via présence dans `list_migrations`, soit (b) note explicite "DB apply pending" dans le commit message.
+2. **Audit régulier** : à chaque session significative, comparer `ls supabase/migrations/` ↔ `list_migrations` et reporter le delta.
+3. **Frontend defensive** : pour tout RPC nouvellement référencé côté frontend, ajouter un test ou warning runtime qui détecte si le RPC est `undefined`/`not found` plutôt que silent fail.
+4. **Update CLAUDE.md** : ajouter une section explicite "Drift prevention checklist" avec ces 3 actions.
+
+**Risque non-fix** : prochains drifts silencieux invisibles aux tests, prod cassée pendant des semaines avant détection user.
+
+**Effort estimé** : 0.5-1 j (process + 1 commit CLAUDE.md update + 1 helper frontend optionnel)
+
+**Priorité** : Niveau 2 (process critique pour la santé long-terme du projet)
+
+**Statut** : à fixer (process improvement, pas urgent)
+
 ### Dette 42 — BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase residue
 
 **Origine** : recon Dette 37 (2026-05-06)
@@ -568,7 +589,9 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | **40** | **Partner public profile preview** | **3** | **0.5j** | **À fixer** | - |
 | **41** | **Tracking number client copy/deeplink** | **3** | **0.5j** | **À fixer** | - |
 | 37 | Lowercase categories partner-side | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
+| 38 | Client profile non-editable | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | **42** | **BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase** | **3** | **0.2j** | **À fixer** | - |
+| **43** | **Drift prevention process à renforcer** | **2** | **0.5-1j** | **À fixer** | - |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |
@@ -755,6 +778,18 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 (Sprint Quick Wins #2) — Dette 38 FIXED ✅
+
+Client profile editing wired + drift incident closed.
+
+- **Drift incident résolu** : la migration `20260411100000_restrict_user_profiles_self_update.sql` était présente en repo depuis le 11 avril mais jamais appliquée à la DB. Frontend appelait un RPC inexistant (`update_own_profile`) avec catch silencieux → 3 semaines de bug invisible. Migration appliquée via MCP avec REVOKE/GRANT ajoutés.
+- **RPC étendu** : nouvelle migration `20260506230022_dette_38_extend_update_own_profile.sql` étend `update_own_profile` de 4 → 7 params (ajout `siren`, `country`, `country_code`). DROP de la version 4-param + CREATE 7-param + REVOKE/GRANT proper. DO block validation embarqué.
+- **`lib/countries.ts` étendu** : un fichier `lib/countries.ts` existait déjà (16 entrées EN). Étendu avec labels FR (`name_fr`) pour servir partner ET client en single source of truth. PartnerProfileForm refactoré pour importer depuis `lib/countries.ts` au lieu de la liste hardcodée locale.
+- **`ClientSettingsSection`** : 3 nouveaux fields éditables (siren input + country `<select>` SUPPORTED_COUNTRIES + country_code auto-dérivé). Error handling **substantiellement amélioré** : silent fail remplacé par `toast.error(err.message)` + `console.error` + log. Plus de bug silencieux possible.
+- **types.ts régénéré** : nouveau RPC visible avec ses 7 params.
+- **Dette 43 capturée** (Niveau 2) : drift prevention process à renforcer (pre-commit hook + audit régulier + frontend defensive + CLAUDE.md update).
+- Validation : tsc 0 erreur, 615/615 tests passing, lint stable (610 warnings = baseline).
 
 ### 2026-05-06 (Sprint Quick Wins #1) — Dette 37 FIXED ✅
 

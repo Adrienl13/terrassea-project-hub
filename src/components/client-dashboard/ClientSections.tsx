@@ -11,6 +11,7 @@ import {
 } from "@/hooks/useClientDashboard";
 import { useFavouritePartners, useFavouriteArchitects } from "@/hooks/useFavouritesDB";
 import { signQuoteRequest } from "@/lib/quoteDocuments";
+import { SUPPORTED_COUNTRIES, countryCode } from "@/lib/countries";
 
 const QuotePdfViewer = lazy(() => import("@/components/quotes/QuotePdfViewer"));
 const QuoteRecapCard = lazy(() => import("@/components/quotes/QuoteRecapCard"));
@@ -1928,9 +1929,20 @@ export function ClientSettingsSection({ profile }: { profile: any }) {
     last_name: profile.last_name || "",
     company: profile.company || "",
     phone: profile.phone || "",
+    siren: profile.siren || "",
+    country: profile.country || "",
   });
 
-  const editableKeys = new Set(["first_name", "last_name", "company", "phone"]);
+  // Dette 38 (2026-05-06) : extended editable fields with siren + country
+  // (country_code is auto-derived from country selection at save).
+  const editableKeys = new Set([
+    "first_name",
+    "last_name",
+    "company",
+    "phone",
+    "siren",
+    "country",
+  ]);
 
   const handleCancel = () => {
     setForm({
@@ -1938,6 +1950,8 @@ export function ClientSettingsSection({ profile }: { profile: any }) {
       last_name: profile.last_name || "",
       company: profile.company || "",
       phone: profile.phone || "",
+      siren: profile.siren || "",
+      country: profile.country || "",
     });
     setEditing(false);
   };
@@ -1945,17 +1959,32 @@ export function ClientSettingsSection({ profile }: { profile: any }) {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Auto-derive country_code from country selection (lib/countries.ts).
+      const derivedCode = form.country ? countryCode(form.country) ?? null : null;
       const { error } = await supabase.rpc("update_own_profile", {
-        p_first_name: form.first_name || null,
-        p_last_name: form.last_name || null,
-        p_company: form.company || null,
-        p_phone: form.phone || null,
+        p_first_name:   form.first_name || null,
+        p_last_name:    form.last_name || null,
+        p_company:      form.company || null,
+        p_phone:        form.phone || null,
+        p_siren:        form.siren || null,
+        p_country:      form.country || null,
+        p_country_code: derivedCode,
       });
       if (error) throw error;
       await refreshProfile();
+      toast.success(t("cd.settings.saveSuccess", { defaultValue: "Profil mis à jour" }));
       setEditing(false);
-    } catch {
-      // keep editing mode open on failure
+    } catch (err: any) {
+      // Dette 38 fix : no more silent fail. Surface the error to the user so
+      // they know their changes weren't persisted (the previous catch{} block
+      // hid the bug for 3 weeks while update_own_profile didn't even exist
+      // in DB — drift incident captured as Dette 43).
+      console.error("update_own_profile failed:", err);
+      toast.error(
+        err?.message ||
+          t("cd.settings.saveError", { defaultValue: "Échec de la sauvegarde. Réessayez." }),
+      );
+      // Keep editing mode open so the user can retry.
     } finally {
       setSaving(false);
     }
@@ -1967,9 +1996,9 @@ export function ClientSettingsSection({ profile }: { profile: any }) {
     { label: t("cd.settings.firstName"), key: "first_name", value: editing ? form.first_name : (profile.first_name || "") },
     { label: t("cd.settings.lastName"), key: "last_name", value: editing ? form.last_name : (profile.last_name || "") },
     { label: t("cd.settings.company"), key: "company", value: editing ? form.company : (profile.company || "") },
-    { label: t("cd.settings.siren"), key: "siren", value: profile.siren || "" },
+    { label: t("cd.settings.siren"), key: "siren", value: editing ? form.siren : (profile.siren || "") },
     { label: t("cd.settings.phone"), key: "phone", value: editing ? form.phone : (profile.phone || "") },
-    { label: t("cd.settings.country"), key: "country", value: profile.country || "" },
+    { label: t("cd.settings.country"), key: "country", value: editing ? form.country : (profile.country || "") },
     { label: t("cd.settings.accountType"), key: "accountType", value: profile.user_type || "" },
   ].filter(({ value, key }) => value || (editing && editableKeys.has(key)));
 
@@ -2011,11 +2040,24 @@ export function ClientSettingsSection({ profile }: { profile: any }) {
           <div key={key}>
             <p className="text-[9px] font-display font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
             {editing && editableKeys.has(key) ? (
-              <input
-                value={(form as any)[key] || ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
-                className="w-full text-sm font-body text-foreground mt-0.5 bg-transparent border-b border-border outline-none focus:border-foreground transition-colors py-0.5"
-              />
+              key === "country" ? (
+                <select
+                  value={(form as any)[key] || ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="w-full text-sm font-body text-foreground mt-0.5 bg-transparent border-b border-border outline-none focus:border-foreground transition-colors py-0.5"
+                >
+                  <option value="">—</option>
+                  {SUPPORTED_COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.name_fr}>{c.name_fr}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  value={(form as any)[key] || ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="w-full text-sm font-body text-foreground mt-0.5 bg-transparent border-b border-border outline-none focus:border-foreground transition-colors py-0.5"
+                />
+              )
             ) : (
               <p className="text-sm font-body text-foreground mt-0.5">{value || "—"}</p>
             )}

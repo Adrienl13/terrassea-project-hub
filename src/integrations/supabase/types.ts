@@ -5484,6 +5484,18 @@ export type Database = {
         }[]
       }
       slugify: { Args: { input: string }; Returns: string }
+      update_own_profile: {
+        Args: {
+          p_company?: string
+          p_country?: string
+          p_country_code?: string
+          p_first_name?: string
+          p_last_name?: string
+          p_phone?: string
+          p_siren?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

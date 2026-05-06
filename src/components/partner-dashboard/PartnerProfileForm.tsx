@@ -11,14 +11,12 @@ import {
 
 import { PARTNER_TYPES } from "@/lib/partnerConstants";
 import { validateImageUpload } from "@/lib/validateUpload";
+import { SUPPORTED_COUNTRIES } from "@/lib/countries";
 
-const COUNTRIES = [
-  { code: "FR", name: "France" }, { code: "IT", name: "Italie" }, { code: "ES", name: "Espagne" },
-  { code: "DE", name: "Allemagne" }, { code: "PT", name: "Portugal" }, { code: "NL", name: "Pays-Bas" },
-  { code: "BE", name: "Belgique" }, { code: "DK", name: "Danemark" }, { code: "SE", name: "Suède" },
-  { code: "GR", name: "Grèce" }, { code: "GB", name: "Royaume-Uni" }, { code: "CH", name: "Suisse" },
-  { code: "AT", name: "Autriche" }, { code: "PL", name: "Pologne" }, { code: "TR", name: "Turquie" },
-];
+// Single source of truth for countries (Dette 38 DRY, 2026-05-06). The form
+// uses French labels (UI is FR-first per CLAUDE.md), aliased here for backward
+// compat with existing code referencing { code, name }.
+const COUNTRIES = SUPPORTED_COUNTRIES.map((c) => ({ code: c.code, name: c.name_fr }));
 
 // Lowercase-kebab convention (Dette 37, 2026-05-06). Labels rendered via
 // prettyCategory() helper since not all entries have an i18n key.

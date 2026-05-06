@@ -34,3 +34,10 @@ BEGIN
   WHERE id = auth.uid();
 END;
 $$;
+
+-- 3. Restrict EXECUTE to authenticated only (anon should never call this).
+-- Aligned with Dette 18 Sprint 2 security baseline (commit 48fcd70).
+REVOKE EXECUTE ON FUNCTION public.update_own_profile(text, text, text, text)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.update_own_profile(text, text, text, text)
+  TO authenticated;
