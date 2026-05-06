@@ -33,7 +33,7 @@ const ORG_JSONLD = {
   name: SITE_NAME,
   legalName: "Pros Import EURL",
   url: BASE,
-  logo: `${BASE}/favicon.ico`,
+  logo: `${BASE}/favicon-512.png`,
   email: "contact@terrassea.com",
   foundingDate: "2025",
   founder: { "@type": "Person", name: "Adrien Laniez" },
@@ -556,13 +556,13 @@ function buildHtml(config: RouteConfig, canonicalUrl: string): string {
     <meta property="og:description" content="${config.description}" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="${canonicalUrl}" />
-    <meta property="og:image" content="${BASE}/og-image.svg" />
+    <meta property="og:image" content="${BASE}/og-image.png" />
     <meta property="og:site_name" content="${SITE_NAME}" />
     <meta property="og:locale" content="fr_FR" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${config.title}" />
     <meta name="twitter:description" content="${config.description}" />
-    <meta name="twitter:image" content="${BASE}/og-image.svg" />
+    <meta name="twitter:image" content="${BASE}/og-image.png" />
     <link rel="alternate" hreflang="fr" href="${canonicalUrl}" />
     <link rel="alternate" hreflang="en" href="${canonicalUrl}" />
     <link rel="alternate" hreflang="it" href="${canonicalUrl}" />

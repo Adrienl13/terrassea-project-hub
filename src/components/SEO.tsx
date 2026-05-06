@@ -20,7 +20,7 @@ interface SEOProps {
 const DEFAULT_TITLE = "TerrasseaHUB — B2B Outdoor Furniture for Hotels & Restaurants";
 const DEFAULT_DESCRIPTION =
   "Source outdoor furniture for restaurants, hotels, and cafés from verified European manufacturers. Chairs, tables, parasols, sun loungers. Free quotes, 9 countries, 6 languages.";
-const DEFAULT_IMAGE = "https://terrassea.com/og-image.svg";
+const DEFAULT_IMAGE = "https://terrassea.com/og-image.png";
 const SITE_NAME = "TerrasseaHUB";
 const BASE_URL = "https://terrassea.com";
 const MAX_TITLE = 70;

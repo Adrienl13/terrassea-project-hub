@@ -11,7 +11,7 @@ const organization = {
   name: "TerrasseaHUB",
   legalName: "Pros Import EURL",
   url: BASE_URL,
-  logo: `${BASE_URL}/favicon.ico`,
+  logo: `${BASE_URL}/favicon-512.png`,
   email: "contact@terrassea.com",
   foundingDate: "2025",
   founder: { "@type": "Person", name: "Adrien Laniez" },
