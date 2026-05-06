@@ -184,6 +184,70 @@ HTTP reconnu par les crawlers.
 **Fix** : vercel.json rewrites/redirects ou edge function.
 **Effort** : 30-45 min
 
+### Dette 24 — ProductForm admin déconnecté du vocabulaire 2026 et des certifications
+
+**Origine** : Audit panel admin 2026-05-06 (cf. `docs/strategy/ADMIN_PANEL_AUDIT.md`)
+**Impact** : Le ProductForm admin (inline dans `Admin.tsx` l 415-989) **n'a pas suivi les phases produit récentes** :
+- Aucun import des 6 `*SpecsSection` (vocab 2026) — les 27 colonnes critiques absentes
+- Aucun import de `ProductCertifications` (8e-2) — admin ne peut pas valider les PV
+- Pas de support `environment_urls`
+- Pas d'upload Storage (URLs textuelles seulement)
+- Utilise `ColorVariantEditor` + `DimensionVariantEditor` (`@deprecated`) au lieu de `VariantsGrid`
+
+C'est la dette racine — toutes les phases produit ont été livrées côté partner sans propagation admin.
+
+**Fix** : refonte du ProductForm admin pour brancher specs/* + ProductCertifications + VariantsGrid + upload + environment_urls. Décision sous-jacente à trancher : composant `ProductEditForm` partagé entre admin et partner ?
+**Risque non-fix** : impossibilité de modérer/corriger les nouvelles features côté admin. Divergence structurelle qui s'aggrave à chaque chantier produit.
+**Effort** : 2-3 j
+
+### Dette 25 — Certifications absentes du panel admin
+
+**Origine** : Audit panel admin 2026-05-06
+**Impact** : Ni `AdminPartners` (drawer édition) ni `AdminBrandManagement` (vue détail brand) n'exposent les certifications partenaire/marque. L'admin ne peut ni voir ni modérer les certifs déposées par les partenaires (M1 Feu, FSC, IMO marine, etc.).
+**Fix** : ajouter `<PartnerCertifications partnerId={...} />` dans le drawer `AdminPartners` et dans la vue brand de `AdminBrandManagement`. Composant déjà existant côté partner, juste à brancher.
+**Risque non-fix** : perte de contrôle qualité (un partner peut uploader un faux certificat sans review possible côté admin).
+**Effort** : 0.5-1 j
+
+### Dette 26 — Catégories produits encore en CamelCase côté admin
+
+**Origine** : Audit panel admin 2026-05-06
+**Impact** : `Admin.tsx` l 55-59 hardcode `["Chairs", "Armchairs", "Tables", …]` (capitalisé) alors que le partner et le filtrage front utilisent les slugs lowercase-kebab (`chairs`, `armchairs`, `tables`). **Conséquence concrète** : un produit créé via l'admin a `category="Chairs"` (capitalisé) qui ne matchera ni les filtres front ni les specs sub-components.
+
+Cette dette est aggravante de la Dette 24.
+**Fix** : migrer la liste `CATEGORIES` vers les slugs lowercase-kebab + appeler `categoryNormalizer` au save.
+**Risque non-fix** : produits admin invisibles ou mal classés sur le catalogue public. Quality issue déjà silencieuse.
+**Effort** : 0.5 j (avec QA car changement de données stocké).
+
+### Dette 27 — VariantsGrid pas branché côté admin
+
+**Origine** : Audit panel admin 2026-05-06
+**Impact** : `ColorVariantEditor.tsx` (178 l) et `DimensionVariantEditor.tsx` (287 l) sont **explicitement marqués `@deprecated`** dans leur header, mais toujours utilisés côté admin. Risque concret : un partner crée des variantes Modèle B riches via `VariantsGrid` (rows `product_variants`), puis un admin sauvegarde le produit via le ProductForm admin → écrasement des `color_variants` jsonb qui désynchronisent les rows `product_variants`.
+**Fix** : brancher `VariantsGrid` admin-side, supprimer les 2 fichiers `@deprecated` après migration.
+**Risque non-fix** : corruption silencieuse des variantes Modèle B chaque fois qu'un admin édite un produit.
+**Effort** : 1 j
+
+### Dette 28 — environment_urls oubliés admin-side
+
+**Origine** : Audit panel admin 2026-05-06
+**Impact** : Le ProductForm admin initialise `environment_urls` à `[]` (l 93) mais **aucune UI** dans le formulaire pour les voir/éditer. Un admin ne peut ni inspecter ni corriger les ambiances visuelles uploadées par un partner.
+**Fix** : ajouter input/upload `environment_urls` dans le ProductForm admin (réutiliser le composant gallery du partner, ou textarea simple).
+**Effort** : 0.5 j
+
+### Dette 29 — Pas d'upload Supabase Storage côté admin
+
+**Origine** : Audit panel admin 2026-05-06
+**Impact** : Le ProductForm admin n'accepte que des **URLs textuelles** (input simple pour image principale, textarea CSV pour gallery). Pour les produits Terrassea internes (catalogue non-partner), l'admin doit uploader manuellement via Dashboard Supabase puis coller les URLs.
+**Fix** : implémenter upload (drag-drop ou file input) avec `validateImageUpload` + bucket `product-images`. Réutiliser le composant `PhotoGalleryManager` du partner ou simplifier.
+**Effort** : 0.5-1 j
+
+### Dette 30 — `ApplicationsTab` toujours inline dans Admin.tsx
+
+**Origine** : Audit panel admin 2026-05-06
+**Impact** : 337 lignes inline dans `Admin.tsx` (l 1583-1920) alors que la convention est un fichier dédié `admin/AdminXxx.tsx`. Aggrave la maintenabilité du fichier `Admin.tsx` (déjà 2355 l).
+**Fix** : extraire en `src/components/admin/AdminApplications.tsx`. Refactor mécanique.
+**Risque non-fix** : cosmétique — prolonge la dette de monolithisation d'`Admin.tsx`.
+**Effort** : 0.2 j
+
 ### Dette 16 — Erreur 400 product_reviews
 
 **Origine** : Découverte 2026-05-05 lors de validation browser post-Dette 10
@@ -319,6 +383,13 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | 16 | 400 product_reviews | 2 | 30min-1h | À fixer | - |
 | 17 | 400 partners | 2 | 30min-1h | À fixer | - |
 | 18 | 61 advisors warnings | 2 | 0.5-1j | **FIXED ✅** | **2026-05-06** (3 sprints) |
+| **24** | **ProductForm admin déconnecté vocab 2026 + certifs** | **1** | **2-3j** | **À fixer** | - |
+| **25** | **Certifications absentes panel admin** | **2** | **0.5-1j** | **À fixer** | - |
+| **26** | **Catégories CamelCase admin** | **1** | **0.5j** | **À fixer** | - |
+| **27** | **VariantsGrid pas branché admin** | **1** | **1j** | **À fixer** | - |
+| **28** | **environment_urls oubliés admin** | **2** | **0.5j** | **À fixer** | - |
+| **29** | **Pas d'upload Storage admin** | **2** | **0.5-1j** | **À fixer** | - |
+| **30** | **ApplicationsTab inline Admin.tsx** | **3** | **0.2j** | **À fixer** | - |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |
@@ -505,6 +576,15 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 — Audit panel admin (7 nouvelles dettes 24-30)
+
+- Audit complet des 24 sections admin + comparaison avec partner-dashboard
+- Document détaillé : `docs/strategy/ADMIN_PANEL_AUDIT.md` (inventaire + patterns + gaps + roadmap 3 phases)
+- Constat racine : **l'admin est en retard d'une phase produit complète** (8e-1, 8e-2, vocab 2026, Modèle B variants livrés côté partner sans propagation admin)
+- 7 dettes ajoutées au tracking : Dette 24 (vocab+certifs ProductForm), 25 (certifs absentes admin), 26 (CamelCase), 27 (VariantsGrid), 28 (environment_urls), 29 (upload Storage), 30 (ApplicationsTab inline)
+- Effort total estimé : 5-9.5 j sur 3 phases (A quick wins 1-1.5j, B alignement 2-3j, C refonte profonde 3-5j optionnelle)
+- **Recommandation transverse** : ajouter à la Definition of Done que toute nouvelle feature produit doit être disponible et éditable des 2 surfaces (partner + admin) ou explicitement justifiée comme partner-only
 
 ### 2026-05-06 — Dette 19 Phase 2B.1 delivered
 
