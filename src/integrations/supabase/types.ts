@@ -5270,6 +5270,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_order_notification_to_client: {
+        Args: {
+          p_body?: string
+          p_link?: string
+          p_order_id: string
+          p_title: string
+          p_type: string
+        }
+        Returns: string
+      }
       create_quote_notification_to_admins: {
         Args: {
           p_body?: string
@@ -5484,6 +5494,16 @@ export type Database = {
         }[]
       }
       slugify: { Args: { input: string }; Returns: string }
+      update_order_as_partner: {
+        Args: {
+          p_order_id: string
+          p_shipping_carrier?: string
+          p_status?: string
+          p_tracking_number?: string
+          p_tracking_url?: string
+        }
+        Returns: Json
+      }
       update_own_profile: {
         Args: {
           p_company?: string

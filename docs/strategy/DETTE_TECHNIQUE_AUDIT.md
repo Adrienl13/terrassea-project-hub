@@ -14,7 +14,15 @@ long-terme
 **Risque non-fix** : promesse plateforme cassée pour partners payants — friction acquisition + retention.
 **Effort** : 2-4 j
 **Priorité** : Niveau 1 (top BLOQUANT identifié dans l'audit user-tools)
-**Statut** : à fixer
+**Statut FIXED 2026-05-06 (Chantier Σ1)** : end-to-end partner-side orders. Architecture mono-partner confirmée (1 order = 1 partner = 1 product). RLS SELECT préexistante OK. 2 RPCs SECURITY DEFINER créés via migration `20260506232545_dette_33_partner_orders_rpcs.sql` :
+- `update_order_as_partner(p_order_id, p_status, p_tracking_number, p_tracking_url, p_shipping_carrier)` — partner-owner check, whitelist 6 colonnes, status workflow strict (deposit_paid → in_production → shipped → delivered avec tracking_number requis pour shipped), auto-timestamps, audit `order_events`
+- `create_order_notification_to_client(p_order_id, p_type, p_title, p_body, p_link)` — pattern P3.O1 anticipant Phase 2B.2 Dette 19, 1 callsite éliminé proactivement
+- Hook `src/hooks/usePartnerOrders.ts` (orders query + updateOrder mutation + notifyClient mutation + useOrderEvents)
+- Composant `src/components/partner-dashboard/PartnerOrdersSection.tsx` (~470 lignes, 5 sous-sections detail Sheet)
+- Intégration `Account.tsx` : entrée nav `orders` entre `quotes` et `messages` (NAV_PARTNER_BASE), case switch standard partner
+- i18n key `account.orders` déjà existante dans 4 locales — réutilisée
+- Empirical tests : anon refused ✅, authenticated EXECUTE ✅. Tests transitions/tracking non-empiriques (DB 0 orders) — à valider post-merge avec vraie order.
+- Smoke test browser : empty state propre confirmé. 2 nouvelles dettes capturées en sous-produit (44 WebSocket realtime, 45 Supabase 400 errors).
 
 ### Dette 9 — Transactionnel approveAsNew
 
@@ -342,6 +350,45 @@ Cette dette est aggravante de la Dette 24.
 
 **Statut** : à fixer (process improvement, pas urgent)
 
+### Dette 44 — WebSocket realtime connection failed
+
+**Origine** : Smoke test Dette 33 (2026-05-06 23:38)
+
+**Description** : Console browser montre `WebSocket connection to wss://gwgcfgeouropcighpztj.supabase.co/realtime/v1/websocket failed: WebSocket is closed before the connection is established`. Potentiellement lié à Dette 39 (notifications realtime fix livrée plus tôt ce soir, commit 11fe166), OU bug préexistant non détecté.
+
+**Investigation nécessaire** :
+- Reproduire en mode incognito clean
+- Vérifier si présent avant commit 11fe166 (test git stash)
+- Vérifier réseau / firewall local
+- Vérifier si la subscription `useNotifications.ts:54-92` fonctionne malgré ce warning (les toasts arrivent-ils ?)
+
+**Effort estimé** : 0.3-0.5 j (investigation + fix éventuel)
+
+**Priorité** : Niveau 2 (impact silencieux notifications realtime)
+
+**Statut** : à investiguer
+
+### Dette 45 — Supabase 400 errors residual
+
+**Origine** : Smoke test Dette 33 (2026-05-06 23:38)
+
+**Description** : Console browser montre 2 erreurs 400 sur des ressources Supabase :
+- `/rest/v1/*` with query `d=at.de`
+- `/rest/v1/*` with query `d=is.nu`
+
+Probablement queries Supabase qui retournent 400 (Bad Request).
+
+**Investigation nécessaire** :
+- Network tab pour identifier les URL exactes
+- Vérifier si lié aux Dettes 16/17 existantes (déjà documentées sur 400 errors) ou nouveau bug
+- Peut-être doublon — à clarifier avant fix
+
+**Effort estimé** : 0.3-0.5 j
+
+**Priorité** : Niveau 2
+
+**Statut** : à investiguer
+
 ### Dette 42 — BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase residue
 
 **Origine** : recon Dette 37 (2026-05-06)
@@ -591,8 +638,11 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | 37 | Lowercase categories partner-side | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | 38 | Client profile non-editable | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | 39 | Partner notif arrivée devis | 3 | 0.5j | **FIXED ✅** | **2026-05-06** |
+| 33 | PartnerOrders section absente ★ | 1 | 2-4j | **FIXED ✅** | **2026-05-06** (Chantier Σ1) |
 | **42** | **BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase** | **3** | **0.2j** | **À fixer** | - |
 | **43** | **Drift prevention process à renforcer** | **2** | **0.5-1j** | **À fixer** | - |
+| **44** | **WebSocket realtime connection failed** | **2** | **0.3-0.5j** | **À investiguer** | - |
+| **45** | **Supabase 400 errors residual** | **2** | **0.3-0.5j** | **À investiguer** | - |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |

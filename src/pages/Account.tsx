@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox, Clock,
-  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag, Lock, ArrowRight, Image as ImageIcon, ShieldCheck,
+  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag, Lock, ArrowRight, Image as ImageIcon, ShieldCheck, ShoppingBag,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,6 +60,7 @@ import PartnerLoyaltyProgram from "@/components/partner-dashboard/PartnerLoyalty
 import PartnerArrivalsSection from "@/components/partner-dashboard/PartnerArrivalsSection";
 import UpgradeSuggestion from "@/components/partner-dashboard/UpgradeSuggestion";
 import PartnerProfileForm from "@/components/partner-dashboard/PartnerProfileForm";
+import PartnerOrdersSection from "@/components/partner-dashboard/PartnerOrdersSection";
 import BrandBriefInbox from "@/components/partner-dashboard/BrandBriefInbox";
 import BrandCollectionManager from "@/components/partner-dashboard/BrandCollectionManager";
 import BrandReferencesManager from "@/components/partner-dashboard/BrandReferencesManager";
@@ -161,6 +162,7 @@ const NAV_CLIENT = [
 const NAV_PARTNER_BASE = [
   { id: "overview",     icon: LayoutDashboard, labelKey: "account.overview" },
   { id: "quotes",       icon: Inbox,           labelKey: "account.quoteRequests" },
+  { id: "orders",       icon: ShoppingBag,     labelKey: "account.orders" },
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "catalogue",    icon: Package,         labelKey: "account.catalogue" },
   { id: "certifications", icon: ShieldCheck,   labelKey: "account.certifications" },
@@ -697,6 +699,7 @@ const Account = () => {
         switch (section) {
           case "overview":    return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
           case "quotes":      return <PartnerQuotesSection plan={partnerPlan} />;
+          case "orders":      return <PartnerOrdersSection />;
           case "messages":    return <PartnerMessagesSection />;
           case "catalogue":   return <><PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />{partnerId && <PartnerSubmissionFeedbackSection partnerId={partnerId} />}</>;
           case "certifications": return partnerId ? <PartnerCertifications partnerId={partnerId} /> : null;
