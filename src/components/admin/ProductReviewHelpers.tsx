@@ -174,12 +174,12 @@ export function FeedbackForm({ submissionId, partnerId, onSent }: { submissionId
       // Resolve partner table ID to auth user_id for notification
       const { data: partnerRow } = await supabase.from("partners").select("user_id").eq("id", partnerId).maybeSingle();
       if (partnerRow?.user_id) {
-        await supabase.from("notifications").insert({
-          user_id: partnerRow.user_id,
-          title: "Retour sur votre soumission produit",
-          body: feedback.general_comment || "Un administrateur a examiné votre soumission. Consultez le retour.",
-          type: "product_feedback",
-          link: "/account?section=catalogue",
+        await supabase.rpc("create_admin_notification", {
+          p_user_id: partnerRow.user_id,
+          p_type: "product_feedback",
+          p_title: "Retour sur votre soumission produit",
+          p_body: feedback.general_comment || "Un administrateur a examiné votre soumission. Consultez le retour.",
+          p_link: "/account?section=catalogue",
         });
       }
 

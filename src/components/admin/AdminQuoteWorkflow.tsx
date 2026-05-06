@@ -155,7 +155,13 @@ export default function AdminQuoteWorkflow() {
   const notifyUser = async (email: string, title: string, body: string, link: string) => {
     const { data: profile } = await supabase.from("user_profiles").select("id").eq("email", email).maybeSingle();
     if (profile) {
-      await supabase.from("notifications").insert({ user_id: profile.id, title, body, type: "info", link });
+      await supabase.rpc("create_admin_notification", {
+        p_user_id: profile.id,
+        p_type: "info",
+        p_title: title,
+        p_body: body,
+        p_link: link,
+      });
     }
   };
 
@@ -216,12 +222,12 @@ export default function AdminQuoteWorkflow() {
 
         // Insert in-app notification
         if (profile?.id) {
-          await supabase.from("notifications").insert({
-            user_id: profile.id,
-            title: t("adminQuotes.notifNewQuoteTitle"),
-            body: t("adminQuotes.notifNewQuoteBody"),
-            type: "quote_assigned",
-            link: "/partner/quotes",
+          await supabase.rpc("create_admin_notification", {
+            p_user_id: profile.id,
+            p_type: "quote_assigned",
+            p_title: t("adminQuotes.notifNewQuoteTitle"),
+            p_body: t("adminQuotes.notifNewQuoteBody"),
+            p_link: "/partner/quotes",
           });
         }
 

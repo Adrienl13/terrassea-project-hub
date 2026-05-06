@@ -1126,12 +1126,12 @@ function ProductsTab() {
           const body = newStatus === "published"
             ? `Votre produit ${product.name} a été publié`
             : `Votre produit ${product.name} a été rejeté`;
-          await supabase.from("notifications").insert({
-            user_id: partnerRow.user_id,
-            title: newStatus === "published" ? "Produit publié" : "Produit rejeté",
-            body,
-            type: "info",
-            link: "/account?tab=products",
+          await supabase.rpc("create_admin_notification", {
+            p_user_id: partnerRow.user_id,
+            p_type: "info",
+            p_title: newStatus === "published" ? "Produit publié" : "Produit rejeté",
+            p_body: body,
+            p_link: "/account?tab=products",
           });
         }
       }

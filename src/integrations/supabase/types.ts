@@ -1388,6 +1388,7 @@ export type Database = {
           id: string
           link: string | null
           read_at: string | null
+          sender_user_id: string | null
           title: string
           type: string
           user_id: string
@@ -1398,6 +1399,7 @@ export type Database = {
           id?: string
           link?: string | null
           read_at?: string | null
+          sender_user_id?: string | null
           title: string
           type?: string
           user_id: string
@@ -1408,6 +1410,7 @@ export type Database = {
           id?: string
           link?: string | null
           read_at?: string | null
+          sender_user_id?: string | null
           title?: string
           type?: string
           user_id?: string
@@ -5218,6 +5221,16 @@ export type Database = {
       }
     }
     Functions: {
+      create_admin_notification: {
+        Args: {
+          p_body?: string
+          p_link?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       create_notification: {
         Args: {
           p_body: string
@@ -5227,6 +5240,15 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      create_self_notification: {
+        Args: {
+          p_body?: string
+          p_link?: string
+          p_title: string
+          p_type: string
+        }
+        Returns: string
       }
       expire_overdue_quotes: { Args: never; Returns: number }
       fuzzy_search_products: {

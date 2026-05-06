@@ -83,7 +83,22 @@ Le métier nécessite cross-user inserts légitimes (admin→partner, partner→
 
 **Effort recommandé** : Option B (RPC SECURITY DEFINER) en session dédiée 1-2h après recensement précis des cas d'usage cross-user.
 
-**Statut** : à fixer en session dédiée.
+**Statut 2026-05-06 (Phase 2A delivered)** :
+- 2 RPCs SECURITY DEFINER créés : `create_self_notification` (P1 future-proof) et `create_admin_notification` (P2 admin → user)
+- Colonne `sender_user_id` ajoutée pour audit logging (FK auth.users ON DELETE SET NULL)
+- 14 callsites P2 refactorés vers `create_admin_notification` (8 fichiers : AdminQuoteWorkflow, ProductReviewHelpers, AdminFinancing, AdminOrderTracking, AdminMessages, AdminPartners, Admin, usePaymentFlow). Les 2 bulk inserts (AdminOrderTracking, AdminMessages) utilisent une boucle de RPC.
+- ~50 % de la surface d'attaque cross-user fermée
+- RLS tightening (DROP permissive INSERT policy) reporté à Phase 2A.2 final, après livraison Phase 2B
+- 16 callsites P3 cross-user reportés à Phase 2B (ClientSections re-classifiés : 2 → quote-related)
+
+**Roadmap Phase 2B** (16 P3 callsites, ~4-6h sur plusieurs sessions) :
+- Phase 2B.1 — Quote-related (5 callsites) : `QuoteRequestModal` (2), `usePartnerQuotes` (1), `ProjectCart` (2 — quote acceptation/signature flow), `ClientSections` (2 — re-classifiés)
+- Phase 2B.2 — Order-related (callsites depuis triggers DB déjà SECURITY DEFINER, peu de frontend)
+- Phase 2B.3 — Brief-related (2 callsites) : `ProjectBriefModal`, `ProServiceClientHub`
+- Phase 2B.4 — Partner-application (3 callsites) : `BecomePartner`, `PartnerProfileForm`, `PartnerCatalogueSection`
+- Phase 2B.5 — Financing (1 callsite) : `FinancingRequestModal`
+- Phase 2B.6 — Product approval (1 callsite) : `useProductSubmissions`
+- Phase 2B.final — RLS tightening : DROP permissive INSERT policy, CREATE restrictive `WITH CHECK (user_id = auth.uid() OR is_admin())`
 
 ## Niveau 2 — Importantes (fix dans le mois)
 
@@ -439,6 +454,17 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 — Dette 19 Phase 2A delivered
+
+- 2 RPCs SECURITY DEFINER créés : `create_self_notification` (P1 future-proof, no current caller) et `create_admin_notification` (P2 admin → user, with `is_admin()` check)
+- Colonne `sender_user_id` ajoutée à `notifications` (FK auth.users, audit logging)
+- 14 callsites P2 refactorés frontend → RPC (8 fichiers admin/* + usePaymentFlow). Les 2 bulk inserts utilisent une boucle (admins ≤ 5, ou utilisateurs si "all")
+- types.ts régénéré (sender_user_id column + 2 RPCs visibles)
+- Validation : DO block embarqué + has_function_privilege checks (anon=false, authenticated=true sur les 2 RPCs)
+- ~50 % surface d'attaque cross-user fermée
+- 16 callsites P3 reportés Phase 2B (roadmap dans Dette 19)
+- RLS tightening reporté Phase 2A.2 final
 
 ### 2026-05-06 — Dette 18 sprint 3 COMPLETED ✅
 

@@ -241,7 +241,13 @@ export default function AdminPartners() {
     if (!contactEmail) return;
     const { data: partnerUser } = await supabase.from("user_profiles").select("id").eq("email", contactEmail).maybeSingle();
     if (partnerUser) {
-      await supabase.from("notifications").insert({ user_id: partnerUser.id, title, body, type: "info", link: "/account" });
+      await supabase.rpc("create_admin_notification", {
+        p_user_id: partnerUser.id,
+        p_type: "info",
+        p_title: title,
+        p_body: body,
+        p_link: "/account",
+      });
     }
   };
 

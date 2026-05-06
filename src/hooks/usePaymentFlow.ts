@@ -251,12 +251,12 @@ export function usePaymentFlow() {
 
       // 7. Create in-app notification for the client
       if (clientUserId) {
-        await supabase.from("notifications").insert({
-          user_id: clientUserId,
-          title: "Order created",
-          body: `Your order for ${quote.product_name} has been created. Please proceed with the deposit payment.`,
-          type: "order_update",
-          link: `/account?tab=orders`,
+        await supabase.rpc("create_admin_notification", {
+          p_user_id: clientUserId,
+          p_type: "order_update",
+          p_title: "Order created",
+          p_body: `Your order for ${quote.product_name} has been created. Please proceed with the deposit payment.`,
+          p_link: `/account?tab=orders`,
         });
       }
 
@@ -270,12 +270,12 @@ export function usePaymentFlow() {
           .maybeSingle();
 
         if (partnerProfile?.id) {
-          await supabase.from("notifications").insert({
-            user_id: partnerProfile.id,
-            title: "Devis accepté — commande créée",
-            body: `Votre devis pour ${quote.product_name} (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté. Une commande a été créée.`,
-            type: "order_update",
-            link: `/account?tab=quotes`,
+          await supabase.rpc("create_admin_notification", {
+            p_user_id: partnerProfile.id,
+            p_type: "order_update",
+            p_title: "Devis accepté — commande créée",
+            p_body: `Votre devis pour ${quote.product_name} (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté. Une commande a été créée.`,
+            p_link: `/account?tab=quotes`,
           });
         }
 
@@ -339,12 +339,12 @@ export function usePaymentFlow() {
         .single();
 
       if (order?.client_user_id) {
-        await supabase.from("notifications").insert({
-          user_id: order.client_user_id,
-          title: "Deposit confirmed",
-          body: `Your deposit for ${order.product_name} has been confirmed. Production is starting.`,
-          type: "order_update",
-          link: `/account?tab=orders`,
+        await supabase.rpc("create_admin_notification", {
+          p_user_id: order.client_user_id,
+          p_type: "order_update",
+          p_title: "Deposit confirmed",
+          p_body: `Your deposit for ${order.product_name} has been confirmed. Production is starting.`,
+          p_link: `/account?tab=orders`,
         });
       }
     },
@@ -388,12 +388,12 @@ export function usePaymentFlow() {
         .single();
 
       if (order?.client_user_id) {
-        await supabase.from("notifications").insert({
-          user_id: order.client_user_id,
-          title: "Balance payment confirmed",
-          body: `Your balance payment for ${order.product_name} has been confirmed. Your order is fully paid.`,
-          type: "order_update",
-          link: `/account?tab=orders`,
+        await supabase.rpc("create_admin_notification", {
+          p_user_id: order.client_user_id,
+          p_type: "order_update",
+          p_title: "Balance payment confirmed",
+          p_body: `Your balance payment for ${order.product_name} has been confirmed. Your order is fully paid.`,
+          p_link: `/account?tab=orders`,
         });
       }
     },

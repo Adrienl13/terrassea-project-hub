@@ -88,7 +88,13 @@ export default function AdminOrderTracking() {
   const notifyUser = async (email: string, title: string, body: string, link: string) => {
     const { data: profile } = await supabase.from("user_profiles").select("id").eq("email", email).maybeSingle();
     if (profile) {
-      await supabase.from("notifications").insert({ user_id: profile.id, title, body, type: "info", link });
+      await supabase.rpc("create_admin_notification", {
+        p_user_id: profile.id,
+        p_type: "info",
+        p_title: title,
+        p_body: body,
+        p_link: link,
+      });
     }
   };
 
@@ -159,12 +165,12 @@ export default function AdminOrderTracking() {
                 : { data: null };
 
               if (partnerProfile?.id) {
-                await supabase.from("notifications").insert({
-                  user_id: partnerProfile.id,
-                  title: "Plan mis \u00e0 niveau automatiquement",
-                  body: "F\u00e9licitations ! Votre plan a \u00e9t\u00e9 automatiquement mis \u00e0 niveau vers Growth suite \u00e0 vos 3 premi\u00e8res commandes.",
-                  type: "info",
-                  link: "/account?tab=subscription",
+                await supabase.rpc("create_admin_notification", {
+                  p_user_id: partnerProfile.id,
+                  p_type: "info",
+                  p_title: "Plan mis \u00e0 niveau automatiquement",
+                  p_body: "F\u00e9licitations ! Votre plan a \u00e9t\u00e9 automatiquement mis \u00e0 niveau vers Growth suite \u00e0 vos 3 premi\u00e8res commandes.",
+                  p_link: "/account?tab=subscription",
                 });
               }
 
@@ -179,15 +185,15 @@ export default function AdminOrderTracking() {
                 .limit(5);
 
               if (admins && admins.length > 0) {
-                await supabase.from("notifications").insert(
-                  admins.map(admin => ({
-                    user_id: admin.id,
-                    title: "Auto-migration partenaire",
-                    body: `${partner.name} a \u00e9t\u00e9 automatiquement migr\u00e9 vers le plan Growth apr\u00e8s ${count} commandes confirm\u00e9es.`,
-                    type: "info",
-                    link: "/admin?tab=subscriptions",
-                  }))
-                );
+                for (const admin of admins) {
+                  await supabase.rpc("create_admin_notification", {
+                    p_user_id: admin.id,
+                    p_type: "info",
+                    p_title: "Auto-migration partenaire",
+                    p_body: `${partner.name} a \u00e9t\u00e9 automatiquement migr\u00e9 vers le plan Growth apr\u00e8s ${count} commandes confirm\u00e9es.`,
+                    p_link: "/admin?tab=subscriptions",
+                  });
+                }
               }
 
               queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });

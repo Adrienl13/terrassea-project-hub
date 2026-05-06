@@ -211,16 +211,16 @@ export default function AdminMessages() {
         ? allUsers.map(u => u.id)
         : [notifData.userId];
 
-      const inserts = userIds.map(uid => ({
-        user_id: uid,
-        type: "info" as const,
-        title: notifData.title,
-        body: notifData.body || null,
-        link: notifData.link || null,
-      }));
-
-      const { error } = await supabase.from("notifications").insert(inserts);
-      if (error) throw error;
+      for (const uid of userIds) {
+        const { error } = await supabase.rpc("create_admin_notification", {
+          p_user_id: uid,
+          p_type: "info",
+          p_title: notifData.title,
+          p_body: notifData.body || null,
+          p_link: notifData.link || null,
+        });
+        if (error) throw error;
+      }
       toast.success(`Notification envoyée à ${userIds.length} utilisateur${userIds.length > 1 ? "s" : ""}`);
       setShowNotifForm(false);
       setNotifData({ userId: "", title: "", body: "", link: "" });
