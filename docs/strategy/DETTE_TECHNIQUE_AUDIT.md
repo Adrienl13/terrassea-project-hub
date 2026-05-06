@@ -358,7 +358,7 @@ Certains settings Supabase ne sont pas versionnables en SQL et doivent être con
 ### Bucket product-images : restreindre listing à authenticated
 
 **Origine** : Audit Dette 18 sprint 3 (2026-05-06)
-**Statut** : à exécuter manuellement par le founder via Supabase Dashboard SQL Editor.
+**Statut** : ✅ DONE 2026-05-06 (founder a appliqué via SQL Editor Dashboard, query "Success. No rows returned").
 
 **Pourquoi pas en migration MCP** : `storage.objects` est owned par `supabase_storage_admin`. Le rôle `postgres` utilisé par MCP ne peut pas DROP/CREATE de policies sur cette table.
 
@@ -385,9 +385,11 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
 ### auth_leaked_password_protection
 
 **Origine** : Audit Dette 18 sprint 3 (2026-05-06)
-**Statut** : à activer manuellement par le founder via Supabase Dashboard.
+**Statut** : ⚠️ DÉPEND DU PRO PLAN — feature gated, action reportée jusqu'à upgrade Supabase plan.
 
-**Procédure** :
+**Note (découverte 2026-05-06)** : tentative d'activation effectuée 2026-05-06. Le toggle n'est pas accessible sur le plan actuel. À programmer quand le projet aura besoin d'un upgrade plan (croissance utilisateurs, fonctionnalités payantes Supabase, etc.).
+
+**Procédure (post-upgrade)** :
 1. Aller sur https://supabase.com/dashboard
 2. Sélectionner le projet
 3. Aller dans Authentication → Providers → Email
