@@ -6,6 +6,16 @@ long-terme
 
 ## Niveau 1 — Critiques (fix dans les 1-2 semaines)
 
+### Dette 33 — PartnerOrders section absente (BLOQUANT)
+
+**Origine** : User Tools Audit 2026-05-06 (cf. `docs/strategy/USER_TOOLS_AUDIT.md` §3 P1)
+**Impact** : aucune UI partner pour voir/gérer les commandes générées des devis acceptés. Quand un client signe un devis → `auto-workflow` edge function crée une commande → admin la voit dans `AdminOrderTracking`, client la voit dans `ClientOrdersSection`, **partner ne voit rien**. Boucle catalogue→quote→ORDER→delivery cassée pour le partner.
+**Fix** : créer `src/components/partner-dashboard/PartnerOrdersSection.tsx`, mirror `ClientOrdersSection` côté partner, ajouter entrée nav `Account.tsx::NAV_PARTNER_BASE`. Reuse `orders` table existante.
+**Risque non-fix** : promesse plateforme cassée pour partners payants — friction acquisition + retention.
+**Effort** : 2-4 j
+**Priorité** : Niveau 1 (top BLOQUANT identifié dans l'audit user-tools)
+**Statut** : à fixer
+
 ### Dette 9 — Transactionnel approveAsNew
 
 **Origine** : ÉTAPE 7 (matérialisation variants)
@@ -240,6 +250,86 @@ Cette dette est aggravante de la Dette 24.
 **Fix** : implémenter upload (drag-drop ou file input) avec `validateImageUpload` + bucket `product-images`. Réutiliser le composant `PhotoGalleryManager` du partner ou simplifier.
 **Effort** : 0.5-1 j
 
+### Dette 34 — SignatureModal canvas non-fonctionnel (BLOQUANT légal)
+
+**Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §1 C3)
+**Impact** : `ClientSections.tsx:1479-1486` rend un placeholder "click to sign" mais `signQuoteRequest` est appelé sans capture de signature stroke. Le flux e-signature actuel est un stub. Risque contractuel si un devis signé aujourd'hui est challengé — pas d'eIDAS compliance.
+**Fix** : décision vendor (stub vs DocuSign-style provider eIDAS-compliant) puis intégration. Capture canvas signature OU délégation provider externe.
+**Risque non-fix** : risque légal sur les devis signés depuis le go-live ; conversion freinée par méfiance B2B.
+**Effort** : 2-4 j (selon vendor decision)
+**Priorité** : Niveau 1 (BLOQUANT légal)
+**Statut** : à fixer (review legal préalable)
+
+### Dette 35 — Pro Service mock data architect + partner
+
+**Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §2 A3, A7 + §3 P7, P8)
+**Impact** : `ProServiceArchitectHub.tsx` (1265 l) + `PartnerProLeadsSection.tsx` (350 l) lisent `proServiceMockData.ts` et n'utilisent PAS les vraies tables `pro_service_*` (4 tables existent). Architect supplier_calls (`supplier_calls` table) ne trouvent aucun inbox partner pour répondre. La USP architect = "we route you qualified projects" est actuellement de la démo.
+**Fix** : connecter les hubs aux vraies tables `pro_service_*`, créer un partner inbox pour `supplier_calls`, bridge architect→partner.
+**Risque non-fix** : USP architect cassée → 0 acquisition architect ; Elite plan partner injustifié (P8).
+**Effort** : >5 j
+**Priorité** : Niveau 1 (BLOQUANT acquisition architect)
+**Statut** : à fixer (Q3 2026, après décision stratégique architect-positioning)
+
+### Dette 36 — Architect tier hardcodé + notes non-persistées
+
+**Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §2 A1, A2)
+**Impact** :
+- `Account.tsx:417` `const architectTier: ArchitectTier = "atelier"` hardcodé. UI tier (rewards, perks, discount banners) basée sur cette constante. Sectionnement Studio/Atelier/Maison promis dans l'UI **non-fonctionnel**, contradiction avec CLAUDE.md "tiers non implémentés".
+- `ArchitectSections.tsx:682` project notes en `useState` local-only, jamais persisté en Supabase, évaporent au refresh.
+**Fix** : décision stratégique première — keep tier promise alive en 2026 (implémenter) OU align UI à "no SaaS" reality (remove tier UI). Puis persister project notes (ajout colonne ou table dédiée).
+**Risque non-fix** : architect overpromise dans l'UI → trust acquisition cassée ; notes perdues = friction utilisation projets.
+**Effort** : 2-4 j
+**Priorité** : Niveau 2
+**Statut** : à fixer (paired avec Dette 35)
+
+### Dette 37 — Lowercase categories partner-side
+
+**Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §3 P2)
+**Impact** : `BecomePartner.tsx:15` utilise `["chairs", "armchairs", "barStools", "benches", "diningTables"...]` (mix camelCase) ; `PartnerProfileForm.tsx:23-26` utilise CamelCase **`["Chairs", "Tables", "Parasols", ...]`**. Mismatch avec lowercase-kebab canonical → un nouveau partner ne reçoit aucun lead matché.
+**Fix** : aligner les 2 fichiers sur `CANONICAL_CATEGORIES` (cf. Dette 26 fix admin scope).
+**Risque non-fix** : friction acquisition partner directe (zero matched leads).
+**Effort** : 0.5 j
+**Priorité** : Niveau 2 (extension de Dette 32 frontend coherence)
+**Statut** : à fixer
+
+### Dette 38 — Client profile non-editable
+
+**Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §1 C1)
+**Impact** : `Account.tsx::SettingsSection` + `ClientSettingsSection` affichent profile en read-only. User ne peut pas mettre à jour name/phone/company/SIREN. Doit passer par Auth ou contacter admin.
+**Fix** : transformer la section Settings en form édit (réutiliser pattern `PartnerProfileForm`).
+**Risque non-fix** : irritant 100% des clients B2B ; confiance plateforme freinée.
+**Effort** : 0.5 j
+**Priorité** : Niveau 2
+**Statut** : à fixer
+
+### Dette 39 — Partner notif arrivée devis
+
+**Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §3 P4)
+**Impact** : aucune notif (toast top-banner, browser notif) quand un nouveau quote arrive — partner doit check manuellement. Seul le badge sidebar `pendingQuoteCount` indique.
+**Fix** : ajouter polling React Query sur `usePartnerQuotes` + trigger toast `sonner` si delta > 0 ; éventuellement Push notification API browser.
+**Risque non-fix** : conversion freinée par delayed response ; les partners qui répondent vite sont ceux qui closent.
+**Effort** : 0.5 j
+**Priorité** : Niveau 3 (quick win impact moyen)
+**Statut** : à fixer
+
+### Dette 40 — Partner public profile preview
+
+**Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §3 P10)
+**Impact** : aucun bouton "voir mon profil public" dans partner dashboard. Doit logout ou ouvrir incognito pour vérifier le rendu de `/partners/:slug`.
+**Fix** : ajouter bouton "Aperçu profil public" dans sidebar Account partner ouvrant `/partners/{slug}` en nouvel onglet.
+**Effort** : 0.5 j
+**Priorité** : Niveau 3 (quick win)
+**Statut** : à fixer
+
+### Dette 41 — Tracking number client (copy + carrier deeplink)
+
+**Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §1 C4)
+**Impact** : `ClientOrdersSection` affiche `tracking_number` mais sans bouton copy ni deep-link transporteur. Client doit retaper manuellement.
+**Fix** : ajouter `<Button onClick={navigator.clipboard.writeText(...)}>` + détecter le carrier (DHL/UPS/Colissimo) via pattern et générer le deep-link.
+**Effort** : 0.5 j
+**Priorité** : Niveau 3 (quick win)
+**Statut** : à fixer
+
 ### Dette 32 — Frontend public + engine encore CamelCase
 
 **Origine** : Smoke test Phase 1.3 Session 1 (2026-05-06)
@@ -458,6 +548,15 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | 30 | ApplicationsTab inline Admin.tsx | 3 | 0.2j | **FIXED ✅** | **2026-05-06** |
 | **31** | **ProductForm contextuel adaptatif** | **2** | **2-4j** | **À fixer** | - |
 | **32** | **Frontend public + engine CamelCase** | **2** | **0.5j** | **À fixer** | - |
+| **33** | **PartnerOrders section absente** ★ | **1** | **2-4j** | **À fixer** | - |
+| **34** | **SignatureModal canvas non-fonctionnel** | **1** | **2-4j** | **À fixer** | - |
+| **35** | **Pro Service mock data architect+partner** | **1** | **>5j** | **À fixer** | - |
+| **36** | **Architect tier hardcodé + notes non-persistées** | **2** | **2-4j** | **À fixer** | - |
+| **37** | **Lowercase categories partner-side** | **2** | **0.5j** | **À fixer** | - |
+| **38** | **Client profile non-editable** | **2** | **0.5j** | **À fixer** | - |
+| **39** | **Partner notif arrivée devis** | **3** | **0.5j** | **À fixer** | - |
+| **40** | **Partner public profile preview** | **3** | **0.5j** | **À fixer** | - |
+| **41** | **Tracking number client copy/deeplink** | **3** | **0.5j** | **À fixer** | - |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |
@@ -644,6 +743,18 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 — User Tools Audit (9 nouvelles dettes 33-41)
+
+Audit stratégique des 4 personas (Client, Architecte, Partner, Admin) déclenché par le founder pour réorienter ou confirmer Session 2 admin.
+
+- Document détaillé : `docs/strategy/USER_TOOLS_AUDIT.md` (~600 lignes : inventaire + gaps par persona + matrice priorisation + recommandation roadmap)
+- 9 nouvelles dettes ajoutées au tracking : 33 (PartnerOrders), 34 (SignatureModal), 35 (Pro Service mock), 36 (Architect tier+notes), 37 (lowercase partner), 38 (Client profile edit), 39 (Partner notif), 40 (Profile preview), 41 (Tracking deeplink)
+- **Top 3 trous prioritaires identifiés** :
+  1. Dette 33 — PartnerOrders absente (BLOQUANT, 2-4j) : promesse plateforme cassée pour partners payants
+  2. Dette 34 — SignatureModal stub (BLOQUANT légal, 2-4j) : risque contractuel
+  3. Dette 35 — Pro Service mock data (BLOQUANT acquisition architect, >5j) : USP architect démo-ware
+- **Recommandation finale** : **réordonner Session 2**. Quick Wins Sprint (Dettes 37, 38, 39 = 1.5-2j total) puis Chantier PartnerOrders (Dette 33, 2-4j) AVANT Session 2 admin originale (Dettes 25/27/29). Impact business strictement supérieur sur l'acquisition + retention.
 
 ### 2026-05-06 (Session 1) — Dettes 26, 28, 30 FIXED ✅
 
