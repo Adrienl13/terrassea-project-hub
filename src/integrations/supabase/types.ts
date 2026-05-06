@@ -5270,6 +5270,36 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_quote_notification_to_admins: {
+        Args: {
+          p_body?: string
+          p_link?: string
+          p_quote_id: string
+          p_title: string
+          p_type: string
+        }
+        Returns: string[]
+      }
+      create_quote_notification_to_client: {
+        Args: {
+          p_body?: string
+          p_link?: string
+          p_quote_id: string
+          p_title: string
+          p_type: string
+        }
+        Returns: string
+      }
+      create_quote_notification_to_partner: {
+        Args: {
+          p_body?: string
+          p_link?: string
+          p_quote_id: string
+          p_title: string
+          p_type: string
+        }
+        Returns: string
+      }
       create_self_notification: {
         Args: {
           p_body?: string

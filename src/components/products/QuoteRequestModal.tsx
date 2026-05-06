@@ -193,41 +193,36 @@ const QuoteRequestModal = ({
       // Log quote_requested event for conversion-funnel tracking (Chantier 1)
       void trackQuoteRequested(null, undefined, [product.id]);
 
-      // Notify all admins (batched insert)
-      try {
-        const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
-        if (admins && admins.length > 0) {
-          await supabase.from("notifications").insert(
-            admins.map(admin => ({
-              user_id: admin.id,
-              title: t("quoteModal.notifTitle"),
-              body: t("quoteModal.notifBody", { firstName: form.firstName, lastName: form.lastName || "", product: product.name, quantity: form.quantity }),
-              type: "info",
-              link: "/admin?tab=quotes",
-            }))
-          );
+      // Notify all admins via RPC (Dette 19 Phase 2B.1)
+      if (insertedRow?.id) {
+        try {
+          await supabase.rpc("create_quote_notification_to_admins", {
+            p_quote_id: insertedRow.id,
+            p_type: "info",
+            p_title: t("quoteModal.notifTitle"),
+            p_body: t("quoteModal.notifBody", {
+              firstName: form.firstName,
+              lastName: form.lastName || "",
+              product: product.name,
+              quantity: form.quantity,
+            }),
+            p_link: "/admin?tab=quotes",
+          });
+        } catch {
+          // Non-blocking: admin notification failed silently
         }
-      } catch {
-        // Non-blocking: admin notification failed silently
       }
 
-      // Notify the assigned partner in-app (non-blocking)
-      if (bestOffer?.partner_id) {
+      // Notify the assigned partner via RPC (non-blocking)
+      if (insertedRow?.id && bestOffer?.partner_id) {
         try {
-          const { data: partnerUser } = await supabase
-            .from("partners")
-            .select("user_id")
-            .eq("id", bestOffer.partner_id)
-            .maybeSingle();
-          if (partnerUser?.user_id) {
-            await supabase.from("notifications").insert({
-              user_id: partnerUser.user_id,
-              title: "Nouvelle demande de devis",
-              body: `${form.firstName} ${form.lastName || ""} — ${product.name} × ${form.quantity}`,
-              type: "info",
-              link: "/account?tab=quotes",
-            });
-          }
+          await supabase.rpc("create_quote_notification_to_partner", {
+            p_quote_id: insertedRow.id,
+            p_type: "info",
+            p_title: "Nouvelle demande de devis",
+            p_body: `${form.firstName} ${form.lastName || ""} — ${product.name} × ${form.quantity}`,
+            p_link: "/account?tab=quotes",
+          });
         } catch {
           // Non-blocking
         }

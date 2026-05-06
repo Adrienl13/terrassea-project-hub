@@ -311,6 +311,7 @@ const ProjectCart = () => {
       // ── Create individual quote_requests for each cart item ──
       // This connects the project flow to the partner quote workflow
       const notifiedPartnerIds = new Set<string>();
+      let firstInsertedQuoteId: string | null = null;
 
       for (const item of items) {
         const product = item.product;
@@ -371,6 +372,7 @@ const ProjectCart = () => {
           console.warn("No partner found for product", product.name, "— will rely on auto-assign");
         }
 
+        let insertedQRId: string | null = null;
         try {
           const { data: insertedQR } = await supabase.from("quote_requests").insert({
             project_request_id: pr.id,
@@ -397,37 +399,37 @@ const ProjectCart = () => {
             selected_dimension_tag: item.selectedDimension || null,
           }).select("id").single();
 
+          insertedQRId = insertedQR?.id ?? null;
+
           // Trigger auto-assign for quotes without a pre-assigned partner
-          if (insertedQR?.id && !partnerId) {
+          if (insertedQRId && !partnerId) {
             supabase.functions.invoke("auto-workflow", {
-              body: { action: "auto_assign_partner", quoteRequestId: insertedQR.id },
+              body: { action: "auto_assign_partner", quoteRequestId: insertedQRId },
             }).catch((err) => console.error("auto-assign failed:", err));
           }
         } catch (err) {
           console.error("Failed to create quote_request for", product.name, err);
         }
 
-        // Notify the assigned partner (once per partner, not per item)
-        if (partnerId && !notifiedPartnerIds.has(partnerId)) {
+        // Track first inserted quote_id for the admins notif (after the loop)
+        if (insertedQRId && !firstInsertedQuoteId) {
+          firstInsertedQuoteId = insertedQRId;
+        }
+
+        // Notify the assigned partner via RPC (once per partner, not per item)
+        if (partnerId && !notifiedPartnerIds.has(partnerId) && insertedQRId) {
           notifiedPartnerIds.add(partnerId);
           try {
-            const { data: partnerUser } = await supabase
-              .from("partners")
-              .select("user_id")
-              .eq("id", partnerId)
-              .maybeSingle();
-            if (partnerUser?.user_id) {
-              const partnerItemCount = items.filter(
-                i => (i.selectedSupplier?.partnerId || partnerId) === partnerId
-              ).length;
-              await supabase.from("notifications").insert({
-                user_id: partnerUser.user_id,
-                title: "Nouvelle demande de devis",
-                body: `${formData.name} — ${partnerItemCount} produit(s) pour ${formData.company || "un projet"}`,
-                type: "info",
-                link: "/account?tab=quotes",
-              });
-            }
+            const partnerItemCount = items.filter(
+              i => (i.selectedSupplier?.partnerId || partnerId) === partnerId
+            ).length;
+            await supabase.rpc("create_quote_notification_to_partner", {
+              p_quote_id: insertedQRId,
+              p_type: "info",
+              p_title: "Nouvelle demande de devis",
+              p_body: `${formData.name} — ${partnerItemCount} produit(s) pour ${formData.company || "un projet"}`,
+              p_link: "/account?tab=quotes",
+            });
           } catch {
             // Non-blocking
           }
@@ -457,20 +459,19 @@ const ProjectCart = () => {
       setSubmitted(true);
       toast.success(t('projectCart.submitSuccess'));
 
-      // Notify all admins (non-blocking)
-      try {
-        const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
-        for (const admin of admins || []) {
-          await supabase.from("notifications").insert({
-            user_id: admin.id,
-            title: "Nouvelle demande de projet",
-            body: `${formData.name} a soumis une demande avec ${items.length} produit(s)`,
-            type: "info",
-            link: "/admin?tab=quotes",
+      // Notify all admins via RPC (non-blocking, Dette 19 Phase 2B.1)
+      if (firstInsertedQuoteId) {
+        try {
+          await supabase.rpc("create_quote_notification_to_admins", {
+            p_quote_id: firstInsertedQuoteId,
+            p_type: "info",
+            p_title: "Nouvelle demande de projet",
+            p_body: `${formData.name} a soumis une demande avec ${items.length} produit(s)`,
+            p_link: "/admin?tab=quotes",
           });
+        } catch {
+          // Non-blocking
         }
-      } catch {
-        // Non-blocking
       }
 
       // Send confirmation email (non-blocking)

@@ -978,18 +978,15 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
         }
       }).catch((err) => console.error("auto_create_order failed:", err));
 
-      // Notify admins
+      // Notify admins via RPC (Dette 19 Phase 2B.1)
       try {
-        const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
-        for (const admin of admins || []) {
-          await supabase.from("notifications").insert({
-            user_id: admin.id,
-            title: t("clientDashboard.quoteAccepted"),
-            body: t("clientDashboard.quoteAcceptedNotifBody", { name: profile?.first_name || profile?.email || "inconnu", product: productName }),
-            type: "info",
-            link: "/admin?tab=quotes",
-          });
-        }
+        await supabase.rpc("create_quote_notification_to_admins", {
+          p_quote_id: quoteId,
+          p_type: "info",
+          p_title: t("clientDashboard.quoteAccepted"),
+          p_body: t("clientDashboard.quoteAcceptedNotifBody", { name: profile?.first_name || profile?.email || "inconnu", product: productName }),
+          p_link: "/admin?tab=quotes",
+        });
       } catch {
         // Non-blocking
       }
@@ -1308,19 +1305,16 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
               queryClient.invalidateQueries({ queryKey: ["client-quotes"] });
               toast.success(t("clientDashboard.quoteSigned"));
 
-              // Notify admins
+              // Notify admins via RPC (Dette 19 Phase 2B.1)
               const activeQ = allQuotes.find((q) => q.id === qId);
               try {
-                const { data: admins } = await supabase.from("user_profiles").select("id").eq("user_type", "admin");
-                for (const admin of admins || []) {
-                  await supabase.from("notifications").insert({
-                    user_id: admin.id,
-                    title: t("clientDashboard.quoteSignedNotifTitle"),
-                    body: t("clientDashboard.quoteSignedNotifBody", { name: profile?.first_name || profile?.email || "inconnu", product: activeQ?.productName || "un produit" }),
-                    type: "info",
-                    link: "/admin?tab=quotes",
-                  });
-                }
+                await supabase.rpc("create_quote_notification_to_admins", {
+                  p_quote_id: qId,
+                  p_type: "info",
+                  p_title: t("clientDashboard.quoteSignedNotifTitle"),
+                  p_body: t("clientDashboard.quoteSignedNotifBody", { name: profile?.first_name || profile?.email || "inconnu", product: activeQ?.productName || "un produit" }),
+                  p_link: "/admin?tab=quotes",
+                });
               } catch { /* non-blocking */ }
             }
           }}

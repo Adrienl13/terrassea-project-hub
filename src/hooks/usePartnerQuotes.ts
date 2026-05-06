@@ -134,21 +134,14 @@ export function usePartnerQuotes() {
               },
             });
 
-            // In-app notification for client
-            const { data: clientProfile } = await supabase
-              .from("user_profiles")
-              .select("id")
-              .eq("email", clientEmail)
-              .maybeSingle();
-            if (clientProfile) {
-              await supabase.from("notifications").insert({
-                user_id: clientProfile.id,
-                title: "Devis re\u00e7u",
-                body: `Un fournisseur a r\u00e9pondu \u00e0 votre demande pour ${quote.product_name}`,
-                type: "info",
-                link: "/account?tab=quotes",
-              });
-            }
+            // In-app notification for client via RPC (Dette 19 Phase 2B.1)
+            await supabase.rpc("create_quote_notification_to_client", {
+              p_quote_id: quoteId,
+              p_type: "info",
+              p_title: "Devis re\u00e7u",
+              p_body: `Un fournisseur a r\u00e9pondu \u00e0 votre demande pour ${quote.product_name}`,
+              p_link: "/account?tab=quotes",
+            });
           }
         } catch {
           // Non-blocking: quote reply notification failed silently

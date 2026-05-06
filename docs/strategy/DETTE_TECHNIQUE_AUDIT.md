@@ -117,8 +117,17 @@ Le métier nécessite cross-user inserts légitimes (admin→partner, partner→
 - RLS tightening (DROP permissive INSERT policy) reporté à Phase 2A.2 final, après livraison Phase 2B
 - 16 callsites P3 cross-user reportés à Phase 2B (ClientSections re-classifiés : 2 → quote-related)
 
-**Roadmap Phase 2B** (16 P3 callsites, ~4-6h sur plusieurs sessions) :
-- Phase 2B.1 — Quote-related (5 callsites) : `QuoteRequestModal` (2), `usePartnerQuotes` (1), `ProjectCart` (2 — quote acceptation/signature flow), `ClientSections` (2 — re-classifiés)
+**Statut 2026-05-06 (Phase 2B.1 delivered)** :
+- 3 RPCs SECURITY DEFINER créées :
+  - `create_quote_notification_to_admins(p_quote_id, ...)` → uuid[] (P3.Q1, 4 callsites)
+  - `create_quote_notification_to_partner(p_quote_id, ...)` → uuid (P3.Q2, 2 callsites)
+  - `create_quote_notification_to_client(p_quote_id, ...)` → uuid (P3.Q3, 1 callsite)
+- 7 callsites Quote-related refactorés : `QuoteRequestModal.tsx` (2), `usePartnerQuotes.ts` (1), `ProjectCart.tsx` (2), `ClientSections.tsx` (2)
+- Chaque RPC valide la business relation (quote ownership client OR partner-owner via brand_users / partners.user_id) avant INSERT
+- sender_user_id loggué pour audit (Phase 2A column)
+- Sous-phase 2B.1 done. Reste 9 callsites P3 dans 5 sous-phases :
+
+**Roadmap Phase 2B (restant)** (~3-5h sur sessions futures) :
 - Phase 2B.2 — Order-related (callsites depuis triggers DB déjà SECURITY DEFINER, peu de frontend)
 - Phase 2B.3 — Brief-related (2 callsites) : `ProjectBriefModal`, `ProServiceClientHub`
 - Phase 2B.4 — Partner-application (3 callsites) : `BecomePartner`, `PartnerProfileForm`, `PartnerCatalogueSection`
@@ -496,6 +505,26 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 — Dette 19 Phase 2B.1 delivered
+
+- 3 RPCs SECURITY DEFINER créées pour le sous-pattern Quote-related :
+  - `create_quote_notification_to_admins(p_quote_id, p_type, p_title, p_body, p_link)` → uuid[] (P3.Q1)
+  - `create_quote_notification_to_partner(p_quote_id, p_type, p_title, p_body, p_link)` → uuid (P3.Q2)
+  - `create_quote_notification_to_client(p_quote_id, p_type, p_title, p_body, p_link)` → uuid (P3.Q3)
+- Chaque RPC valide la business relation (quote.client_user_id OR partners.user_id OR brand_users membership OR is_admin) avant INSERT
+- 7 callsites Quote-related refactorés frontend → RPCs :
+  - `QuoteRequestModal.tsx` (2 — admins broadcast + assigned partner)
+  - `usePartnerQuotes.ts` (1 — partner reply notifies client)
+  - `ProjectCart.tsx` (2 — partner notif per partner + admins broadcast post-loop)
+  - `ClientSections.tsx` (2 — quote acceptance + signing notify admins)
+- ProjectCart.tsx : ajout d'un `firstInsertedQuoteId` tracker pour notifier les admins après la boucle
+- Code paths simplifiés : suppression des SELECT user_profiles + boucles d'INSERT côté client (4 callsites simplifiés ; loops admins devenus internes à la RPC)
+- Validation : DO block migration vérifie 3 RPCs créées + permissions (anon REVOKE, authenticated GRANT)
+- Empirical post-apply : anon → 42501 permission denied ✓
+- types.ts régénéré (3 RPCs visibles)
+- tsc 0 erreur, 615/615 tests passing
+- Reste Phase 2B : 9 callsites P3 dans 5 sous-phases (Order, Brief, Partner-application, Financing, Product approval) + RLS final tightening (~3-5h)
 
 ### 2026-05-06 — Dettes 2 + 3 FIXED ✅
 
