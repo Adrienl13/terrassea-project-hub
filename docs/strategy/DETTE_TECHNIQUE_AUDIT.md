@@ -18,6 +18,19 @@ ROLLBACK).
 **Risque non-fix** : corruption données possible en production.
 **Effort** : 0.5-1 jour
 
+**Statut FIXED 2026-05-06** : refactor en RPC SECURITY DEFINER `approve_product_submission_as_new`. PostgreSQL transaction implicite garantit l'atomicité. Élimine 3 problèmes :
+- Risque CRITIQUE de duplication produit (crash entre offers INSERT et submission UPDATE → admin retry car submission encore `pending_review` → product créé en double). Éliminé par PG ROLLBACK.
+- Silent-fail des offers (`console.warn` côté frontend → produits publiés sans offer). Éliminé : la RPC raise sur error d'INSERT.
+- Fragilité du cleanup applicatif (DELETE products on variants fail pouvait lui-même échouer → orphan logged). Éliminé : PG ROLLBACK natif, plus de cleanup manuel.
+
+Frontend hook `approveAsNew` (`src/hooks/useProductSubmissions.ts`) délègue les steps 8-12 à la RPC. Steps 1-7 + 9 (storage uploads, race-check UX, validation, slug gen) restent côté frontend.
+
+Implementation : `jsonb_populate_record(NULL::table, payload)` pour mapping schema-resilient (nouvelles colonnes auto-picked-up sans modifier la RPC).
+
+**Out of scope** :
+- Storage orphans si RPC échoue après uploads → cron cleaner futur.
+- `approveEdit` a un pattern similaire (UPDATE products + variants + submissions séquentiel) mais architecture différente → **Dette 23** créée.
+
 ### Dette 10 — Refactor RLS pour inliner les helpers
 
 **Origine** : Incident prod 2026-05-05 (RLS anon EXECUTE)
@@ -126,6 +139,21 @@ combinaisons invalides (ex: in_stock=false && qty=null &&
 
 Labels FR uniquement. À étendre aux 4 locales (en/fr/it/es).
 **Effort** : 30 min
+
+### Dette 23 — approveEdit transactionnel
+
+**Origine** : Recon Dette 9 (2026-05-06)
+**Impact** : la fonction `approveEdit` (`src/hooks/useProductSubmissions.ts:607`) effectue plusieurs UPDATE séquentiels non-transactionnels :
+- UPDATE products
+- UPDATE product_variants (potentiellement plusieurs)
+- UPDATE product_submissions
+
+**Pattern différent de Dette 9** : UPDATEs au lieu d'INSERTs, donc pas de risque de duplication, mais risque d'état incohérent (product partiellement updated, status submission désynchronisé).
+
+**Fix** : refactor en RPC SECURITY DEFINER similaire à Dette 9 (`approve_product_submission_edit`). Pattern identique : transaction PG implicite, jsonb_populate_record pour schema-resilient mapping.
+
+**Effort** : 2-3h
+**Priorité** : Niveau 2 (importante mais pas critique car pas de risque de duplication)
 
 ### Dette 13 + 14 — Server-side redirect pour SEO
 
@@ -255,7 +283,7 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 
 | # | Dette | Niveau | Effort | Statut | Date fix |
 |---|-------|--------|--------|--------|----------|
-| 9 | approveAsNew transactionnel | 1 | 0.5-1j | À fixer | - |
+| 9 | approveAsNew transactionnel | 1 | 0.5-1j | **FIXED ✅** | **2026-05-06** |
 | 10 | RLS refactor inline | 1 | 0.5j | **FIXED ✅** | **2026-05-05** |
 | 2 | variant_id cart | 1 | 0.5-1j | À fixer | - |
 | 3 | variant_id quote | 1 | 0.5-1j | À fixer | - |
@@ -265,6 +293,7 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | 4 | zod variants | 2 | 1-2h | À fixer | - |
 | 6 | i18n StockBadge | 2 | 30min | À fixer | - |
 | 13+14 | SEO redirect | 2 | 30-45min | À fixer | - |
+| **23** | **approveEdit transactionnel** | **2** | **2-3h** | **À fixer** | - |
 | 16 | 400 product_reviews | 2 | 30min-1h | À fixer | - |
 | 17 | 400 partners | 2 | 30min-1h | À fixer | - |
 | 18 | 61 advisors warnings | 2 | 0.5-1j | **FIXED ✅** | **2026-05-06** (3 sprints) |
@@ -454,6 +483,19 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 — Dette 9 FIXED ✅
+
+- RPC `approve_product_submission_as_new(submission_id, product_jsonb, variants_jsonb, offers_jsonb)` créée (SECURITY DEFINER, search_path=public,pg_temp, EXECUTE authenticated only)
+- Frontend hook `approveAsNew` refactoré (~140 lignes simplifiées) :
+  - Steps 1-7 + 9 préservés (uploads Storage, race-check UX, validation, slug gen)
+  - Steps 8 (INSERT product) + 10 (variants) + 11 (offers) + 12 (UPDATE submission) délégués à la RPC en 1 seul appel
+  - Cleanup applicatif (DELETE products on fail) supprimé — PG ROLLBACK gère
+  - `console.warn` silent-fails sur offers supprimés — la RPC raise désormais
+- Validation empirique pre/post : anon → 42501 permission denied ✓ (pre-apply pas testable car RPC n'existait pas)
+- types.ts régénéré (signature `approve_product_submission_as_new` visible)
+- 1 nouvelle dette : **Dette 23** (`approveEdit` similar non-transactional pattern, Niveau 2)
+- Out of scope : storage orphans (cron cleaner futur)
 
 ### 2026-05-06 — Dette 19 Phase 2A delivered
 

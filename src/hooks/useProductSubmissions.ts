@@ -435,121 +435,64 @@ export function useAdminSubmissions() {
         publish_status: "published",
       };
 
-      const { data: newProduct, error: productError } = await supabase
-        .from("products")
-        .insert(productInsert as any)
-        .select("id")
-        .single();
-
-      if (productError) throw productError;
-
       // ─────────────────────────────────────────────────────────────────────
-      // Phase B — Matérialisation des variants (ÉTAPE 7 chantier Modèle B)
-      //
-      // Lit product_data.variants (sérialisée par submitProduct ÉTAPE 6c) et
-      // INSERT batch dans product_variants. Si la submission est legacy
-      // (pré-ÉTAPE 6c, pas de variants), buildVariantInserts crée 1 default
-      // variant pré-rempli depuis les champs products (dimensions, prix).
-      //
-      // Cleanup applicatif si Phase B fail : DELETE products WHERE id =
-      // newProduct.id pour éviter un produit orphelin sans variant.
+      // Atomic DB approval via RPC SECURITY DEFINER (Dette 9 fix).
+      // Replaces the previous non-transactional sequence of INSERT product →
+      // INSERT product_variants → INSERT product_offers → UPDATE submission
+      // (which had a critical product duplication risk on partial failure).
+      // PG ROLLBACK now ensures atomicity if any step fails.
       // ─────────────────────────────────────────────────────────────────────
-      try {
-        const serializedVariants = (pd.variants as SerializedVariant[] | undefined) ?? [];
 
-        // Defense-in-depth : si la submission contient variants, on vérifie
-        // qu'exactement 1 default est présente avant de matérialiser.
-        if (serializedVariants.length > 0) {
-          const check = assertExactlyOneDefault(serializedVariants);
-          if (!check.ok) {
-            throw new Error(
-              `Submission contient ${check.count} variantes default (attendu : 1, raison : ${check.reason})`,
-            );
-          }
-        }
-
-        const productDataFallback: ProductDataFallback = {
-          dimensions_length_cm: pd.dimensions_length_cm as number | null,
-          dimensions_width_cm: pd.dimensions_width_cm as number | null,
-          dimensions_height_cm: pd.dimensions_height_cm as number | null,
-          price_min: pd.price_min as number | string | null,
-          stock_status: pd.stock_status as string | null,
-          weight_kg: pd.weight_kg as number | string | null,
-          main_color: pd.main_color as string | null,
-        };
-
-        const variantInserts = buildVariantInserts(
-          newProduct.id as string,
-          serializedVariants,
-          productDataFallback,
-          null, // validated_by reste null Phase 1 — track admin user_id Phase 2
-        );
-
-        const { error: variantsError } = await supabase
-          .from("product_variants")
-          .insert(variantInserts);
-
-        if (variantsError) throw variantsError;
-      } catch (variantsError) {
-        const variantsMsg = variantsError instanceof Error ? variantsError.message : "unknown";
-        console.error("Phase B (variants insert) failed:", variantsMsg);
-
-        // Cleanup applicatif : DELETE products
-        const { error: cleanupError } = await supabase
-          .from("products")
-          .delete()
-          .eq("id", newProduct.id);
-
-        if (cleanupError) {
-          // Cleanup lui-même a échoué — produit orphelin sans variants
-          // L'admin doit nettoyer manuellement. Loggué pour Sentry/audit Phase 2.
-          console.error(
-            "CRITICAL: cleanup also failed, orphan product remains:",
-            cleanupError.message,
-          );
+      // Defense-in-depth : si la submission contient variants, on vérifie
+      // qu'exactement 1 default est présente avant d'envoyer à la RPC.
+      const serializedVariants = (pd.variants as SerializedVariant[] | undefined) ?? [];
+      if (serializedVariants.length > 0) {
+        const check = assertExactlyOneDefault(serializedVariants);
+        if (!check.ok) {
           throw new Error(
-            `Échec création variantes ET nettoyage. Produit orphelin id=${newProduct.id} ` +
-              `nécessite suppression manuelle. Erreur initiale : ${variantsMsg}`,
+            `Submission contient ${check.count} variantes default (attendu : 1, raison : ${check.reason})`,
           );
         }
-
-        throw new Error(
-          `Échec création variantes. Produit nettoyé (rollback). Détails : ${variantsMsg}`,
-        );
       }
 
-      // Create product_offers — one per dimension variant (tables) or one standard offer
+      const productDataFallback: ProductDataFallback = {
+        dimensions_length_cm: pd.dimensions_length_cm as number | null,
+        dimensions_width_cm: pd.dimensions_width_cm as number | null,
+        dimensions_height_cm: pd.dimensions_height_cm as number | null,
+        price_min: pd.price_min as number | string | null,
+        stock_status: pd.stock_status as string | null,
+        weight_kg: pd.weight_kg as number | string | null,
+        main_color: pd.main_color as string | null,
+      };
+
+      // Variants payload — product_id will be overridden by the RPC.
+      const variantInserts = buildVariantInserts(
+        "00000000-0000-0000-0000-000000000000", // placeholder, RPC overrides
+        serializedVariants,
+        productDataFallback,
+        null,
+      );
+
+      // Offers payload — one per dimension variant (tables) or one standard offer.
       const dimVariants = (pd.dimension_variants as any[]) ?? [];
-      if (dimVariants.length > 0) {
-        // Tables with multiple dimensions: create one offer per variant
-        for (const dv of dimVariants) {
-          const { error: offerError } = await supabase
-            .from("product_offers")
-            .insert({
-              partner_id: submission.partner_id!,
-              product_id: newProduct.id,
-              price: dv.price ?? pd.price_min ?? null,
-              stock_status: pd.stock_status ?? "available",
-              stock_quantity: pd.stock_quantity ?? null,
-              delivery_delay_days: pd.estimated_delivery_days ?? null,
-              is_active: true,
-              pricing_mode: "public",
-              currency: "EUR",
-              partner_ref: pd.supplier_internal ?? null,
-              partner_color_name: pd.main_color ?? null,
-              collection_name: pd.collection ?? null,
-              minimum_order: pd.minimum_order ?? null,
-              dimension_tag: dv.dimension_tag ?? null,
-            });
-          if (offerError) console.warn("Failed to create offer for dimension", dv.dimension_tag, offerError.message);
-        }
-      } else {
-        // Standard product (chairs, etc.): single offer
-        const { error: offerError } = await supabase
-          .from("product_offers")
-          .insert({
+      const offersPayload: Record<string, unknown>[] = dimVariants.length > 0
+        ? dimVariants.map((dv) => ({
             partner_id: submission.partner_id!,
-            product_id: newProduct.id,
+            price: dv.price ?? pd.price_min ?? null,
+            stock_status: pd.stock_status ?? "available",
+            stock_quantity: pd.stock_quantity ?? null,
+            delivery_delay_days: pd.estimated_delivery_days ?? null,
+            is_active: true,
+            pricing_mode: "public",
+            currency: "EUR",
+            partner_ref: pd.supplier_internal ?? null,
+            partner_color_name: pd.main_color ?? null,
+            collection_name: pd.collection ?? null,
+            minimum_order: (pd as any).minimum_order ?? null,
+            dimension_tag: dv.dimension_tag ?? null,
+          }))
+        : [{
+            partner_id: submission.partner_id!,
             price: pd.price_min ?? null,
             stock_status: pd.stock_status ?? "available",
             stock_quantity: pd.stock_quantity ?? null,
@@ -560,24 +503,27 @@ export function useAdminSubmissions() {
             partner_ref: pd.supplier_internal ?? null,
             partner_color_name: pd.main_color ?? null,
             collection_name: pd.collection ?? null,
-            minimum_order: pd.minimum_order ?? null,
-          });
-        if (offerError) console.warn("Failed to create product_offer:", offerError.message);
+            minimum_order: (pd as any).minimum_order ?? null,
+          }];
+
+      const { data: rpcResult, error: rpcError } = await supabase.rpc(
+        "approve_product_submission_as_new",
+        {
+          p_submission_id: id,
+          p_product: productInsert as any,
+          p_variants: variantInserts as any,
+          p_offers: offersPayload as any,
+        },
+      );
+
+      if (rpcError) throw new Error(rpcError.message);
+
+      const newProductId = (rpcResult as { product_id: string } | null)?.product_id;
+      if (!newProductId) {
+        throw new Error("RPC did not return a product_id");
       }
 
-      // Update submission status with approved_product_id
-      const { error: updateError } = await supabase
-        .from("product_submissions")
-        .update({
-          status: "approved",
-          approved_product_id: newProduct.id,
-          updated_at: new Date().toISOString(),
-        } as any)
-        .eq("id", id);
-
-      if (updateError) throw updateError;
-
-      // Notify partner
+      // Notify partner (non-blocking)
       const productName = pd.name ?? "votre produit";
       await notifyPartner(submission.partner_id, "Produit approuvé", `Votre produit ${productName} a été approuvé et publié`);
 

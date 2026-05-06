@@ -5221,6 +5221,15 @@ export type Database = {
       }
     }
     Functions: {
+      approve_product_submission_as_new: {
+        Args: {
+          p_offers?: Json
+          p_product: Json
+          p_submission_id: string
+          p_variants: Json
+        }
+        Returns: Json
+      }
       create_admin_notification: {
         Args: {
           p_body?: string
