@@ -20,10 +20,19 @@ const COUNTRIES = [
   { code: "AT", name: "Autriche" }, { code: "PL", name: "Pologne" }, { code: "TR", name: "Turquie" },
 ];
 
+// Lowercase-kebab convention (Dette 37, 2026-05-06). Labels rendered via
+// prettyCategory() helper since not all entries have an i18n key.
 const PRODUCT_CATEGORIES = [
-  "Chairs", "Tables", "Parasols", "Loungers", "Sofas", "Stools",
-  "Accessories", "Lighting", "Planters", "Screens",
+  "chairs", "tables", "parasols", "loungers", "sofas", "stools",
+  "accessories", "lighting", "planters", "screens",
 ];
+
+/** lowercase-kebab → human label (e.g., "bar-stools" → "Bar Stools"). */
+const prettyCategory = (cat: string) =>
+  cat
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 
 const BRAND_SPECIALTIES = [
   "Aluminium", "Teck", "Résine tressée", "Acier", "Tissu technique", "Pierre",
@@ -508,7 +517,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
               {form.product_categories.includes(cat) && (
                 <CheckCircle2 className="h-3 w-3 inline mr-1" />
               )}
-              {cat}
+              {prettyCategory(cat)}
             </button>
           ))}
         </div>

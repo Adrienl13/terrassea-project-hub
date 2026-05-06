@@ -523,7 +523,7 @@ export default function ExcelImportModal({
       "lounger_type","bench_type","sofa_type","base_type",
     ];
     const example = [
-      "Chaise Riviera","Chairs","Dining Chair","Riviera","",
+      "Chaise Riviera","chairs","Dining Chair","Riviera","",
       "Stackable alu & textilene chair","Chaise empilable alu et textilène","Sedia impilabile in alluminio","Silla apilable de aluminio",
       "","Aluminium","Textilene",
       "","","",
@@ -941,7 +941,7 @@ export default function ExcelImportModal({
       "Garantie", "Extérieur", "Empilable",
     ];
     const example = [
-      "Chaise Riviera", "Chairs", "dining-chair", "Chaise empilable en aluminium",
+      "Chaise Riviera", "chairs", "dining-chair", "Chaise empilable en aluminium",
       "aluminium", "textilène", "white",
       "140", "160", "56", "58", "84",
       "3.8", "available", "200", "Italie",

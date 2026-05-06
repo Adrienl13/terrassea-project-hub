@@ -12,10 +12,14 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 
+// Lowercase-kebab convention (Dette 37, 2026-05-06). Aligned with i18n keys
+// in `categories.*`. Partner-side list is broader than the strict 8-canonical
+// `products.category` enum (it covers what a partner can produce, including
+// sub-categories like coffee-tables, dining-tables, pergolas, benches).
 const CATEGORY_KEYS = [
-  "chairs", "armchairs", "barStools", "benches",
-  "diningTables", "coffeeTables", "highTables",
-  "sunLoungers", "sofas", "parasols",
+  "chairs", "armchairs", "bar-stools", "benches",
+  "dining-tables", "coffee-tables", "high-tables",
+  "sun-loungers", "sofas", "parasols",
   "pergolas", "accessories",
 ];
 

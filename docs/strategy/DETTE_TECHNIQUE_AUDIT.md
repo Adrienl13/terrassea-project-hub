@@ -321,6 +321,16 @@ Cette dette est aggravante de la Dette 24.
 **Priorité** : Niveau 3 (quick win)
 **Statut** : à fixer
 
+### Dette 42 — BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase residue
+
+**Origine** : recon Dette 37 (2026-05-06)
+**Description** : `PartnerProfileForm.tsx:28-37` contient `BRAND_SPECIALTIES` (15 entrées : `"Aluminium", "Teck", "Résine tressée", ...`) et `BRAND_CERTIFICATIONS` (11 entrées : `"FSC", "PEFC", "ISO 9001", ...`) en CamelCase. Pattern incohérent avec Dette 37 (catégories migrées en lowercase-kebab).
+**Note** : `BRAND_CERTIFICATIONS` redondant avec table `certifications` exposée via `usePartnerCertifications` hook (cf. Dette 25). Idéalement, supprimer la liste hardcodée et brancher sur la table.
+**Fix** : aligner les 2 listes sur lowercase-kebab OU brancher sur les tables canoniques (preferred).
+**Effort** : 0.2 j (similar pattern, scope plus petit)
+**Priorité** : Niveau 3 cosmétique
+**Statut** : à fixer ad hoc ou en session vocab consolidation
+
 ### Dette 41 — Tracking number client (copy + carrier deeplink)
 
 **Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §1 C4)
@@ -557,6 +567,8 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | **39** | **Partner notif arrivée devis** | **3** | **0.5j** | **À fixer** | - |
 | **40** | **Partner public profile preview** | **3** | **0.5j** | **À fixer** | - |
 | **41** | **Tracking number client copy/deeplink** | **3** | **0.5j** | **À fixer** | - |
+| 37 | Lowercase categories partner-side | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
+| **42** | **BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase** | **3** | **0.2j** | **À fixer** | - |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |
@@ -743,6 +755,19 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 (Sprint Quick Wins #1) — Dette 37 FIXED ✅
+
+Vocab partner-side aligné lowercase-kebab.
+
+- **UI** : 3 fichiers
+  - `BecomePartner.tsx:15-24` : `CATEGORY_KEYS` 12 entrées (mix camelCase `barStools/diningTables/coffeeTables/highTables/sunLoungers`) → toutes en lowercase-kebab
+  - `PartnerProfileForm.tsx:23-26` : `PRODUCT_CATEGORIES` 10 entrées CamelCase → lowercase + helper `prettyCategory()` ajouté pour l'affichage
+  - `ExcelImportModal.tsx:526, 944` : 2 occurrences `"Chairs"` → `"chairs"` dans templates Excel d'exemple
+- **i18n** : 5 keys top-level (sunLoungers, barStools, diningTables, coffeeTables, highTables) renommées dans 4 locales (en/fr/it/es) → 20 modifications. Keys `categories.sub.*` préservées (usage différent — search filters sub-categories).
+- **DB** : migration `20260506224938_dette_37_lowercase_partner_categories.sql` appliquée. Pre-check : 1 partner concerné (Pros Import). Validation empirique post-apply : `["Chairs","Tables","Parasols","Loungers"]` → `["chairs","tables","parasols","loungers"]` ✓
+- **Découverte** : `PartnerProfileForm` contient aussi `BRAND_SPECIALTIES` + `BRAND_CERTIFICATIONS` en CamelCase → capturé en **Dette 42** (Niveau 3 cosmétique, 0.2j) plutôt que scope creep
+- **Validation** : tsc 0 erreur, 615/615 tests passing, lint stable (610 warnings = baseline)
 
 ### 2026-05-06 — User Tools Audit (9 nouvelles dettes 33-41)
 
