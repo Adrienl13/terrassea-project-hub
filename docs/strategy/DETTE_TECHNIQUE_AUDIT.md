@@ -240,6 +240,72 @@ Cette dette est aggravante de la Dette 24.
 **Fix** : implémenter upload (drag-drop ou file input) avec `validateImageUpload` + bucket `product-images`. Réutiliser le composant `PhotoGalleryManager` du partner ou simplifier.
 **Effort** : 0.5-1 j
 
+### Dette 32 — Frontend public + engine encore CamelCase
+
+**Origine** : Smoke test Phase 1.3 Session 1 (2026-05-06)
+
+**Description** : La migration 2026-04-30 (catégories canonical lowercase en DB) n'a jamais été propagée au frontend public ni à l'engine de génération. Mismatch silent qui fonctionne seulement parce qu'un normalizer caché compense (à identifier précisément).
+
+**Fichiers touchés (8+ identifiés)** :
+- `src/components/products/ProductFilterSidebar.tsx` (l. 44-45, 97-106)
+- `src/engine/projectEngine.ts` (l. 247-297)
+- `src/data/products.ts` (l. 29, 51, 95, 139, 161 — données seed legacy)
+- `src/pages/Products.tsx` (l. 203-204)
+- `src/components/ConceptCard.tsx` (l. 34-35+)
+- `src/components/partner-dashboard/ExcelImportModal.tsx` (l. 526, 944 — templates donnés aux partners)
+- `src/components/partner-dashboard/PartnerProfileForm.tsx` (l. 24)
+- `src/test/*.test.ts` (mocks legacy)
+
+**Preuve fonctionnelle** : test browser localhost:8081/products filtre "Chairs" → 33 produits affichés ✅. Le bug est neutralisé par un fallback caché (à identifier).
+
+**Severity réelle** : non bloquante (prod fonctionne) mais incohérence dangereuse :
+- Code illisible (mismatch entre vocab affiché et stocké)
+- Fragilité (si le normalizer caché disparaît, tout casse silencieusement)
+- Templates Excel donnés aux partners reproduisent le bug côté ingestion partner
+- Tests valident comportement obsolète (faux sentiment de sécurité)
+
+**Découverte additionnelle** : test `src/test/category-normalizer.test.ts` (l. 15-21) prouve que `"Chairs"` → `"chairs"` doit être normalisé. Donc la fonction existe mais n'est PAS appelée à tous les bons endroits.
+
+**Effort estimé** : 0.5j (refactor 8 fichiers + alignement tests + cleanup data seed)
+
+**Priorité** : Niveau 2 (importante, à fixer avant prochaine migration vocab pour éviter la dette de la dette)
+
+**Recommandation** :
+- À fixer en session dédiée OU pendant Session 2 si l'occasion se présente naturellement (alignement avec Dette 27 VariantsGrid qui touche probablement les mêmes fichiers)
+- Identifier d'abord OÙ le normalizer caché compense (audit rapide sur les query products)
+- Puis migration systématique CamelCase → lowercase frontend
+
+**Statut** : à fixer
+
+### Dette 31 — ProductForm contextuel adaptatif
+
+**Origine** : Session 1 day 8 (founder feedback browser validation Phase 1.3 — 2026-05-06)
+
+**Description** : Le ProductForm (admin + partner) doit s'adapter dynamiquement selon les attributs du produit. Au lieu d'afficher toutes les sections en permanence, masquer/afficher selon :
+- `has_variants` : section VariantsGrid
+- catégorie outdoor : section certifs marine
+- `is_custom` : section dimensions personnalisables
+- `has_offers` : section offers multi-suppliers
+- autres attributs à définir
+
+**Pattern** : progressive disclosure UX, matrice attributs × visibilité de sections.
+
+**Impact** :
+- Meilleure UX admin/partner (form moins intimidant, contextuel)
+- Cohérence métier (chaque produit voit uniquement ce qui le concerne)
+- Évolutivité (nouveaux attributs = nouvelle règle dans la matrice)
+- Réduction friction onboarding partners (form adapté à leur catalogue)
+
+**Effort estimé** : 2-4j (chantier architectural sur le modèle produit)
+
+**Priorité** : Niveau 2 (importante mais non bloquante)
+
+**Recommandation** : à attaquer pendant Session 3 (Dette 24 refonte ProductForm) ou en session dédiée APRÈS Sessions 2-3 quand le contexte sera complet (alignement features + extraction ProductForm permettront une matrice plus précise).
+
+**Conformité Definition of Done parité admin/partner** : le form contextuel doit être implémenté côté admin ET partner en cohérence (cf. recommandation transverse audit panel admin commit 041af30).
+
+**Statut** : à fixer
+
 ### Dette 30 — `ApplicationsTab` toujours inline dans Admin.tsx
 
 **Origine** : Audit panel admin 2026-05-06
@@ -385,11 +451,13 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | 18 | 61 advisors warnings | 2 | 0.5-1j | **FIXED ✅** | **2026-05-06** (3 sprints) |
 | **24** | **ProductForm admin déconnecté vocab 2026 + certifs** | **1** | **2-3j** | **À fixer** | - |
 | **25** | **Certifications absentes panel admin** | **2** | **0.5-1j** | **À fixer** | - |
-| **26** | **Catégories CamelCase admin** | **1** | **0.5j** | **À fixer** | - |
+| 26 | Catégories CamelCase admin (scope admin) | 1 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | **27** | **VariantsGrid pas branché admin** | **1** | **1j** | **À fixer** | - |
-| **28** | **environment_urls oubliés admin** | **2** | **0.5j** | **À fixer** | - |
+| 28 | environment_urls oubliés admin | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | **29** | **Pas d'upload Storage admin** | **2** | **0.5-1j** | **À fixer** | - |
-| **30** | **ApplicationsTab inline Admin.tsx** | **3** | **0.2j** | **À fixer** | - |
+| 30 | ApplicationsTab inline Admin.tsx | 3 | 0.2j | **FIXED ✅** | **2026-05-06** |
+| **31** | **ProductForm contextuel adaptatif** | **2** | **2-4j** | **À fixer** | - |
+| **32** | **Frontend public + engine CamelCase** | **2** | **0.5j** | **À fixer** | - |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |
@@ -576,6 +644,21 @@ CREATE POLICY "Authenticated read access to product images" ON storage.objects
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
 - Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 (Session 1) — Dettes 26, 28, 30 FIXED ✅
+
+Foundation UI panel admin + 3 quick wins.
+
+- `docs/design/ADMIN_DESIGN_LANGUAGE.md` créé (267 lignes, 7 sections, inspiration Linear 60% / Stripe 30% / Vercel 10%, principe « quiet B2B »)
+- **Dette 26** : 12 CamelCase → 8 canonical lowercase (`CANONICAL_CATEGORIES` import) + `normalizeProductCategory()` defense-in-depth au save (scope ProductForm admin uniquement — frontend public reporté en Dette 32 nouvellement identifiée)
+- **Dette 30** : `ApplicationsTab` extracted vers `src/components/admin/AdminApplications.tsx` (340 lignes), `Admin.tsx` −341 lignes (2355 → 2014), `Clock` import unused supprimé
+- **Dette 28** : `environment_urls` UI ajouté dans ProductForm admin (textarea CSV + thumbnails strip, pattern symétrique à `gallery_urls`)
+- 2 nouvelles dettes capturées :
+  - **Dette 31** : ProductForm contextuel adaptatif (founder feedback browser validation)
+  - **Dette 32** : Frontend public + engine encore CamelCase (smoke test découverte — non bloquante mais à fixer avant prochaine migration vocab)
+- Smoke test end-to-end : Dette 30 ALL GREEN (orphan refs / imports / usage / RLS), Dette 28 ALL GREEN (save / read / display / cohérence partner)
+- Validation : tsc 0 erreur, 615/615 tests passing, lint stable (610 warnings = baseline), browser validation founder
+- Reste Sessions 2 & 3 : Dettes 25, 27, 29 (alignement features) puis Dette 24 (ProductForm refonte)
 
 ### 2026-05-06 — Audit panel admin (7 nouvelles dettes 24-30)
 
