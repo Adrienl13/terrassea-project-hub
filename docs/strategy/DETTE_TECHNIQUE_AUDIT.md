@@ -163,7 +163,17 @@ Les RLS "Always True" sur tables sensibles peuvent être de vraies failles de s�
 - 1 nouvelle dette : Dette 21 (cleanup orphan trigger functions)
 - Réduction empirique : advisor 60 warnings → 19 warnings (-41).
 
-Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3 future.
+**Statut FIXED 2026-05-06 sprint 3** : audit complet effectué en 3 sprints. Les 3 derniers warnings traités :
+- `product_review_stats` : ACL réduit à SELECT-only pour anon/authenticated (auparavant TOUS privilèges). Le warning advisor `materialized_view_in_api` persiste (faux positif accepté — matview dans schema public est exposée à l'API par design Postgres). Optional refactor tracké comme Dette 22.
+- `product-images` bucket : action manuelle Dashboard requise (storage.objects owned by supabase_storage_admin, MCP postgres role insuffisant). Procédure documentée ci-dessous dans "Actions manuelles requises".
+- `auth_leaked_password_protection` : action manuelle Dashboard requise. Procédure documentée.
+
+Bilan cumulé Dette 18 :
+- 60 → 19 advisor warnings DB-fixables (−41)
+- 2 vraies failles fermées (salone PII leak, 21 functions over-exposed)
+- 9 faux positifs documentés
+- 4 nouvelles dettes identifiées : 19 (notifications phishing), 20 (project_briefs pattern), 21 (orphan triggers), 22 (matview refactor optional)
+- 2 actions manuelles Dashboard pending (bucket listing + leaked password)
 
 ## Niveau 3 — Cosmétiques (continues)
 
@@ -209,6 +219,23 @@ Code mort qui peut induire en erreur lors de futurs refactors. Permission EXECUT
 **Risque non-fix** : confusion lors de futurs développements, code mort persistant.
 **Effort** : 15 min
 
+### Dette 22 — Matview architecture refactor (optional)
+
+**Origine** : Audit Dette 18 sprint 3 (2026-05-06)
+**Impact** : la matview `product_review_stats` persiste comme advisor warning `materialized_view_in_api` après cleanup ACL (sprint 3). C'est by-design Postgres — une matview dans le schema public est exposée à l'API PostgREST par construction.
+
+ACL post-Sprint 3 : SELECT-only pour anon/authenticated (auparavant tous privilèges).
+Données exposées : pure agrégation (count, avg rating, distribution stars). Pas de PII.
+
+**Fix optionnel** :
+- Option A : déplacer la matview dans un schema dédié (ex : `stats.product_review_stats`)
+- Option B : convertir en function `public.get_product_review_stats(product_id)` retournant un row
+- Option C : laisser tel quel — données publiques par design
+
+**Effort** : 2-4h selon option choisie + adaptation des callers (`useProductReviews`, `ProductDetail`, `ProductReviews`).
+
+**Recommandation** : laisser tel quel sauf exigence réglementaire ou audit externe.
+
 ## Tableau de tracking
 
 | # | Dette | Niveau | Effort | Statut | Date fix |
@@ -225,13 +252,14 @@ Code mort qui peut induire en erreur lors de futurs refactors. Permission EXECUT
 | 13+14 | SEO redirect | 2 | 30-45min | À fixer | - |
 | 16 | 400 product_reviews | 2 | 30min-1h | À fixer | - |
 | 17 | 400 partners | 2 | 30min-1h | À fixer | - |
-| 18 | 61 advisors warnings | 2 | 0.5-1j | **PARTIELLEMENT FIXED** | **2026-05-06** (cat A) |
+| 18 | 61 advisors warnings | 2 | 0.5-1j | **FIXED ✅** | **2026-05-06** (3 sprints) |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |
 | 15 | Tests E2E Playwright | 3 | Continu | Continu | - |
 | 20 | project_briefs pattern incohérent | 3 | 30min-1h | À fixer | - |
-| **21** | **cleanup orphan trigger functions** | **3** | **15min** | **À fixer** | - |
+| 21 | cleanup orphan trigger functions | 3 | 15min | À fixer | - |
+| **22** | **matview architecture refactor (optional)** | **3** | **2-4h** | **À fixer (optional)** | - |
 
 ## Méta-règle
 
@@ -305,6 +333,71 @@ Certaines fonctions doivent rester executable par anon/authenticated pour le fon
 
 **Justification** : réservation pre-order par un utilisateur authentifié (cf. `src/hooks/useArrivals.ts`). EXECUTE retiré pour anon, conservé pour authenticated. Advisor flag persistant car authenticated peut toujours l'appeler — c'est intentionnel.
 
+## Advisor warnings acceptés (faux positifs documentés)
+
+Certains warnings de Supabase Advisor sont des faux positifs inhérents au design de l'application. Ils sont documentés ici pour traçabilité.
+
+### materialized_view_in_api — product_review_stats
+
+**Advisor flag** : "Materialized View in API"
+
+**Justification** : la matview `product_review_stats` expose des aggregats publics (count, avg rating, distribution stars) du catalogue de produits. Cette exposition est intentionnelle pour l'affichage public des reviews sur les fiches produits (cf. `src/hooks/useProductReviews.ts`, `src/pages/ProductDetail.tsx`).
+
+**ACL post-Sprint 3** : SELECT-only pour anon/authenticated (commit 33ce142… → final commit Sprint 3).
+
+**Pas de PII** : pure agrégation statistique (count + averages).
+
+**Why not refactor** : déplacer la matview hors schema public OU la convertir en function/view normale nécessiterait un refactor lourd (impact `useProductReviews` hook + `ProductDetail.tsx` + `ProductReviews.tsx`). Effort non justifié pour un warning informationnel sur des données publiques.
+
+Voir Dette 22 pour refactor optionnel future.
+
+## Actions manuelles requises (Dashboard)
+
+Certains settings Supabase ne sont pas versionnables en SQL et doivent être configurés via Dashboard.
+
+### Bucket product-images : restreindre listing à authenticated
+
+**Origine** : Audit Dette 18 sprint 3 (2026-05-06)
+**Statut** : à exécuter manuellement par le founder via Supabase Dashboard SQL Editor.
+
+**Pourquoi pas en migration MCP** : `storage.objects` est owned par `supabase_storage_admin`. Le rôle `postgres` utilisé par MCP ne peut pas DROP/CREATE de policies sur cette table.
+
+**Procédure** :
+1. Aller sur https://supabase.com/dashboard
+2. Sélectionner le projet, ouvrir SQL Editor
+3. Exécuter :
+
+```sql
+DROP POLICY "Public read access to product images" ON storage.objects;
+
+CREATE POLICY "Authenticated read access to product images" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'product-images');
+```
+
+**Impact** :
+- Anon ne peut plus lister les 160 objets via `storage.objects` SELECT
+- `getPublicUrl()` continue de fonctionner pour anon (path CDN dédié `/storage/v1/object/public/` qui bypasse RLS)
+- `PhotoGalleryManager.tsx` (partner dashboard, authenticated) continue de fonctionner
+
+**Date d'exécution à reporter ici** : ____/____/____
+
+### auth_leaked_password_protection
+
+**Origine** : Audit Dette 18 sprint 3 (2026-05-06)
+**Statut** : à activer manuellement par le founder via Supabase Dashboard.
+
+**Procédure** :
+1. Aller sur https://supabase.com/dashboard
+2. Sélectionner le projet
+3. Aller dans Authentication → Providers → Email
+4. Section "Password security"
+5. Activer "Prevent the use of leaked passwords"
+
+**Impact** : aucun pour les utilisateurs existants. Vérification HaveIBeenPwned activée pour les futurs signups et changements de mot de passe.
+
+**Date d'activation à reporter ici** : ____/____/____
+
 ## Historique des fixes
 
 ### 2026-05-05 — Dette 10 (RLS refactor inline)
@@ -343,7 +436,25 @@ Certaines fonctions doivent rester executable par anon/authenticated pour le fon
   - Post-apply : 4 (helpers RLS + public search) — conformément au plan
   - Spot checks : `notify_quote_submitted` anon=false ✓, `next_invoice_number` auth=false ✓, `reserve_preorder` auth=true ✓, `is_admin` anon=true ✓
 - Advisor reduction : 60 warnings → 19 warnings (-41)
-- Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3 future
+- Reste à auditer : 3 warnings (materialized_view_in_api, public_bucket_allows_listing, auth_leaked_password_protection) — sprint 3
+
+### 2026-05-06 — Dette 18 sprint 3 COMPLETED ✅
+
+- 3 derniers warnings traités, audit Dette 18 fermé après 3 sprints
+- `product_review_stats` matview : ACL réduite à SELECT-only pour anon/authenticated (auparavant TOUS privilèges a/r/w/d/D/x/t/m). service_role et postgres intacts. Validation empirique : anon SELECT=true, INSERT/UPDATE/DELETE=false ✓.
+- `product-images` bucket : action manuelle Dashboard SQL Editor documentée (storage.objects owned by supabase_storage_admin → MCP postgres role insuffisant).
+- `auth_leaked_password_protection` : action manuelle Dashboard documentée.
+- 1 dette future optionnelle ajoutée : Dette 22 (matview architecture refactor).
+- 1 warning persistera comme faux positif documenté : `materialized_view_in_api` sur `product_review_stats` (by-design Postgres).
+
+**Bilan final Dette 18 (3 sprints cumulés)** :
+- 60 → 19 advisor warnings DB-fixables (−41)
+- 2 vraies failles fermées : salone_2026_visits PII leak + 21 functions SECURITY DEFINER over-exposed
+- 9 faux positifs documentés (5 RLS Always True + 4 SECURITY DEFINER intentionnels)
+- 1 ACL matview réduit
+- 1 fix search_path
+- 4 nouvelles dettes identifiées (Dette 19/20/21/22)
+- 2 actions manuelles Dashboard pending : bucket policy + leaked password protection
 
 ## Initiatives stratégiques planifiées
 
