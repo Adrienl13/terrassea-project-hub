@@ -55,6 +55,36 @@ deviner ou re-demander.
 **Risque non-fix** : friction commerciale, pertes de deals.
 **Effort** : 0.5-1 jour
 
+### Dette 19 — Notifications cross-user phishing risk
+
+**Origine** : Audit Dette 18 phase 1+2 (2026-05-06)
+**Impact** : La table `notifications` (206 rows actifs) permet à n'importe quel user authentifié d'INSERT une notification avec n'importe quel `user_id` cible. Vecteur phishing potentiel inter-user (User A crée fausse notif pour User B).
+
+Le métier nécessite cross-user inserts légitimes (admin→partner, partner→client) → fix non trivial.
+
+**3 options identifiées** :
+
+**A) Status quo + risque accepté** (effort 0)
+- Documenter et monitorer
+- Acceptable tant que population utilisateurs limitée
+
+**B) RPC SECURITY DEFINER refactor** (effort 0.5-1j)
+- Functions dédiées par cas d'usage : `create_notification_admin_to_partner`, etc.
+- INSERT direct depuis frontend impossible
+- Pattern propre long-terme
+- Refactor 30+ fichiers consommateurs
+
+**C) RLS conditionnelle** (effort 0.5j)
+- INSERT autorisé si `user_id=auth.uid()` (auto-notif) OR `is_admin()` OR sender est partner/client de la cible
+- Pas de refactor frontend
+- Validation exhaustive complexe (toutes paires possibles)
+
+**Risque non-fix** : phishing interne (peu probable mais possible), surtout si la base utilisateurs grandit.
+
+**Effort recommandé** : Option B (RPC SECURITY DEFINER) en session dédiée 1-2h après recensement précis des cas d'usage cross-user.
+
+**Statut** : à fixer en session dédiée.
+
 ## Niveau 2 — Importantes (fix dans le mois)
 
 ### Dette 1 + 12 — i18n incomplète ProductDetailDrawer
@@ -120,6 +150,14 @@ Les RLS "Always True" sur tables sensibles peuvent être de vraies failles de s�
 **Risque non-fix** : Possible exposition de données privées ou exécution de fonctions sensibles depuis anon.
 **Effort** : 0.5-1 jour pour audit complet et fix prioritaires
 
+**Statut partiel 2026-05-06** : audit ciblé sur les 7 RLS Always True effectué (cf. session day 8). Résultat :
+- 1 fix appliqué : salone_2026_visits (cat A, fuite PII potentielle)
+- 5 documentées en faux positifs (cat B, formulaires publics intentionnels — voir nouvelle section "RLS Always True justifiées et acceptées")
+- 1 nouvelle dette critique : Dette 19 (notifications, cat C, vecteur phishing inter-user)
+- 1 hors scope : Dette 20 (project_briefs.contact_email pattern incohérent)
+
+Reste à auditer : 54 autres warnings (Function Search Path Mutable, Materialized View in API, Public Bucket Allows Listing, Public Can Execute SECURITY DEFINER, etc.) — session dédiée future.
+
 ## Niveau 3 — Cosmétiques (continues)
 
 ### Dette 5 — selectedColor / selectedDimension @deprecated
@@ -142,6 +180,14 @@ L'admin ne peut pas éditer les variants avant matérialisation.
 Beaucoup de scénarios validés uniquement par browser manuel.
 À automatiser progressivement (Playwright).
 
+### Dette 20 — project_briefs SELECT pattern incohérent
+
+**Origine** : Audit Dette 18 phase 1 (2026-05-06)
+**Impact** : Le RLS SELECT de `project_briefs` utilise `partners.contact_email = auth.email()` au lieu du pattern standard `partners.user_id = auth.uid()`. Si l'email d'un user authentifié diffère de l'email du contact partner (changement d'email ou structure multi-user dans une organisation), le scope ne fonctionnera pas.
+**Fix** : Refactor de la RLS pour utiliser brand_users (cohérent avec les autres patterns RLS).
+**Risque non-fix** : utilisateurs légitimes ne peuvent pas voir leurs briefs si emails désynchronisés.
+**Effort** : 30 min - 1h
+
 ## Tableau de tracking
 
 | # | Dette | Niveau | Effort | Statut | Date fix |
@@ -150,24 +196,66 @@ Beaucoup de scénarios validés uniquement par browser manuel.
 | 10 | RLS refactor inline | 1 | 0.5j | **FIXED ✅** | **2026-05-05** |
 | 2 | variant_id cart | 1 | 0.5-1j | À fixer | - |
 | 3 | variant_id quote | 1 | 0.5-1j | À fixer | - |
+| **19** | **notifications phishing risk** | **1** | **0.5-1j** | **À fixer** | - |
 | 1+12 | i18n drawer | 2 | 1-2h | À fixer | - |
 | 11 | partner.slug | 2 | 30min | À fixer | - |
 | 4 | zod variants | 2 | 1-2h | À fixer | - |
 | 6 | i18n StockBadge | 2 | 30min | À fixer | - |
 | 13+14 | SEO redirect | 2 | 30-45min | À fixer | - |
-| **16** | **400 product_reviews** | **2** | **30min-1h** | **À fixer** | - |
-| **17** | **400 partners** | **2** | **30min-1h** | **À fixer** | - |
-| **18** | **61 advisors warnings** | **2** | **0.5-1j** | **À fixer** | - |
+| 16 | 400 product_reviews | 2 | 30min-1h | À fixer | - |
+| 17 | 400 partners | 2 | 30min-1h | À fixer | - |
+| 18 | 61 advisors warnings | 2 | 0.5-1j | **PARTIELLEMENT FIXED** | **2026-05-06** (cat A) |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |
 | 15 | Tests E2E Playwright | 3 | Continu | Continu | - |
+| **20** | **project_briefs pattern incohérent** | **3** | **30min-1h** | **À fixer** | - |
 
 ## Méta-règle
 
 Toute nouvelle décision technique doit éviter d'ajouter 
 à cette dette. Si on doit accepter un trade-off temporaire, 
 il rejoint cette liste avec une justification.
+
+## RLS Always True justifiées et acceptées
+
+Certaines tables ont une RLS `WITH CHECK (true)` sur INSERT par design métier. L'advisor Supabase les flag mais ce sont des faux positifs documentés et acceptés.
+
+### concept_events
+
+- **RLS** : `INSERT public WITH CHECK (true)` ; SELECT scopé `is_admin()`
+- **Justification** : analytics anonymes sur la phase de découverte produit. Intentionnel pour tracking utilisateurs non-loggés.
+- **PII** : aucune (session_id, event_type, metadata)
+- **Recommandation** : ajouter rate limiting via edge function pour prévenir spam (à programmer si besoin).
+
+### partner_contact_requests
+
+- **RLS** : `INSERT public WITH CHECK (true)` ; SELECT scopé `is_admin() OR partner_id IN (mes partners)`
+- **Justification** : formulaire de contact public sur les pages partner. Lead capture intentionnel.
+- **PII** : nom, email, téléphone, message — saisis par l'utilisateur lui-même volontairement.
+- **Recommandation** : rate limiting + captcha invisible pour prévenir spam (à programmer si besoin).
+
+### pro_service_requests
+
+- **RLS** : `INSERT public WITH CHECK (true)` ; SELECT scopé `architect_id=auth.uid() OR client_user_id=auth.uid() OR partner via match OR is_admin()`
+- **Justification** : formulaire public de demande Pro Service (architectes, clients). Lead capture pour le service.
+- **PII** : fortes (client_name, client_email, client_phone, client_company) — saisies volontairement.
+- **Recommandation** : rate limiting + validation email.
+
+### project_briefs
+
+- **RLS** : `INSERT public WITH CHECK (true)` ; SELECT scopé `brand_partner_id IN (mes brand partners via contact_email)`
+- **Justification** : formulaire brief public, brand-routed pour distribution aux partners.
+- **PII** : nom, email, company, siren, message.
+- **Note** : le SELECT scope utilise `partners.contact_email = auth.email()` au lieu de `user_id`. Cf. Dette 20 (à investiguer hors scope).
+- **Recommandation** : rate limiting + validation email.
+
+### scoring_snapshots
+
+- **RLS** : `INSERT public WITH CHECK (true)` ; SELECT scopé `is_admin()`
+- **Justification** : analytics immutable de scoring. INSERT public intentionnel pour tracking utilisateurs anonymes.
+- **PII** : aucune (session_id, parameters jsonb, concept_ids[], etc.)
+- **Recommandation** : idem concept_events, rate limiting si abuse détecté.
 
 ## Historique des fixes
 
@@ -178,6 +266,17 @@ il rejoint cette liste avec une justification.
 - REST API : HTTP 200 confirmed (was 401 during incident 2026-05-01)
 - Empirical evidence captured in Phase 3 récap (cf. transcript day 7 archive)
 - Helper functions kept in DB for 1-2 weeks observation period before final DROP
+
+### 2026-05-06 — Dette 18 partielle (audit RLS Always True)
+
+- Audit ciblé des 7 RLS "Always True" flagged par advisor
+- 1 fix appliqué : salone_2026_visits (cat A — anon avait SELECT/INSERT/UPDATE/DELETE sur PII)
+- Empirical validation pre/post : anon INSERT pré-fix=SUCCESS, post-fix=42501 RLS violation
+- Advisor confirme suppression du flag salone (6 entries restantes = faux positifs documentés + cat C notifications)
+- 5 documentées en faux positifs (cat B) : concept_events, partner_contact_requests, pro_service_requests, project_briefs, scoring_snapshots
+- 1 nouvelle dette critique identifiée : Dette 19 (notifications phishing risk)
+- 1 hors scope ajoutée : Dette 20 (project_briefs pattern incohérent)
+- Reste 54 autres warnings (Function Search Path Mutable, Materialized View in API, etc.) à auditer en session future
 
 ## Initiatives stratégiques planifiées
 
