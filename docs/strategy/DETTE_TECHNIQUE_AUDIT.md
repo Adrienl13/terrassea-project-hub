@@ -354,40 +354,84 @@ Cette dette est aggravante de la Dette 24.
 
 **Origine** : Smoke test Dette 33 (2026-05-06 23:38)
 
-**Description** : Console browser montre `WebSocket connection to wss://gwgcfgeouropcighpztj.supabase.co/realtime/v1/websocket failed: WebSocket is closed before the connection is established`. Potentiellement lié à Dette 39 (notifications realtime fix livrée plus tôt ce soir, commit 11fe166), OU bug préexistant non détecté.
+**Description** : Console browser montre `WebSocket connection to wss://gwgcfgeouropcighpztj.supabase.co/realtime/v1/websocket failed: WebSocket is closed before the connection is established`.
 
-**Investigation nécessaire** :
-- Reproduire en mode incognito clean
-- Vérifier si présent avant commit 11fe166 (test git stash)
-- Vérifier réseau / firewall local
-- Vérifier si la subscription `useNotifications.ts:54-92` fonctionne malgré ce warning (les toasts arrivent-ils ?)
+**Statut 2026-05-07 — Catégorie C confirmée** : warning persiste en preview prod (`bun run preview` localhost:4173 mode incognito). Pas un HMR-only artifact. NON lié au commit 11fe166 (Dette 39) — `git log -p src/hooks/useNotifications.ts` confirme que le bloc subscribe aux lignes 55-86 n'a pas été touché ; seul l'appel toast 81-83 a changé.
 
-**Effort estimé** : 0.3-0.5 j (investigation + fix éventuel)
+**Cause probable identifiée** (hypothèse haute) : race condition auth hydration. Les hooks `useNotifications` et `useConversations` s'abonnent au channel realtime sur `user?.id`, mais le client supabase finit son auth en async → 1er subscribe sans token JWT (échoue), puis re-subscribe avec token (réussit). Confirmation visuelle requise : vérifier que les notifications realtime fonctionnent malgré le warning (probablement OUI, car le re-subscribe réussit).
 
-**Priorité** : Niveau 2 (impact silencieux notifications realtime)
+**Investigation différée** :
+- Effort 0.5 j - 2h
+- À traiter en session dédiée
+- Investiguer config Supabase realtime client + ordre des useEffect subscription
+- Vérifier si on peut conditionner le subscribe sur `session !== null` plutôt que `user?.id`
+
+**Priorité** : Niveau 2 (pollution console, pas bloquant utilisateur final)
 
 **Statut** : à investiguer
 
-### Dette 45 — Supabase 400 errors residual
+### Dette 45 — Supabase 400 errors residual (FIXED partial)
 
 **Origine** : Smoke test Dette 33 (2026-05-06 23:38)
 
-**Description** : Console browser montre 2 erreurs 400 sur des ressources Supabase :
-- `/rest/v1/*` with query `d=at.de`
-- `/rest/v1/*` with query `d=is.nu`
+**Statut FIXED 2026-05-07** : split en 2 sous-dettes après diagnostic via DevTools Network tab.
 
-Probablement queries Supabase qui retournent 400 (Bad Request).
+**Dette 45a — quote_requests 400** : `PartnerOverview.tsx:223-235` (Recent quote requests widget) référençait colonne inexistante `client_name` dans `.select()`. Schema réel a `first_name`, `last_name`, `client_first_name` mais pas `client_name`. **Fix** : `.select("id, product_name, first_name, last_name, ...")` + concatenation `${first_name} ${last_name}` côté UI.
 
-**Investigation nécessaire** :
-- Network tab pour identifier les URL exactes
-- Vérifier si lié aux Dettes 16/17 existantes (déjà documentées sur 400 errors) ou nouveau bug
-- Peut-être doublon — à clarifier avant fix
+**Dette 45b — product_offers 400 (narrow)** : `PartnerOverview.tsx:54-69` (Top Products widget) utilisait `.is("source_offer_id", null)`. Colonne `source_offer_id` n'existe pas en DB. **Cause root** : drift migration `20260329100000_brand_distributor_enhancements.sql` (capturée comme Dette 46). **Fix narrow** : retrait du filtre uniquement dans PartnerOverview avec commentaire explicatif. 4 callsites brand-only restants tracked en Dette 47.
 
-**Effort estimé** : 0.3-0.5 j
+### Dette 46 — Drift migration brand-distributor 20260329100000
 
-**Priorité** : Niveau 2
+**Origine** : Investigation Dette 45b (2026-05-07)
 
-**Statut** : à investiguer
+**Description** : Migration `20260329100000_brand_distributor_enhancements.sql` présente dans `supabase/migrations/` depuis 2026-03-29 mais **JAMAIS appliquée à prod** (absent de `supabase_migrations.schema_migrations`). Vérifié 2026-05-07.
+
+La migration ajoute :
+- Column `source_offer_id uuid` à `product_offers` (FK + index partiel)
+- Triggers d'inheritance brand-distributor
+- ON CONFLICT logic pour offers hérités
+
+**Impact** :
+- 5 callsites code référencent `source_offer_id`, tous 400 silencieux côté DB
+- Toute la fonctionnalité brand-distributor inheritance est cassée pour brand_member/brand_network partners
+- Aucun brand_member actif en prod aujourd'hui → impact zéro à court terme
+- Pattern identique à Dette 38 (migration 20260411 jamais appliquée → 3 semaines silent fail) et Dette 43 (drift prevention process). **3e drift incident détecté en 1 mois.**
+
+**Décision stratégique requise (Options A/B/C)** :
+
+- **Option A — Appliquer la migration historique** : active la feature. Risque : feature non testée en prod, pas de brand_member actif pour valider. Effort : 1-2j (apply + test integration + frontend wiring).
+- **Option B — Supprimer la migration + cleanup 5 callsites** : retire la feature complète. Effort : ~1-2h. Perte feature.
+- **Option C — Status quo + retrait des references actives** : Dette 45b PartnerOverview déjà fait. Restent 4 callsites brand-only (cf. Dette 47). Effort : 30 min. Préserve l'optionalité.
+
+**Recommandation** : Option C tant que pas d'urgence business + pas de brand_member actif. Réviser à l'onboarding du 1er brand_member réel.
+
+**Effort** : 0.5-1 j (Option C complète) à 2 j (Option A complète)
+
+**Priorité** : Niveau 2 (silencieux, non bloquant standard partners ; bloquant brand-only)
+
+**Statut** : décision stratégique requise — différée
+
+### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
+
+**Origine** : Investigation Dette 45b (2026-05-07)
+
+**Description** : Si Option C de Dette 46 retenue, 4 callsites brand-only doivent être nettoyés :
+- `BrandCollectionManager.tsx:97` — `.is("source_offer_id", null)`
+- `BrandReferencesManager.tsx:336` — `.is("source_offer_id", null)`
+- `BrandCatalogueSection.tsx:92,94` — `.select("..., source_offer_id, ...")` + `.not("source_offer_id", "is", null)`
+- `BrandNetworkDashboard.tsx:146` — `.not("source_offer_id", "is", null)`
+
+Tous référencent `source_offer_id` et 400 silencieusement pour brand_member/brand_network. Aucun brand_member actif en prod aujourd'hui → impact zéro pour l'instant.
+
+**Action** :
+- Si Option C confirmée : retirer/commenter les references + ajouter notes pendant Dette 46
+- Si Option A : appliquer migration → ces queries refonctionnent automatiquement
+
+**Effort** : 20-30 min (Option C scope complet)
+
+**Priorité** : Niveau 3 (silencieux, brand-only, pas d'utilisateur actif)
+
+**Statut** : conditionnel à résolution Dette 46
 
 ### Dette 42 — BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase residue
 
@@ -641,8 +685,11 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | 33 | PartnerOrders section absente ★ | 1 | 2-4j | **FIXED ✅** | **2026-05-06** (Chantier Σ1) |
 | **42** | **BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase** | **3** | **0.2j** | **À fixer** | - |
 | **43** | **Drift prevention process à renforcer** | **2** | **0.5-1j** | **À fixer** | - |
-| **44** | **WebSocket realtime connection failed** | **2** | **0.3-0.5j** | **À investiguer** | - |
-| **45** | **Supabase 400 errors residual** | **2** | **0.3-0.5j** | **À investiguer** | - |
+| **44** | **WebSocket realtime connection failed** | **2** | **0.5-2h** | **À investiguer (cat C confirmée)** | - |
+| 45a | quote_requests 400 (client_name) | 2 | 5min | **FIXED ✅** | **2026-05-07** |
+| 45b | product_offers 400 narrow (PartnerOverview) | 2 | 5min | **FIXED ✅** | **2026-05-07** |
+| **46** | **Drift migration brand-distributor 20260329100000** | **2** | **0.5-2j** | **Décision stratégique requise** | - |
+| **47** | **4 callsites source_offer_id brand-only** | **3** | **0.5j** | **Conditionnel Dette 46** | - |
 | 5 | selectedColor deprecated | 3 | 1h | Continu | - |
 | 7 | DB invalide seed | 3 | 30min | Continu | - |
 | 8 | Édition admin variants | 3 | 2-3h | Continu | - |

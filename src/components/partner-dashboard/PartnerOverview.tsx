@@ -56,12 +56,15 @@ function TopProductsWidget({ partnerId, onNavigate }: { partnerId: string | null
   const { data: topProducts = [] } = useQuery({
     queryKey: ["partner-top-products", partnerId],
     queryFn: async () => {
+      // Note: source_offer_id filter removed pending Dette 46 resolution.
+      // Migration 20260329100000_brand_distributor_enhancements.sql adds the
+      // column but is in repo only — never applied to prod. Standard partners
+      // have no inherited offers, so the filter was functionally redundant.
       const { data } = await supabase
         .from("product_offers")
         .select("product_id, product:product_id(name, image_url)")
         .eq("partner_id", partnerId!)
         .eq("is_active", true)
-        .is("source_offer_id", null)
         .limit(3);
       return (data ?? []) as { product_id: string; product: { name: string; image_url: string | null } | null }[];
     },
@@ -225,7 +228,7 @@ export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNav
     queryFn: async () => {
       const { data } = await supabase
         .from("quote_requests")
-        .select("id, product_name, client_name, quantity, unit_price, status, created_at")
+        .select("id, product_name, first_name, last_name, quantity, unit_price, status, created_at")
         .eq("partner_id", partnerId!)
         .order("created_at", { ascending: false })
         .limit(3);
@@ -304,11 +307,12 @@ export function PartnerOverview({ plan, onNavigate }: { plan: PartnerPlan; onNav
             const statusLabel = q.status === "pending" ? t('pd.overview.statusNew') : q.status === "in_progress" ? t('pd.overview.statusInProgress') : q.status;
             const statusStyle = q.status === "pending" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700";
             const dateStr = q.created_at ? new Date(q.created_at).toLocaleDateString() : "";
+            const clientName = `${q.first_name ?? ""} ${q.last_name ?? ""}`.trim() || "—";
             return (
               <QuoteRow
                 key={q.id}
                 title={`${q.quantity ? q.quantity + "× " : ""}${q.product_name || t('pd.overview.quoteRequest')}`}
-                client={q.client_name || "—"}
+                client={clientName}
                 amount={amount > 0 ? `€${amount.toLocaleString()}` : "—"}
                 date={dateStr}
                 status={statusLabel}
