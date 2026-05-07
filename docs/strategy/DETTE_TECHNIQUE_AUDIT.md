@@ -250,6 +250,15 @@ Cette dette est aggravante de la Dette 24.
 **Risque non-fix** : corruption silencieuse des variantes Modèle B chaque fois qu'un admin édite un produit.
 **Effort** : 1 j
 
+**Statut FIXED 2026-05-07 (Sessions 2 admin chunk 3 — Option γ frontend-only)** :
+- `VariantsGrid` (réutilisation directe partner-side) intégré dans `Admin.tsx::ProductForm` section Pricing. Guard "save first" si form.id absent (mêmes patterns que Certifs section).
+- Hydration via `useQuery(['product-variants', form.id])` qui réutilise les DB IDs comme `_localId` → permet UPSERT en préservant les FK references existantes (CASCADE product_media, SET NULL carts/quotes).
+- Nouveau `persistVariants(productId)` dans handleSave : diff DB vs submitted, DELETE avec `window.confirm()` (warning CASCADE), UPSERT préservant les IDs.
+- Admin n'écrit plus `color_variants` / `dimension_variants` jsonb — les colonnes restent en DB comme historical artifact (cleanup tracké en Dette 48).
+- previewScore quality calc migré sur `variants` state (LocalVariantRow[]).
+- 2 fichiers `@deprecated` supprimés : `ColorVariantEditor.tsx` (178 LOC) + `DimensionVariantEditor.tsx` (287 LOC) = -465 LOC.
+- Audit data legacy révèle complexité plus élevée que prévu (3 produits, 11 entries jsonb, FK references concrètes) → Option γ retenue (jsonb cleanup différé en Dette 48 dédiée).
+
 ### Dette 28 — environment_urls oubliés admin-side
 
 **Origine** : Audit panel admin 2026-05-06
@@ -418,6 +427,30 @@ La migration ajoute :
 **Priorité** : Niveau 2 (silencieux, non bloquant standard partners ; bloquant brand-only)
 
 **Statut** : décision stratégique requise — différée
+
+### Dette 48 — DROP legacy variants jsonb columns (deferred cleanup)
+
+**Origine** : Audit Chunk 3.1 Dette 27 (2026-05-07)
+
+**Description** : Les colonnes `color_variants` et `dimension_variants` (jsonb) dans `products` sont maintenues comme historical artifact suite à Dette 27 fix frontend-only (Option γ). Plus jamais écrites mais toujours présentes en DB.
+
+**Données legacy actuelles** (audit 2026-05-07) :
+- 3 produits avec data jsonb non-vide : `DURBAN 004-BG` (2 color_variants), `HPL Bois` (4 dimension_variants), `HPL Marble White` (5 dimension_variants). 11 entries jsonb total.
+- 3 placeholder rows dans `product_variants` (1 par produit, créés par migration partielle antérieure)
+- FK references : `product_media.variant_id` (**ON DELETE CASCADE**), `project_cart_items.variant_id` (SET NULL), `quote_requests.variant_id` (SET NULL)
+
+**Stratégie de fix proposée** :
+1. Audit FK references concrètes (combien de rows `product_media`, `project_cart_items`, `quote_requests` pointent sur les 3 placeholders existants ?)
+2. Si 0 FK references actives sur les placeholders → DROP-then-INSERT possible
+3. Si FK references actives → UPDATE-then-INSERT pour préserver les IDs des placeholders (mapping arbitraire 1ère entry du jsonb sur le placeholder existant)
+4. Migration DDL : `ALTER TABLE products DROP COLUMN color_variants; DROP COLUMN dimension_variants;`
+5. Validation post-migration : tests carts/quotes/media sur les 3 produits affectés
+
+**Effort estimé** : 1.5h (audit FK + décision migration chirurgicale + DROP)
+
+**Priorité** : Niveau 3 (cosmétique, no impact business — cleanup uniquement)
+
+**Statut** : à fixer en session dédiée avec cerveau frais
 
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
@@ -672,7 +705,7 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | **24** | **ProductForm admin déconnecté vocab 2026 + certifs** | **1** | **2-3j** | **À fixer** | - |
 | 25 | Certifications absentes panel admin | 2 | 0.5-1j | **FIXED ✅** | **2026-05-07** (Sessions 2 ch.2) |
 | 26 | Catégories CamelCase admin (scope admin) | 1 | 0.5j | **FIXED ✅** | **2026-05-06** |
-| **27** | **VariantsGrid pas branché admin** | **1** | **1j** | **À fixer** | - |
+| 27 | VariantsGrid pas branché admin | 1 | 1j | **FIXED ✅** (frontend) | **2026-05-07** (Sessions 2 ch.3, Option γ) |
 | 28 | environment_urls oubliés admin | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | 29 | Pas d'upload Storage admin | 2 | 0.5-1j | **FIXED ✅** | **2026-05-07** (Sessions 2 ch.1) |
 | 30 | ApplicationsTab inline Admin.tsx | 3 | 0.2j | **FIXED ✅** | **2026-05-06** |
@@ -694,6 +727,7 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | **42** | **BRAND_SPECIALTIES + BRAND_CERTIFICATIONS CamelCase** | **3** | **0.2j** | **À fixer** | - |
 | **43** | **Drift prevention process à renforcer** | **2** | **0.5-1j** | **À fixer** | - |
 | **44** | **WebSocket realtime connection failed** | **2** | **0.5-2h** | **À investiguer (cat C confirmée)** | - |
+| **48** | **DROP legacy variants jsonb columns (deferred cleanup)** | **3** | **1.5h** | **À fixer (session dédiée)** | - |
 | 45a | quote_requests 400 (client_name) | 2 | 5min | **FIXED ✅** | **2026-05-07** |
 | 45b | product_offers 400 narrow (PartnerOverview) | 2 | 5min | **FIXED ✅** | **2026-05-07** |
 | **46** | **Drift migration brand-distributor 20260329100000** | **2** | **0.5-2j** | **Décision stratégique requise** | - |

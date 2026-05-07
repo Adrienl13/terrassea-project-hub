@@ -38,18 +38,17 @@ import AdminAIScanner from "@/components/admin/AdminAIScanner";
 import AdminMaterialBrands from "@/components/admin/AdminMaterialBrands";
 import AdminCertifications from "@/components/admin/AdminCertifications";
 import AdminApplications from "@/components/admin/AdminApplications";
-import ColorVariantEditor from "@/components/admin/ColorVariantEditor";
-import DimensionVariantEditor from "@/components/admin/DimensionVariantEditor";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
 import CompatibleProductsEditor from "@/components/admin/CompatibleProductsEditor";
 import ProductImagesUpload from "@/components/admin/ProductImagesUpload";
 import ProductCertifications from "@/components/partner-dashboard/ProductCertifications";
+import VariantsGrid from "@/components/partner-dashboard/VariantsGrid";
+import type { LocalVariantRow } from "@/lib/variantsGridHelpers";
 import { computeProductQuality } from "@/lib/productQualityScore";
 import {
   CANONICAL_CATEGORIES,
   normalizeProductCategory,
 } from "@/lib/categoryNormalizer";
-import type { ColorVariant, DimensionVariant } from "@/lib/products";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
@@ -428,6 +427,37 @@ function ProductForm({
   const [saving, setSaving] = useState(false);
   const [section, setSection] = useState<string>("basics");
 
+  // ── Variants (Modèle B canonical via VariantsGrid — Dette 27) ──
+  // Hydration: fetch existing rows when editing an existing product.
+  const { data: variantsFromDb } = useQuery<LocalVariantRow[]>({
+    queryKey: ["product-variants", form.id],
+    enabled: !!form.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_variants")
+        .select("id, sku, width_cm, depth_cm, material_brand_id, fabric_color_slug, frame_finish_slug, price_eur, in_stock, is_default")
+        .eq("product_id", form.id);
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        _localId: r.id, // Reuse DB id as localId so UPSERT preserves FK references
+        sku:               r.sku ?? null,
+        width_cm:          r.width_cm != null ? Number(r.width_cm) : null,
+        depth_cm:          r.depth_cm != null ? Number(r.depth_cm) : null,
+        material_brand_id: r.material_brand_id ?? null,
+        fabric_color_slug: r.fabric_color_slug ?? null,
+        frame_finish_slug: r.frame_finish_slug ?? null,
+        price_eur:         r.price_eur != null ? Number(r.price_eur) : null,
+        in_stock:          r.in_stock ?? false,
+        is_default:        r.is_default ?? false,
+      }));
+    },
+    staleTime: 30 * 1000,
+  });
+  const [variants, setVariants] = useState<LocalVariantRow[]>([]);
+  useEffect(() => {
+    if (variantsFromDb) setVariants(variantsFromDb);
+  }, [variantsFromDb]);
+
   const { data: partnersList = [] } = useQuery({
     queryKey: ["partners-list"],
     queryFn: async () => {
@@ -460,7 +490,9 @@ function ProductForm({
   const previewScore = (() => {
     let s = 0;
     const isTable = (form.category || "").toLowerCase().includes("table");
-    const dimVariants = (form.dimension_variants || []) as DimensionVariant[];
+    // Dette 27 — quality preview reads variants from the canonical
+    // product_variants rows (state `variants`) instead of the legacy
+    // dimension_variants jsonb column.
     const ptt = form.product_type_tags || {};
     const pttKeys = Object.keys(ptt).filter(k => ptt[k] != null && ptt[k] !== "").length;
     const tableType = ptt.table_type || "";
@@ -489,10 +521,10 @@ function ProductForm({
 
     // ── Commercial (25%) ──
     if (form.price_min != null) s += 0.10;
-    if (isTable && dimVariants.length > 0) {
+    if (isTable && variants.length > 0) {
       s += 0.05; // has variants
-      if (dimVariants.every(v => v.price > 0)) s += 0.05; // all priced
-      if (dimVariants.some(v => v.stock_status)) s += 0.05; // stock documented
+      if (variants.every(v => (v.price_eur ?? 0) > 0)) s += 0.05; // all priced
+      if (variants.some(v => v.in_stock)) s += 0.05; // stock documented
     } else {
       if (form.dimensions_length_cm != null) s += 0.05;
       if (form.dimensions_width_cm != null) s += 0.05;
@@ -509,13 +541,78 @@ function ProductForm({
     return Math.min(Math.round(s * 100) / 100, 1);
   })();
 
+  const persistVariants = async (productId: string) => {
+    // Diff against DB to know what needs DELETE (CASCADE on product_media).
+    const { data: existing } = await supabase
+      .from("product_variants")
+      .select("id")
+      .eq("product_id", productId);
+    const existingIds = new Set((existing ?? []).map((r: { id: string }) => r.id));
+    const submittedIds = new Set(
+      variants.filter((v) => existingIds.has(v._localId)).map((v) => v._localId),
+    );
+    const idsToDelete = [...existingIds].filter((id) => !submittedIds.has(id));
+
+    // Confirm before destructive delete (CASCADE wipes attached product_media).
+    if (idsToDelete.length > 0) {
+      const ok = window.confirm(
+        `Supprimer ${idsToDelete.length} variante(s) supprimera aussi les images attachées (cascade product_media). Confirmer ?`,
+      );
+      if (!ok) {
+        toast("Suppression annulée — variants conservés.");
+      } else {
+        const { error: delErr } = await supabase
+          .from("product_variants")
+          .delete()
+          .in("id", idsToDelete);
+        if (delErr) throw delErr;
+      }
+    }
+
+    if (variants.length > 0) {
+      const rows = variants.map((v) => {
+        const isExisting = existingIds.has(v._localId);
+        return {
+          ...(isExisting ? { id: v._localId } : {}),
+          product_id:        productId,
+          sku:               v.sku,
+          width_cm:          v.width_cm,
+          depth_cm:          v.depth_cm,
+          material_brand_id: v.material_brand_id,
+          fabric_color_slug: v.fabric_color_slug,
+          frame_finish_slug: v.frame_finish_slug,
+          price_eur:         v.price_eur,
+          in_stock:          v.in_stock,
+          is_default:        v.is_default,
+        };
+      });
+      const { error: upErr } = await supabase
+        .from("product_variants")
+        .upsert(rows, { onConflict: "id" });
+      if (upErr) throw upErr;
+    }
+  };
+
   const handleSave = async (overrides?: Partial<ProductFormData>) => {
     if (!form.name || !form.category) {
       toast.error("Le nom et la catégorie sont requis");
       return;
     }
     setSaving(true);
-    try { await onSave({ ...form, ...overrides }); } finally { setSaving(false); }
+    try {
+      await onSave({ ...form, ...overrides });
+      // Persist variants only when product already exists (creation flow saves
+      // variants on second open, mirroring the Certifs section guard).
+      if (form.id) {
+        try {
+          await persistVariants(form.id);
+        } catch (err: any) {
+          toast.error(`Variantes non sauvegardées : ${err?.message ?? "erreur"}`);
+        }
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSubmitForReview = () => { handleSave({ publish_status: "pending_review" }); };
@@ -728,18 +825,6 @@ function ProductForm({
               </div>
             </div>
 
-            {/* Color Variant Editor */}
-            <ColorVariantEditor
-              value={form.color_variants as ColorVariant[]}
-              onChange={(variants: ColorVariant[]) => {
-                set("color_variants", variants);
-                const availableSlugs = variants.filter(v => v.available).map(v => v.color_slug).filter(Boolean);
-                set("available_colors", availableSlugs);
-                if (variants.length > 0 && variants[0].color_slug) {
-                  set("main_color", variants[0].color_slug);
-                }
-              }}
-            />
           </div>
         </div>
       )}
@@ -804,30 +889,29 @@ function ProductForm({
         <div className="space-y-6">
           <SectionHeader icon={CreditCard} title="Prix & Stock" description="Tarification, disponibilité et scores de visibilité" />
 
-          {/* Dimension variants editor — for tables */}
-          {(form.category || "").toLowerCase().includes("table") && (
+          {/* Variantes — VariantsGrid canonique (Dette 27) */}
+          {form.id ? (
             <div className="border border-border rounded-2xl p-5 bg-card/30">
-              <DimensionVariantEditor
-                variants={(form.dimension_variants || []) as DimensionVariant[]}
-                onChange={(variants) => {
-                  const prices = variants.filter(v => v.price > 0).map(v => v.price);
-                  setForm(prev => ({
-                    ...prev,
-                    dimension_variants: variants,
-                    // Auto-sync price_min/max from variants
-                    ...(prices.length > 0 ? {
-                      price_min: Math.min(...prices),
-                      price_max: Math.max(...prices),
-                    } : {}),
-                  }));
-                }}
-              />
+              <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Variantes (SKU, dimensions, tissu, couleur, prix, stock)
+              </p>
+              <VariantsGrid initial={variants} onChange={setVariants} />
+            </div>
+          ) : (
+            <div className="border border-dashed border-border rounded-2xl p-6 text-center bg-card/30">
+              <Layers className="h-5 w-5 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-xs font-display font-semibold text-foreground mb-1">
+                Enregistrez d'abord le produit pour ajouter des variantes.
+              </p>
+              <p className="text-[10px] font-body text-muted-foreground">
+                Les variantes nécessitent un produit existant pour le rattachement.
+              </p>
             </div>
           )}
 
           <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
             <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
-              Tarification{(form.dimension_variants as DimensionVariant[] | undefined)?.length ? " (référence — auto-calculé depuis les variantes)" : ""}
+              Tarification (référence — peut être auto-calculée depuis les variantes par scripts post-merge)
             </p>
             <div className="grid grid-cols-2 gap-4">
               {renderInput("Prix min (€)", "price_min", "number")}
@@ -836,7 +920,7 @@ function ProductForm({
           </div>
           <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
             <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">
-              Disponibilité{(form.dimension_variants as DimensionVariant[] | undefined)?.length ? " (globale — le stock par taille est dans les variantes)" : ""}
+              Disponibilité (globale)
             </p>
             <div className="grid grid-cols-2 gap-4">
               {renderSelect("Type de disponibilité", "availability_type", AVAILABILITY_OPTIONS)}
@@ -1081,12 +1165,17 @@ function ProductsTab() {
           subcategory: data.subcategory,
         })
       : data.category;
+    // Dette 27 — admin no longer writes color_variants / dimension_variants
+    // jsonb columns. Variants are persisted in the canonical product_variants
+    // table by ProductForm.persistVariants(). Legacy jsonb columns are kept
+    // intact as historical artifact (cleanup tracked as Dette 48).
+    const { color_variants: _legacyColors, dimension_variants: _legacyDims, ...restWithoutLegacy } = rest;
+    void _legacyColors; void _legacyDims;
     const dbData = {
-      ...rest,
+      ...restWithoutLegacy,
       category:          normalizedCategory,
-      color_variants:    rest.color_variants as unknown as Json,
-      product_type_tags: rest.product_type_tags as unknown as Json,
-      documents:         rest.documents as unknown as Json,
+      product_type_tags: restWithoutLegacy.product_type_tags as unknown as Json,
+      documents:         restWithoutLegacy.documents as unknown as Json,
       publish_status:    undefined as string | undefined,
     };
     // New products default to draft; existing keep their status unless explicitly changed
