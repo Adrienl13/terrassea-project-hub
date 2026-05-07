@@ -452,6 +452,109 @@ La migration ajoute :
 
 **Statut** : à fixer en session dédiée avec cerveau frais
 
+### Dette 49 — Welcome modal first-time partner login
+
+**Origine** : ONBOARDING_PARTNER_AUDIT.md (2026-05-07)
+
+**Description** : Aucun welcome modal au premier login partner. PartnerOverview affiche directement les stats à 0 et les empty states éparpillés. Pas de "moment de bienvenue" pour orienter le nouveau partner.
+
+**Fix** : modal 1-shot (dismiss permanent stocké en `user_profiles.metadata` ou localStorage) avec :
+- Message d'accueil personnalisé selon partner_type
+- 3 CTAs primaires : "Compléter mon profil", "Ajouter mon 1er produit", "Voir un produit demo"
+- Visible uniquement si `created_at < 7 days` ET `not dismissed`
+
+**Effort** : 0.5 j
+
+**Priorité** : Niveau 2 (impact activation partner — sans, friction silencieuse au 1er login)
+
+**Statut** : à fixer (Tier 1 onboarding)
+
+### Dette 50 — Onboarding checklist visible PartnerOverview
+
+**Origine** : ONBOARDING_PARTNER_AUDIT.md (2026-05-07)
+
+**Description** : Aucune checklist progression visible dans PartnerOverview. Le partner ne sait pas où il en est dans son onboarding. Aucun sense of progress.
+
+**Fix** : composant `<OnboardingChecklist>` rendu en haut de PartnerOverview tant que `progress < 100%` :
+1. Profile complété (✓ si `profile_completed=true`)
+2. Premier produit créé (✓ si `count(product_offers WHERE partner_id) > 0`)
+3. Première photo galerie uploadée (✓ si `gallery storage > 0`)
+4. Première certification déclarée (✓ si `partner_certifications > 0`)
+5. Premier devis reçu (✓ si `count(quote_requests WHERE partner_id) > 0`)
+
+Disparaît automatiquement quand 100%. Persiste sinon.
+
+**Effort** : 0.5 j
+
+**Priorité** : Niveau 2 (impact activation)
+
+**Statut** : à fixer (Tier 1 onboarding)
+
+### Dette 51 — Email automation post-signup partner
+
+**Origine** : ONBOARDING_PARTNER_AUDIT.md (2026-05-07)
+
+**Description** : 0 séquence email post-signup partner. 13 edge functions inventoriées, aucune `send-welcome-partner` / `send-application-received` / `send-profile-approved`. Le partner attend en silence, sans email de réassurance ni de relance.
+
+**Fix Tier 1 minimal (2 emails)** :
+1. **`send-application-received`** — déclenché à l'INSERT partner_applications. Confirme réception, communique SLA "examen sous 48h ouvrées", liste prochaines étapes.
+2. **`send-profile-approved`** — déclenché à UPDATE partners.profile_status='approved'. Invite à se reconnecter, premier CTA "Add product".
+
+**Décision bloquante** : choix provider email (Loops vs Resend vs Postmark vs SendGrid). Coût ~$30-100/mois. Recommandation : Resend (cheap, transactional-first, dev-friendly).
+
+**Fix Tier 2 séquence complète** (deferred, 1.5 j) : D+0 welcome, D+3 nudge "1er produit ?", D+7 nudge "Importer Excel", D+14 nudge dernière, tailored par partner_type.
+
+**Effort Tier 1 minimal** : 0.5-1 j (provider integration + 2 templates + 2 edge functions + DB triggers ou polling)
+
+**Priorité** : Niveau 2 (impact activation + retention nouveaux partners)
+
+**Statut** : à fixer (Tier 1 onboarding) — décision provider à trancher d'abord
+
+### Dette 52 — 2 triggers DB redondants partner_applications UPDATE
+
+**Origine** : ONBOARDING_PARTNER_AUDIT.md (2026-05-07)
+
+**Description** : Audit pg_trigger révèle **2 triggers** sur `partner_applications` UPDATE :
+- `trg_create_partner_on_approval` → `create_partner_on_approval()`
+- `trg_auto_create_partner` → `auto_create_partner_on_approval()`
+
+**Risque** : à l'approbation d'une application, les 2 fonctions s'exécutent. Si elles font toutes les deux INSERT dans `partners`, on aurait un doublon. Si l'une est idempotente et l'autre non, ordre d'exécution non-déterministe → bug latent.
+
+**Fix** :
+1. Lire les 2 fonctions via `pg_get_functiondef` et comparer leurs corps
+2. Identifier la fonction canonique à conserver
+3. DROP le trigger + fonction obsolète
+4. Migration DDL via `mcp__supabase__apply_migration` avec drift prevention
+5. Test E2E : créer une application, l'approuver, vérifier qu'un seul row partners est créé
+
+**Effort** : 0.5-1 h (audit + migration DROP)
+
+**Priorité** : Niveau 2 (bug latent, peut casser silencieusement le flow d'approval quand un vrai signup arrivera)
+
+**Statut** : à fixer (avant 1er vrai partner signup)
+
+### Dette 53 — Confusion 2 entry-points partner signup
+
+**Origine** : ONBOARDING_PARTNER_AUDIT.md (2026-05-07)
+
+**Description** : 2 chemins de signup partner coexistent sans documentation ni routing clair :
+- `/become-partner` (Flow A) : application + admin review (curated, gated)
+- `/auth` userType='partner' (Flow B) : self-serve direct + auto-create silent dans Account.tsx:495-528
+
+Le footer pointe vers `/become-partner`. Le header signup pointe vers `/auth`. Aucune info sur la différence entre les 2 chemins. Un partner motivé peut faire les 2 en se demandant lequel est le "bon".
+
+**Fix Tier 2 (refactor)** :
+- Garder `/become-partner` comme entry-point public principal (Flow A curated)
+- Faire de Flow B un "fast path" caché (admin-only ou invitation-only via lien magique)
+- Update Header `/auth` pour rediriger les userType='partner' vers `/become-partner` (sauf si invitation token présent)
+- Documentation interne : `docs/strategy/PARTNER_ONBOARDING_FLOW.md`
+
+**Effort** : 1 j (refactor routing + UX message + tests)
+
+**Priorité** : Niveau 3 (impact perception qualité, pas bloquant)
+
+**Statut** : à fixer (Tier 2 onboarding) — après Tier 1 livré
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
@@ -728,6 +831,11 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | **43** | **Drift prevention process à renforcer** | **2** | **0.5-1j** | **À fixer** | - |
 | **44** | **WebSocket realtime connection failed** | **2** | **0.5-2h** | **À investiguer (cat C confirmée)** | - |
 | **48** | **DROP legacy variants jsonb columns (deferred cleanup)** | **3** | **1.5h** | **À fixer (session dédiée)** | - |
+| **49** | **Welcome modal first-time partner login** | **2** | **0.5j** | **À fixer (Tier 1 onboarding)** | - |
+| **50** | **Onboarding checklist visible PartnerOverview** | **2** | **0.5j** | **À fixer (Tier 1 onboarding)** | - |
+| **51** | **Email automation post-signup partner** | **2** | **0.5-1j** | **À fixer (Tier 1, provider TBD)** | - |
+| **52** | **2 triggers DB redondants partner_applications** | **2** | **0.5-1h** | **À fixer (avant 1er signup réel)** | - |
+| **53** | **Confusion 2 entry-points partner signup** | **3** | **1j** | **À fixer (Tier 2 onboarding)** | - |
 | 45a | quote_requests 400 (client_name) | 2 | 5min | **FIXED ✅** | **2026-05-07** |
 | 45b | product_offers 400 narrow (PartnerOverview) | 2 | 5min | **FIXED ✅** | **2026-05-07** |
 | **46** | **Drift migration brand-distributor 20260329100000** | **2** | **0.5-2j** | **Décision stratégique requise** | - |
