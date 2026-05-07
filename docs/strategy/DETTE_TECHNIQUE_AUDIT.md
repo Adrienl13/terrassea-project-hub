@@ -555,6 +555,54 @@ Le footer pointe vers `/become-partner`. Le header signup pointe vers `/auth`. A
 
 **Statut** : à fixer (Tier 2 onboarding) — après Tier 1 livré
 
+### Dette 54 — Email approval partner non envoyé
+
+**Origine** : Smoke test e2e Sujet 1 (2026-05-07 soir)
+
+**Description** : Quand l'admin approuve un partner via `AdminPartners.tsx` (UPDATE direct `profile_status='approved'`), aucun email n'est envoyé au partner. Le partner ne sait pas qu'il est approuvé sauf en checkant manuellement son dashboard / sa cloche de notifications. Une notification in-app existe (côté partner) via les hooks existants, mais pas de canal asynchrone (email).
+
+**Impact business** : friction activation partner, mauvaise première expérience post-approval (qui peut intervenir 24-48h après le submit).
+
+**Fix** : appel `send-notification-email` edge function dans la mutation `approveProfile` côté `AdminPartners.tsx` (pattern déjà en place pour `AdminQuoteWorkflow.tsx`, `AdminApplications.tsx`, `usePartnerQuotes.ts`).
+
+**Bloquant amont** : décision Dette 51 (email provider). La fonction `send-notification-email` existe et est utilisée mais le provider de transport (SMTP/Resend/Loops) doit être finalisé avant d'industrialiser.
+
+**Effort** : 0.5-1 j (2-3h fix une fois Dette 51 décidée)
+
+**Priorité** : Niveau 2
+
+**Statut** : à fixer après décision Dette 51
+
+### Dette 55 — Bug reset password fallback Site URL (RÉSOLU côté code) ✅
+
+**Origine** : Investigation Bug #2 (2026-05-07 soir)
+
+**Description** : Quand l'utilisateur cliquait le lien email "Mot de passe oublié", Supabase Auth appliquait son fallback Site URL au lieu de honorer le `redirectTo: ${origin}/auth` du frontend. Cause probable : la `Redirect URLs` allowlist du projet Supabase ne contenait que `https://terrassea.com/**` (prod), donc les origins de dev/preview n'étaient pas whitelistées et Supabase tombait sur Site URL = homepage. Résultat utilisateur : redirigé vers `/` avec le hash `#type=recovery&access_token=...`, auto-loggé via la session établie, mais aucun form "nouveau password" affiché → password jamais changé → blocage si déconnexion ultérieure.
+
+**Résolution code (cette session)** :
+- `RecoveryGuard` ajouté dans `src/App.tsx` : composant useEffect qui watch `isPasswordRecovery` (du `AuthContext`) + `location.pathname`. Si recovery actif et path ∉ {`/auth`, `/login`, `/reset-password`}, force `navigate("/reset-password", { replace: true })`. Self-healing belt + suspenders : marche même si la config dashboard Supabase reste imparfaite ou si le Site URL fallback se reproduit dans un contexte futur.
+- Code frontend pré-existant déjà correct (`Auth.tsx:208-263` form reset, `AuthContext.tsx:70-78` détection synchrone du hash, `AuthContext.tsx:113-119` event handler `PASSWORD_RECOVERY`).
+
+**Statut** : FIXED ✅ côté code (commit cette session). Côté config dashboard Supabase, allowlist préservée prod-only par décision founder.
+
+**À surveiller** : si plusieurs environnements déployés (staging séparé), prévoir d'élargir la `Redirect URLs` allowlist OU créer un projet Supabase distinct (cf. Dette 56).
+
+### Dette 56 — Pas de projet Supabase staging séparé
+
+**Origine** : Discussion architecture 2026-05-07 (suite Bug #2)
+
+**Description** : Un seul projet Supabase (`gwgcfgeouropcighpztj`) sert à la fois pour le dev local, la preview, et la prod. Conséquences : data réelle mélangée avec tests, config Auth (Site URL, Redirect URLs, templates email) imposée prod = friction tests dev, risque pollution data prod par smoke tests.
+
+**Impact** : limite la confiance des tests dev et complique l'élargissement de la `Redirect URLs` allowlist sans risque de fuite cross-env.
+
+**Fix** : créer un projet Supabase "staging" séparé (ou utiliser les `branches` Supabase). Dupliquer schéma + RLS + edge functions via migrations existantes. Ajouter variable d'env `VITE_SUPABASE_PROJECT` pour switcher.
+
+**Effort** : 1-2 h setup initial + maintenance ongoing (migrations à apply 2 fois, secrets dupliqués).
+
+**Priorité** : Niveau 3 (Q3 2026)
+
+**Statut** : à fixer en Q3 2026
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)

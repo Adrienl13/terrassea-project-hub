@@ -519,12 +519,25 @@ const Account = () => {
         country: profile.country || "France",
         partner_type: pType,
         partner_mode: pMode,
-      }).then(({ error: insertErr }) => {
+      }).select("id, name, partner_type").single().then(async ({ data: newPartner, error: insertErr }) => {
         if (insertErr) {
           console.error("Failed to auto-create partner:", insertErr.message);
           return;
         }
         queryClient.invalidateQueries({ queryKey: ["partner-data-for-user"] });
+        if (newPartner) {
+          try {
+            await supabase.rpc("create_partner_notification_to_admins", {
+              p_partner_id: newPartner.id,
+              p_event_type: "new_partner_signup",
+              p_title: `Nouveau partenaire : ${newPartner.name || "Sans nom"}`,
+              p_body: `Inscription self-serve. Type : ${newPartner.partner_type || "non précisé"}.`,
+              p_link: `/admin?partner=${newPartner.id}`,
+            });
+          } catch (notifErr) {
+            console.error("Admin notification failed (non-blocking):", notifErr);
+          }
+        }
       });
     }
   }, [profile, partnerQueryDone, partnerData]);

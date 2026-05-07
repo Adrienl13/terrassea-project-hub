@@ -1,16 +1,37 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProjectCartProvider } from "@/contexts/ProjectCartContext";
 import { CompareProvider } from "@/contexts/CompareContext";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { FavouritesProvider } from "@/contexts/FavouritesContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import StructuredData from "@/components/StructuredData";
 import NotFound from "./pages/NotFound.tsx";
+
+const RECOVERY_PATHS = new Set(["/auth", "/login", "/reset-password"]);
+
+// Defensive guard: if Supabase Auth falls back to Site URL after a password
+// recovery (e.g. when the requested redirectTo is not in the project's
+// allowlist), the user lands on the homepage with #type=recovery in the
+// hash — but the homepage has no UI to set a new password. This guard
+// detects that state and routes the user to /reset-password.
+const RecoveryGuard = () => {
+  const { isPasswordRecovery } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isPasswordRecovery && !RECOVERY_PATHS.has(location.pathname)) {
+      navigate("/reset-password", { replace: true });
+    }
+  }, [isPasswordRecovery, location.pathname, navigate]);
+
+  return null;
+};
 
 // Lazy-loaded page components
 const Index = lazy(() => import("./pages/Index"));
@@ -65,6 +86,7 @@ const App = () => (
           <CompareProvider>
             <Sonner />
             <BrowserRouter>
+              <RecoveryGuard />
               <StructuredData />
               <div className="pt-[var(--header-height)]">
                 <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>

@@ -280,23 +280,15 @@ const BecomePartner = () => {
       });
       if (error) throw error;
 
-      // Notify admins about the new partner application
+      // Notify admins via centralized SECURITY DEFINER RPC
       try {
-        const { data: admins } = await supabase
-          .from("user_profiles")
-          .select("id")
-          .eq("user_type", "admin")
-          .limit(50);
-        if (admins && admins.length > 0) {
-          const notifications = admins.map((admin) => ({
-            user_id: admin.id,
-            title: "Nouvelle candidature partenaire",
-            body: `Nouvelle candidature partenaire : ${form.companyName}`,
-            type: "partner_application",
-            link: "/admin?tab=applications",
-          }));
-          await supabase.from("notifications").insert(notifications);
-        }
+        await supabase.rpc("create_partner_notification_to_admins", {
+          p_partner_id: null,
+          p_event_type: "partner_application",
+          p_title: "Nouvelle candidature partenaire",
+          p_body: `Nouvelle candidature partenaire : ${form.companyName}`,
+          p_link: "/admin?tab=applications",
+        });
       } catch {
         // Non-blocking: don't fail the application if notification fails
       }

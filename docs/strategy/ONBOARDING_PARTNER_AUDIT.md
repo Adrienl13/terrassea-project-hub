@@ -294,3 +294,110 @@ Voir tracker pour priorités, efforts, statuts.
 
 → La plomberie est solide. Il manque l'**orchestration UX visible** et la
 **communication asynchrone** (emails). C'est le coeur de Tier 1.
+
+---
+
+## 7. Implementation 2026-05-07 (soir) — Sujet 1 livré
+
+### Contexte
+Session de validation e2e du flow + premiers fix incrémentaux Tier 1.
+Founder + Claude Code, ~2h. Pas de big-bang refactor : on a vérifié
+empiriquement chaque maillon, capturé les vrais trous, livré ce qui
+était cohérent dans la durée d'une session.
+
+### Sujet 1 — Verified workflow (admin notifications + filtre public)
+
+**Décision stratégique : Variante 1 (réutilisation vocab existant)**
+
+Plutôt que d'inventer un nouveau statut `verified` qui aurait dupliqué
+`profile_reviewed_at` / `profile_reviewed_by` et cassé `ProServiceGate.tsx`
++ `AdminPartners.tsx`, on a réutilisé le statut `approved` déjà en place
+dans le workflow review. Zéro data migration, zéro refactor de surface.
+
+**Code livré** :
+- Migration `20260507161216_partner_admin_notifications.sql`
+  (`supabase/migrations/`) :
+  - RPC `create_partner_notification_to_admins(uuid, text, text, text, text)`
+    — `SECURITY DEFINER`, GRANTED `authenticated` only. Centralise la loop
+    sur `user_profiles.user_type='admin'` qui était inline dans
+    `BecomePartner.tsx:283-302` (pattern auparavant non factorisé).
+  - Trigger `partners_notify_review_ready` (AFTER UPDATE on `partners`,
+    WHEN clause sur transition vers `pending_review`) → INSERT
+    notification `partner_review_ready` pour chaque admin.
+- `Account.tsx:489-548` — auto-create partner ajoute `.select().single()`
+  + appel RPC `create_partner_notification_to_admins` wrappé try/catch
+  (non-bloquant pour le signup).
+- `BecomePartner.tsx:283-295` — refactor de la loop manuelle
+  `user_profiles → notifications` vers la RPC unifiée. Préservation du
+  comportement (try/catch, non-bloquant).
+- `Partners.tsx:309` — filtre public `is_public=true` →
+  `profile_status='approved'`. Vérification empirique préalable :
+  0 incohérence (`is_public=true ∧ status≠'approved'`).
+- `types.ts` régénéré (RPC visible).
+
+**Skipped (out of scope ce soir, décisions explicites)** :
+- Trigger auto-transition `draft → pending_review` quand profile complet :
+  refusé car le bouton manuel "Submit for review" dans
+  `PartnerProfileForm.tsx:289-294` est UX-correct et intentionnel.
+- RPC `verify_partner_as_admin` (SECURITY DEFINER pour les actions admin) :
+  reporté. UPDATE direct + RLS suffisant à ce stade. Capturable comme
+  dette future Niveau 3 si audit trail nécessaire.
+
+**Smoke test e2e — ALL GREEN sur les 6 steps** :
+1. Cleanup partner Test précédent ✅
+2. Nouveau signup self-serve avec `test-e2e-brand2-2026-05-07@terrassea.invalid` ✅
+3. Notif admin `new_partner_signup` reçue côté admin ✅
+4. Submit profile pour review → notif `partner_review_ready` ✅
+5. Approve depuis `/admin?tab=partners` → `profile_status='approved'` ✅
+6. Partner test apparaît sur `/partners` (filtre public) ✅
+
+### Bug #2 — Reset password redirect failure (RÉSOLU code)
+
+**Symptôme** : email reset reçu, click lien → redirige vers homepage,
+auto-loggé mais password jamais changé → blocage si déconnexion.
+
+**Cause root** : Supabase Auth fallback sur Site URL quand le
+`redirectTo` n'est pas dans la `Redirect URLs` allowlist du projet
+(allowlist préservée prod-only par décision founder).
+
+**Fix livré (self-healing)** :
+- `RecoveryGuard` ajouté dans `src/App.tsx` (composant inline ~20 LOC) :
+  watch `isPasswordRecovery` (`AuthContext`) + `location.pathname`. Si
+  recovery actif ET path ∉ {`/auth`, `/login`, `/reset-password`} →
+  `navigate("/reset-password", { replace: true })`.
+- Le code frontend pré-existant était déjà correct (route, form newPassword,
+  `updateUser({ password })`, anti-redirect prematuré, détection synchrone
+  du hash). Le guard est défensif : marche même si la config dashboard
+  Supabase reste imparfaite ou si le fallback Site URL réapparaît dans
+  un contexte futur (nouveau env, branch, staging).
+
+**Tracé en dette** : Dette 55 (résolue) + Dette 56 (staging Supabase Q3
+2026).
+
+### Bugs / dettes capturés mais non fixés ce soir
+
+- **Dette 54 — Email approval partner non envoyé** : pas d'email envoyé
+  au partner quand admin approve. Bloqué amont par décision Dette 51
+  (email provider). Niveau 2.
+- **Dette 56 — Pas de projet Supabase staging** : 1 seul projet sert
+  dev + prod. Limite tests + complique allowlist Auth. Niveau 3 Q3 2026.
+
+### Validation CI locale finale
+
+- `bunx tsc --noEmit` : clean
+- `bun run lint` : 0 errors (610 warnings pré-existants, aucun nouveau)
+- `bun run test` : 615 / 615 passed
+- `bun run build` : OK
+- Migration appliquée via `mcp__supabase__apply_migration` avec DO block
+  validation (RPC + function + trigger présents post-apply)
+- Recovery guard validé via injection de hash en console (
+  `window.location.hash = "type=recovery&access_token=fake"` →
+  redirect immédiat vers `/reset-password`)
+
+### Décisions stratégiques en attente
+
+1. **Dette 51 — Email provider** (Loops / Resend / SendGrid) — bloquant
+   pour Dette 54 et Tier 1 emails séquences.
+2. **Dette 56 — Staging Supabase** — Q3 2026, post acquisition phase.
+3. **Sujets reportés à dimanche soir** : audits invitations
+   (admin → partner / brand network) + currency multi-locale.

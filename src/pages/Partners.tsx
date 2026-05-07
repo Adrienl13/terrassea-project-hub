@@ -306,7 +306,7 @@ export default function Partners() {
       const { data, error } = await supabase
         .from("partners")
         .select("*")
-        .eq("is_public", true)
+        .eq("profile_status", "approved")
         .order("priority_order", { ascending: false });
       if (error) throw error;
       return (data || []) as Partner[];

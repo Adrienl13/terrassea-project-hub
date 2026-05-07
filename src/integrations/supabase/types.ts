@@ -5280,6 +5280,16 @@ export type Database = {
         }
         Returns: string
       }
+      create_partner_notification_to_admins: {
+        Args: {
+          p_body?: string
+          p_event_type: string
+          p_link?: string
+          p_partner_id: string
+          p_title: string
+        }
+        Returns: number
+      }
       create_quote_notification_to_admins: {
         Args: {
           p_body?: string
