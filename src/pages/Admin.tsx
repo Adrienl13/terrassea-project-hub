@@ -42,6 +42,7 @@ import ColorVariantEditor from "@/components/admin/ColorVariantEditor";
 import DimensionVariantEditor from "@/components/admin/DimensionVariantEditor";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
 import CompatibleProductsEditor from "@/components/admin/CompatibleProductsEditor";
+import ProductImagesUpload from "@/components/admin/ProductImagesUpload";
 import { computeProductQuality } from "@/lib/productQualityScore";
 import {
   CANONICAL_CATEGORIES,
@@ -695,52 +696,16 @@ function ProductForm({
         <div className="space-y-6">
           <SectionHeader icon={Eye} title="Photos & Médias" description="Image principale, galerie et couleurs" />
 
-          <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
-            <div>
-              <label className={labelClass}>URL image principale</label>
-              <input type="text" value={form.image_url || ""} onChange={e => set("image_url", e.target.value)}
-                className={inputClass} placeholder="https://..." />
-            </div>
-            {form.image_url && (
-              <div className="flex justify-center">
-                <img src={form.image_url} alt="Preview" className="max-w-xs max-h-48 rounded-xl border border-border object-cover" />
-              </div>
-            )}
-
-            <div>
-              <label className={labelClass}>Galerie photos (URLs séparées par des virgules)</label>
-              <textarea
-                value={form.gallery_urls.join(", ")}
-                onChange={e => set("gallery_urls", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                rows={2} className={`${inputClass} resize-none rounded-xl`} placeholder="https://..., https://..." />
-            </div>
-            {form.gallery_urls.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {form.gallery_urls.map((url, i) => (
-                  <img key={i} src={url} alt="" className="w-20 h-20 rounded-lg border border-border object-cover shrink-0" />
-                ))}
-              </div>
-            )}
-
-            {/* Dette 28 — environment_urls (visuels d'ambiance / mises en situation) */}
-            <div>
-              <label className={labelClass}>Mises en situation / ambiances (URLs séparées par des virgules)</label>
-              <textarea
-                value={(form.environment_urls ?? []).join(", ")}
-                onChange={e => set("environment_urls", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                rows={2} className={`${inputClass} resize-none rounded-xl`} placeholder="https://..., https://..." />
-              <p className="text-[10px] font-body text-muted-foreground mt-1">
-                Visuels d'ambiance affichés sur la fiche produit (pool deck, restaurant, terrasse…). Distincts de la galerie produit.
-              </p>
-            </div>
-            {(form.environment_urls?.length ?? 0) > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {(form.environment_urls ?? []).map((url, i) => (
-                  <img key={i} src={url} alt="" className="w-20 h-20 rounded-lg border border-border object-cover shrink-0" />
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductImagesUpload
+            productId={form.id ?? null}
+            partnerId={form.partner_id ?? null}
+            imageUrl={form.image_url ?? null}
+            galleryUrls={form.gallery_urls ?? []}
+            environmentUrls={form.environment_urls ?? []}
+            onChangeImage={(url) => set("image_url", url ?? "")}
+            onChangeGallery={(urls) => set("gallery_urls", urls)}
+            onChangeEnvironment={(urls) => set("environment_urls", urls)}
+          />
 
           <div className="border border-border rounded-2xl p-5 space-y-4 bg-card/30">
             <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground">Couleurs</p>

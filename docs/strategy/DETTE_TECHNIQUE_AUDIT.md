@@ -258,6 +258,8 @@ Cette dette est aggravante de la Dette 24.
 **Fix** : implémenter upload (drag-drop ou file input) avec `validateImageUpload` + bucket `product-images`. Réutiliser le composant `PhotoGalleryManager` du partner ou simplifier.
 **Effort** : 0.5-1 j
 
+**Statut FIXED 2026-05-07 (Sessions 2 admin chunk 1)** : nouveau composant `src/components/admin/ProductImagesUpload.tsx` (~280 LOC). 3 sections : image principale (single), galerie produit (multi), mises en situation/ambiances (multi). Pattern d'upload reutilise `validateImageUpload` + bucket `product-images` (auth users INSERT/DELETE déjà autorisé via storage RLS — pas de migration). Path : `products/{partnerId|admin}/{productId|temp-{ts}}/{section}-{ts}-{rand}.{ext}`. Remplace les 3 inputs textuels (image_url + gallery_urls + environment_urls) dans `Admin.tsx::ProductForm` (l 698-743). Q3 architecture : Option A retenue (composant nouveau dédié admin) au lieu de réutiliser `PhotoGalleryManager` (modal partner gallery, pattern d'usage différent). Design ADMIN_DESIGN_LANGUAGE.md aligné (eyebrow labels, border-border rounded-xl).
+
 ### Dette 34 — SignatureModal canvas non-fonctionnel (BLOQUANT légal)
 
 **Origine** : User Tools Audit 2026-05-06 (USER_TOOLS_AUDIT.md §1 C3)
@@ -666,7 +668,7 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | 26 | Catégories CamelCase admin (scope admin) | 1 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | **27** | **VariantsGrid pas branché admin** | **1** | **1j** | **À fixer** | - |
 | 28 | environment_urls oubliés admin | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |
-| **29** | **Pas d'upload Storage admin** | **2** | **0.5-1j** | **À fixer** | - |
+| 29 | Pas d'upload Storage admin | 2 | 0.5-1j | **FIXED ✅** | **2026-05-07** (Sessions 2 ch.1) |
 | 30 | ApplicationsTab inline Admin.tsx | 3 | 0.2j | **FIXED ✅** | **2026-05-06** |
 | **31** | **ProductForm contextuel adaptatif** | **2** | **2-4j** | **À fixer** | - |
 | **32** | **Frontend public + engine CamelCase** | **2** | **0.5j** | **À fixer** | - |
