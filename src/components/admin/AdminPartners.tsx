@@ -78,6 +78,7 @@ const PLANS = [
 ];
 
 import { PARTNER_TYPES } from "@/lib/partnerConstants";
+import PartnerCertifications from "@/components/partner-dashboard/PartnerCertifications";
 
 const COUNTRIES = [
   { code: "FR", name: "France" }, { code: "IT", name: "Italie" }, { code: "ES", name: "Espagne" },
@@ -566,6 +567,14 @@ export default function AdminPartners() {
             </div>
           </div>
         )}
+
+        {/* Dette 25 — Certifications partenaire (modération admin) */}
+        <div className="border border-border rounded-xl p-5 space-y-2">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-display font-semibold">
+            Certifications partenaire
+          </p>
+          <PartnerCertifications partnerId={selected.id} />
+        </div>
       </div>
     );
   }

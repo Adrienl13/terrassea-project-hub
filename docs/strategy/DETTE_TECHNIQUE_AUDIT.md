@@ -226,6 +226,12 @@ C'est la dette racine — toutes les phases produit ont été livrées côté pa
 **Risque non-fix** : perte de contrôle qualité (un partner peut uploader un faux certificat sans review possible côté admin).
 **Effort** : 0.5-1 j
 
+**Statut FIXED 2026-05-07 (Sessions 2 admin chunk 2)** : 2 intégrations directes des composants partner-side (réutilisation as-is, aucune adaptation requise) :
+- `Admin.tsx::ProductForm` : nouvelle section "Certifications" (8e dans SECTIONS) qui rend `<ProductCertifications productId={form.id}>`. Affiche un guard "produit doit être enregistré d'abord" si `form.id` n'existe pas encore (création).
+- `AdminPartners.tsx` detail view : nouvelle section "Certifications partenaire" qui rend `<PartnerCertifications partnerId={selected.id}>`. Le composant gère déjà via RLS la liste des certifs partner-level.
+- AdminBrandManagement non touché (les brand_member partners sont exposés via AdminPartners — pas de duplication nécessaire).
+- RLS DB déjà OK : `is_admin()` dans toutes les policies INSERT/UPDATE/DELETE des 2 tables (`product_certifications`, `partner_certifications`). Aucune migration.
+
 ### Dette 26 — Catégories produits encore en CamelCase côté admin
 
 **Origine** : Audit panel admin 2026-05-06
@@ -664,7 +670,7 @@ Données exposées : pure agrégation (count, avg rating, distribution stars). P
 | 17 | 400 partners | 2 | 30min-1h | À fixer | - |
 | 18 | 61 advisors warnings | 2 | 0.5-1j | **FIXED ✅** | **2026-05-06** (3 sprints) |
 | **24** | **ProductForm admin déconnecté vocab 2026 + certifs** | **1** | **2-3j** | **À fixer** | - |
-| **25** | **Certifications absentes panel admin** | **2** | **0.5-1j** | **À fixer** | - |
+| 25 | Certifications absentes panel admin | 2 | 0.5-1j | **FIXED ✅** | **2026-05-07** (Sessions 2 ch.2) |
 | 26 | Catégories CamelCase admin (scope admin) | 1 | 0.5j | **FIXED ✅** | **2026-05-06** |
 | **27** | **VariantsGrid pas branché admin** | **1** | **1j** | **À fixer** | - |
 | 28 | environment_urls oubliés admin | 2 | 0.5j | **FIXED ✅** | **2026-05-06** |

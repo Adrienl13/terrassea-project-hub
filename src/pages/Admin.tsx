@@ -43,6 +43,7 @@ import DimensionVariantEditor from "@/components/admin/DimensionVariantEditor";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
 import CompatibleProductsEditor from "@/components/admin/CompatibleProductsEditor";
 import ProductImagesUpload from "@/components/admin/ProductImagesUpload";
+import ProductCertifications from "@/components/partner-dashboard/ProductCertifications";
 import { computeProductQuality } from "@/lib/productQualityScore";
 import {
   CANONICAL_CATEGORIES,
@@ -527,6 +528,7 @@ function ProductForm({
     { id: "pricing",   label: "Prix & Stock",       icon: CreditCard },
     { id: "dims",      label: "Dimensions",         icon: FileText },
     { id: "technical", label: "Technique",          icon: Settings },
+    { id: "certifs",   label: "Certifications",     icon: ShieldCheck },
   ];
 
   const inputClass = "w-full bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-body focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:border-foreground/40 transition-all";
@@ -944,6 +946,28 @@ function ProductForm({
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Certifs ── */}
+      {section === "certifs" && (
+        <div className="space-y-6">
+          <SectionHeader icon={ShieldCheck} title="Certifications" description="PV individuels du produit (testé en laboratoire)" />
+          {form.id ? (
+            <div className="border border-border rounded-2xl p-5 bg-card/30">
+              <ProductCertifications productId={form.id} />
+            </div>
+          ) : (
+            <div className="border border-dashed border-border rounded-2xl p-8 text-center bg-card/30">
+              <ShieldCheck className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-xs font-display font-semibold text-foreground mb-1">
+                Enregistrez d'abord le produit pour ajouter des certifications.
+              </p>
+              <p className="text-[10px] font-body text-muted-foreground">
+                Les PV individuels nécessitent un produit existant pour le rattachement.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
