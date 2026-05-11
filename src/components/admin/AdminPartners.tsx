@@ -254,12 +254,14 @@ export default function AdminPartners() {
 
   const handleApprove = async (partner: Partner) => {
     setReviewAction(true);
-    const { error } = await supabase.from("partners").update({
-      profile_completed: true,
-      profile_status: "approved",
-      profile_reviewed_at: new Date().toISOString(),
-      is_public: true,
-    } as Record<string, unknown>).eq("id", partner.id);
+    const partnerName = partner.name || partner.contact_name || "";
+    const { error } = await supabase.rpc("verify_partner_as_admin", {
+      p_partner_id: partner.id,
+      p_action: "approve",
+      p_email_subject: t("adminPartners.emailApprovedSubject"),
+      p_email_html: t("adminPartners.emailApprovedHtml", { name: partnerName }),
+      p_email_text: t("adminPartners.emailApprovedText", { name: partnerName }),
+    });
 
     if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
 
@@ -272,12 +274,11 @@ export default function AdminPartners() {
   const handleRequestChanges = async (partner: Partner) => {
     if (!reviewComment.trim()) { toast.error(t("adminPartners.addCommentRequired")); return; }
     setReviewAction(true);
-    const { error } = await supabase.from("partners").update({
-      profile_status: "changes_requested",
-      profile_review_notes: reviewComment.trim(),
-      profile_completed: false,
-      profile_submitted: false,
-    } as Record<string, unknown>).eq("id", partner.id);
+    const { error } = await supabase.rpc("verify_partner_as_admin", {
+      p_partner_id: partner.id,
+      p_action: "request_changes",
+      p_review_notes: reviewComment.trim(),
+    });
 
     if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
 
@@ -291,11 +292,11 @@ export default function AdminPartners() {
   const handleReject = async (partner: Partner) => {
     if (!reviewComment.trim()) { toast.error(t("adminPartners.addReasonRequired")); return; }
     setReviewAction(true);
-    const { error } = await supabase.from("partners").update({
-      profile_status: "rejected",
-      profile_review_notes: reviewComment.trim(),
-      profile_completed: false,
-    } as Record<string, unknown>).eq("id", partner.id);
+    const { error } = await supabase.rpc("verify_partner_as_admin", {
+      p_partner_id: partner.id,
+      p_action: "reject",
+      p_review_notes: reviewComment.trim(),
+    });
 
     if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
 

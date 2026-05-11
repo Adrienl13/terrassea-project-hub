@@ -4,12 +4,14 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
+const TRIGGER_SECRET = Deno.env.get("EDGE_TRIGGER_SECRET") || "";
 
 interface EmailPayload {
   to: string;
   subject: string;
   body_html: string;
   body_text: string;
+  reply_to?: string;
 }
 
 interface PlatformSettings {
@@ -18,6 +20,7 @@ interface PlatformSettings {
   notification_webhook_url: string;
   notification_from_email: string;
   notification_from_name: string;
+  notification_reply_to: string;
 }
 
 async function loadSettings(): Promise<PlatformSettings> {
@@ -31,6 +34,7 @@ async function loadSettings(): Promise<PlatformSettings> {
       "notification_webhook_url",
       "notification_from_email",
       "notification_from_name",
+      "notification_reply_to",
     ]);
 
   if (error) throw new Error(`Failed to load settings: ${error.message}`);
@@ -47,6 +51,7 @@ async function loadSettings(): Promise<PlatformSettings> {
     notification_webhook_url: settings.notification_webhook_url || "",
     notification_from_email: settings.notification_from_email || "noreply@terrassea.com",
     notification_from_name: settings.notification_from_name || "Terrassea",
+    notification_reply_to: settings.notification_reply_to || "",
   };
 }
 
@@ -69,6 +74,9 @@ async function sendViaWebhook(
     html: payload.body_html,
     text: payload.body_text,
   };
+
+  const replyTo = payload.reply_to || settings.notification_reply_to;
+  if (replyTo) body.reply_to = replyTo;
 
   // Build headers — use RESEND_API_KEY if URL is Resend, otherwise pass as Bearer
   const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -131,9 +139,21 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Auth: require service-role key (internal function only)
+  // Auth: accept either the service-role Bearer (e.g. Dashboard invokes,
+  // server-side fetches from other Edge Functions) OR an X-Trigger-Secret
+  // header that matches the EDGE_TRIGGER_SECRET env var (used by
+  // pg_net.http_post calls from SECURITY DEFINER RPCs — see Dette 54).
+  // Both env values must be set in Supabase Edge Function Secrets; the
+  // trigger-secret variant must also be mirrored into vault.secrets
+  // under the name 'edge_trigger_secret' so RPCs can read it.
   const authHeader = req.headers.get("Authorization");
-  if (authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
+  const triggerHeader = req.headers.get("X-Trigger-Secret");
+  const isServiceRole =
+    SUPABASE_SERVICE_ROLE_KEY !== "" &&
+    authHeader === `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
+  const isTriggerSecret =
+    TRIGGER_SECRET !== "" && triggerHeader === TRIGGER_SECRET;
+  if (!isServiceRole && !isTriggerSecret) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },

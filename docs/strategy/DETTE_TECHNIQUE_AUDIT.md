@@ -555,23 +555,33 @@ Le footer pointe vers `/become-partner`. Le header signup pointe vers `/auth`. A
 
 **Statut** : à fixer (Tier 2 onboarding) — après Tier 1 livré
 
-### Dette 54 — Email approval partner non envoyé
+### Dette 54 — Email approval partner non envoyé (RÉSOLU) ✅
 
 **Origine** : Smoke test e2e Sujet 1 (2026-05-07 soir)
 
-**Description** : Quand l'admin approuve un partner via `AdminPartners.tsx` (UPDATE direct `profile_status='approved'`), aucun email n'est envoyé au partner. Le partner ne sait pas qu'il est approuvé sauf en checkant manuellement son dashboard / sa cloche de notifications. Une notification in-app existe (côté partner) via les hooks existants, mais pas de canal asynchrone (email).
+**Description** : Quand l'admin approuve un partner via `AdminPartners.tsx` (UPDATE direct `profile_status='approved'`), aucun email n'est envoyé au partner. Le partner ne sait pas qu'il est approuvé sauf en checkant manuellement son dashboard / sa cloche de notifications.
 
-**Impact business** : friction activation partner, mauvaise première expérience post-approval (qui peut intervenir 24-48h après le submit).
+**Résolution (2026-05-10, après décision Resend pour Dette 51)** :
 
-**Fix** : appel `send-notification-email` edge function dans la mutation `approveProfile` côté `AdminPartners.tsx` (pattern déjà en place pour `AdminQuoteWorkflow.tsx`, `AdminApplications.tsx`, `usePartnerQuotes.ts`).
+1. **Infrastructure email opérationnelle** :
+   - Provider Resend retenu, API key + Reply-To stockés dans Vault (`RESEND_API_KEY`) + `platform_settings.notification_reply_to=adrienlaniez1@gmail.com`.
+   - `platform_settings.notification_webhook_url=https://api.resend.com/emails`, `notification_from_email=noreply@terrassea.com`.
+   - `send-notification-email` edge function v7 déployée : ajout du support `reply_to` (override payload > settings DB).
 
-**Bloquant amont** : décision Dette 51 (email provider). La fonction `send-notification-email` existe et est utilisée mais le provider de transport (SMTP/Resend/Loops) doit être finalisé avant d'industrialiser.
+2. **Architecture B retenue (RPC + pg_net)** au lieu de l'invocation Edge Function directe depuis le frontend :
+   - Migration `20260510184106_dette_54_verify_partner_rpc_with_email.sql` : RPC `verify_partner_as_admin(p_partner_id, p_action, p_review_notes?, p_email_subject?, p_email_html?, p_email_text?)` SECURITY DEFINER, guard `is_admin()`.
+   - Le RPC unifie les 3 actions (approve / reject / request_changes), fait l'UPDATE atomique + sur 'approve' déclenche `net.http_post` async vers `send-notification-email` avec `Bearer <service_role_key>` lu depuis `vault.decrypted_secrets`.
+   - `AdminPartners.tsx` refactor : les 3 handlers passent par le RPC (plus de `from("partners").update`).
+   - Email approval : 4 locales i18n (`adminPartners.emailApprovedSubject` + `.emailApprovedHtml` + `.emailApprovedText` avec interpolation `{{name}}`).
 
-**Effort** : 0.5-1 j (2-3h fix une fois Dette 51 décidée)
+3. **Raison du choix Architecture B** : audit a révélé que `send-notification-email` exige `Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}` que `supabase.functions.invoke()` côté frontend ne peut pas fournir → 401 silencieux. La voie serveur (RPC + pg_net + vault) contourne le problème sans loosen la sécurité.
 
-**Priorité** : Niveau 2
+**Pré-requis founder (Dashboard)** :
+- Ajouter vault secret `service_role_key` = valeur de `Settings → API → service_role` (sinon le RPC complète l'UPDATE mais skip silencieusement l'email).
 
-**Statut** : à fixer après décision Dette 51
+**Capturé en dettes adjacentes** : Dette 59 (8 autres callsites frontend de `send-notification-email` toujours en 401 silencieux — voir ci-dessous).
+
+**Statut** : FIXED ✅ — pending test e2e founder (approve partner factice + vérif inbox).
 
 ### Dette 55 — Bug reset password fallback Site URL (RÉSOLU côté code) ✅
 
@@ -602,6 +612,98 @@ Le footer pointe vers `/become-partner`. Le header signup pointe vers `/auth`. A
 **Priorité** : Niveau 3 (Q3 2026)
 
 **Statut** : à fixer en Q3 2026
+
+### Dette 57 — `check-abandoned-carts` retourne 503 répétés
+
+**Origine** : Audit logs Edge Functions 2026-05-10 (chantier infrastructure email)
+
+**Description** : 3 invocations récentes consécutives du cron `check-abandoned-carts` (schedule `0 */6 * * *`) retournent **HTTP 503** (execution_time ~3s). Function ACTIVE en prod, présente dans repo (`supabase/functions/check-abandoned-carts/`). Crash silencieux — l'envoi des relances panier abandonné est cassé, mais aucun monitoring ne le remonte.
+
+**Hypothèses à investiguer** : timeout query DB, secret manquant (RESEND_API_KEY si elle s'en sert ?), erreur runtime non catchée.
+
+**Fix** : lire `get_logs` détaillé pour cette fonction, identifier l'exception, fixer.
+
+**Effort** : 1-2 h
+
+**Priorité** : Niveau 2 (impact business : relances panier muettes depuis ~24h)
+
+**Statut** : à fixer (capture cette session, hors scope chantier email)
+
+### Dette 58 — `send-review-request` cron retourne 401 (auth manquante)
+
+**Origine** : Audit logs Edge Functions 2026-05-10
+
+**Description** : Le cron job `send-review-requests` (pg_cron, schedule `0 10 * * *`) appelle `https://gwgcfgeouropcighpztj.supabase.co/functions/v1/send-review-request` SANS le header `Authorization: Bearer <SERVICE_ROLE_KEY>`. La fonction exige ce header (ligne 51) → retourne 401 silencieusement → aucune review request n'est envoyée aux clients depuis le déploiement.
+
+Définition cron actuelle (faute) :
+```sql
+SELECT net.http_post(
+  url := 'https://.../functions/v1/send-review-request',
+  headers := '{"Content-Type": "application/json"}'::jsonb,  -- ❌ pas d'Auth
+  body := '{}'::jsonb
+)
+```
+
+**Fix** : migration pour mettre à jour le cron job avec `Authorization: Bearer <key>` lu depuis `vault.decrypted_secrets WHERE name='service_role_key'`. Pattern identique au RPC `verify_partner_as_admin` (Dette 54).
+
+**Effort** : 30 min (1 migration `pg_cron.unschedule` + `cron.schedule` avec auth)
+
+**Priorité** : Niveau 2 (impact business : zéro review collectée depuis le déploiement → biais sur le scoring partners)
+
+**Statut** : à fixer (capture cette session)
+
+### Dette 59 — 8 callsites frontend `send-notification-email` en 401 silencieux
+
+**Origine** : Audit infrastructure email 2026-05-10
+
+**Description** : `send-notification-email` exige `Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}` (ligne 143). Mais les callsites frontend qui passent via `supabase.functions.invoke()` envoient le JWT user (ou anon), pas le service-role. Donc **tous retournent 401 silencieusement** (la plupart dans des `.catch(() => {})`).
+
+Callsites impactés (8) :
+- `src/components/admin/AdminApplications.tsx:143` (info_requested)
+- `src/components/admin/AdminQuoteWorkflow.tsx:235`
+- `src/components/admin/AdminOrderTracking.tsx:297`
+- `src/hooks/usePaymentFlow.ts:240, 284`
+- `src/hooks/usePartnerQuotes.ts:128`
+- `src/pages/ProjectCart.tsx:479`
+- `src/components/pro-service/ProServiceClientHub.tsx:1591`
+
+**Impact business** : zéro email transactionnel envoyé jusqu'à présent (en plus du fait que `notification_webhook_url` était vide jusqu'à 2026-05-10).
+
+**Fix proposé** : pattern Dette 54 (RPC SECURITY DEFINER + pg_net + vault) appliqué uniformément. Soit RPCs dédiés par flow (quote_status, order_status, info_request…), soit un RPC générique `send_email_via_admin(p_to, p_subject, p_html, p_text)` guardé par RLS de la table concernée.
+
+**Effort** : 1-2 j (8 callsites + 4-8 RPCs + tests e2e par flow)
+
+**Priorité** : Niveau 2 (chaque jour qui passe = emails perdus)
+
+**Statut** : à fixer après que la Dette 54 soit validée e2e (donne confiance au pattern)
+
+### Dette 60 — Edge Function `Terrassea-Production` drift (boilerplate dormant)
+
+**Origine** : Audit Edge Functions 2026-05-10
+
+**Description** : Edge Function `Terrassea-Production` ACTIVE en prod (v6) mais absente du repo. Source = template "Hello World" par défaut de Supabase Studio (créé ~2026-03-17, jamais modifié). 0 invocation, 0 référence repo, 0 cron, 0 secret. Drift inverse Dettes 38/43/46 mais bénin (code inerte).
+
+**Fix** : suppression via Dashboard (MCP n'expose pas `delete_edge_function`). 30 secondes, 0 risque.
+
+**Effort** : 30 secondes
+
+**Priorité** : Niveau 3 (cleanup hygiène)
+
+**Statut** : à fixer (founder, Dashboard)
+
+### Dette 61 — `run-scheduled-tasks` drift inverse (dans repo, absent prod)
+
+**Origine** : Audit Edge Functions 2026-05-10
+
+**Description** : `supabase/functions/run-scheduled-tasks/index.ts` présent dans le repo (Apr 12 2026) mais aucune Edge Function correspondante déployée en prod. À vérifier si :
+- (a) abandonné après refonte pg_cron → supprimer du repo
+- (b) à redéployer (mais quel rôle vs `check-abandoned-carts` + `send-review-requests` + `daily-reminders` ?)
+
+**Effort** : 30 min audit + décision + cleanup
+
+**Priorité** : Niveau 3 (hygiène)
+
+**Statut** : à fixer
 
 ### Dette 62 — Réindexer SEO après bascule pricing_visibility_mode='full'
 
@@ -734,6 +836,51 @@ Le footer pointe vers `/become-partner`. Le header signup pointe vers `/auth`. A
 **Priorité** : Niveau 3 (anticipation, pas urgent — la whitelist actuelle couvre les besoins immédiats)
 
 **Statut** : à arbitrer si on doit ajouter un 3e flag public
+
+### Dette 72 — Cohérence secrets Edge Function ↔ Vault
+
+**Origine** : Debug Bug #1 multi-itérations (2026-05-11)
+
+**Description** : Le débug du Bug #1 a révélé 4 désalignements consécutifs entre les valeurs stockées dans **Edge Function Secrets** (lues via `Deno.env.get(...)`) et dans **Vault** (lues via `vault.decrypted_secrets`) :
+
+1. `SUPABASE_SERVICE_ROLE_KEY` (Edge Function) = `sb_secret_...` 41 chars (nouveau modèle Supabase 2026 "Secret Keys") vs Vault `service_role_key` = JWT legacy 219 chars `eyJh...`. **Mismatch architectural** : Supabase a basculé le projet vers le nouveau modèle d'auth ; on ne peut pas matcher l'un avec l'autre. Solution : utiliser le pattern TRIGGER_SECRET indépendant.
+2. `EDGE_TRIGGER_SECRET` (Edge Function) = vraie clé random 64 chars vs Vault `edge_trigger_secret` = littéral `"EDGE_TRIGGER_SECRET"` 19 chars (paste error). Corrigé par realignement.
+3. Nom de l'entrée Vault inconsistant : `edge_trigger_secret` (lowercase) supprimé, remplacé par `EDGE_TRIGGER_SECRET` (uppercase). Migration RPC adaptée pour lire le nom uppercase.
+4. `RESEND_API_KEY` (Edge Function) = 15 chars `DykA...bST4` (paste error) vs Vault `RESEND_API_KEY` = vraie clé Resend 36 chars `re_V...`. Corrigé en régénérant une clé fresh + paste aux deux endroits + verifier domaine Resend.
+
+**Causes systémiques** :
+- 2 surfaces d'admin séparées (Settings → Functions vs Vault) sans validation cross-référence.
+- Pas de visualisation côté admin du contenu (Edge Function Secrets ne sont pas révélables après création — paste blind).
+- Pas de test de cohérence à chaque deploy.
+
+**Solutions possibles** :
+1. **Wrapper helper** côté Edge Function : try Vault first (via SQL), fallback env var. Single source of truth (Vault).
+2. **Self-check function** : endpoint diagnostique appelable manuellement qui retourne les longueurs + prefix4 + suffix4 de chaque secret partagé. Le founder peut comparer Vault vs runtime en 1 clic.
+3. **Test e2e** lancé après chaque deploy/secret update : pg_net → Edge Function → check 200.
+
+**Effort** : 1-2 h selon option
+
+**Priorité** : Niveau 3 (anticipation, pas bloquant pour l'instant — secrets actuels validés ce 2026-05-11)
+
+**Statut** : à fixer Q3 2026 si on accumule plus de secrets partagés
+
+### Dette 73 — Cleanup zone DNS OVH (non-authoritative)
+
+**Origine** : Setup Resend domain Verified (2026-05-11)
+
+**Description** : Pendant la configuration du domaine Resend pour `terrassea.com`, les DNS records SPF/DKIM/Return-Path ont été ajoutés dans la zone Vercel DNS (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`) qui est l'**autoritative** active. Une zone OVH existe encore mais n'est plus consultée par les résolveurs (DNS delegation pointe vers Vercel).
+
+**Risque** : si un jour la delegation revient vers OVH (volontaire ou accidentel), les records SPF/DKIM se réinitialisent à des valeurs OVH potentiellement obsolètes → emails plus signés → deliverability cassée.
+
+**Fix** : auditer la zone OVH, soit :
+- Mettre à jour la zone OVH pour matcher la zone Vercel (records identiques pour resilience cross-DNS).
+- Décommissionner proprement la zone OVH (supprimer le service DNS) si plus utilisé.
+
+**Effort** : 30 min (audit + clean)
+
+**Priorité** : Niveau 4 (résilience, pas urgent — la delegation Vercel est stable)
+
+**Statut** : à fixer (optionnel, hygiène DNS)
 
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 

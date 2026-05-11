@@ -5526,6 +5526,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      verify_partner_as_admin: {
+        Args: {
+          p_action: string
+          p_email_html?: string
+          p_email_subject?: string
+          p_email_text?: string
+          p_partner_id: string
+          p_review_notes?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
