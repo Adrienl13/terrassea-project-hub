@@ -4728,5 +4728,110 @@
     "allCollections": "All collections",
     "collections": "Collections",
     "saveCommission": "Save"
+  },
+  "becomePartnerLaunch": {
+    "seoTitle": "Join Terrassea — Founding Partner Program",
+    "seoDescription": "Free platform access during launch. 5% marketplace commission, no subscription. Become a Founding Partner and unlock lifetime benefits.",
+    "hero": {
+      "badge": "Founding Partner Program",
+      "title": "Join Terrassea during the launch",
+      "subtitle": "Full platform access, no subscription. A clear 5% marketplace commission on confirmed transactions.",
+      "tagline": "Free access during launch · No card required",
+      "cta": "Become a Founding Partner",
+      "noCard": "No card required · Sign up in under 5 minutes"
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "step1": {
+        "title": "Self-serve signup",
+        "desc": "Create your partner account in minutes. Add your profile, your catalogue, your delivery zones."
+      },
+      "step2": {
+        "title": "Validated by our team",
+        "desc": "We review your profile within 48 business hours — quality check, alignment with our hospitality standards, compliance."
+      },
+      "step3": {
+        "title": "Full platform access",
+        "desc": "Visible catalogue, qualified quote requests, partner dashboard, analytics — everything available immediately."
+      }
+    },
+    "business": {
+      "title": "Your economics during the launch",
+      "intro": "The model is intentionally simple, transparent, no traps. No tier, no commitment, no subscription.",
+      "pointNoSub": {
+        "title": "No monthly subscription",
+        "desc": "Zero recurring fees during launch. Keep 100% of your budget for your catalogue and your service."
+      },
+      "pointCommission": {
+        "title": "5% marketplace commission",
+        "desc": "A single 5% commission on each confirmed transaction. No signup fees, no hidden costs."
+      }
+    },
+    "founding": {
+      "eyebrow": "More than a platform",
+      "title": "An exclusive program rewarding early partners",
+      "description": "By joining Terrassea during the launch, you become a Founding Partner. More than a platform, it's a program designed to recognise your role in building the market.",
+      "howItWorksLabel": "How it works",
+      "howItWorksText": "Invite architects, distributors, designers, resellers. Complete your catalogue. Share product feedback. Demonstrate operational engagement (quote speed, service quality). Every action contributes to your Founding Partner level.",
+      "benefitsLabel": "Your benefits",
+      "benefits": {
+        "benefitBadge": {
+          "title": "Founding Partner 2026 badge",
+          "desc": "Permanent marker on your public profile and in search results."
+        },
+        "benefitPriority": {
+          "title": "Priority placement",
+          "desc": "Heightened visibility in search results and client recommendations."
+        },
+        "benefitFeatured": {
+          "title": "Featured on the homepage",
+          "desc": "Rotating spotlight on the homepage for Founders at higher tiers."
+        },
+        "benefitCommission": {
+          "title": "Lifetime reduced commission",
+          "desc": "Up to 3% commission on your transactions, retained even after the switch to paid plans."
+        },
+        "benefitBeta": {
+          "title": "Early feature access",
+          "desc": "Try new features before anyone else and help shape the roadmap."
+        },
+        "benefitNetwork": {
+          "title": "Exclusive network",
+          "desc": "Private access to the Founding Partner community — peers, exchanges, opportunities."
+        }
+      },
+      "lifetimeLabel": "Lifetime consistency",
+      "lifetimeText": "The Founding Partner status is kept for life. Even when paid subscriptions activate, your benefits remain intact."
+    },
+    "invites": {
+      "title": "Let's build your network together",
+      "intro": "Invite the players you already work with or want to meet. Every valid invitation strengthens your Founding tier.",
+      "architects": {
+        "title": "Architects",
+        "desc": "For exceptional projects."
+      },
+      "distributors": {
+        "title": "Distributors",
+        "desc": "To expand your B2B network."
+      },
+      "designers": {
+        "title": "Designers",
+        "desc": "For creative collaborations."
+      },
+      "resellers": {
+        "title": "Resellers",
+        "desc": "To multiply your sales channels."
+      },
+      "proService": {
+        "title": "Pro Service Client",
+        "desc": "For complementary services."
+      }
+    },
+    "nextSteps": {
+      "title": "Next steps",
+      "point1": "Launch your application in 5 minutes",
+      "point2": "Our team reviews your profile within 48 business hours",
+      "point3": "You start your Founding program immediately"
+    }
   }
 }

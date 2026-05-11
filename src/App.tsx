@@ -11,6 +11,7 @@ import { FavouritesProvider } from "@/contexts/FavouritesContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import StructuredData from "@/components/StructuredData";
 import NotFound from "./pages/NotFound.tsx";
+import { usePricingModeQuery } from "@/hooks/usePricingMode";
 
 const RECOVERY_PATHS = new Set(["/auth", "/login", "/reset-password"]);
 
@@ -19,6 +20,22 @@ const RECOVERY_PATHS = new Set(["/auth", "/login", "/reset-password"]);
 // allowlist), the user lands on the homepage with #type=recovery in the
 // hash — but the homepage has no UI to set a new password. This guard
 // detects that state and routes the user to /reset-password.
+// Routes `/become-partner` to the launch-mode landing page while
+// `platform_settings.pricing_visibility_mode='launch'`, falling back to the
+// canonical paid plans page otherwise. Waits for the query to resolve before
+// mounting either page to avoid a flash of the wrong route.
+const BecomePartnerRouter = () => {
+  const { data, isPending } = usePricingModeQuery();
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+  return data === "launch" ? <BecomePartnerLaunch /> : <BecomePartner />;
+};
+
 const RecoveryGuard = () => {
   const { isPasswordRecovery } = useAuth();
   const location = useLocation();
@@ -53,6 +70,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const ProjectBuilder = lazy(() => import("./pages/ProjectBuilder"));
 const ProductCompare = lazy(() => import("./pages/ProductCompare"));
 const BecomePartner = lazy(() => import("./pages/BecomePartner"));
+const BecomePartnerLaunch = lazy(() => import("./pages/BecomePartnerLaunch"));
 const Account = lazy(() => import("./pages/Account"));
 const MoodBoard = lazy(() => import("./pages/MoodBoard"));
 const SharedBoard = lazy(() => import("./pages/SharedBoard"));
@@ -104,7 +122,7 @@ const App = () => (
                   <Route path="/resources" element={<Resources />} />
                   <Route path="/pro-service" element={<ProServiceGate />} />
                   <Route path="/partners" element={<Partners />} />
-                  <Route path="/become-partner" element={<BecomePartner />} />
+                  <Route path="/become-partner" element={<BecomePartnerRouter />} />
                   <Route path="/partners/:slug" element={<PartnerDetail />} />
                   <Route path="/brands/:slug" element={<BrandPage />} />
                   <Route path="/collections" element={<Collections />} />

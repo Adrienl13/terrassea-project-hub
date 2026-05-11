@@ -4728,5 +4728,110 @@
     "allCollections": "Tutte le collezioni",
     "collections": "Collezioni",
     "saveCommission": "Salva"
+  },
+  "becomePartnerLaunch": {
+    "seoTitle": "Unisciti a Terrassea — Programma Founding Partner",
+    "seoDescription": "Accesso gratuito alla piattaforma durante il lancio. 5% di commissione marketplace, nessun abbonamento. Diventa Founding Partner con vantaggi a vita.",
+    "hero": {
+      "badge": "Programma Founding Partner",
+      "title": "Unisciti a Terrassea durante il lancio",
+      "subtitle": "Accesso completo alla piattaforma, senza abbonamento. Una commissione marketplace chiara del 5% sulle transazioni confermate.",
+      "tagline": "Accesso gratuito durante il lancio · Nessuna carta richiesta",
+      "cta": "Diventa Founding Partner",
+      "noCard": "Nessuna carta richiesta · Iscrizione in meno di 5 minuti"
+    },
+    "howItWorks": {
+      "title": "Come funziona",
+      "step1": {
+        "title": "Iscrizione self-serve",
+        "desc": "Crea il tuo account partner in pochi minuti. Inserisci il profilo, il catalogo, le zone di consegna."
+      },
+      "step2": {
+        "title": "Validazione del nostro team",
+        "desc": "Validiamo il tuo profilo entro 48h lavorative. Controllo qualità, allineamento agli standard horeca, conformità."
+      },
+      "step3": {
+        "title": "Accesso completo alla piattaforma",
+        "desc": "Catalogo visibile, richieste di preventivo qualificate, dashboard partner, analytics — tutto disponibile immediatamente."
+      }
+    },
+    "business": {
+      "title": "Il tuo modello economico durante il lancio",
+      "intro": "Il modello è volutamente semplice, trasparente, senza trappole. Nessun livello, nessun impegno, nessun abbonamento.",
+      "pointNoSub": {
+        "title": "Nessun abbonamento mensile",
+        "desc": "Zero spese ricorrenti durante il lancio. Mantieni il 100% del tuo budget per il catalogo e per il servizio."
+      },
+      "pointCommission": {
+        "title": "5% di commissione marketplace",
+        "desc": "Una commissione unica del 5% su ogni transazione confermata. Nessun costo di iscrizione, nessun costo nascosto."
+      }
+    },
+    "founding": {
+      "eyebrow": "Più di una piattaforma",
+      "title": "Un programma esclusivo che premia i primi partner",
+      "description": "Unendoti a Terrassea durante il lancio, diventi Founding Partner. Più di una piattaforma, è un programma pensato per riconoscere il tuo ruolo nella costruzione del mercato.",
+      "howItWorksLabel": "Come funziona",
+      "howItWorksText": "Invita architetti, distributori, designer, rivenditori. Completa il tuo catalogo. Condividi i feedback sui prodotti. Dimostra il tuo impegno operativo (rapidità nei preventivi, qualità del servizio). Ogni azione contribuisce al tuo livello Founding Partner.",
+      "benefitsLabel": "I tuoi vantaggi",
+      "benefits": {
+        "benefitBadge": {
+          "title": "Badge Founding Partner 2026",
+          "desc": "Segno permanente sul tuo profilo pubblico e nei risultati di ricerca."
+        },
+        "benefitPriority": {
+          "title": "Posizionamento prioritario",
+          "desc": "Maggiore visibilità nei risultati di ricerca e nelle raccomandazioni clienti."
+        },
+        "benefitFeatured": {
+          "title": "In evidenza sulla home",
+          "desc": "Apparizione rotativa sulla home per i Founder ai livelli superiori."
+        },
+        "benefitCommission": {
+          "title": "Commissione ridotta a vita",
+          "desc": "Fino al 3% di commissione sulle tue transazioni, mantenuta anche dopo il passaggio ai piani a pagamento."
+        },
+        "benefitBeta": {
+          "title": "Accesso anticipato alle feature",
+          "desc": "Provi le nuove funzionalità prima di chiunque altro e orienti la roadmap."
+        },
+        "benefitNetwork": {
+          "title": "Network esclusivo",
+          "desc": "Accesso privato alla community Founding Partner — pari, scambi, opportunità."
+        }
+      },
+      "lifetimeLabel": "Coerenza nel tempo",
+      "lifetimeText": "Lo status Founding Partner viene mantenuto a vita. Anche quando attiveremo gli abbonamenti a pagamento, i tuoi vantaggi restano acquisiti."
+    },
+    "invites": {
+      "title": "Costruiamo insieme la tua rete",
+      "intro": "Invita gli attori con cui lavori già o che vuoi incontrare. Ogni invito valido rafforza il tuo livello Founding.",
+      "architects": {
+        "title": "Architetti",
+        "desc": "Per progetti d'eccezione."
+      },
+      "distributors": {
+        "title": "Distributori",
+        "desc": "Per estendere la tua rete B2B."
+      },
+      "designers": {
+        "title": "Designer",
+        "desc": "Per collaborazioni creative."
+      },
+      "resellers": {
+        "title": "Rivenditori",
+        "desc": "Per moltiplicare i tuoi canali di vendita."
+      },
+      "proService": {
+        "title": "Pro Service Cliente",
+        "desc": "Per servizi complementari."
+      }
+    },
+    "nextSteps": {
+      "title": "Prossimi passi",
+      "point1": "Lancia la tua candidatura in 5 minuti",
+      "point2": "Il nostro team valida il tuo profilo entro 48h lavorative",
+      "point3": "Inizi subito il tuo programma Founding"
+    }
   }
 }

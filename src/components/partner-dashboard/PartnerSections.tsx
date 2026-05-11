@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useConversations } from "@/hooks/useConversations";
+import { usePricingMode } from "@/hooks/usePricingMode";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -91,6 +92,7 @@ export function PlanBadge({ plan }: { plan: PartnerPlan }) {
 
 export function CommissionReminder({ plan, onUpgrade }: { plan: PartnerPlan; onUpgrade?: () => void }) {
   const { t } = useTranslation();
+  if (usePricingMode() === "launch") return null;
   const config = PLAN_CONFIG[plan];
   return (
     <div
@@ -113,6 +115,7 @@ export function CommissionReminder({ plan, onUpgrade }: { plan: PartnerPlan; onU
 export function UpgradeCTA({ currentPlan }: { currentPlan: PartnerPlan }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  if (usePricingMode() === "launch") return null;
   if (currentPlan === "elite" || currentPlan === "brand_network") return null;
 
   const nextPlan: PartnerPlan = currentPlan === "starter" ? "growth" : currentPlan === "growth" ? "elite" : currentPlan === "brand_member" ? "brand_network" : "elite";

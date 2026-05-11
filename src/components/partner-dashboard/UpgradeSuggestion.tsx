@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { usePricingMode } from "@/hooks/usePricingMode";
 import { TrendingUp, Sparkles, ArrowRight, Package, Percent } from "lucide-react";
 
 // ── Plan config (matching AdminSubscriptions) ─────────────────────────────────
@@ -29,6 +30,7 @@ interface Props {
 
 export default function UpgradeSuggestion({ partnerId, currentPlan }: Props) {
   const navigate = useNavigate();
+  const launchMode = usePricingMode() === "launch";
 
   const isBrand = currentPlan === "brand_member" || currentPlan === "brand_network";
   const ORDER = isBrand ? BRAND_ORDER : CATALOGUE_ORDER;
@@ -81,6 +83,7 @@ export default function UpgradeSuggestion({ partnerId, currentPlan }: Props) {
     },
   });
 
+  if (launchMode) return null;
   // Already at highest plan
   if (!nextPlanKey || !nextMeta) return null;
 

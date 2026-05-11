@@ -603,6 +603,121 @@ Le footer pointe vers `/become-partner`. Le header signup pointe vers `/auth`. A
 
 **Statut** : à fixer en Q3 2026
 
+### Dette 62 — Réindexer SEO après bascule pricing_visibility_mode='full'
+
+**Origine** : Vague 1 Founding Partner Program (2026-05-11)
+
+**Description** : `src/components/StructuredData.tsx:99-124` expose un `Service.hasOfferCatalog` JSON-LD avec les anciens prix SaaS (€249 Growth, €499 Elite). Pendant `pricing_visibility_mode='launch'` ce schema reste figé : Google peut continuer à indexer les anciens prix le temps de la re-crawl. Volontairement laissé en place côté Vague 1 pour préserver la baseline SEO et permettre une bascule rapide sans recompilation, mais à nettoyer lors du retour `full` (réindex + éventuelle MAJ des montants si évolution).
+
+**Fix** : adapter `StructuredData.tsx` pour lire `pricing_visibility_mode` (via fetch SSR-like ou helper côté homepage) et omettre/adapter `hasOfferCatalog` en mode `launch`. Alternativement, refactor pour piloter les prix depuis `platform_settings` au lieu de strings inline.
+
+**Effort** : 30-45 min
+
+**Priorité** : Niveau 3 (impact SEO doux, pas bloquant)
+
+**Statut** : à fixer lors de la bascule `full` ou avant si Google flag les divergences
+
+### Dette 63 — Badge "Mode launch actif" dans AdminSubscriptions
+
+**Origine** : Vague 1 (2026-05-11)
+
+**Description** : `src/components/admin/AdminSubscriptions.tsx` affiche toujours les prix natifs €249/€499/€799/€1299 (vue founder-only, intentionnel pour anticiper la bascule). Améliration cosmétique : afficher un badge "Pricing en pause — mode launch actif" en haut de la page quand `pricing_visibility_mode='launch'` pour cohérence et rappel.
+
+**Effort** : 15 min
+
+**Priorité** : Niveau 4 (cosmétique)
+
+**Statut** : optionnel
+
+### Dette 64 — Trigger trg_sync_partner_plan désactivé pendant launch
+
+**Origine** : Migration `20260511141703_vague_1_founding_partner_pricing_mode.sql`
+
+**Description** : Le trigger `trg_sync_partner_plan` sur `public.partners` (qui synchronise `partner_subscriptions` lors d'un changement de plan + gère l'auto-upgrade starter → growth après 3 commandes) est `DISABLE` pendant `pricing_visibility_mode='launch'`. Mémo de roll-back déjà inclus dans l'entête de la migration. Bascule retour `full` requiert : `ALTER TABLE public.partners ENABLE TRIGGER trg_sync_partner_plan` + audit éventuel des plans qui auraient dû basculer pendant la fenêtre launch.
+
+**Effort** : 5 min (réactivation) + 30 min (audit éventuel rétro-bumps)
+
+**Priorité** : Niveau 2 (à exécuter lors de la bascule paid)
+
+**Statut** : tracker — réactivation conditionnelle à `pricing_visibility_mode='full'`
+
+### Dette 65 — Founding Program Vague 2 (tracking MVP)
+
+**Origine** : Vague 1 (2026-05-11), Roadmap `FOUNDING_PROGRAM_ROADMAP.md`
+
+**Description** : Livrer le tracking MVP du programme Founding :
+- Migration `partners.is_founding` boolean + `partners.founding_joined_at` timestamptz (auto-set via trigger BEFORE INSERT pendant la fenêtre `pricing_visibility_mode='launch'`).
+- Table `founding_actions` (event log append-only : partner_id, action_type, points, created_at, meta).
+- View matérialisée `founding_partner_scores` (tier silver/gold/platinum selon seuils dans `platform_settings.founding_tiers_config`).
+- Affichage tier sur `BecomePartnerLaunch.tsx` + badge dans `PartnerOverview.tsx`.
+- Catalogue d'actions Founding (cf. roadmap).
+
+**Effort** : 1.5-2 j (migrations + matview + UI + tests)
+
+**Priorité** : Niveau 2 (déclencheur founder, pas seuil auto)
+
+**Statut** : à fixer Vague 2
+
+### Dette 66 — Founding Program Vague 3 (full gamification + bascule pricing paid)
+
+**Origine** : Vague 1 (2026-05-11)
+
+**Description** : Bascule `pricing_visibility_mode='full'` + activation des bénéfices Founding à vie (badge persistant, boost ranking dans `/partners`, commission verrouillée min(plan_commission, founding_locked_rate), featured listing homepage Gold/Platinum, accès anticipé features beta). Réactivation du trigger `trg_sync_partner_plan`. Création de la page `/founding-partners` (network privé). Communication email annonçant la bascule.
+
+**Effort** : 2-3 j
+
+**Priorité** : Niveau 2 (gating sur métriques Vague 2)
+
+**Statut** : à fixer Vague 3 (calendrier non figé)
+
+### Dette 67 — Extension multi-rôles Founding (Architect / Client)
+
+**Origine** : Vague 1 (2026-05-11)
+
+**Description** : Étendre le programme Founding aux `user_type='architect'` ("Founding Architect") et aux clients haut volume. Mécaniques de points adaptées par rôle. Hors scope Vague 1/2/3 partner-only.
+
+**Effort** : 1-1.5 j
+
+**Priorité** : Niveau 3 (Vague 3.5 optionnel)
+
+**Statut** : à évaluer post-Vague 3
+
+### Dette 68 — Anti-fraude points Founding
+
+**Origine** : Vague 1 (2026-05-11)
+
+**Description** : Garde-fous pour le tracking de points Vague 2/3 : rate-limit, dédoublonnage d'invitations (par email distinct + cooldown), modération manuelle pour Q&A, max points/mois par action. Implémentation dans les triggers / RPCs de `founding_actions`.
+
+**Effort** : 0.5-1 j
+
+**Priorité** : Niveau 2 (gating Vague 2 livraison)
+
+**Statut** : à fixer dans la même PR que Vague 2
+
+### Dette 69 — Algorithm boost ranking partners listing
+
+**Origine** : Vague 1 (2026-05-11)
+
+**Description** : Quand Vague 3 active la bascule `full`, le listing `/partners` doit ordonner par `(is_founding DESC, founding_tier DESC, score DESC)` plutôt que par created_at. À isoler dans une view DB ou un index applicatif côté `usePartners` hook. Vérifier impact sur SEO (la liste publique).
+
+**Effort** : 30 min - 1 h
+
+**Priorité** : Niveau 3 (Vague 3)
+
+**Statut** : à fixer Vague 3
+
+### Dette 70 — Migration légère `partners.is_founding`
+
+**Origine** : Vague 1 (2026-05-11)
+
+**Description** : Amorce isolée de la Vague 2 : juste les 2 colonnes (`is_founding boolean default false`, `founding_joined_at timestamptz`) + trigger BEFORE INSERT qui les set automatiquement si `pricing_visibility_mode='launch'`. Permet de **marquer la cohorte initiale dès maintenant** sans attendre la livraison complète Vague 2, et de garder cette donnée si Vague 2 prend du temps.
+
+**Effort** : 30 min
+
+**Priorité** : Niveau 2 (à fixer rapidement pour ne pas perdre la cohorte initiale)
+
+**Statut** : à fixer (recommandé dans les 7 jours suivant Vague 1)
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
