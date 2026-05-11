@@ -88,6 +88,21 @@ const COUNTRIES = [
   { code: "AT", name: "Autriche" }, { code: "PL", name: "Pologne" }, { code: "TR", name: "Turquie" },
 ];
 
+type EmailLocale = "fr" | "en" | "es" | "it";
+
+// Infers the partner's email locale from their country_code so the approval
+// email is sent in their language regardless of the admin's UI locale.
+function inferPartnerLocale(countryCode: string | null | undefined): EmailLocale {
+  const cc = (countryCode || "").toUpperCase();
+  if (cc === "FR" || cc === "BE" || cc === "CH" || cc === "LU" || cc === "MC") return "fr";
+  if (cc === "IT") return "it";
+  if (cc === "ES") return "es";
+  return "en";
+}
+
+type PartnerTypeKey = "manufacturer" | "brand" | "reseller" | "distributor" | "designer";
+const KNOWN_PARTNER_TYPES: PartnerTypeKey[] = ["manufacturer", "brand", "reseller", "distributor", "designer"];
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function AdminPartners() {
@@ -255,12 +270,16 @@ export default function AdminPartners() {
   const handleApprove = async (partner: Partner) => {
     setReviewAction(true);
     const partnerName = partner.name || partner.contact_name || "";
+    const lng = inferPartnerLocale(partner.country_code);
+    const typeKey: PartnerTypeKey = KNOWN_PARTNER_TYPES.includes(partner.partner_type as PartnerTypeKey)
+      ? (partner.partner_type as PartnerTypeKey)
+      : "manufacturer";
     const { error } = await supabase.rpc("verify_partner_as_admin", {
       p_partner_id: partner.id,
       p_action: "approve",
-      p_email_subject: t("adminPartners.emailApprovedSubject"),
-      p_email_html: t("adminPartners.emailApprovedHtml", { name: partnerName }),
-      p_email_text: t("adminPartners.emailApprovedText", { name: partnerName }),
+      p_email_subject: t("adminPartners.emailApprovedSubject", { lng }),
+      p_email_html: t(`adminPartners.emailApprovedHtml.${typeKey}`, { lng, name: partnerName }),
+      p_email_text: t(`adminPartners.emailApprovedText.${typeKey}`, { lng, name: partnerName }),
     });
 
     if (error) { toast.error(t("adminPartners.errorPrefix") + error.message); setReviewAction(false); return; }
