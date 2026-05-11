@@ -718,6 +718,23 @@ Le footer pointe vers `/become-partner`. Le header signup pointe vers `/auth`. A
 
 **Statut** : à fixer (recommandé dans les 7 jours suivant Vague 1)
 
+### Dette 71 — Stratégie unifiée pour feature flags publics dans `platform_settings`
+
+**Origine** : Régression Vague 1 (2026-05-11), corrigée par `20260511155406_vague1_public_pricing_flags_rls.sql`
+
+**Description** : La table `platform_settings` contient à la fois des clés à usage public (`pricing_visibility_mode`, `launch_commission_rate`) et des clés sensibles (`notification_webhook_url`, `admin_email`, `notification_reply_to`, etc.). Pendant Vague 1, la régression a montré que la lecture publique exige une policy RLS explicite. Aujourd'hui la whitelist publique est gérée par une migration ad-hoc (`Public read pricing flags`), ce qui crée un anti-pattern : à chaque nouveau feature flag public, il faut penser à éditer la liste — facile à oublier.
+
+**Solutions possibles** :
+1. **Table dédiée `public_settings`** : séparation physique, RLS policy `USING (true)` pour SELECT anon. Migration lourde mais limpide.
+2. **Colonne `is_public boolean`** sur `platform_settings` + policy `USING (is_public = true)`. Migration légère, schéma plus expressif, mais nécessite trigger ou check applicatif pour éviter exposition accidentelle.
+3. **Whitelist statique en SQL maintenue manuellement** (état actuel) : zero overhead, mais friction cognitive lors d'ajouts de futurs flags publics.
+
+**Effort** : 1-2 h selon option
+
+**Priorité** : Niveau 3 (anticipation, pas urgent — la whitelist actuelle couvre les besoins immédiats)
+
+**Statut** : à arbitrer si on doit ajouter un 3e flag public
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
