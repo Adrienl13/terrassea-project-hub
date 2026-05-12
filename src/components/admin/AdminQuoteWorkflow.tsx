@@ -231,15 +231,10 @@ export default function AdminQuoteWorkflow() {
           });
         }
 
-        // Send email notification
-        await supabase.functions.invoke("send-notification-email", {
-          body: {
-            to: partner.contact_email,
-            subject: t("adminQuotes.emailSubjectNewQuote"),
-            body_html: `<p>${t("adminQuotes.emailGreeting", { name: partnerName })}</p><p>${t("adminQuotes.emailNewQuoteBody")}</p><p>${t("adminQuotes.emailSignOff")}<br/>${t("adminQuotes.emailTeam")}</p>`,
-            body_text: t("adminQuotes.emailNewQuoteText", { name: partnerName }),
-          },
-        });
+        // Email is now sent server-side by notify_quote_status_changed
+        // when the UPDATE flips partner_id from NULL to not-null
+        // (Dette 59 Lot A). The frontend invocation that lived here was
+        // 401-silent in this Supabase 2026 project — see Dette 54/59.
       }
     } catch {
       // Non-blocking: partner notification failed silently

@@ -112,39 +112,27 @@ export function usePartnerQuotes() {
       const { error } = await supabase.from("quote_requests").update(updates).eq("id", quoteId);
       if (error) throw error;
 
-      // Send notification email + in-app notification to client when partner replies
+      // Email is now sent server-side by notify_quote_status_changed when
+      // status flips to 'replied' (Dette 59 Lot A).
+      // The in-app notification is still created here via the existing RPC
+      // because Dette 19 Phase 2B.1 documented this path explicitly.
       if (status === "replied") {
         try {
           const { data: quote } = await supabase
             .from("quote_requests")
-            .select("email, client_first_name, product_name")
+            .select("product_name")
             .eq("id", quoteId)
             .single();
 
-          const clientEmail = quote?.email;
-
-          if (clientEmail) {
-            // Send email notification
-            await supabase.functions.invoke("send-notification-email", {
-              body: {
-                to: clientEmail,
-                subject: "Terrassea — Un fournisseur a répondu à votre demande de devis",
-                body_html: `<p>Bonjour${quote.client_first_name ? ` ${quote.client_first_name}` : ""},</p><p>Un fournisseur a répondu à votre demande de devis pour <strong>${quote.product_name}</strong>. Connectez-vous à votre espace pour consulter l'offre.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
-                body_text: `Bonjour, un fournisseur a répondu à votre demande de devis pour ${quote.product_name}. Connectez-vous à votre espace pour consulter l'offre.`,
-              },
-            });
-
-            // In-app notification for client via RPC (Dette 19 Phase 2B.1)
-            await supabase.rpc("create_quote_notification_to_client", {
-              p_quote_id: quoteId,
-              p_type: "info",
-              p_title: "Devis re\u00e7u",
-              p_body: `Un fournisseur a r\u00e9pondu \u00e0 votre demande pour ${quote.product_name}`,
-              p_link: "/account?tab=quotes",
-            });
-          }
+          await supabase.rpc("create_quote_notification_to_client", {
+            p_quote_id: quoteId,
+            p_type: "info",
+            p_title: "Devis re\u00e7u",
+            p_body: `Un fournisseur a r\u00e9pondu \u00e0 votre demande pour ${quote?.product_name ?? ""}`,
+            p_link: "/account?tab=quotes",
+          });
         } catch {
-          // Non-blocking: quote reply notification failed silently
+          // Non-blocking: in-app notification failed silently
         }
       }
     },

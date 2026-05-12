@@ -683,12 +683,26 @@ Callsites impactés (8) :
 - Découverte annexe pendant l'audit : **les 3 actions reminders (`reminder_partner_48h/client_7d/expiry_3d`) sont du dead code** — aucun cron pg_cron ne les invoque (`cron.job` ne contient que `send-review-requests`, `check-abandoned-carts`, `daily-reminders`, tous pointant ailleurs). Donc l'impact réel du Lot 0 = 5 invocations frontend débloquées (ProjectCart, QuoteRequestModal, ClientSections, ArchitectSections, AdminOrderTracking), pas 5+3.
 - Test pg_net direct : POST avec `X-Trigger-Secret` + action invalide → status 400 "Unknown action" (auth passe ✅, on n'est plus en 401).
 
+**Lot A livré 2026-05-12** :
+- Migration `20260512075011_dette_59_lot_a_quote_email_triggers.sql` :
+  - Helpers : `infer_email_locale(country_code)`, `render_transactional_email(locale,title,body,cta_text?,cta_url?)`, `send_transactional_email(to,subject,html,text)` (SECURITY DEFINER + `SET search_path = public, vault, pg_temp`, lit vault `EDGE_TRIGGER_SECRET`, pg_net.http_post avec **`timeout_milliseconds := 15000`** pour absorber les cold starts Edge Function — défaut 5s prouvé insuffisant lors du smoke test).
+  - 3 fonctions render typées par scénario : `_email_quote_created_client`, `_email_quote_assigned_partner`, `_email_quote_replied_client` (4 locales FR/EN/ES/IT chacune, body court + CTA `/account`).
+  - Trigger `trg_notify_quote_request_created` (AFTER INSERT) → couvre **X1** (confirmation client) + **X3 INSERT path** (notif partenaire si pre-assigné).
+  - `notify_quote_status_changed` étendue (préserve l'insert in-app `notifications`) → couvre **X2** (email client sur `status='replied'`) + **X3 UPDATE path** (notif partenaire sur transition `partner_id NULL → not-null`).
+- Frontend invocations retirées :
+  - `src/components/admin/AdminQuoteWorkflow.tsx:235` (X2 — devenu redondant)
+  - `src/hooks/usePartnerQuotes.ts:128` (X2 doublon, in-app notif via `create_quote_notification_to_client` préservée)
+  - `src/pages/ProjectCart.tsx:479` (X1 — délégué au trigger AFTER INSERT)
+- Smoke test 2026-05-12 : X2 UPDATE = 200 "sent" ✅ ; X1 INSERT premier essai = timeout 5s (cold start), patch pg_net 15s appliqué, retest = 200 "sent" ✅.
+- Découverte : `verify_partner_as_admin` (Bug #1) a le même bug latent `SET search_path = 'public, vault, pg_temp'` (chaîne quotée = un seul schéma littéral, ne se résout pas). Non détecté car le flow d'approbation passe par le frontend qui contourne ce path. À patcher en follow-up (cf. note backlog en fin de section).
+
 **Lots restants** :
-- A — Quote lifecycle (extend `notify_quote_status_changed` + new trigger AFTER INSERT quote_requests, 3 templates × 4 locales)
 - B — Order lifecycle (extend `notify_order_status_changed` + `auto_create_order_on_signature`, 3 templates × 4 locales)
 - C — Admin info request (RPC `request_partner_application_info`, 1 template × 4 locales)
 - D — Pro Service (AFTER INSERT trigger pro_service_requests, 1 template × 4 locales)
 - E — Cleanup (supprimer les invocations frontend devenues redondantes, déprécier auto-workflow actions doublons)
+
+**Note backlog** : la fonction `public.verify_partner_as_admin` (Dette 54 / Bug #1) porte la même clause buggée `SET search_path = 'public, vault, pg_temp'` (forme quotée Postgres interprète comme un schéma littéral nommé `public, vault, pg_temp`). En l'état actuel les fonctions internes appelées (`net.http_post`, lecture vault) sont nommées par leur schéma natif et les fonctions custom (`is_admin`) sont qualifiées implicitement par le contexte trigger, donc le bug n'a pas surfacé. À nettoyer en passant lors du prochain touch sur la fonction (re-déclarer `SET search_path = public, vault, pg_temp` sans guillemets).
 
 ### Dette 60 — Edge Function `Terrassea-Production` drift (boilerplate dormant)
 

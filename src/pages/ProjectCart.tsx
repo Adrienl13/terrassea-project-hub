@@ -474,19 +474,10 @@ const ProjectCart = () => {
         }
       }
 
-      // Send confirmation email (non-blocking)
-      try {
-        await supabase.functions.invoke("send-notification-email", {
-          body: {
-            to: formData.email,
-            subject: "Terrassea — Votre demande a été reçue",
-            body_html: `<p>Bonjour ${formData.name},</p><p>Nous avons bien reçu votre demande pour <strong>${items.length} produit${items.length > 1 ? "s" : ""}</strong>. Nos fournisseurs partenaires vont vous adresser un devis sous 48h.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
-            body_text: `Bonjour ${formData.name}, nous avons bien reçu votre demande pour ${items.length} produit${items.length > 1 ? "s" : ""}. Nos fournisseurs partenaires vont vous adresser un devis sous 48h.`,
-          },
-        });
-      } catch {
-        // Non-blocking
-      }
+      // Email confirmation is now sent server-side by
+      // notify_quote_request_created AFTER INSERT trigger
+      // (Dette 59 Lot A). The frontend invocation that lived here was
+      // 401-silent in this Supabase 2026 project — see Dette 54/59.
     } catch (err) {
       console.error(err);
       toast.error(t('projectCart.submitError'));
