@@ -710,7 +710,19 @@ Callsites impactés (8) :
 - Smoke test prod 2026-05-12 : Y1 + Y2 firing simultané sur un INSERT orders → 2 responses 200 "sent" (id 229 + 230). Y3 sur UPDATE status='delivered' → response 200 "sent" (id 231). 3 scénarios validés ✅.
 - Découverte annexe : `auto_create_order_on_signature` (trigger BD existant) et `usePaymentFlow.createOrderFromQuote` (frontend) peuvent tous deux INSERT dans `orders` pour le même quote_request (le trigger BD fire sur UPDATE de signed_at, le frontend INSERT directement). Risque de doublon d'orders — out of Lot B scope mais à capturer en dette ultérieure (cf. ci-dessous Dette 74).
 
-**Progression Dette 59** : 6/8 callsites éliminés (75 %). Restent AdminApplications.tsx:143 (info_requested) et ProServiceClientHub.tsx:1591.
+**Progression Dette 59** : 7/8 callsites éliminés (87,5 %). Reste ProServiceClientHub.tsx:1591 (Lot D).
+
+**Lot C livré 2026-05-12** :
+- Migration `20260512104308_dette_59_lot_c_application_info_rpc.sql` :
+  - Helper render `_email_application_info_requested(locale, contact_name, company_name, app_short, admin_message)` × 4 locales formelles (FR/EN/ES/IT), quote stylisée pour le message admin avec HTML-escape + préservation des sauts de ligne.
+  - RPC `request_partner_application_info(p_application_id, p_admin_message)` SECURITY DEFINER + `is_admin()` guard, UPDATE atomique (status='info_requested' + admin_notes + reviewed_at + reviewed_by) + pg_net via `send_transactional_email`. Empty-message rejected. Application introuvable → exception explicite.
+  - Locale derivation depuis `partner_applications.country` text free-form (2-letter code OR full name, fallback 'fr').
+- **3 bugs collatéraux découverts et corrigés** (pré-existants, masqués par catch silent du flow) :
+  1. `partner_applications.admin_notes` referenced by frontend depuis Dette 30 (2026-05-06) mais **colonne inexistante** → UPDATE error swallowed.
+  2. `partner_applications` CHECK constraint sur status n'autorisait pas `'info_requested'` (uniquement pending/approved/rejected/suspended) malgré le mapping APP_STATUS_CONFIG du frontend → ajout d'`info_requested` à l'enum.
+  3. Frontend lisait `selected.contact_email` mais la colonne est `email` → recipient toujours undefined → invoke avec to=undefined → 401 deux fois sourd.
+- Frontend cleanup : `AdminApplications.tsx:132-160` → `sendInfoRequest()` simplifié en un seul RPC call. Plus de double UPDATE + invoke, plus de lecture de champs fantômes.
+- Smoke test prod 2026-05-12 : RPC retourne `{success:true, locale:'fr', sent_to:'adrienlaniez1@gmail.com', status:'info_requested'}` ; pg_net id 236 = 200 "sent" ✅. XSS protection vérifiée : `<SIRET>` dans message admin → escape `&lt;SIRET&gt;` correctement.
 
 **Quality pass livré 2026-05-12** (migration `20260512102852_dette_59_quality_pass.sql`) :
 - Audit du livrable Lot A + Lot B contre standards plateformes internationales (Stripe, Booking, Hostfully). Décisions founder :

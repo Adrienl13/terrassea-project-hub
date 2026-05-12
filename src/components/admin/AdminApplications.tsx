@@ -132,23 +132,15 @@ export default function AdminApplications() {
   const sendInfoRequest = async (appId: string, message: string) => {
     setProcessing(true);
     try {
-      await supabase.from("partner_applications").update({
-        status: "info_requested",
-        admin_notes: message,
-        reviewed_at: new Date().toISOString(),
-      }).eq("id", appId);
-
-      // Send email to the applicant
-      if (selected?.contact_email) {
-        await supabase.functions.invoke("send-notification-email", {
-          body: {
-            to: selected.contact_email,
-            subject: "Terrassea — Informations complémentaires requises",
-            body_html: `<p>Bonjour ${selected.contact_name || ""},</p><p>Merci pour votre candidature sur Terrassea. Nous avons besoin d'informations complémentaires :</p><p style="background:#f5f5f5;padding:16px;border-radius:8px;font-style:italic;">${message}</p><p>Merci de répondre à <a href="mailto:contact@terrassea.com">contact@terrassea.com</a></p><p>L'équipe Terrassea</p>`,
-            body_text: `Bonjour, nous avons besoin d'informations complémentaires : ${message}. Répondez à contact@terrassea.com`,
-          },
-        }).catch(() => {});
-      }
+      // Single RPC handles UPDATE + email send atomically (Dette 59 Lot C).
+      // Server-side via SECURITY DEFINER + is_admin() guard + pg_net to
+      // send-notification-email with X-Trigger-Secret. Replaces the
+      // 401-silent supabase.functions.invoke pattern.
+      const { error } = await supabase.rpc("request_partner_application_info" as any, {
+        p_application_id: appId,
+        p_admin_message: message,
+      });
+      if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ["partner_applications"] });
       toast.success("Demande d'informations envoyée par email.");
