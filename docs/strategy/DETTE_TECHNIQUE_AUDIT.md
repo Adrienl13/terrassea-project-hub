@@ -712,6 +712,25 @@ Callsites impactés (8) :
 
 **Progression Dette 59** : 6/8 callsites éliminés (75 %). Restent AdminApplications.tsx:143 (info_requested) et ProServiceClientHub.tsx:1591.
 
+**Quality pass livré 2026-05-12** (migration `20260512102852_dette_59_quality_pass.sql`) :
+- Audit du livrable Lot A + Lot B contre standards plateformes internationales (Stripe, Booking, Hostfully). Décisions founder :
+  1. **Voix formelle uniforme** : `vous` FR / `Hello` EN poli / `usted` ES / `Lei` IT capital (Buongiorno + Sua/La/Suo).
+  2. **Bouton support universel** dans wrapper `render_transactional_email` : "Besoin d'aide ou une modification à signaler ? Contacter le support →" (mailto:support@terrassea.com), 4 locales.
+  3. **Format devise + date locale-aware** : helpers `format_currency_locale` (€1,500.50 EN préfixe / 1 500,50 € FR / 1.500,50 € ES+IT) et `format_date_locale` (DD/MM/YYYY FR/ES/IT, "12 May 2026" EN).
+- Bugs corrigés :
+  - B1 Y3 CTA → repointé sur `/account?tab=orders` consistent avec Y1/Y2 (review URL dédiée capturée séparément).
+  - B2 Null-name guard sur les 6 helpers (`NULLIF` + `COALESCE`) → plus de `Bonjour ,`.
+  - B3 Typography colons : espace avant `:` retiré pour ES + IT (5 + 5 occurrences Y1, plus dans wrapper help text).
+  - B4 Params morts Y1 (order_short + total_amount) maintenant affichés dans le body.
+- Quality :
+  - Q2 Mots pleins : "pcs/uds/pz" → "unités/unidades/unità/units" avec accord singulier/pluriel.
+  - Q4 Subjects nettoyés (drop "— Terrassea" trailing partout).
+  - Q6 CTAs alignés ("Voir ma commande" client Y1/Y3, "Voir la commande" partner Y2).
+  - Q7 Référence order short `#ABC12345` visible dans Y1, Y2, Y3.
+  - Q8 Échéance paiement formatée dans Y1 (`Échéance : 19/05/2026`).
+- Smoke test prod 4 scénarios x 4 emails 200 sent ✅ (X1 client + Y1 client + Y2 partner + Y3 client).
+- Rendu visuel inspecté en SQL : `Buongiorno Marco, ... nel Suo spazio` (IT formel) / `Hola, ...` (ES null-name guard OK) / `3 unités · 1 500,50 €` (FR fully professional).
+
 **Lots restants** :
 - C — Admin info request (RPC `request_partner_application_info`, 1 template × 4 locales)
 - D — Pro Service (AFTER INSERT trigger pro_service_requests, 1 template × 4 locales)
