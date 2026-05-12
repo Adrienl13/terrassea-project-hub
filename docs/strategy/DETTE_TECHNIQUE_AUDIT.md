@@ -1053,6 +1053,78 @@ Aucun caller dans la codebase n'invoque `auto-workflow` avec ces actions :
 
 **Statut** : capturé ici, à traiter prochaine session technique cleanup.
 
+### Dette 77 — Implémentation CGV partenaires 🔴 Priorité Haute
+
+**Origine** : Cadrage stratégique CGV 2026-05-12. Cf. `docs/strategy/CGV_STRATEGY.md`.
+
+**Description** : Architecture hybride (cadre obligatoire Terrassea Blocs A+B+C+D+E + upload doc spécifique marque PDF/Word + 7 métadonnées structurées). 4 tables DB (`partner_cgv`, `partner_cgv_metadata`, `cgv_acceptances`, `terrassea_terms`), bucket Storage `partner-cgv` (privé + RLS), 4 composants frontend, optionnellement Edge Function de conversion Word → PDF.
+
+**Pattern d'activation** : CGV optionnelles à l'inscription marque, **obligatoires avant publication produits** (Stripe pattern, friction au bon moment).
+
+**Effort** : 4-5 jours répartis sur 2-3 semaines (5 phases : rédaction cadre Terrassea v1, migrations DB+Storage, composants frontend, tests + déploiement, adhésion médiateur).
+
+**Priorité** : Niveau 2 — **bloquant Vague 2 transactions commerciales**. Vague 1 Founding Partner peut tourner avec clause provisoire en attendant (cf. CGV_STRATEGY.md §2.8).
+
+**Référence détaillée** : `docs/strategy/CGV_STRATEGY.md` (11 sections, architecture + plan opérationnel + risques).
+
+**Statut** : cadrage stratégique fait, implémentation à planifier après stabilisation Vague 1.
+
+### Dette 78 — Consultation avocat marketplace EU 🔴 Critique avant volume
+
+**Origine** : Cadrage CGV 2026-05-12. Décision founder : différer consultation avocat (budget actuel).
+
+**Description** : Le cadre Terrassea v1 sera publié avec `legal_review_status = 'self_validated'` (templates inspirés Stripe Connect / Etsy / Shopify, pas validé par juriste). Tant que l'audit avocat n'a pas eu lieu, exposition légale potentielle.
+
+**Mitigation actuelle** :
+- Pas de transactions commerciales en Vague 1 (programme gratuit).
+- Clause provisoire Founding Partner intégrée dans le contrat d'inscription.
+- Templates choisis sur acteurs reconnus EU.
+
+**Plan** : LinkedIn search « avocat e-commerce marketplace EU droit conso ». Consultation 1-2h. Audit du cadre Terrassea v1 + recommandations pour passer à `lawyer_validated` (v2).
+
+**Effort** : 200-500€ honoraires + 1-2h consultation + 0.5j révision cadre post-feedback.
+
+**Priorité** : **Critique avant 1ère transaction commerciale réelle** (Vague 2). Niveau 1 dès que budget disponible.
+
+**Statut** : différé sur contrainte budget. À débloquer dès que possible.
+
+### Dette 79 — Adhésion médiateur conso agréé 🟠 Priorité Haute
+
+**Origine** : Cadrage CGV 2026-05-12. Obligation B2C EU : médiation gratuite obligatoire avant action judiciaire (article L612-1 Code conso).
+
+**Description** : Vague 1 utilise un médiateur conso agréé externe (Vague 2/3 pourra évoluer vers médiation Terrassea interne). 3 options évaluées :
+
+| Médiateur | Coût annuel | Spécificité |
+|---|---|---|
+| CNPM-MCM | 150-200 €/an | Généraliste consommation |
+| AME (Association des Médiateurs Européens) | ~200 €/an | Généraliste, présence EU |
+| Médiation FEVAD | Plus élevé | Spécifique e-commerce |
+
+**Effort** : 150-300 €/an + adhésion (~1h) + intégration référence dans CGV Terrassea.
+
+**Priorité** : Niveau 2 — **avant 1ère transaction réelle**. Décision finale conjointement avec l'avocat (Dette 78) le moment venu.
+
+**Statut** : à exécuter avant Vague 2 transactions commerciales.
+
+### Dette 80 — Conversion Word → PDF côté serveur ⏳ Priorité Basse
+
+**Origine** : Cadrage CGV 2026-05-12 §3.2. Optionnel MVP.
+
+**Description** : Permettre aux partenaires d'uploader leurs CGV en `.docx` (Word) en plus du PDF, avec conversion automatique côté serveur. Le PDF est la seule version stockée définitivement (preuve légale).
+
+**Options techniques** :
+- Edge Function Deno : `mammoth.js` (docx → HTML) + `puppeteer-deno` (HTML → PDF). Stack lourd, cold-start lent.
+- Service externe : `CloudConvert` / `PDF.co` (~0.01€/conversion). Simple mais dépendance externe + données partenaires sortent du périmètre Supabase.
+- Alternative MVP : **refuser Word côté UI, demander PDF uniquement**. Friction acceptable.
+
+**Décision MVP recommandée** : alternative — refuser Word, demander PDF. Capture la dette pour itération future si plusieurs partenaires se plaignent.
+
+**Effort** : 0.5-1j pour Edge Function ; 0 pour l'alternative refuser-Word.
+
+**Priorité** : Niveau 4 (hygiène UX). À traiter seulement si volume de demandes Word.
+
+**Statut** : capturé, à arbitrer en Phase 3 de l'implémentation Dette 77.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
