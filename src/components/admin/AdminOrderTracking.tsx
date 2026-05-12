@@ -291,21 +291,10 @@ export default function AdminOrderTracking() {
                     delivery_confirmed_by: "admin",
                     balance_due_date: new Date(Date.now() + 7 * 86400000).toISOString(),
                   }, "delivered", "Livraison confirmée — solde dû sous 7 jours");
-                  // Send delivery confirmation email
-                  if (selected.client_email) {
-                    try {
-                      await supabase.functions.invoke("send-notification-email", {
-                        body: {
-                          to: selected.client_email,
-                          subject: "Terrassea — Votre commande a été livrée",
-                          body_html: `<p>Bonjour,</p><p>Votre commande pour <strong>${selected.product_name}</strong> a été livrée.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
-                          body_text: `Bonjour, votre commande pour ${selected.product_name} a été livrée.`,
-                        },
-                      });
-                    } catch {
-                      // Non-blocking: delivery email failed silently
-                    }
-                  }
+                  // Delivery confirmation email is now sent server-side by
+                  // notify_order_status_changed on transition to status='delivered'
+                  // (Dette 59 Lot B). The frontend invocation that lived here was
+                  // 401-silent in this Supabase 2026 project — see Dette 54/59.
                 }} />
             )}
             {selected.status === "delivered" && (

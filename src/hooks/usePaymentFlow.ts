@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   generatePaymentReference,
   generateInvoiceNumber,
-  generatePaymentInstructions,
 } from "@/lib/paymentUtils";
 import { COMMISSION_BY_PLAN } from "@/lib/partnerConstants";
 
@@ -223,31 +222,10 @@ export function usePaymentFlow() {
         actor: user?.id ?? "system",
       });
 
-      // 6. Send payment instructions email via Edge Function
-      const lang = localStorage.getItem("i18nextLng") ?? "en";
-      const instructions = generatePaymentInstructions({
-        reference: paymentReference,
-        amount: depositAmount,
-        beneficiary: paymentSettings.beneficiary,
-        iban: paymentSettings.iban,
-        bic: paymentSettings.bic,
-        bankName: paymentSettings.bankName,
-        dueDate: depositDueDate.toLocaleDateString(lang === "en" ? "en-GB" : lang),
-        lang,
-      });
-
-      try {
-        await supabase.functions.invoke("send-notification-email", {
-          body: {
-            to: clientEmail,
-            subject: instructions.subject,
-            body_html: instructions.bodyHtml,
-            body_text: instructions.bodyText,
-          },
-        });
-      } catch {
-        // Email sending is non-blocking
-      }
+      // Payment instructions email (Y1) is now sent server-side by
+      // notify_order_created AFTER INSERT trigger on orders
+      // (Dette 59 Lot B). The frontend invocation that lived here was
+      // 401-silent in this Supabase 2026 project — see Dette 54/59.
 
       // 7. Create in-app notification for the client
       if (clientUserId) {
@@ -260,7 +238,10 @@ export function usePaymentFlow() {
         });
       }
 
-      // 8. Notify partner that their quote was accepted and order created
+      // 8. Notify partner in-app that their quote was accepted and order created.
+      // Partner email (Y2) is now sent server-side by notify_order_created
+      // AFTER INSERT trigger on orders (Dette 59 Lot B). The frontend invocation
+      // that lived here was 401-silent in this Supabase 2026 project.
       const partnerJoin = quote.partner as { name?: string; contact_email?: string } | null;
       if (quote.partner_id) {
         const { data: partnerProfile } = await supabase
@@ -277,20 +258,6 @@ export function usePaymentFlow() {
             p_body: `Votre devis pour ${quote.product_name} (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté. Une commande a été créée.`,
             p_link: `/account?tab=quotes`,
           });
-        }
-
-        // Send email to partner
-        try {
-          await supabase.functions.invoke("send-notification-email", {
-            body: {
-              to: partnerJoin?.contact_email,
-              subject: `Devis accepté — commande #${order.id?.slice(0, 8)}`,
-              body_html: `<p>Votre devis pour <strong>${quote.product_name}</strong> (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté par le client.</p><p>Une commande a été créée. Le client procède au paiement de l'acompte.</p>`,
-              body_text: `Votre devis pour ${quote.product_name} (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté. Une commande a été créée.`,
-            },
-          });
-        } catch {
-          // Non-blocking
         }
       }
 

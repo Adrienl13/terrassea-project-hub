@@ -696,8 +696,23 @@ Callsites impactés (8) :
 - Smoke test 2026-05-12 : X2 UPDATE = 200 "sent" ✅ ; X1 INSERT premier essai = timeout 5s (cold start), patch pg_net 15s appliqué, retest = 200 "sent" ✅.
 - Découverte : `verify_partner_as_admin` (Bug #1) a le même bug latent `SET search_path = 'public, vault, pg_temp'` (chaîne quotée = un seul schéma littéral, ne se résout pas). Non détecté car le flow d'approbation passe par le frontend qui contourne ce path. À patcher en follow-up (cf. note backlog en fin de section).
 
+**Lot B livré 2026-05-12** :
+- Migration `20260512101010_dette_59_lot_b_order_email_triggers.sql` :
+  - 3 helpers render (`_email_order_payment_instructions_client`, `_email_order_quote_accepted_partner`, `_email_order_delivered_client`) × 4 locales FR/EN/ES/IT, en réutilisant les helpers `infer_email_locale` / `render_transactional_email` / `send_transactional_email` de Lot A.
+  - Trigger NEW `trg_notify_order_created` (AFTER INSERT on `orders`, SECURITY DEFINER) → couvre **Y1** (instructions de paiement client, IBAN/BIC depuis `platform_settings.payment_iban|bic|bank_name|beneficiary` — category=`orders`) + **Y2** (devis accepté → partenaire).
+  - `notify_order_status_changed` étendue (préserve l'INSERT in-app `notifications`) → couvre **Y3** (email client sur transition `status='delivered'`).
+  - Décision architecturale : Y1+Y2 fire sur AFTER INSERT `orders` (pas dans `auto_create_order_on_signature` qui n'est pas SECURITY DEFINER) → fonctionne pour les deux chemins de création (frontend `usePaymentFlow.createOrderFromQuote` OU le trigger BD existant).
+- Frontend invocations retirées :
+  - `src/components/admin/AdminOrderTracking.tsx:297` (Y3 — délégué à notify_order_status_changed)
+  - `src/hooks/usePaymentFlow.ts:240` (Y1 — délégué au trigger AFTER INSERT)
+  - `src/hooks/usePaymentFlow.ts:284` (Y2 — délégué au trigger AFTER INSERT)
+- Code mort supprimé : `src/lib/paymentUtils.ts` perd `generatePaymentInstructions` + 100+ lignes de templates HTML i18n (4 locales) qui ne servaient qu'à l'invoke supprimé. Garde `generatePaymentReference` et `generateInvoiceNumber` (toujours utilisés pour les séquences DB).
+- Smoke test prod 2026-05-12 : Y1 + Y2 firing simultané sur un INSERT orders → 2 responses 200 "sent" (id 229 + 230). Y3 sur UPDATE status='delivered' → response 200 "sent" (id 231). 3 scénarios validés ✅.
+- Découverte annexe : `auto_create_order_on_signature` (trigger BD existant) et `usePaymentFlow.createOrderFromQuote` (frontend) peuvent tous deux INSERT dans `orders` pour le même quote_request (le trigger BD fire sur UPDATE de signed_at, le frontend INSERT directement). Risque de doublon d'orders — out of Lot B scope mais à capturer en dette ultérieure (cf. ci-dessous Dette 74).
+
+**Progression Dette 59** : 6/8 callsites éliminés (75 %). Restent AdminApplications.tsx:143 (info_requested) et ProServiceClientHub.tsx:1591.
+
 **Lots restants** :
-- B — Order lifecycle (extend `notify_order_status_changed` + `auto_create_order_on_signature`, 3 templates × 4 locales)
 - C — Admin info request (RPC `request_partner_application_info`, 1 template × 4 locales)
 - D — Pro Service (AFTER INSERT trigger pro_service_requests, 1 template × 4 locales)
 - E — Cleanup (supprimer les invocations frontend devenues redondantes, déprécier auto-workflow actions doublons)
@@ -908,6 +923,29 @@ Callsites impactés (8) :
 **Priorité** : Niveau 4 (résilience, pas urgent — la delegation Vercel est stable)
 
 **Statut** : à fixer (optionnel, hygiène DNS)
+
+### Dette 74 — Double création d'`orders` possible : frontend + trigger BD
+
+**Origine** : Audit Dette 59 Lot B (2026-05-12)
+
+**Description** : Deux chemins peuvent insérer une ligne dans `public.orders` pour le même `quote_request_id` :
+1. `src/hooks/usePaymentFlow.ts:createOrderFromQuote` (frontend) — INSERT direct dans `orders` après signature du devis. Inclut tous les champs (payment_reference, invoice_number, commission_rate, due_dates).
+2. Trigger BD `trg_auto_create_order` → fonction `public.auto_create_order_on_signature()` — fire sur UPDATE de `quote_requests.signed_at` (NULL → not-null), INSERT minimal dans `orders` (status 'pending_deposit', commission depuis partner_subscriptions, sans payment_reference ni invoice_number).
+
+Si le flow de signature met à jour `signed_at` ET appelle `createOrderFromQuote` (cas observé dans le code), deux orders peuvent être créés. Avec Lot B (AFTER INSERT trigger pour emails), cela générerait **deux jeux de Y1+Y2 emails**.
+
+**Risque actuel** : faible en prod (9 produits actifs, peu d'orders aujourd'hui), mais bloquant avant volume Salone mid-June 2026.
+
+**Fix proposé** :
+- Option A : désactiver `trg_auto_create_order` (le frontend est la source de vérité, plus complet).
+- Option B : supprimer l'INSERT côté frontend, laisser le trigger BD seul et compléter `auto_create_order_on_signature` pour générer payment_reference/invoice_number/due_dates côté BD.
+- Option C : ajouter une garde `ON CONFLICT (quote_request_id) DO NOTHING` en mettant `quote_request_id` UNIQUE sur orders (vérifier d'abord qu'aucune order légitime ne partage cet ID — multi-paiements ?).
+
+**Effort** : 1-2h selon option
+
+**Priorité** : Niveau 2 (à régler avant relance Salone)
+
+**Statut** : à fixer
 
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
