@@ -652,7 +652,7 @@ SELECT net.http_post(
 
 **Statut** : à fixer (capture cette session)
 
-### Dette 59 — 8 callsites frontend `send-notification-email` en 401 silencieux
+### Dette 59 — 8 callsites frontend `send-notification-email` en 401 silencieux ✅ FIXED 2026-05-12
 
 **Origine** : Audit infrastructure email 2026-05-10
 
@@ -710,7 +710,25 @@ Callsites impactés (8) :
 - Smoke test prod 2026-05-12 : Y1 + Y2 firing simultané sur un INSERT orders → 2 responses 200 "sent" (id 229 + 230). Y3 sur UPDATE status='delivered' → response 200 "sent" (id 231). 3 scénarios validés ✅.
 - Découverte annexe : `auto_create_order_on_signature` (trigger BD existant) et `usePaymentFlow.createOrderFromQuote` (frontend) peuvent tous deux INSERT dans `orders` pour le même quote_request (le trigger BD fire sur UPDATE de signed_at, le frontend INSERT directement). Risque de doublon d'orders — out of Lot B scope mais à capturer en dette ultérieure (cf. ci-dessous Dette 74).
 
-**Progression Dette 59** : **8/8 callsites éliminés (100 % direct)**. Reste Lot E (cleanup final + types regen + audit).
+**Statut** : **✅ FIXED 2026-05-12** — Lots 0/A/B/C/D + quality pass + Lot E livrés en session unique.
+
+**Progression Dette 59** : **8/8 callsites éliminés (100 % direct)**.
+
+**Lot E livré 2026-05-12** (closure) :
+- Audit transverse src/ : **0 callsite résiduel** `supabase.functions.invoke("send-notification-email")` ✅
+- 5 invocations `auto-workflow` (auto_assign_partner / auto_create_order / notify_order_shipped) actives et fonctionnelles depuis Lot 0 (X-Trigger-Secret).
+- Auto-workflow `reminder_*` handlers confirmés dead code → Dette 76 capturée.
+- `run-scheduled-tasks` Edge Function absente prod (déjà tracée par Dette 61) — confirmé via `list_edge_functions`.
+- Types Supabase régénérés (`src/integrations/supabase/types.ts`, 5780 lignes). Tous les nouveaux RPCs visibles : `request_partner_application_info`, `verify_partner_as_admin`, `send_transactional_email`, `render_transactional_email`, `format_currency_locale`, `format_date_locale`, et les 6 `_email_*` helpers.
+- `as any` retiré sur `request_partner_application_info` (AdminApplications.tsx:139).
+- tsc 0 erreur, 615 tests passed avec types frais.
+
+**Retrospective Dette 59** :
+- 6 commits (Lot 0 → Lot E + quality pass + support email fix) en session unique.
+- 8 callsites email directs éliminés + **5 bugs latents collatéraux fixés** (admin_notes manquant, CHECK status `info_requested`, contact_email/email confusion, search_path quoted, html/body_html mismatch).
+- 15 emails transactionnels en 4 locales formelles (FR/EN/ES/IT) avec wrapper unifié + bouton support → adrienlaniez1@gmail.com.
+- Pattern industriel établi : Frontend → RPC SECURITY DEFINER OU INSERT/UPDATE → trigger DB → pg_net (15s timeout) → Edge Function (X-Trigger-Secret) → Resend.
+- Nouvelles dettes capturées : 74 (double order creation), 75 (toast trompeur transverse), 76 (auto-workflow dead reminders).
 
 **Lot D livré 2026-05-12** :
 - Migration `20260512105221_dette_59_lot_d_pro_service_trigger.sql` :
@@ -986,6 +1004,54 @@ Si le flow de signature met à jour `signed_at` ET appelle `createOrderFromQuote
 **Priorité** : Niveau 2 (à régler avant relance Salone)
 
 **Statut** : à fixer
+
+### Dette 75 — Audit transverse "toast trompeur" 🔴 Priorité Haute
+
+**Origine** : Découvert pendant Dette 59 Lot C (2026-05-12) — Le flow "demander informations partner application" n'a JAMAIS fonctionné en production. Trois bugs empilés masqués par un `try/catch` silent + un `toast.success` inconditionnel :
+1. La colonne `partner_applications.admin_notes` n'existait pas.
+2. Le CHECK constraint sur `status` rejetait `info_requested`.
+3. Le code lisait `selected.contact_email` alors que la colonne est `email`.
+
+Le flow n'a même jamais atteint l'étape de l'invoke 401 — il échouait dès l'UPDATE. Pourtant l'admin voyait toujours "Demande d'informations envoyée par email." 🚨
+
+**Hypothèse** : ce pattern (catch silent + toast trompeur) peut masquer des bugs latents similaires sur d'autres features critiques. Particulièrement à risque : paiements, signups, approvals, refunds, sessions Stripe.
+
+**Plan d'action** :
+1. Grep transverse : `catch.*=>.*\{\s*\}` et `catch.*\{\s*\/\/` (catch vide ou commentaire-seul).
+2. Grep transverse : `toast.success` non-précédés d'une vérif `if (error) return` ou `throw` explicite.
+3. Audit prioritaire des paths business critiques (Stripe checkout/webhook, partner approve/reject, order create, quote sign).
+4. Pattern à adopter en convention : ne JAMAIS afficher `toast.success` avant validation effective côté DB. Le pattern Lot C devient référence.
+
+**Effort estimé** : 2-3 h audit transverse + capture liste + plan de correction par batch.
+
+**Priorité** : Niveau 2 (peut masquer des bugs production critiques).
+
+**Statut** : à exécuter après stabilisation Vague 1 Founding Partner.
+
+### Dette 76 — Auto-workflow handlers `reminder_*` dead code ⏳ Priorité Basse
+
+**Origine** : Audit Dette 59 Lot 0 + closure Lot E (2026-05-12). Trois action handlers dans `supabase/functions/auto-workflow/index.ts` :
+- `reminder_partner_48h` (lines 310-340)
+- `reminder_client_7d` (lines 343-376)
+- `reminder_expiry_3d` (lines 377-410)
+
+Aucun caller dans la codebase n'invoque `auto-workflow` avec ces actions :
+- 0 cron pg_cron référence ces actions.
+- 0 callsite frontend (verified via grep).
+- La logique reminder réelle vit dans `supabase/functions/run-scheduled-tasks/index.ts` (parcourt les quotes stale et envoie directement, sans repasser par auto-workflow).
+
+→ **Code mort dans auto-workflow**. ~100 lignes (3 handlers + getSetting flag check + branche switch). Sans valeur fonctionnelle.
+
+**Action** : 3 options
+- A : Supprimer les 3 handlers + leurs flag-checks. Net = -100 lignes, surface réduite.
+- B : Commenter avec `// DEAD CODE - see Dette 59 Lot 0 - run-scheduled-tasks owns reminders now`.
+- C : Status quo + capture dette (présente entrée).
+
+**Effort estimé** : 30 min (option A : suppression + tests no-regression + re-deploy auto-workflow Edge Function v14).
+
+**Priorité** : Niveau 3 (hygiène, pas bloquant).
+
+**Statut** : capturé ici, à traiter prochaine session technique cleanup.
 
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 

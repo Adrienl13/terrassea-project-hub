@@ -1820,6 +1820,7 @@ export type Database = {
       }
       partner_applications: {
         Row: {
+          admin_notes: string | null
           company_name: string
           contact_name: string
           country: string
@@ -1843,6 +1844,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          admin_notes?: string | null
           company_name: string
           contact_name: string
           country: string
@@ -1866,6 +1868,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          admin_notes?: string | null
           company_name?: string
           contact_name?: string
           country?: string
@@ -5241,6 +5244,79 @@ export type Database = {
       }
     }
     Functions: {
+      _email_application_info_requested: {
+        Args: {
+          p_admin_message: string
+          p_app_short: string
+          p_company_name: string
+          p_contact_name: string
+          p_locale: string
+        }
+        Returns: Json
+      }
+      _email_order_delivered_client: {
+        Args: {
+          p_client_name: string
+          p_locale: string
+          p_order_short: string
+          p_product_name: string
+        }
+        Returns: Json
+      }
+      _email_order_payment_instructions_client: {
+        Args: {
+          p_bank_name: string
+          p_beneficiary: string
+          p_bic: string
+          p_client_name: string
+          p_deposit_amount: number
+          p_deposit_due_date?: string
+          p_iban: string
+          p_locale: string
+          p_order_short: string
+          p_payment_reference: string
+          p_product_name: string
+          p_total_amount: number
+        }
+        Returns: Json
+      }
+      _email_order_quote_accepted_partner: {
+        Args: {
+          p_locale: string
+          p_order_short: string
+          p_partner_name: string
+          p_product_name: string
+          p_quantity: number
+          p_total_amount: number
+        }
+        Returns: Json
+      }
+      _email_pro_service_request_created: {
+        Args: {
+          p_client_name: string
+          p_establishment: string
+          p_locale: string
+          p_project_type: string
+          p_request_short: string
+        }
+        Returns: Json
+      }
+      _email_quote_assigned_partner: {
+        Args: {
+          p_locale: string
+          p_partner_name: string
+          p_product_name: string
+        }
+        Returns: Json
+      }
+      _email_quote_created_client: {
+        Args: { p_locale: string; p_name: string; p_product_name: string }
+        Returns: Json
+      }
+      _email_quote_replied_client: {
+        Args: { p_locale: string; p_name: string; p_product_name: string }
+        Returns: Json
+      }
       approve_product_submission_as_new: {
         Args: {
           p_offers?: Json
@@ -5330,6 +5406,14 @@ export type Database = {
         Returns: string
       }
       expire_overdue_quotes: { Args: never; Returns: number }
+      format_currency_locale: {
+        Args: { p_amount: number; p_locale: string }
+        Returns: string
+      }
+      format_date_locale: {
+        Args: { p_date: string; p_locale: string }
+        Returns: string
+      }
       fuzzy_search_products: {
         Args: {
           category_filter?: string
@@ -5463,6 +5547,7 @@ export type Database = {
         }
       }
       generate_partner_slug: { Args: { company: string }; Returns: string }
+      infer_email_locale: { Args: { p_country_code: string }; Returns: string }
       invoke_scheduled_tasks: { Args: never; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       is_brand_member: {
@@ -5475,6 +5560,20 @@ export type Database = {
       }
       next_invoice_number: { Args: never; Returns: string }
       next_payment_reference: { Args: never; Returns: string }
+      render_transactional_email: {
+        Args: {
+          p_body: string
+          p_cta_text?: string
+          p_cta_url?: string
+          p_locale: string
+          p_title: string
+        }
+        Returns: string
+      }
+      request_partner_application_info: {
+        Args: { p_admin_message: string; p_application_id: string }
+        Returns: Json
+      }
       reserve_preorder: {
         Args: {
           p_arrival_item_id: string
@@ -5502,6 +5601,15 @@ export type Database = {
           publish_status: string
           relevance_score: number
         }[]
+      }
+      send_transactional_email: {
+        Args: {
+          p_body_html: string
+          p_body_text: string
+          p_subject: string
+          p_to: string
+        }
+        Returns: number
       }
       slugify: { Args: { input: string }; Returns: string }
       update_order_as_partner: {

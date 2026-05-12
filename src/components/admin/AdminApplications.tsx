@@ -136,7 +136,7 @@ export default function AdminApplications() {
       // Server-side via SECURITY DEFINER + is_admin() guard + pg_net to
       // send-notification-email with X-Trigger-Secret. Replaces the
       // 401-silent supabase.functions.invoke pattern.
-      const { error } = await supabase.rpc("request_partner_application_info" as any, {
+      const { error } = await supabase.rpc("request_partner_application_info", {
         p_application_id: appId,
         p_admin_message: message,
       });
