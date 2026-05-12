@@ -1587,17 +1587,11 @@ function NewProRequestForm({
         await supabase.from("notifications").insert(notifications);
       }
 
-      try {
-        await supabase.functions.invoke("send-notification-email", {
-          body: {
-            to: form.email,
-            subject: "Votre demande Pro Service Terrassea",
-            html: `<p>Bonjour ${form.fullName},</p><p>Votre demande Pro Service pour <strong>${form.establishmentName}</strong> a bien \u00e9t\u00e9 enregistr\u00e9e.</p><p>Notre \u00e9quipe vous contactera sous 24h pour vous mettre en relation avec le meilleur interlocuteur.</p><p>L'\u00e9quipe Terrassea</p>`,
-          },
-        });
-      } catch {
-        // Email is best-effort
-      }
+      // Confirmation email is now sent server-side by
+      // notify_pro_service_request_created AFTER INSERT trigger
+      // (Dette 59 Lot D). The frontend invocation that lived here
+      // was double-broken \u2014 401-silent AND used field name `html`
+      // instead of the contract `body_html`.
 
       setPhase("submitted");
     } catch (err) {

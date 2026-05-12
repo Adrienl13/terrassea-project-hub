@@ -710,7 +710,16 @@ Callsites impactés (8) :
 - Smoke test prod 2026-05-12 : Y1 + Y2 firing simultané sur un INSERT orders → 2 responses 200 "sent" (id 229 + 230). Y3 sur UPDATE status='delivered' → response 200 "sent" (id 231). 3 scénarios validés ✅.
 - Découverte annexe : `auto_create_order_on_signature` (trigger BD existant) et `usePaymentFlow.createOrderFromQuote` (frontend) peuvent tous deux INSERT dans `orders` pour le même quote_request (le trigger BD fire sur UPDATE de signed_at, le frontend INSERT directement). Risque de doublon d'orders — out of Lot B scope mais à capturer en dette ultérieure (cf. ci-dessous Dette 74).
 
-**Progression Dette 59** : 7/8 callsites éliminés (87,5 %). Reste ProServiceClientHub.tsx:1591 (Lot D).
+**Progression Dette 59** : **8/8 callsites éliminés (100 % direct)**. Reste Lot E (cleanup final + types regen + audit).
+
+**Lot D livré 2026-05-12** :
+- Migration `20260512105221_dette_59_lot_d_pro_service_trigger.sql` :
+  - Helper render `_email_pro_service_request_created(locale, client_name, request_short, establishment, project_type)` × 4 locales formelles. Mention explicite des next steps (sourcing partenaires, devis, suivi projet).
+  - Trigger NEW `trg_notify_pro_service_request_created` AFTER INSERT on `pro_service_requests` (SECURITY DEFINER, search_path explicite).
+  - Locale derivation depuis `project_country` text free-form (même mapping que Lot C).
+- **Latent bug observé** (5e du chantier, pré-existant pré-Lot 0) : le frontend invocait `send-notification-email` avec **field key `html`** alors que le contrat de l'Edge Function est `body_html` (cf. Lot A v21+). Le body de l'email aurait été undefined/vide même si le 401 avait été résolu. À documenter mais pas de fix supplémentaire requis — l'invoke disparait avec Lot D.
+- Frontend cleanup : `ProServiceClientHub.tsx:1591` → invoke supprimé, commentaire pointeur vers le trigger.
+- Smoke test prod 2026-05-12 : INSERT direct sur pro_service_requests, trigger fire, pg_net id 237 = 200 "sent" ✅. Render FR : `Bonjour Adrien, nous vous remercions d'avoir confié votre projet à Terrassea. Votre demande Pro Service pour Brasserie Test (dossier #ABCDEF12) ...`.
 
 **Lot C livré 2026-05-12** :
 - Migration `20260512104308_dette_59_lot_c_application_info_rpc.sql` :
