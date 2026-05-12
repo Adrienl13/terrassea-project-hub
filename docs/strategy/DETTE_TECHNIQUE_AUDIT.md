@@ -675,7 +675,20 @@ Callsites impactés (8) :
 
 **Priorité** : Niveau 2 (chaque jour qui passe = emails perdus)
 
-**Statut** : à fixer après que la Dette 54 soit validée e2e (donne confiance au pattern)
+**Statut** : audit Phase A livré 2026-05-12, plan en 5 lots (0/A/B/C/D + cleanup E). Lot 0 LIVRÉ 2026-05-12.
+
+**Lot 0 livré 2026-05-12** (commit Lot 0) :
+- `supabase/functions/auto-workflow/index.ts` v13 patchée avec le pattern dual-auth (Bearer SERVICE_ROLE_KEY OR X-Trigger-Secret matching EDGE_TRIGGER_SECRET).
+- Le helper `sendEmail()` interne repointé sur `X-Trigger-Secret` au lieu de `Bearer SERVICE_ROLE_KEY` quand il appelle send-notification-email.
+- Découverte annexe pendant l'audit : **les 3 actions reminders (`reminder_partner_48h/client_7d/expiry_3d`) sont du dead code** — aucun cron pg_cron ne les invoque (`cron.job` ne contient que `send-review-requests`, `check-abandoned-carts`, `daily-reminders`, tous pointant ailleurs). Donc l'impact réel du Lot 0 = 5 invocations frontend débloquées (ProjectCart, QuoteRequestModal, ClientSections, ArchitectSections, AdminOrderTracking), pas 5+3.
+- Test pg_net direct : POST avec `X-Trigger-Secret` + action invalide → status 400 "Unknown action" (auth passe ✅, on n'est plus en 401).
+
+**Lots restants** :
+- A — Quote lifecycle (extend `notify_quote_status_changed` + new trigger AFTER INSERT quote_requests, 3 templates × 4 locales)
+- B — Order lifecycle (extend `notify_order_status_changed` + `auto_create_order_on_signature`, 3 templates × 4 locales)
+- C — Admin info request (RPC `request_partner_application_info`, 1 template × 4 locales)
+- D — Pro Service (AFTER INSERT trigger pro_service_requests, 1 template × 4 locales)
+- E — Cleanup (supprimer les invocations frontend devenues redondantes, déprécier auto-workflow actions doublons)
 
 ### Dette 60 — Edge Function `Terrassea-Production` drift (boilerplate dormant)
 

@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const TRIGGER_SECRET = Deno.env.get("EDGE_TRIGGER_SECRET") || "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -19,11 +20,15 @@ async function getSetting(key: string): Promise<string | null> {
 }
 
 async function sendEmail(to: string, subject: string, bodyHtml: string, bodyText: string) {
+  // Use X-Trigger-Secret (matches send-notification-email v21 dual-auth check).
+  // The Bearer SUPABASE_SERVICE_ROLE_KEY path cannot work in this project
+  // because Supabase 2026 injects an sb_secret_... value rather than the
+  // legacy JWT — see Bug #1 / Dette 54 for the full diagnostic.
   const res = await fetch(`${SUPABASE_URL}/functions/v1/send-notification-email`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      "X-Trigger-Secret": TRIGGER_SECRET,
     },
     body: JSON.stringify({ to, subject, body_html: bodyHtml, body_text: bodyText }),
   });
@@ -442,9 +447,19 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Auth: require service-role key (internal function only)
+  // Auth: accept the legacy Bearer SUPABASE_SERVICE_ROLE_KEY path (kept for
+  // backwards compatibility with any caller that already passes it) OR an
+  // X-Trigger-Secret header matching EDGE_TRIGGER_SECRET. The trigger-secret
+  // path is the only one that actually works from frontend invocations and
+  // pg_net calls in this Supabase 2026 project — see Dette 54/59.
   const authHeader = req.headers.get("Authorization");
-  if (authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
+  const triggerHeader = req.headers.get("X-Trigger-Secret");
+  const isServiceRole =
+    SUPABASE_SERVICE_ROLE_KEY !== "" &&
+    authHeader === `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
+  const isTriggerSecret =
+    TRIGGER_SECRET !== "" && triggerHeader === TRIGGER_SECRET;
+  if (!isServiceRole && !isTriggerSecret) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
