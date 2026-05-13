@@ -173,12 +173,13 @@ toast.success(eventDesc);
 - Effort réel : ~45 min (migration `20260513164000_dette_75_lot_2_delete_partner_cascade.sql` + types regen + 1 RPC + frontend refactor).
 - Smoke test prod : `success:true`, `partner_name: SmokeTest Lot2 Round2`, 9 counters retournés ✅. Re-test deuxième partner test = OK.
 
-### Lot 3 — Auto-upgrade plan AdminOrderTracking (session prochaine)
+### Lot 3 — Auto-upgrade plan AdminOrderTracking ✅ FIXED 2026-05-13
 
-- AdminOrderTracking.tsx:149-152 (partner plan upgrade)
-- Pattern : transaction atomique via RPC OU séquence + rollback frontend
-- Effort : ~45 min
-- Smoke test : déclencher seuil volume → vérifier les 2 tables cohérentes
+- AdminOrderTracking.tsx:149-152 (partner plan upgrade Starter → Growth)
+- Pattern appliqué : **Option 1 — fix frontend** avec destructure `{ error }` sur les deux writes critiques (`partners.plan` puis `partner_subscriptions.plan`) + toasts adaptatifs (success / warning si plan-only-OK / warning si plan-fail). Le drift entre les deux tables est désormais visible (le toast warning explicite "drift à réconcilier manuellement" si la deuxième UPDATE échoue).
+- Le `try/catch` silent parent ligne 202 est remplacé par `catch (err) { console.error(...) }` (defense-in-depth, plus jamais vraiment silent).
+- Effort réel : ~30 min.
+- Smoke test : tsc 0 erreur + 615 tests pass. Test e2e prod non joué (cas rare nécessitant setup multi-orders, sera vérifié au prochain seuil réel de partner Starter).
 
 ### Lot 4 — Audit log order_events (session prochaine)
 

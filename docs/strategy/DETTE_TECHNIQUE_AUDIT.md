@@ -1032,8 +1032,9 @@ Le flow n'a même jamais atteint l'étape de l'invoke 401 — il échouait dès 
 
 **Lot 2 livré 2026-05-13** : AdminPartners cascade delete → RPC transactionnelle `public.delete_partner_cascade(p_partner_id)` SECURITY DEFINER + `is_admin()` guard + 9 cleanups atomiques (PostgreSQL rollback auto si une étape échoue) + counters retournés. Bonus : la colonne `products.owner_brand_id` (FK RESTRICT) n'était PAS gérée par le frontend → la suppression d'un brand_member ayant des produits échouait silencieusement avant Lot 2. Migration `20260513164000_dette_75_lot_2_delete_partner_cascade.sql`. Smoke test prod success ✅.
 
+**Lot 3 livré 2026-05-13** : AdminOrderTracking.tsx auto-upgrade plan Starter → Growth. Fix frontend pur (Option 1) — pas de RPC car flow rare (count = 3 exactement), pattern Lot 1 réutilisé. Les 2 UPDATEs (`partners.plan` + `partner_subscriptions.plan`) sont maintenant error-checked avec toast adaptatif : success si OK, warning explicite si drift à réconcilier (subscription_record en échec après partner.plan déjà mis à jour). Le silent `catch{}` parent remplacé par `catch(err){console.error(...)}` defense-in-depth.
+
 **Lots restants** :
-- Lot 3 — AdminOrderTracking auto-upgrade partner plan (~45 min)
 - Lot 4 — Audit log order_events insert (~20 min)
 - Lot 5 — Convention codebase + ESLint rule custom (~2 h)
 

@@ -145,14 +145,35 @@ export default function AdminOrderTracking() {
               .in("status", ["completed", "delivered"]);
 
             if (count != null && count >= 3) {
-              // Auto-upgrade to growth
-              await supabase.from("partners").update({ plan: "growth" }).eq("id", partnerId);
+              // Dette 75 Lot 3: surface drift between partners.plan and
+              // partner_subscriptions.plan if one UPDATE succeeds and the
+              // other fails. Previous code swallowed both via the outer
+              // silent catch.
+              const { error: planErr } = await supabase
+                .from("partners")
+                .update({ plan: "growth" })
+                .eq("id", partnerId);
 
-              // Update subscription record
-              await supabase.from("partner_subscriptions").update({
-                plan: "growth",
-                updated_at: new Date().toISOString(),
-              }).eq("partner_id", partnerId);
+              if (planErr) {
+                console.error("[auto-migration] partners.plan update failed", planErr);
+                toast.warning(
+                  "Auto-migration " + partner.name + " : echec mise a niveau plan. Revoir manuellement."
+                );
+                return;
+              }
+
+              const { error: subErr } = await supabase
+                .from("partner_subscriptions")
+                .update({ plan: "growth", updated_at: new Date().toISOString() })
+                .eq("partner_id", partnerId);
+
+              if (subErr) {
+                console.error("[auto-migration] partner_subscriptions update failed", subErr);
+                toast.warning(
+                  "Auto-migration " + partner.name + " : plan partner mis a jour, mais subscription_record en echec. Drift a reconcilier manuellement."
+                );
+                // Do NOT return — continue with notifications so partner is informed of the (partial) upgrade.
+              }
 
               // Notify partner (find user profile via partner's contact_email)
               const partnerEmail = partner.contact_email;
@@ -199,8 +220,11 @@ export default function AdminOrderTracking() {
               queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
             }
           }
-        } catch {
-          // Auto-migration check failed silently
+        } catch (err) {
+          // Dette 75 Lot 3 : never truly silent — surface to console for diagnostic.
+          // Defense-in-depth: even if individual writes are now error-checked above,
+          // an unexpected throw (network outage, etc.) still gets visibility.
+          console.error("[auto-migration] unexpected error", err);
         }
       }
     }
