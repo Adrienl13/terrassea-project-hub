@@ -143,8 +143,15 @@ export default function AdminProductReview() {
 
   const handleBulkOffline = async () => {
     setBulkLoading(true);
+    let ok = 0, fail = 0;
     for (const pid of selectedProductIds) {
-      await supabase.from("products").update({ publish_status: "draft" }).eq("id", pid);
+      const { error } = await supabase.from("products").update({ publish_status: "draft" }).eq("id", pid);
+      if (error) {
+        console.error(`[bulkOffline ${pid}]`, error);
+        fail++;
+      } else {
+        ok++;
+      }
     }
     queryClient.invalidateQueries({ queryKey: ["products"] });
     queryClient.invalidateQueries({ queryKey: ["admin-product-submissions"] });
@@ -152,15 +159,28 @@ export default function AdminProductReview() {
     setSelectedIds(new Set());
     setConfirmBulkAction(null);
     setBulkLoading(false);
-    toast.success(`${selectedProductIds.length} produit${selectedProductIds.length > 1 ? "s" : ""} mis hors ligne`);
+    if (fail === 0) {
+      toast.success(`${ok} produit${ok > 1 ? "s" : ""} mis hors ligne`);
+    } else if (ok === 0) {
+      toast.error(`Aucun produit mis hors ligne (${fail} échec${fail > 1 ? "s" : ""}). Voir la console pour le détail.`);
+    } else {
+      toast.warning(`${ok} mis hors ligne, ${fail} échec${fail > 1 ? "s" : ""}. Voir la console pour le détail.`);
+    }
   };
 
   const handleBulkDelete = async () => {
     setBulkLoading(true);
+    let ok = 0, fail = 0;
     for (const pid of selectedProductIds) {
-      await supabase.from("product_offers").delete().eq("product_id", pid);
-      await supabase.from("product_submissions").delete().eq("target_product_id", pid);
-      await supabase.from("products").delete().eq("id", pid);
+      const { error: offersErr } = await supabase.from("product_offers").delete().eq("product_id", pid);
+      const { error: subsErr } = await supabase.from("product_submissions").delete().eq("target_product_id", pid);
+      const { error: prodErr } = await supabase.from("products").delete().eq("id", pid);
+      if (offersErr || subsErr || prodErr) {
+        console.error(`[bulkDelete ${pid}]`, { offersErr, subsErr, prodErr });
+        fail++;
+      } else {
+        ok++;
+      }
     }
     queryClient.invalidateQueries({ queryKey: ["products"] });
     queryClient.invalidateQueries({ queryKey: ["admin-product-submissions"] });
@@ -168,7 +188,13 @@ export default function AdminProductReview() {
     setSelectedIds(new Set());
     setConfirmBulkAction(null);
     setBulkLoading(false);
-    toast.success(`${selectedProductIds.length} produit${selectedProductIds.length > 1 ? "s" : ""} supprimé${selectedProductIds.length > 1 ? "s" : ""}`);
+    if (fail === 0) {
+      toast.success(`${ok} produit${ok > 1 ? "s" : ""} supprimé${ok > 1 ? "s" : ""}`);
+    } else if (ok === 0) {
+      toast.error(`Aucun produit supprimé (${fail} échec${fail > 1 ? "s" : ""}). Voir la console pour le détail.`);
+    } else {
+      toast.warning(`${ok} supprimé${ok > 1 ? "s" : ""}, ${fail} échec${fail > 1 ? "s" : ""}. Voir la console pour le détail.`);
+    }
   };
 
   const handleAction = async (action: () => Promise<void>, label: string) => {

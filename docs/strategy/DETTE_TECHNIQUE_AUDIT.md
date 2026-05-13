@@ -1005,7 +1005,7 @@ Si le flow de signature met à jour `signed_at` ET appelle `createOrderFromQuote
 
 **Statut** : à fixer
 
-### Dette 75 — Audit transverse "toast trompeur" 🔴 Priorité Haute
+### Dette 75 — Audit transverse "toast trompeur" 🟠 Lot 1 livré, Lots 2-5 à venir
 
 **Origine** : Découvert pendant Dette 59 Lot C (2026-05-12) — Le flow "demander informations partner application" n'a JAMAIS fonctionné en production. Trois bugs empilés masqués par un `try/catch` silent + un `toast.success` inconditionnel :
 1. La colonne `partner_applications.admin_notes` n'existait pas.
@@ -1026,7 +1026,17 @@ Le flow n'a même jamais atteint l'étape de l'invoke 401 — il échouait dès 
 
 **Priorité** : Niveau 2 (peut masquer des bugs production critiques).
 
-**Statut** : à exécuter après stabilisation Vague 1 Founding Partner.
+**Statut** : Audit exhaustif livré 2026-05-13, **Lot 1 fixé**. Cf. `docs/strategy/TOAST_TROMPEUR_AUDIT.md` pour cartographie complète + 5 cas Top + plan correctif Lots 2-5 + pattern standardisé.
+
+**Lot 1 livré 2026-05-13** : `AdminProductReview.tsx` `handleBulkOffline` + `handleBulkDelete` fixés avec compteur ok/fail + destructure `{ error }` + toast adaptatif (success / warning / error). Plus de toast.success trompeur sur ces deux flows critiques (bulk offline + bulk delete admin product review — chemin direct pendant onboarding Salone). Pattern réutilisable documenté dans TOAST_TROMPEUR_AUDIT.md section 7.
+
+**Lots restants** :
+- Lot 2 — AdminPartners cascade cleanup delete (~1h, prochaine session)
+- Lot 3 — AdminOrderTracking auto-upgrade partner plan (~45 min)
+- Lot 4 — Audit log order_events insert (~20 min)
+- Lot 5 — Convention codebase + ESLint rule custom (~2 h)
+
+Sub-dettes filles capturées : **Dette 81** (ESLint rule custom destructure error), **Dette 82** (audit propagation erreur dans helpers business).
 
 ### Dette 76 — Auto-workflow handlers `reminder_*` dead code ⏳ Priorité Basse
 
@@ -1124,6 +1134,34 @@ Aucun caller dans la codebase n'invoque `auto-workflow` avec ces actions :
 **Priorité** : Niveau 4 (hygiène UX). À traiter seulement si volume de demandes Word.
 
 **Statut** : capturé, à arbitrer en Phase 3 de l'implémentation Dette 77.
+
+### Dette 81 — ESLint rule custom : destructure `{ error }` sur supabase writes ⏳ Priorité Basse
+
+**Origine** : Pattern correctif Dette 75 / Lot 1 (`docs/strategy/TOAST_TROMPEUR_AUDIT.md` section 7).
+
+**Description** : Le pattern Lot C / Lot 1 montre que `await supabase.from(...).update/insert/delete(...)` retourne `{ data, error }` sans throw. Si le code ne destructure pas `error`, l'erreur Postgres est avalée silencieusement → toast.success trompeur.
+
+Pour prévenir la régression, écrire une règle ESLint custom qui :
+- Détecte les expressions `await supabase.from(...).update/insert/delete/upsert(...)` non destructurées.
+- Émet un warning en CI si pas de `{ error }` ni `.throwOnError()`.
+
+**Effort** : ~2 h (apprentissage AST ESLint custom + écriture règle + intégration `.eslintrc`).
+
+**Priorité** : Niveau 3 (hygiène, prévention long terme).
+
+**Statut** : à exécuter après stabilisation Vague 1.
+
+### Dette 82 — Audit propagation erreur dans helpers business ⏳ Priorité Basse
+
+**Origine** : Audit Dette 75. Au-delà du pattern toast trompeur, certaines fonctions helpers (par ex. `approveAsNew`, `reject` dans `ProductReviewHelpers.tsx`) peuvent retourner `void` ou `Promise<void>` sans propager systématiquement les erreurs Supabase.
+
+**Description** : Audit dédié des helpers business pour vérifier que la propagation des erreurs est cohérente (throw explicite OU retour `{ ok, error }` typé). Risque : un caller compte sur try/catch parent pour intercepter, mais le helper avale en interne sans relever.
+
+**Effort** : ~1.5 h (audit + corrections + tests).
+
+**Priorité** : Niveau 3.
+
+**Statut** : à exécuter en complément Dette 75 Lot 5.
 
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
