@@ -1,11 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  generatePaymentReference,
-  generateInvoiceNumber,
-} from "@/lib/paymentUtils";
-import { COMMISSION_BY_PLAN } from "@/lib/partnerConstants";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -65,215 +60,12 @@ export function usePaymentFlow() {
     staleTime: 5 * 60 * 1000, // cache 5 min
   });
 
-  // ── createOrderFromQuote ────────────────────────────────────────────────
-
-  const createOrderFromQuote = useMutation({
-    mutationFn: async (quoteRequestId: string) => {
-      // 1. Read the quote request details
-      const { data: quote, error: quoteErr } = await supabase
-        .from("quote_requests")
-        .select("*, partner:partner_id(name, contact_email)")
-        .eq("id", quoteRequestId)
-        .single();
-
-      if (quoteErr || !quote) throw new Error("Quote request not found");
-
-      const totalPrice = Number(quote.total_price ?? 0);
-      if (totalPrice <= 0) throw new Error("Cannot create order with zero amount");
-      const quantity = Number(quote.quantity ?? 1);
-      const unitPrice = Number(quote.unit_price ?? 0);
-
-      // 1b. Resolve commission rate via v_effective_commissions (brand-distributor)
-      //     or fall back to the distributor's plan-based commission from partner_subscriptions.
-      let commissionRate = 8; // default fallback (starter plan)
-
-      if (quote.partner_id) {
-        let found = false;
-
-        // If the product belongs to a brand, look up the brand-distributor effective rate
-        if (quote.product_id) {
-          const { data: product } = await supabase
-            .from("products")
-            .select("partner_id")
-            .eq("id", quote.product_id)
-            .maybeSingle();
-
-          if (product?.partner_id) {
-            const { data: ec } = await supabase
-              .from("v_effective_commissions" as any)
-              .select("effective_commission_rate")
-              .eq("brand_id", product.partner_id)
-              .eq("distributor_id", quote.partner_id)
-              .maybeSingle() as { data: { effective_commission_rate: number } | null };
-
-            if (ec?.effective_commission_rate != null) {
-              commissionRate = Number(ec.effective_commission_rate);
-              found = true;
-            }
-          }
-        }
-
-        // Fallback: use the distributor's plan-based commission from partner_subscriptions
-        if (!found) {
-          const { data: sub } = await supabase
-            .from("partner_subscriptions")
-            .select("commission_rate")
-            .eq("partner_id", quote.partner_id)
-            .maybeSingle();
-
-          if (sub?.commission_rate != null) {
-            commissionRate = Number(sub.commission_rate);
-          } else {
-            // Last resort: plan-based hardcoded fallback
-            const { data: partnerRow } = await supabase
-              .from("partners")
-              .select("plan")
-              .eq("id", quote.partner_id)
-              .maybeSingle();
-            if (partnerRow?.plan && COMMISSION_BY_PLAN[partnerRow.plan] !== undefined) {
-              commissionRate = COMMISSION_BY_PLAN[partnerRow.plan];
-            }
-          }
-        }
-      }
-
-      const commissionAmount = Math.round((totalPrice * commissionRate) / 100 * 100) / 100;
-
-      // 2. Calculate deposit and balance
-      const depositAmount = Math.round((totalPrice * paymentSettings.depositPercent) / 100 * 100) / 100;
-      const balanceAmount = Math.round((totalPrice - depositAmount) * 100) / 100;
-
-      // 3. Generate references (sequential via DB)
-      const paymentReference = await generatePaymentReference();
-      const invoiceNumber = await generateInvoiceNumber();
-
-      // Due dates
-      const now = new Date();
-      const depositDueDate = new Date(now.getTime() + paymentSettings.depositDueDays * 86_400_000);
-      const balanceDueDate = new Date(now.getTime() + paymentSettings.balanceDueDays * 86_400_000);
-
-      // Partner response terms (contractual data from quote)
-      const tvaRate = quote.tva_rate != null ? Number(quote.tva_rate) : null;
-      const deliveryDelayDays = quote.delivery_delay_days != null ? Number(quote.delivery_delay_days) : null;
-      const deliveryConditions = quote.delivery_conditions ?? null;
-      const paymentConditions = quote.payment_conditions ?? null;
-      const partnerConditions = quote.partner_conditions ?? null;
-
-      // Compute estimated delivery date from partner's delivery delay
-      const estimatedDeliveryDate = deliveryDelayDays
-        ? new Date(now.getTime() + deliveryDelayDays * 86_400_000).toISOString().split("T")[0]
-        : null;
-
-      // 4. Insert into orders
-      const clientEmail = quote.email ?? user?.email ?? "";
-
-      // Use client_user_id from quote if available, else look up by email, fallback to current user
-      let clientUserId: string | null = quote.client_user_id ?? user?.id ?? null;
-      if (!clientUserId && clientEmail) {
-        const { data: profileRow } = await supabase
-          .from("user_profiles")
-          .select("id")
-          .eq("email", clientEmail)
-          .maybeSingle();
-        if (profileRow?.id) clientUserId = profileRow.id;
-      }
-
-      const { data: order, error: orderErr } = await supabase
-        .from("orders")
-        .insert({
-          quote_request_id: quoteRequestId,
-          product_name: quote.product_name,
-          product_id: quote.product_id,
-          partner_id: quote.partner_id,
-          project_request_id: quote.project_request_id,
-          client_email: clientEmail,
-          client_user_id: clientUserId,
-          quantity,
-          unit_price: unitPrice,
-          total_amount: totalPrice,
-          deposit_amount: depositAmount,
-          deposit_percent: paymentSettings.depositPercent,
-          deposit_due_date: depositDueDate.toISOString(),
-          balance_amount: balanceAmount,
-          balance_due_date: balanceDueDate.toISOString(),
-          payment_reference: paymentReference,
-          invoice_number: invoiceNumber,
-          commission_rate: commissionRate,
-          commission_amount: commissionAmount,
-          tva_rate: tvaRate,
-          delivery_delay_days: deliveryDelayDays,
-          estimated_delivery_date: estimatedDeliveryDate,
-          delivery_conditions: deliveryConditions,
-          payment_conditions: paymentConditions,
-          partner_conditions: partnerConditions,
-          payment_method: "bank_transfer",
-          status: "pending_deposit",
-        })
-        .select("id")
-        .single();
-
-      if (orderErr || !order) throw new Error(orderErr?.message ?? "Failed to create order");
-
-      // 5. Insert order_event
-      await supabase.from("order_events").insert({
-        order_id: order.id,
-        event_type: "order_created",
-        description: `Order created from quote ${quoteRequestId}. Payment reference: ${paymentReference}`,
-        actor: user?.id ?? "system",
-      });
-
-      // Payment instructions email (Y1) is now sent server-side by
-      // notify_order_created AFTER INSERT trigger on orders
-      // (Dette 59 Lot B). The frontend invocation that lived here was
-      // 401-silent in this Supabase 2026 project — see Dette 54/59.
-
-      // 7. Create in-app notification for the client
-      if (clientUserId) {
-        await supabase.rpc("create_admin_notification", {
-          p_user_id: clientUserId,
-          p_type: "order_update",
-          p_title: "Order created",
-          p_body: `Your order for ${quote.product_name} has been created. Please proceed with the deposit payment.`,
-          p_link: `/account?tab=orders`,
-        });
-      }
-
-      // 8. Notify partner in-app that their quote was accepted and order created.
-      // Partner email (Y2) is now sent server-side by notify_order_created
-      // AFTER INSERT trigger on orders (Dette 59 Lot B). The frontend invocation
-      // that lived here was 401-silent in this Supabase 2026 project.
-      const partnerJoin = quote.partner as { name?: string; contact_email?: string } | null;
-      if (quote.partner_id) {
-        const { data: partnerProfile } = await supabase
-          .from("user_profiles")
-          .select("id")
-          .eq("email", partnerJoin?.contact_email ?? "")
-          .maybeSingle();
-
-        if (partnerProfile?.id) {
-          await supabase.rpc("create_admin_notification", {
-            p_user_id: partnerProfile.id,
-            p_type: "order_update",
-            p_title: "Devis accepté — commande créée",
-            p_body: `Votre devis pour ${quote.product_name} (${quantity} pcs, €${totalPrice.toLocaleString()}) a été accepté. Une commande a été créée.`,
-            p_link: `/account?tab=quotes`,
-          });
-        }
-      }
-
-      // 9. Return the order
-      return order;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["client-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["partner-quotes"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-order-events"] });
-    },
-    onError: (err: any) => {
-      console.error("Failed to create order:", err);
-    },
-  });
+  // ── createOrderFromQuote removed in Dette 74 ────────────────────────────
+  // The auto_create_order_on_signature DB trigger now produces a complete
+  // order on every signature (UPDATE quote_requests.signed_at NULL → not-null).
+  // It populates payment_reference, invoice_number, due_dates, tva_rate,
+  // delivery_conditions, etc. — equivalent to what this mutation used to do.
+  // Frontend code is no longer responsible for order creation.
 
   // ── confirmDeposit ──────────────────────────────────────────────────────
 
@@ -374,9 +166,6 @@ export function usePaymentFlow() {
   });
 
   return {
-    createOrderFromQuote: createOrderFromQuote.mutate,
-    createOrderFromQuoteAsync: createOrderFromQuote.mutateAsync,
-    isCreatingOrder: createOrderFromQuote.isPending,
     confirmDeposit: confirmDeposit.mutate,
     confirmDepositAsync: confirmDeposit.mutateAsync,
     isConfirmingDeposit: confirmDeposit.isPending,

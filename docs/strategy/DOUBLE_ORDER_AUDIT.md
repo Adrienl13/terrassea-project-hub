@@ -2,7 +2,7 @@
 
 > **Date** : 13 mai 2026
 > **Origine** : Capture Dette 74 lors du Lot B de Dette 59 (Order lifecycle email triggers).
-> **Statut** : Audit terminé. Risque latent **moins une duplication qu'un problème de course gagnée par la version dégradée**. À fixer avant Salone mi-juin 2026.
+> **Statut** : ✅ **FIXED 2026-05-13** — Option Beta livrée. Trigger DB enrichi pour produire des orders complètes.
 
 ---
 
@@ -234,3 +234,4 @@ Si le trigger n'a pas les permissions de lire `v_effective_commissions` (vue pro
 | Date | Auteur | Modification |
 |---|---|---|
 | 13 mai 2026 | Adrien Laniez + Claude | Audit initial — Option Beta recommandée |
+| 13 mai 2026 | Adrien Laniez + Claude | ✅ Option Beta livrée — trigger enrichi, frontend `createOrderFromQuote` supprimé, `paymentUtils.ts` deleted (~280 lignes de code mort en moins) |

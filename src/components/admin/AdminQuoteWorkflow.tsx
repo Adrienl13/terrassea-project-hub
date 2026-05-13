@@ -9,7 +9,7 @@ import {
   Search, Eye, ArrowLeft, FileText, Clock, CheckCircle2,
   XCircle, Package, MapPin, Building2, PenTool, Download,
   Send, ChevronRight, ChevronDown, AlertTriangle, User,
-  Truck, CreditCard, ShoppingCart, Banknote,
+  Truck, CreditCard, Banknote,
 } from "lucide-react";
 
 const QuotePdfViewer = lazy(() => import("@/components/quotes/QuotePdfViewer"));
@@ -43,7 +43,9 @@ const STATUSES = ["pending", "replied", "accepted", "signed", "expired", "cancel
 export default function AdminQuoteWorkflow() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const { createOrderFromQuote, isCreatingOrder } = usePaymentFlow();
+  // Order auto-created server-side by auto_create_order_on_signature trigger
+  // when a quote's signed_at flips NULL → not-null. The previous frontend
+  // mutation createOrderFromQuote is removed (Dette 74).
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -452,30 +454,18 @@ export default function AdminQuoteWorkflow() {
           </div>
         )}
 
-        {/* Create order button — only for accepted/signed quotes without an existing order */}
-        {(selected.status === "accepted" || selected.status === "signed") && !existingOrder && (
-          <div className="border border-border rounded-xl p-4">
-            <button
-              onClick={() => {
-                createOrderFromQuote(selected.id, {
-                  onSuccess: () => {
-                    toast.success(t("adminQuotes.orderCreatedSuccess"));
-                    queryClient.invalidateQueries({ queryKey: ["admin-quote-order", selected.id] });
-                    queryClient.invalidateQueries({ queryKey: ["admin-quotes"] });
-                  },
-                  onError: (err: Error) => {
-                    toast.error(t("adminQuotes.errorPrefix") + err.message);
-                  },
-                });
-              }}
-              disabled={isCreatingOrder}
-              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-xs font-display font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              {isCreatingOrder ? t("adminQuotes.creatingOrder") : t("adminQuotes.createOrder")}
-            </button>
-            <p className="text-[10px] font-body text-muted-foreground mt-2">
-              {t("adminQuotes.orderDescription")}
+        {/* Pre-Dette-74 fallback panel: shown only if a signed quote slipped
+            through without its companion order (rare — trigger failed, legacy
+            data, etc.). The "create order" button has been removed because
+            the auto_create_order_on_signature trigger now produces a complete
+            order on every signature. */}
+        {selected.status === "signed" && !existingOrder && (
+          <div className="border border-amber-200 bg-amber-50 rounded-xl p-4">
+            <p className="text-xs font-display font-semibold text-amber-700 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" /> Devis signé sans commande associée
+            </p>
+            <p className="text-[10px] font-body text-amber-700 mt-1">
+              Anomalie : la commande aurait dû être créée automatiquement à la signature. Vérifiez les logs trigger, sinon créez la commande à la main via SQL ou recontactez le client.
             </p>
           </div>
         )}

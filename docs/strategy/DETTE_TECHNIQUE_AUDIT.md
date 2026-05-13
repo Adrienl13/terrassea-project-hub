@@ -982,7 +982,7 @@ Callsites impactés (8) :
 
 **Statut** : à fixer (optionnel, hygiène DNS)
 
-### Dette 74 — Double création d'`orders` 🟠 Audit fait, Option Beta recommandée
+### Dette 74 — Double création d'`orders` ✅ FIXED 2026-05-13 (Option Beta)
 
 **Origine** : Audit Dette 59 Lot B (2026-05-12), audit approfondi 2026-05-13. Cf. `docs/strategy/DOUBLE_ORDER_AUDIT.md`.
 
@@ -1005,7 +1005,15 @@ Callsites impactés (8) :
 - **Dette 84** — sort du frontend `createOrderFromQuote` (supprimer ou conserver comme admin fallback)
 - **Dette 85** — accès `v_effective_commissions` depuis trigger (RLS / SECURITY DEFINER helper)
 
-**Statut** : audit livré, implémentation Beta à planifier.
+**Statut** : ✅ **FIXED 2026-05-13** — Option Beta livrée.
+
+**Fix livré** :
+- Migration `20260513175135_dette_74_enrich_auto_create_order.sql` : trigger `auto_create_order_on_signature` réécrit pour produire une order équivalente au frontend `createOrderFromQuote`. Tous les champs critiques peuplés : `payment_reference` (via `next_payment_reference()`), `invoice_number` (via `next_invoice_number()`), `deposit_due_date`, `balance_due_date`, `tva_rate`, `delivery_*`, `payment_conditions`, `partner_conditions`, `estimated_delivery_date`, `client_user_id` (lookup email), `unit_price`, `payment_method`. Commission via `partner_subscriptions.commission_rate` puis fallback plan-based hardcoded (8/5/3.5/0/0).
+- Frontend `createOrderFromQuote` mutation supprimée de `src/hooks/usePaymentFlow.ts` (~210 lignes). Imports `generatePaymentReference` et `generateInvoiceNumber` retirés. Fichier `src/lib/paymentUtils.ts` entièrement supprimé (devenu dead code).
+- `AdminQuoteWorkflow.tsx:455-481` : bouton "Créer commande" remplacé par un panneau warning amber qui ne s'affiche que si un quote signé n'a pas d'order associée (anomalie rare — trigger échoué ou legacy data).
+- Smoke test prod 2026-05-13 : INSERT quote complet → UPDATE signed_at → order créée avec **TOUS les champs corrects** (`payment_reference: TRS-2026-000001`, `invoice_number: INV-202605-00001`, dates, conditions, etc.). 2 emails (Y1+Y2) à 200 sent. Render Y1 affiche `Référence à indiquer : TRS-2026-000001` (au lieu de `—`) + `Échéance : 20/05/2026`.
+
+**Dette dérivée capturée** : **Dette 86** — `v_effective_commissions` view absente (frontend l'appelait via `as any` cast et tombait toujours sur le fallback partner_subscriptions). Le trigger ne reproduit pas cette lookup. À créer si la fonctionnalité brand-distributor effective rate est nécessaire en Vague 2.
 
 ### Dette 75 — Audit transverse "toast trompeur" ✅ FIXED 2026-05-13
 
@@ -1184,6 +1192,22 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 **Priorité** : Niveau 4 (hygiène progressive). Pas d'urgence puisque les cas critiques + élevés + moyens sont déjà fixés en Lots 1-4.
 
 **Statut** : convention en vigueur. Pas de session dédiée nécessaire.
+
+### Dette 86 — Vue `v_effective_commissions` absente ⏳ Priorité Basse (P3)
+
+**Origine** : Audit Dette 74 (2026-05-13). Le frontend `usePaymentFlow.createOrderFromQuote` (depuis supprimé) référençait `public.v_effective_commissions` via un `as any` cast. La vue **n'existe pas en DB** → la requête retournait toujours null → le code tombait silencieusement sur le fallback `partner_subscriptions.commission_rate`.
+
+**Description** : La fonctionnalité brand-distributor effective commission rate (un brand peut négocier un taux spécifique avec un distributeur, qui prévaut sur le plan-based) n'a jamais été opérationnelle malgré la présence du code frontend.
+
+**Plan** :
+- Si la feature est nécessaire en Vague 2 transactions : créer la vue `v_effective_commissions(brand_id, distributor_id, effective_commission_rate)` à partir d'une table `brand_distributor_commissions` à concevoir.
+- Sinon : capturer comme feature non implémentée, sans dette dommageable (le trigger Dette 74 utilise déjà le fallback correct).
+
+**Effort** : 1-2 h (table + vue + RLS) si la feature est jugée nécessaire.
+
+**Priorité** : Niveau 3-4 (la fonctionnalité existait théoriquement mais n'a jamais marché ; pas de régression introduite par Dette 74).
+
+**Statut** : capturé pour Vague 2 review.
 
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
