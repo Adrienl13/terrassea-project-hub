@@ -55,9 +55,21 @@ export function useClientOrders() {
     queryFn: async () => {
       if (!profile?.email) return [];
 
+      // Explicit column list — NEVER select("*") on orders from client context.
+      // `commission_rate` and `commission_amount` must not transit on the wire
+      // to the client browser (RLS allows row-wide read; Supabase has no
+      // column-level RLS, so frontend acts as the security boundary). Dette 87.
       const { data, error } = await supabase
         .from("orders")
-        .select("*, partner:partner_id(name)")
+        .select(
+          "id, product_name, product_id, quantity, unit_price, total_amount, status, " +
+          "tracking_number, shipping_carrier, tracking_status, tracking_last_event, " +
+          "tracking_last_checked, tracking_url, estimated_delivery_date, " +
+          "payment_reference, deposit_amount, deposit_percent, balance_amount, " +
+          "deposit_due_date, deposit_paid_at, balance_due_date, balance_paid_at, " +
+          "invoice_number, payment_method, delivered_at, shipped_at, " +
+          "production_confirmed_at, created_at, partner:partner_id(name)"
+        )
         .or(`client_email.eq.${sanitizePostgrest(profile.email)},client_user_id.eq.${profile.id}`)
         .order("created_at", { ascending: false });
 
@@ -109,44 +121,56 @@ export function useOrderDetail(orderId: string | null) {
     queryFn: async () => {
       if (!orderId) return null;
 
+      // Explicit column list — see useClientOrders comment above (Dette 87).
       const { data, error } = await supabase
         .from("orders")
-        .select("*, partner:partner_id(name)")
+        .select(
+          "id, product_name, product_id, quantity, unit_price, total_amount, status, " +
+          "tracking_number, shipping_carrier, tracking_status, tracking_last_event, " +
+          "tracking_last_checked, tracking_url, estimated_delivery_date, " +
+          "payment_reference, deposit_amount, deposit_percent, balance_amount, " +
+          "deposit_due_date, deposit_paid_at, balance_due_date, balance_paid_at, " +
+          "invoice_number, payment_method, delivered_at, shipped_at, " +
+          "production_confirmed_at, created_at, partner:partner_id(name)"
+        )
         .eq("id", orderId)
         .single();
 
       if (error || !data) return null;
 
+      // Column-string selects don't narrow to the generated Order type.
+      // Cast through `any` and map explicitly (same pattern as useClientOrders).
+      const row = data as any;
       return {
-        id: data.id,
-        productName: data.product_name,
-        productId: data.product_id,
-        partnerName: (data as any).partner?.name ?? null,
-        quantity: data.quantity,
-        unitPrice: data.unit_price,
-        totalPrice: data.total_amount,
-        status: data.status,
-        trackingNumber: data.tracking_number,
-        shippingCarrier: data.shipping_carrier,
-        trackingStatus: data.tracking_status,
-        trackingLastEvent: data.tracking_last_event,
-        trackingLastChecked: data.tracking_last_checked,
-        trackingUrl: data.tracking_url,
-        estimatedDelivery: data.estimated_delivery_date,
-        paymentReference: (data as any).payment_reference ?? null,
-        depositAmount: data.deposit_amount,
-        depositPercentage: (data as any).deposit_percent ?? null,
-        balanceAmount: data.balance_amount,
-        depositDueDate: (data as any).deposit_due_date ?? null,
-        depositPaidAt: data.deposit_paid_at,
-        balanceDueDate: data.balance_due_date,
-        balancePaidAt: data.balance_paid_at,
-        invoiceNumber: (data as any).invoice_number ?? null,
-        paymentMethod: (data as any).payment_method ?? null,
-        deliveredAt: data.delivered_at,
-        shippedAt: data.shipped_at,
-        productionConfirmedAt: data.production_confirmed_at,
-        createdAt: data.created_at,
+        id: row.id,
+        productName: row.product_name,
+        productId: row.product_id,
+        partnerName: row.partner?.name ?? null,
+        quantity: row.quantity,
+        unitPrice: row.unit_price,
+        totalPrice: row.total_amount,
+        status: row.status,
+        trackingNumber: row.tracking_number,
+        shippingCarrier: row.shipping_carrier,
+        trackingStatus: row.tracking_status,
+        trackingLastEvent: row.tracking_last_event,
+        trackingLastChecked: row.tracking_last_checked,
+        trackingUrl: row.tracking_url,
+        estimatedDelivery: row.estimated_delivery_date,
+        paymentReference: row.payment_reference ?? null,
+        depositAmount: row.deposit_amount,
+        depositPercentage: row.deposit_percent ?? null,
+        balanceAmount: row.balance_amount,
+        depositDueDate: row.deposit_due_date ?? null,
+        depositPaidAt: row.deposit_paid_at,
+        balanceDueDate: row.balance_due_date,
+        balancePaidAt: row.balance_paid_at,
+        invoiceNumber: row.invoice_number ?? null,
+        paymentMethod: row.payment_method ?? null,
+        deliveredAt: row.delivered_at,
+        shippedAt: row.shipped_at,
+        productionConfirmedAt: row.production_confirmed_at,
+        createdAt: row.created_at,
       } as ClientOrder;
     },
     enabled: !!orderId,

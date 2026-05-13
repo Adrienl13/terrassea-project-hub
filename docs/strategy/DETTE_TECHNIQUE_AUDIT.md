@@ -1209,6 +1209,22 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Statut** : capturé pour Vague 2 review.
 
+### Dette 87 — Defense-in-depth commission column-level protection ⏳ Priorité Basse (P3)
+
+**Origine** : Audit Commission Visibility 2026-05-13 (`docs/strategy/COMMISSION_VISIBILITY_AUDIT.md`).
+
+**Description** : Supabase ne supporte pas le column-level RLS nativement. Les policies `Clients view own orders` et `Partners read own orders` permettent un SELECT row-wide → si un client expert ouvre DevTools console et exécute `supabase.from("orders").select("commission_rate")` directement, la DB répond. Le frontend actuel (post-fix audit 2026-05-13) ne demande plus ces champs, donc le payload normal ne fuite pas, mais un contournement reste possible.
+
+**Fix proposé** : créer `orders_client_view` (VIEW PostgreSQL qui exclut commission_rate + commission_amount) + révoquer `SELECT` sur `orders` au rôle `authenticated` (sauf via admin/partner policies). Repointer `useClientOrders` + `useOrderDetail` sur la VIEW. Garantit que **même un client expert** ne peut pas obtenir commission.
+
+**Alternative** : RPC `get_my_orders()` SECURITY DEFINER qui renvoie le subset autorisé.
+
+**Effort** : 1-2 h.
+
+**Priorité** : Niveau 3 — pas urgent (frontend normal sécurisé) mais à faire avant Vague 2 transactions commerciales pour s'aligner avec le sérieux des montants en jeu.
+
+**Statut** : capturé, à exécuter avant Vague 2.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
