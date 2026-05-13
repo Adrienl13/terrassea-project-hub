@@ -775,7 +775,7 @@ Callsites impactés (8) :
 - D — Pro Service (AFTER INSERT trigger pro_service_requests, 1 template × 4 locales)
 - E — Cleanup (supprimer les invocations frontend devenues redondantes, déprécier auto-workflow actions doublons)
 
-**Note backlog** : la fonction `public.verify_partner_as_admin` (Dette 54 / Bug #1) porte la même clause buggée `SET search_path = 'public, vault, pg_temp'` (forme quotée Postgres interprète comme un schéma littéral nommé `public, vault, pg_temp`). En l'état actuel les fonctions internes appelées (`net.http_post`, lecture vault) sont nommées par leur schéma natif et les fonctions custom (`is_admin`) sont qualifiées implicitement par le contexte trigger, donc le bug n'a pas surfacé. À nettoyer en passant lors du prochain touch sur la fonction (re-déclarer `SET search_path = public, vault, pg_temp` sans guillemets).
+**Note backlog ✅ FIXED 2026-05-13** : la fonction `public.verify_partner_as_admin` (Dette 54 / Bug #1) avait la clause buggée `SET search_path = 'public, vault, pg_temp'` (forme quotée). Corrigée via la migration `20260513173626_security_search_path_hardening.sql` qui audit + fix les **12 RPCs SECURITY DEFINER** affectées (forme quotée détectée dans `pg_proc.proconfig`). Validation : `count(*) WHERE proconfig::text ~ 'search_path="'` → 0.
 
 ### Dette 60 — Edge Function `Terrassea-Production` drift (boilerplate dormant)
 
