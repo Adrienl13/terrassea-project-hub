@@ -982,28 +982,30 @@ Callsites impactés (8) :
 
 **Statut** : à fixer (optionnel, hygiène DNS)
 
-### Dette 74 — Double création d'`orders` possible : frontend + trigger BD
+### Dette 74 — Double création d'`orders` 🟠 Audit fait, Option Beta recommandée
 
-**Origine** : Audit Dette 59 Lot B (2026-05-12)
+**Origine** : Audit Dette 59 Lot B (2026-05-12), audit approfondi 2026-05-13. Cf. `docs/strategy/DOUBLE_ORDER_AUDIT.md`.
 
-**Description** : Deux chemins peuvent insérer une ligne dans `public.orders` pour le même `quote_request_id` :
-1. `src/hooks/usePaymentFlow.ts:createOrderFromQuote` (frontend) — INSERT direct dans `orders` après signature du devis. Inclut tous les champs (payment_reference, invoice_number, commission_rate, due_dates).
-2. Trigger BD `trg_auto_create_order` → fonction `public.auto_create_order_on_signature()` — fire sur UPDATE de `quote_requests.signed_at` (NULL → not-null), INSERT minimal dans `orders` (status 'pending_deposit', commission depuis partner_subscriptions, sans payment_reference ni invoice_number).
+**Audit terminé 2026-05-13**. Le risque initialement formulé comme "duplication possible" est **plus subtil** :
+- Index UNIQUE `orders_quote_request_id_unique` existe déjà → **pas de duplication possible**.
+- MAIS le trigger `auto_create_order_on_signature` fire en premier (synchrone à l'UPDATE de `signed_at`) et **gagne systématiquement** la course.
+- Le frontend `createOrderFromQuote` (chemin admin manuel via `AdminQuoteWorkflow.tsx:460`) **échoue ensuite** sur conflit UNIQUE.
+- L'order créée par le trigger est **fonctionnellement incomplète** : `payment_reference`, `invoice_number`, `deposit_due_date`, `balance_due_date`, `tva_rate`, `delivery_conditions`, `payment_conditions`, `partner_conditions`, `estimated_delivery_date`, `client_user_id` tous **NULL**. La commission est calculée via `partner_subscriptions` seul (sans `v_effective_commissions` qui aware brand-distributor).
+- Conséquence concrète post-Lot B : **email Y1 client affiche `Référence : —`** au lieu d'un payment_reference utilisable → client ne peut pas identifier son virement.
 
-Si le flow de signature met à jour `signed_at` ET appelle `createOrderFromQuote` (cas observé dans le code), deux orders peuvent être créés. Avec Lot B (AFTER INSERT trigger pour emails), cela générerait **deux jeux de Y1+Y2 emails**.
+**Statut prod** : 0 quote signed, 0 order issued → bug **dormant**. Deviendra actif dès la 1ère signature réelle.
 
-**Risque actuel** : faible en prod (9 produits actifs, peu d'orders aujourd'hui), mais bloquant avant volume Salone mid-June 2026.
+**Recommandation tranchée** : **Option Beta — enrichir le trigger** pour produire une order équivalente à `createOrderFromQuote` (génère payment_reference + invoice_number + due_dates côté DB, lit `v_effective_commissions`). Cf. `DOUBLE_ORDER_AUDIT.md` §7 pour les 4 options évaluées.
 
-**Fix proposé** :
-- Option A : désactiver `trg_auto_create_order` (le frontend est la source de vérité, plus complet).
-- Option B : supprimer l'INSERT côté frontend, laisser le trigger BD seul et compléter `auto_create_order_on_signature` pour générer payment_reference/invoice_number/due_dates côté BD.
-- Option C : ajouter une garde `ON CONFLICT (quote_request_id) DO NOTHING` en mettant `quote_request_id` UNIQUE sur orders (vérifier d'abord qu'aucune order légitime ne partage cet ID — multi-paiements ?).
+**Effort** : ~2 h.
 
-**Effort** : 1-2h selon option
+**Priorité** : Niveau 2 — avant 1ère signature réelle, donc avant Salone mi-juin 2026.
 
-**Priorité** : Niveau 2 (à régler avant relance Salone)
+**Dettes filles potentielles** (à arbitrer lors de l'implémentation Beta) :
+- **Dette 84** — sort du frontend `createOrderFromQuote` (supprimer ou conserver comme admin fallback)
+- **Dette 85** — accès `v_effective_commissions` depuis trigger (RLS / SECURITY DEFINER helper)
 
-**Statut** : à fixer
+**Statut** : audit livré, implémentation Beta à planifier.
 
 ### Dette 75 — Audit transverse "toast trompeur" ✅ FIXED 2026-05-13
 
