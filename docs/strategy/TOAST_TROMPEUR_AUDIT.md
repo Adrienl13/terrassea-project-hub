@@ -165,12 +165,13 @@ toast.success(eventDesc);
 - Effort : ~30 min
 - Smoke test : INSERT test products → bulk action → vérifier compteur
 
-### Lot 2 — Cascade cleanup AdminPartners (session prochaine)
+### Lot 2 — Cascade cleanup AdminPartners ✅ FIXED 2026-05-13
 
-- AdminPartners.tsx:236-242 (delete partner cascade)
-- Pattern : tracer chaque step, fail early si une étape critique
-- Effort : ~1h
-- Smoke test : INSERT test partner avec FK → delete → vérifier cascade complet
+- AdminPartners.tsx:232-253 (delete partner cascade)
+- Pattern appliqué : **RPC transactionnelle SECURITY DEFINER** (`public.delete_partner_cascade(p_partner_id uuid)`) au lieu de 9 writes séparés côté frontend. Atomique (PostgreSQL rollback auto si une étape échoue). Counter par table renvoyé dans le payload jsonb.
+- Bonus correction : la colonne `products.owner_brand_id` (FK RESTRICT) n'était pas gérée par le frontend → DELETE partner échouait pour les brand_member ayant des produits. RPC corrige.
+- Effort réel : ~45 min (migration `20260513164000_dette_75_lot_2_delete_partner_cascade.sql` + types regen + 1 RPC + frontend refactor).
+- Smoke test prod : `success:true`, `partner_name: SmokeTest Lot2 Round2`, 9 counters retournés ✅. Re-test deuxième partner test = OK.
 
 ### Lot 3 — Auto-upgrade plan AdminOrderTracking (session prochaine)
 

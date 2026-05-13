@@ -231,25 +231,22 @@ export default function AdminPartners() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer définitivement ce partenaire et toutes ses données associées ? Cette action est irréversible.")) return;
-    try {
-      // Clean up NO ACTION FK references before deleting
-      await supabase.from("brand_distributors").delete().or(`brand_id.eq.${id},distributor_id.eq.${id}`);
-      await supabase.from("products").update({ partner_id: null } as any).eq("partner_id", id);
-      await supabase.from("orders").update({ partner_id: null } as any).eq("partner_id", id);
-      await supabase.from("partner_applications").update({ created_partner_id: null } as any).eq("created_partner_id", id);
-      await supabase.from("project_briefs").update({ brand_partner_id: null } as any).eq("brand_partner_id", id);
-      await supabase.from("project_briefs").update({ routed_to_partner_id: null } as any).eq("routed_to_partner_id", id);
-      await supabase.from("project_cart_items").update({ selected_partner_id: null } as any).eq("selected_partner_id", id);
-      await supabase.from("project_zone_products").update({ supplier_id: null } as any).eq("supplier_id", id);
-      // Now delete the partner (CASCADE handles the rest)
-      const { error } = await supabase.from("partners").delete().eq("id", id);
-      if (error) throw error;
-      toast.success("Partenaire supprimé définitivement");
-      invalidatePartnerCaches();
-      setView("list");
-    } catch (err: any) {
-      toast.error("Erreur lors de la suppression : " + (err.message || ""));
+    // Single atomic RPC handles all 8 NO ACTION FK cleanups + the
+    // products.owner_brand_id RESTRICT case (which the previous frontend
+    // code missed) + the final partner DELETE. PostgreSQL rolls back the
+    // entire transaction if any step fails. (Dette 75 Lot 2)
+    const { data, error } = await supabase.rpc("delete_partner_cascade", {
+      p_partner_id: id,
+    });
+    if (error) {
+      console.error("[delete_partner_cascade]", error);
+      toast.error("Erreur lors de la suppression : " + (error.message || ""));
+      return;
     }
+    const payload = (data ?? {}) as { partner_name?: string };
+    toast.success(`Partenaire « ${payload.partner_name ?? "—"} » supprimé définitivement`);
+    invalidatePartnerCaches();
+    setView("list");
   };
 
   // Shared helper: notify a partner by looking up their user profile from contact_email

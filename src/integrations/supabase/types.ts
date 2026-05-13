@@ -733,6 +733,102 @@ export type Database = {
         }
         Relationships: []
       }
+      chr_clients: {
+        Row: {
+          city: string | null
+          client_name: string | null
+          client_type: string | null
+          company_name: string | null
+          country: string | null
+          created_at: string | null
+          email: string | null
+          emails_sent: number | null
+          estimated_quantity: string | null
+          estimated_value_eur: number | null
+          first_contact_date: string | null
+          has_replied: boolean | null
+          id: string
+          last_contact_date: string | null
+          last_gmail_message_id: string | null
+          last_subject_line: string | null
+          next_action_date: string | null
+          next_action_type: string | null
+          notes: string | null
+          order_date: string | null
+          order_placed: boolean | null
+          phone: string | null
+          product_interest: string | null
+          quote_date: string | null
+          quote_sent: boolean | null
+          reply_date: string | null
+          reply_summary: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          city?: string | null
+          client_name?: string | null
+          client_type?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          emails_sent?: number | null
+          estimated_quantity?: string | null
+          estimated_value_eur?: number | null
+          first_contact_date?: string | null
+          has_replied?: boolean | null
+          id?: string
+          last_contact_date?: string | null
+          last_gmail_message_id?: string | null
+          last_subject_line?: string | null
+          next_action_date?: string | null
+          next_action_type?: string | null
+          notes?: string | null
+          order_date?: string | null
+          order_placed?: boolean | null
+          phone?: string | null
+          product_interest?: string | null
+          quote_date?: string | null
+          quote_sent?: boolean | null
+          reply_date?: string | null
+          reply_summary?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          city?: string | null
+          client_name?: string | null
+          client_type?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          emails_sent?: number | null
+          estimated_quantity?: string | null
+          estimated_value_eur?: number | null
+          first_contact_date?: string | null
+          has_replied?: boolean | null
+          id?: string
+          last_contact_date?: string | null
+          last_gmail_message_id?: string | null
+          last_subject_line?: string | null
+          next_action_date?: string | null
+          next_action_type?: string | null
+          notes?: string | null
+          order_date?: string | null
+          order_placed?: boolean | null
+          phone?: string | null
+          product_interest?: string | null
+          quote_date?: string | null
+          quote_sent?: boolean | null
+          reply_date?: string | null
+          reply_summary?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       colors_canonical: {
         Row: {
           created_at: string
@@ -5182,6 +5278,73 @@ export type Database = {
           },
         ]
       }
+      prospects_45d_summary: {
+        Row: {
+          active_last_45d: number | null
+          bounced: number | null
+          contacted_last_45d: number | null
+          new_last_45d: number | null
+          replied_last_45d: number | null
+          reply_rate_pct: number | null
+          segment: string | null
+          total_prospects: number | null
+          total_replied: number | null
+        }
+        Relationships: []
+      }
+      prospects_actions_this_week: {
+        Row: {
+          company_name: string | null
+          country: string | null
+          current_contact_email: string | null
+          current_contact_name: string | null
+          days_overdue: number | null
+          next_action_date: string | null
+          next_action_type: string | null
+          notes: string | null
+          segment: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
+      prospects_activity_summary: {
+        Row: {
+          company_id: string | null
+          company_name: string | null
+          country: string | null
+          current_contact_email: string | null
+          current_contact_name: string | null
+          emails_sent: number | null
+          first_contact_date: string | null
+          has_replied: boolean | null
+          last_contact_date: string | null
+          met_at_event: string | null
+          next_action_date: string | null
+          next_action_type: string | null
+          notes: string | null
+          reply_date: string | null
+          reply_sentiment: string | null
+          segment: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
+      prospects_awaiting_reply: {
+        Row: {
+          company_name: string | null
+          country: string | null
+          current_contact_email: string | null
+          current_contact_name: string | null
+          days_since_reply: number | null
+          next_action_type: string | null
+          notes: string | null
+          reply_date: string | null
+          reply_sentiment: string | null
+          segment: string | null
+        }
+        Relationships: []
+      }
       quote_requests_supplier_view: {
         Row: {
           client_display_name: string | null
@@ -5405,6 +5568,7 @@ export type Database = {
         }
         Returns: string
       }
+      delete_partner_cascade: { Args: { p_partner_id: string }; Returns: Json }
       expire_overdue_quotes: { Args: never; Returns: number }
       format_currency_locale: {
         Args: { p_amount: number; p_locale: string }

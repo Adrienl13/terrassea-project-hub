@@ -1030,8 +1030,9 @@ Le flow n'a même jamais atteint l'étape de l'invoke 401 — il échouait dès 
 
 **Lot 1 livré 2026-05-13** : `AdminProductReview.tsx` `handleBulkOffline` + `handleBulkDelete` fixés avec compteur ok/fail + destructure `{ error }` + toast adaptatif (success / warning / error). Plus de toast.success trompeur sur ces deux flows critiques (bulk offline + bulk delete admin product review — chemin direct pendant onboarding Salone). Pattern réutilisable documenté dans TOAST_TROMPEUR_AUDIT.md section 7.
 
+**Lot 2 livré 2026-05-13** : AdminPartners cascade delete → RPC transactionnelle `public.delete_partner_cascade(p_partner_id)` SECURITY DEFINER + `is_admin()` guard + 9 cleanups atomiques (PostgreSQL rollback auto si une étape échoue) + counters retournés. Bonus : la colonne `products.owner_brand_id` (FK RESTRICT) n'était PAS gérée par le frontend → la suppression d'un brand_member ayant des produits échouait silencieusement avant Lot 2. Migration `20260513164000_dette_75_lot_2_delete_partner_cascade.sql`. Smoke test prod success ✅.
+
 **Lots restants** :
-- Lot 2 — AdminPartners cascade cleanup delete (~1h, prochaine session)
 - Lot 3 — AdminOrderTracking auto-upgrade partner plan (~45 min)
 - Lot 4 — Audit log order_events insert (~20 min)
 - Lot 5 — Convention codebase + ESLint rule custom (~2 h)
