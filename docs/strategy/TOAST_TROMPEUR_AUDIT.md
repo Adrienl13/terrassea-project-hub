@@ -181,12 +181,12 @@ toast.success(eventDesc);
 - Effort réel : ~30 min.
 - Smoke test : tsc 0 erreur + 615 tests pass. Test e2e prod non joué (cas rare nécessitant setup multi-orders, sera vérifié au prochain seuil réel de partner Starter).
 
-### Lot 4 — Audit log order_events (session prochaine)
+### Lot 4 — Audit log order_events ✅ FIXED 2026-05-13
 
-- AdminOrderTracking.tsx:105 + autres `order_events.insert`
-- Pattern : error check + log côté frontend même si non bloquant
-- Effort : ~20 min
-- Smoke test : forcer erreur RLS → vérifier comportement
+- AdminOrderTracking.tsx:105 (`order_events.insert` dans updateOrder)
+- Pattern appliqué : destructure `{ error: eventErr }` + `console.error` avec contexte structuré `{ order_id, event_type }`. Pas de `toast.error` car action principale déjà toastée success — l'audit log est un signal secondaire, on capture pour observability sans polluer l'UX admin.
+- Effort réel : ~10 min.
+- Smoke test : tsc + tests pass. Test e2e RLS-error volontaire non fait (cas rare).
 
 ### Lot 5 — Convention codebase (session prochaine)
 

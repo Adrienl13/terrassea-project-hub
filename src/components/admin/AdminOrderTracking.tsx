@@ -101,8 +101,12 @@ export default function AdminOrderTracking() {
   const updateOrder = async (id: string, updates: Record<string, any>, eventType: string, eventDesc: string) => {
     const { error } = await supabase.from("orders").update({ ...updates, updated_at: new Date().toISOString() }).eq("id", id);
     if (error) { toast.error("Erreur : " + error.message); return; }
-    // Log event
-    await supabase.from("order_events").insert({ order_id: id, event_type: eventType, description: eventDesc, actor: "admin" });
+    // Log event (audit trail — failure is captured in console for observability
+    // but doesn't surface to the admin since the primary action already succeeded). Dette 75 Lot 4.
+    const { error: eventErr } = await supabase.from("order_events").insert({ order_id: id, event_type: eventType, description: eventDesc, actor: "admin" });
+    if (eventErr) {
+      console.error("[order_events insert]", eventErr, { order_id: id, event_type: eventType });
+    }
     toast.success(eventDesc);
     queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     queryClient.invalidateQueries({ queryKey: ["admin-order-events", id] });

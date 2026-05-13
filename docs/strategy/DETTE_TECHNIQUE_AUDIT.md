@@ -1034,8 +1034,9 @@ Le flow n'a même jamais atteint l'étape de l'invoke 401 — il échouait dès 
 
 **Lot 3 livré 2026-05-13** : AdminOrderTracking.tsx auto-upgrade plan Starter → Growth. Fix frontend pur (Option 1) — pas de RPC car flow rare (count = 3 exactement), pattern Lot 1 réutilisé. Les 2 UPDATEs (`partners.plan` + `partner_subscriptions.plan`) sont maintenant error-checked avec toast adaptatif : success si OK, warning explicite si drift à réconcilier (subscription_record en échec après partner.plan déjà mis à jour). Le silent `catch{}` parent remplacé par `catch(err){console.error(...)}` defense-in-depth.
 
+**Lot 4 livré 2026-05-13** : AdminOrderTracking.tsx:105 `order_events.insert` audit log. Pattern `{ error }` destructure + `console.error` structuré (`{ order_id, event_type }`) sans `toast.error` (UX admin déjà toastée success sur l'action principale, l'audit log est secondaire). Observability préservée sans pollution.
+
 **Lots restants** :
-- Lot 4 — Audit log order_events insert (~20 min)
 - Lot 5 — Convention codebase + ESLint rule custom (~2 h)
 
 Sub-dettes filles capturées : **Dette 81** (ESLint rule custom destructure error), **Dette 82** (audit propagation erreur dans helpers business).
