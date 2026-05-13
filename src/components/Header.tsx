@@ -56,7 +56,7 @@ const CATEGORIES = [
     ],
   },
   {
-    labelKey: "categories.sunLoungers",
+    labelKey: "categories.sun-loungers",
     href: "/products?category=sun-loungers",
     subcategories: [
       { labelKey: "categories.sub.poolLoungers", href: "/products?category=sun-loungers&sub=pool" },
@@ -74,7 +74,7 @@ const CATEGORIES = [
     ],
   },
   {
-    labelKey: "categories.barStools",
+    labelKey: "categories.bar-stools",
     href: "/products?category=bar-stools",
     subcategories: [
       { labelKey: "categories.sub.withFootrest", href: "/products?category=bar-stools&sub=footrest" },
