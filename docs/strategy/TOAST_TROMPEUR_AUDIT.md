@@ -188,11 +188,14 @@ toast.success(eventDesc);
 - Effort réel : ~10 min.
 - Smoke test : tsc + tests pass. Test e2e RLS-error volontaire non fait (cas rare).
 
-### Lot 5 — Convention codebase (session prochaine)
+### Lot 5 — Convention codebase ✅ FIXED 2026-05-13
 
-- Documenter le pattern correctif dans `docs/strategy/CODE_PATTERNS.md`
-- Ajouter ESLint rule custom si possible (force destructure `{ error }` sur `await supabase.*`)
-- Audit + correction des ~15 autres catch silencieux ambigus
+- Helper `src/utils/supabaseAction.ts` créé avec 4 variantes (`runSupabaseAction`, `runBulkSupabaseAction`, `runRpcAction`, `runMultiStepAction`) reflétant les patterns Lot 1-4.
+- Hook React `src/utils/supabaseAction.hook.ts` (`useSupabaseAction`) qui bind les helpers au `QueryClient` du composant.
+- Tests `src/test/supabaseAction.test.ts` — **14 tests** couvrant success/error/partial/throw/requireData/payload-mapped success.
+- ADR `docs/strategy/ADR_ERROR_HANDLING_CONVENTION.md` — décision, conventions, API, exemples, trade-offs, debts liées.
+- Migration démo : `AdminOrderTracking.tsx` `order_events.insert` migré du pattern Lot 4 inline vers `runSupabaseAction(...)`. tsc 0 erreur, 629 tests pass (615 + 14 nouveaux).
+- Dette 83 capturée : migration progressive du legacy (touch-when-touched).
 
 **Effort total estimé** : 3-4 h sur 2-3 sessions.
 

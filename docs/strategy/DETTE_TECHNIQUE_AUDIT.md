@@ -1005,7 +1005,7 @@ Si le flow de signature met à jour `signed_at` ET appelle `createOrderFromQuote
 
 **Statut** : à fixer
 
-### Dette 75 — Audit transverse "toast trompeur" 🟠 Lot 1 livré, Lots 2-5 à venir
+### Dette 75 — Audit transverse "toast trompeur" ✅ FIXED 2026-05-13
 
 **Origine** : Découvert pendant Dette 59 Lot C (2026-05-12) — Le flow "demander informations partner application" n'a JAMAIS fonctionné en production. Trois bugs empilés masqués par un `try/catch` silent + un `toast.success` inconditionnel :
 1. La colonne `partner_applications.admin_notes` n'existait pas.
@@ -1036,8 +1036,11 @@ Le flow n'a même jamais atteint l'étape de l'invoke 401 — il échouait dès 
 
 **Lot 4 livré 2026-05-13** : AdminOrderTracking.tsx:105 `order_events.insert` audit log. Pattern `{ error }` destructure + `console.error` structuré (`{ order_id, event_type }`) sans `toast.error` (UX admin déjà toastée success sur l'action principale, l'audit log est secondaire). Observability préservée sans pollution.
 
-**Lots restants** :
-- Lot 5 — Convention codebase + ESLint rule custom (~2 h)
+**Lot 5 livré 2026-05-13** : convention codebase formalisée.
+- Helper `src/utils/supabaseAction.ts` (4 variantes : standard / bulk / RPC / multi-step), hook React `useSupabaseAction`, 14 tests unitaires (vitest), ADR `docs/strategy/ADR_ERROR_HANDLING_CONVENTION.md`, démo migration sur callsite Lot 4. 629 tests total green.
+- **Dette 75 close**. Migration progressive du legacy capturée comme Dette 83 (touch-when-touched).
+
+**Plus aucun lot ouvert sur Dette 75.**
 
 Sub-dettes filles capturées : **Dette 81** (ESLint rule custom destructure error), **Dette 82** (audit propagation erreur dans helpers business).
 
@@ -1165,6 +1168,20 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 **Priorité** : Niveau 3.
 
 **Statut** : à exécuter en complément Dette 75 Lot 5.
+
+### Dette 83 — Migration progressive des callsites legacy vers `supabaseAction` ⏳ Priorité Basse
+
+**Origine** : Dette 75 Lot 5 (closure ADR `docs/strategy/ADR_ERROR_HANDLING_CONVENTION.md`).
+
+**Description** : Le helper `src/utils/supabaseAction.ts` est désormais la convention pour tous les nouveaux callsites supabase. Les callsites existants (~22 supabase writes sans `{ error }` check identifiés par l'audit Dette 75, plus les bulk/multi-step écrits avant Lot 5) restent fonctionnels après les fixes Lots 1-4 (manuels). Ils n'ont pas besoin d'être re-migrés en bloc.
+
+**Politique** : *touch-when-touched migration* — chaque fois qu'un développeur touche un fichier comportant un callsite legacy pour une autre raison (refactor, bugfix), il migre les callsites concernés vers le helper.
+
+**Effort total** : ~2-3 h cumulés sur plusieurs sessions, étalés naturellement avec l'évolution du code.
+
+**Priorité** : Niveau 4 (hygiène progressive). Pas d'urgence puisque les cas critiques + élevés + moyens sont déjà fixés en Lots 1-4.
+
+**Statut** : convention en vigueur. Pas de session dédiée nécessaire.
 
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 

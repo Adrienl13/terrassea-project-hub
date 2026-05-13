@@ -12,6 +12,7 @@ import {
 import { isAutoTrackingEnabled, refreshOrderTracking, refreshAllShippedOrders } from "@/lib/trackingService";
 import AdminPaymentPanel from "@/components/admin/AdminPaymentPanel";
 import { usePaymentFlow } from "@/hooks/usePaymentFlow";
+import { runSupabaseAction } from "@/utils/supabaseAction";
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -101,12 +102,15 @@ export default function AdminOrderTracking() {
   const updateOrder = async (id: string, updates: Record<string, any>, eventType: string, eventDesc: string) => {
     const { error } = await supabase.from("orders").update({ ...updates, updated_at: new Date().toISOString() }).eq("id", id);
     if (error) { toast.error("Erreur : " + error.message); return; }
-    // Log event (audit trail — failure is captured in console for observability
-    // but doesn't surface to the admin since the primary action already succeeded). Dette 75 Lot 4.
-    const { error: eventErr } = await supabase.from("order_events").insert({ order_id: id, event_type: eventType, description: eventDesc, actor: "admin" });
-    if (eventErr) {
-      console.error("[order_events insert]", eventErr, { order_id: id, event_type: eventType });
-    }
+    // Log event (audit trail — failure is captured for observability
+    // but doesn't surface to the admin since the primary action already succeeded).
+    // Migration démo Dette 75 Lot 5 : standardized helper.
+    await runSupabaseAction({
+      action: () => supabase.from("order_events").insert({ order_id: id, event_type: eventType, description: eventDesc, actor: "admin" }),
+      context: `order_events.insert[${eventType}]`,
+      successMessage: null,
+      errorMessage: `Audit log non enregistré pour ${eventDesc}`,
+    });
     toast.success(eventDesc);
     queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     queryClient.invalidateQueries({ queryKey: ["admin-order-events", id] });
