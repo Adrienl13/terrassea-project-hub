@@ -132,7 +132,7 @@ const SearchAutocomplete = ({
           }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder ?? t("products.searchPlaceholder", "Search products, partners, styles...")}
-          className="w-full pl-11 pr-10 py-3 text-sm font-body bg-card border border-border rounded-full focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all placeholder:text-muted-foreground"
+          className="w-full pl-11 pr-10 py-3 text-base font-body bg-card border border-border rounded-full focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all placeholder:text-muted-foreground"
         />
         {query && (
           <button

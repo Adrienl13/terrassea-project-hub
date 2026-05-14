@@ -95,7 +95,7 @@ export default function FinancingRequestModal({
     }
   };
 
-  const inputClass = "w-full text-sm font-body bg-background border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors";
+  const inputClass = "w-full text-base font-body bg-background border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors";
   const labelClass = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5";
 
   if (submitted) {

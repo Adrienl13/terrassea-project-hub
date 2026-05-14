@@ -320,7 +320,7 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder={t("proHub.client.searchPro")}
-                    className="w-full text-sm font-body bg-white border border-border rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:border-foreground transition-colors"
+                    className="w-full text-base font-body bg-white border border-border rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:border-foreground transition-colors"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -434,7 +434,7 @@ function RequestArchitectForm({
     }, 600);
   };
 
-  const inputClass = "w-full text-sm font-body bg-white border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
+  const inputClass = "w-full text-base font-body bg-white border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
   const labelClass = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5";
 
   return (
@@ -1151,7 +1151,7 @@ function RequestIntroForm({
     }, 800);
   };
 
-  const inputClass = "w-full text-sm font-body bg-white border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
+  const inputClass = "w-full text-base font-body bg-white border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -1473,10 +1473,10 @@ function NewProRequestForm({
   const budgetInTolerance = budgetNum !== null && budgetNum >= MIN_BUDGET_TOLERANCE;
   const isQualified = hasPremiumBudget || (coversInTolerance && budgetInTolerance);
 
-  const inputClass = "w-full text-sm font-body bg-white border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all placeholder:text-muted-foreground/40";
-  const inputErrorClass = "w-full text-sm font-body bg-white border border-red-400 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition-all placeholder:text-muted-foreground/40";
-  const inputIconClass = "w-full text-sm font-body bg-white border border-border rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all placeholder:text-muted-foreground/40";
-  const inputIconErrorClass = "w-full text-sm font-body bg-white border border-red-400 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition-all placeholder:text-muted-foreground/40";
+  const inputClass = "w-full text-base font-body bg-white border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all placeholder:text-muted-foreground/40";
+  const inputErrorClass = "w-full text-base font-body bg-white border border-red-400 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition-all placeholder:text-muted-foreground/40";
+  const inputIconClass = "w-full text-base font-body bg-white border border-border rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta/20 focus:border-terracotta transition-all placeholder:text-muted-foreground/40";
+  const inputIconErrorClass = "w-full text-base font-body bg-white border border-red-400 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition-all placeholder:text-muted-foreground/40";
   const labelClass = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5";
   const errorMsgClass = "text-[10px] font-body text-red-500 mt-1";
 

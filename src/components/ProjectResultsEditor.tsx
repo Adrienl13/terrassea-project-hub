@@ -106,7 +106,7 @@ export default function ProjectResultsEditor({
                   <select
                     value={editParams.establishmentType}
                     onChange={e => setEditParams(prev => ({ ...prev, establishmentType: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm font-body bg-background border border-border rounded-lg outline-none focus:border-foreground capitalize"
+                    className="w-full px-3 py-2 text-base font-body bg-background border border-border rounded-lg outline-none focus:border-foreground capitalize"
                   >
                     {ESTABLISHMENT_OPTIONS.map(opt => (
                       <option key={opt} value={opt}>{opt.replace(/-/g, " ")}</option>
@@ -128,7 +128,7 @@ export default function ProjectResultsEditor({
                       seatingCapacity: e.target.value ? parseInt(e.target.value) : null,
                     }))}
                     placeholder="30"
-                    className="w-full px-3 py-2 text-sm font-body bg-background border border-border rounded-lg outline-none focus:border-foreground"
+                    className="w-full px-3 py-2 text-base font-body bg-background border border-border rounded-lg outline-none focus:border-foreground"
                   />
                 </div>
 
@@ -139,7 +139,7 @@ export default function ProjectResultsEditor({
                   <select
                     value={editParams.budgetLevel}
                     onChange={e => setEditParams(prev => ({ ...prev, budgetLevel: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm font-body bg-background border border-border rounded-lg outline-none focus:border-foreground"
+                    className="w-full px-3 py-2 text-base font-body bg-background border border-border rounded-lg outline-none focus:border-foreground"
                   >
                     <option value="">—</option>
                     {BUDGET_OPTIONS.map(opt => (

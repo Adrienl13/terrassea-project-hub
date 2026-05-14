@@ -81,7 +81,7 @@ function ReviewForm({ productId, onSuccess }: { productId: string; onSuccess: ()
     }
   };
 
-  const inputClass = "w-full text-sm font-body bg-background border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors";
+  const inputClass = "w-full text-base font-body bg-background border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors";
 
   return (
     <motion.div

@@ -178,15 +178,16 @@ Filet de sécurité contre les éléments décoratifs `w-[500+px]`.
 
 ## 6. Plan correctif découpé en lots
 
-### Lot 1 — CRITIQUE (~30 min)
+### Lot 1 — CRITIQUE ✅ FIXED 2026-05-14
 **Bénéfice : 80 % du ressenti UX mobile**
 
-- Fix #1 — iOS input zoom (BecomePartner + Launch variant)
-- Fix #2 — Header mobile close tap target
-- Fix #5 — `overflow-x: hidden` body défensif
-- Smoke test sur device réel (iPhone si dispo)
+- Fix #1 (iOS input zoom) : appliqué à **13 fichiers** via sed global sur le pattern unique `text-sm font-body bg-` → `text-base font-body bg-`. Tous les formulaires (Auth, BecomePartner, Quote/Brief/Financing modals, ProService trio, Admin) n'auront plus le zoom iOS auto.
+- Fix #2 (Header close button) : `p-1` → `p-3 -m-3 min-h-[44px] min-w-[44px]` + aria-label.
+- Fix #3 (Hero quick actions) : `py-2` → `py-3 min-h-[44px]`.
+- Fix #4 (Sections padding) : `py-24` → `py-16 md:py-24` sur Index.tsx (3 sections).
+- Fix #5 (Overflow guard) : `body { overflow-x: hidden }` dans index.css.
 
-**Capture** : Dette 88.
+**Capture** : Dette 88 fermée.
 
 ### Lot 2 — ÉLEVÉ (~45-60 min)
 **Bénéfice : confort tap + densité info**

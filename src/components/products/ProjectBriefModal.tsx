@@ -227,8 +227,8 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
     }
   };
 
-  const inputClass = "w-full text-sm font-body bg-background border border-border rounded-full px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
-  const selectClass = "w-full text-sm font-body bg-background border border-border rounded-full px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors appearance-none cursor-pointer";
+  const inputClass = "w-full text-base font-body bg-background border border-border rounded-full px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
+  const selectClass = "w-full text-base font-body bg-background border border-border rounded-full px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors appearance-none cursor-pointer";
   const labelClass = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5";
 
   const stepIndicator = (
@@ -519,7 +519,7 @@ const ProjectBriefModal = ({ open, onClose, product, offer }: ProjectBriefModalP
                         onChange={(e) => setMessage(e.target.value)}
                         rows={2}
                         placeholder={t("brief.messagePlaceholder")}
-                        className="w-full text-sm font-body bg-background border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50 resize-none"
+                        className="w-full text-base font-body bg-background border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50 resize-none"
                       />
                     </div>
                   </div>

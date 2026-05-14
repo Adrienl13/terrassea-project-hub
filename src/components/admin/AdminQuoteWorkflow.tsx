@@ -336,7 +336,7 @@ export default function AdminQuoteWorkflow() {
                   const p = partners.find((p: any) => p.id === e.target.value);
                   if (p) assignPartner(selected.id, p.id, p.name);
                 }}
-                className="w-full text-sm font-body bg-white border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-foreground/40"
+                className="w-full text-base font-body bg-white border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-foreground/40"
               >
                 <option value="">{t("adminQuotes.selectOption")}</option>
                 {partners.map((p: any) => (

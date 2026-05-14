@@ -282,7 +282,7 @@ export default function BrandCatalogueSection({ partnerId }: { partnerId: string
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={t("brandCatalogue.searchPlaceholder", "Search products...")}
-          className="w-full pl-9 pr-4 py-2 border border-border rounded-sm text-sm font-body bg-background focus:outline-none focus:ring-1 focus:ring-foreground/20"
+          className="w-full pl-9 pr-4 py-2 border border-border rounded-sm text-base font-body bg-background focus:outline-none focus:ring-1 focus:ring-foreground/20"
         />
       </div>
 

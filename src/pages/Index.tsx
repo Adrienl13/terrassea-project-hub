@@ -212,19 +212,19 @@ const Index = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="flex flex-wrap justify-center gap-3 mt-6">
               <button
               onClick={() => navigate("/projects/new")}
-              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
+              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-3 min-h-[44px] hover:border-foreground hover:text-foreground transition-all">
               
                 <Sparkles className="h-3 w-3" /> {t('home.startGuided')}
               </button>
               <button
               onClick={() => navigate("/products")}
-              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
+              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-3 min-h-[44px] hover:border-foreground hover:text-foreground transition-all">
               
                 <Search className="h-3 w-3" /> {t('home.browseCatalogue')}
               </button>
               <button
               onClick={() => navigate("/inspirations")}
-              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-2 hover:border-foreground hover:text-foreground transition-all">
+              className="flex items-center gap-1.5 text-xs font-body text-muted-foreground border border-border rounded-full px-4 py-3 min-h-[44px] hover:border-foreground hover:text-foreground transition-all">
               
                 <Compass className="h-3 w-3" /> {t('home.getInspired')}
               </button>
@@ -323,7 +323,7 @@ const Index = () => {
       </section>
 
       {/* ── EXPLORE SPACES ──────────────────────────────────────────── */}
-      <section id="explore-spaces" className="py-24 px-6">
+      <section id="explore-spaces" className="py-16 px-6 md:py-24">
         <div className="container mx-auto">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="flex items-end justify-between mb-12">
             <div>
@@ -357,7 +357,7 @@ const Index = () => {
       </section>
 
       {/* ── HOW IT WORKS ────────────────────────────────────────────── */}
-      <section className="py-24 px-6 bg-card">
+      <section className="py-16 px-6 md:py-24 bg-card">
         <div className="container mx-auto">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="grid md:grid-cols-[1fr_2fr] gap-16 items-start">
             <div>
@@ -401,7 +401,7 @@ const Index = () => {
       </section>
 
       {/* ── POPULAR PRODUCTS ────────────────────────────────────────── */}
-      <section className="py-24 px-6">
+      <section className="py-16 px-6 md:py-24">
         <div className="container mx-auto">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="flex items-end justify-between mb-12">
             <div>

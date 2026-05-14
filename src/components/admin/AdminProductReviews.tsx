@@ -109,7 +109,7 @@ export default function AdminProductReviews() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search reviews..."
-            className="w-full text-sm font-body bg-background border border-border rounded-full pl-9 pr-4 py-2 focus:outline-none focus:border-foreground transition-colors"
+            className="w-full text-base font-body bg-background border border-border rounded-full pl-9 pr-4 py-2 focus:outline-none focus:border-foreground transition-colors"
           />
         </div>
       </div>

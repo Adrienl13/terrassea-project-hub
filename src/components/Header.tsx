@@ -396,7 +396,11 @@ const Header = () => {
               {/* Close header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-border">
                 <span className="font-display text-lg font-bold text-foreground">Menu</span>
-                <button onClick={closeMobile} className="p-1 text-muted-foreground">
+                <button
+                  onClick={closeMobile}
+                  aria-label="Close menu"
+                  className="p-3 -m-3 text-muted-foreground min-h-[44px] min-w-[44px] flex items-center justify-center"
+                >
                   <X className="h-5 w-5" />
                 </button>
               </div>

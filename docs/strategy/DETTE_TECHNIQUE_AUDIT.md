@@ -1225,7 +1225,7 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Statut** : capturé, à exécuter avant Vague 2.
 
-### Dette 88 — Mobile UX Lot 1 (Critique) 🔴 Priorité Haute
+### Dette 88 — Mobile UX Lot 1 (Critique) ✅ FIXED 2026-05-14
 
 **Origine** : Audit Mobile UX 2026-05-14 (`docs/strategy/MOBILE_UX_AUDIT.md`).
 
@@ -1236,11 +1236,20 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Fix** : 3 micro-edits documentés au §5 du `MOBILE_UX_AUDIT.md`. `text-sm` → `text-base` corrige 10+ champs d'une ligne.
 
-**Effort** : ~30 min total.
+**Effort réel** : ~25 min.
 
-**Priorité** : **ASAP** — avant prochaine démo marque post-Salone. Le fix iOS input zoom seul élimine le show-stopper le plus probable du ressenti founder.
+**Priorité initiale** : ASAP — fait.
 
-**Statut** : à fixer.
+**Statut** : **✅ FIXED 2026-05-14**.
+
+**Fixes livrés** :
+- Fix 1 (iOS input zoom) : remplacé `text-sm` par `text-base` sur le pattern `text-sm font-body bg-` dans **13 fichiers** via sed global (BecomePartner, Auth, Admin, QuoteRequestModal, ProjectBriefModal, ProductReviews, FinancingRequestModal, BrandReferencesManager, AdminPartners, ProServiceArchitectHub, ProServiceLanding, ProServiceClientHub ×2). Le pattern était unique aux champs de saisie ; aucune régression sur du texte non-input. Tous les formulaires d'inscription/quote/recherche n'auront plus le zoom iOS auto.
+- Fix 2 (Header close button) : `p-1` → `p-3 -m-3 min-h-[44px] min-w-[44px]` + `aria-label`.
+- Fix 3 (Hero quick actions) : `py-2` → `py-3 min-h-[44px]` sur les 3 boutons d'action (Smart Search, Browse Catalogue, Get Inspired).
+- Fix 4 (Sections padding) : `py-24 px-6` → `py-16 px-6 md:py-24` sur les 3 sections Index.tsx (Explore Spaces, How It Works, Popular Products).
+- Fix 5 (Overflow-x defensive) : ajout `overflow-x: hidden` sur `body` dans `index.css` avec commentaire.
+
+**Validation** : tsc 0 erreur, 629 tests passing.
 
 ### Dette 89 — Mobile UX Lot 2 (Élevé) 🟠 Priorité Moyenne
 
