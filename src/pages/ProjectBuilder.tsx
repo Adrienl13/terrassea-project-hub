@@ -324,7 +324,7 @@ const ProjectBuilder = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-20 md:pt-24 pb-8 px-6">
+        <div className="pt-12 md:pt-24 pb-8 px-6">
           <div className="container mx-auto">
             <div className="flex items-center gap-4 mb-8">
               <button
@@ -346,7 +346,7 @@ const ProjectBuilder = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-20 md:pt-24 pb-8 px-6">
+        <div className="pt-12 md:pt-24 pb-8 px-6">
           <div className="container mx-auto">
             <div className="flex items-center gap-4 mb-8">
               <button
@@ -376,7 +376,7 @@ const ProjectBuilder = () => {
       <SEO title="Project Builder" noindex />
       <Header />
 
-      <div className="pt-20 md:pt-24 pb-16">
+      <div className="pt-12 md:pt-24 pb-16">
         {/* Resume banner */}
         {showResumeBanner && (
           <div className="px-6 mb-6">

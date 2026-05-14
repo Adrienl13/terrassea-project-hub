@@ -797,7 +797,7 @@ const Account = () => {
       <SEO title="My Account" noindex />
       <Header />
 
-      <div className="pt-20 md:pt-24 pb-16 flex">
+      <div className="pt-12 md:pt-24 pb-16 flex">
       {/* ── Sticky Sidebar ────────────────────────────────────── */}
       <aside className="hidden md:block w-56 flex-shrink-0">
         <motion.div

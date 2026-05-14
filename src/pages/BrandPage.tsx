@@ -251,7 +251,7 @@ export default function BrandPage() {
             : "linear-gradient(135deg, #1C1A17 0%, #2A2520 100%)",
         }}
       >
-        <div className="container mx-auto px-6 pb-14 pt-24 md:pt-32">
+        <div className="container mx-auto px-6 pb-14 pt-12 md:pt-32">
           <Link to="/collections" className="inline-flex items-center gap-1.5 text-xs font-body text-white/50 hover:text-white mb-8 transition-colors">
             <ArrowLeft className="h-3.5 w-3.5" /> {t("brand.backToCollections")}
           </Link>

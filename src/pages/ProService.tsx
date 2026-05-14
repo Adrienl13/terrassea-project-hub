@@ -32,7 +32,7 @@ const ProService = () => {
       <div className="min-h-screen bg-background">
         <SEO title="Pro Service" noindex />
         <Header />
-        <div className="pt-20 md:pt-24 pb-16 px-6">
+        <div className="pt-12 md:pt-24 pb-16 px-6">
           <div className="container mx-auto max-w-6xl">
             {userType === "client" && <ProServiceClientHub store={store} />}
             {userType === "partner" && <ProServicePartnerHub store={store} />}

@@ -196,7 +196,7 @@ export default function ProServiceLanding() {
   return (
     <>
       {/* ── HERO — Pro Hub ── */}
-      <section className="pt-24 md:pt-32 pb-16 md:pb-20 bg-background">
+      <section className="pt-12 md:pt-32 pb-16 md:pb-20 bg-background">
         <div className="container mx-auto px-4 md:px-6 max-w-6xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <span className="text-xs font-display font-semibold uppercase tracking-widest text-muted-foreground mb-4 block">

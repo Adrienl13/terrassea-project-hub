@@ -219,7 +219,7 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-20 md:pt-24 px-6 container mx-auto animate-pulse">
+        <div className="pt-12 md:pt-24 px-6 container mx-auto animate-pulse">
           <div className="h-6 w-32 bg-card rounded mb-8" />
           <div className="grid md:grid-cols-2 gap-10">
             <div className="aspect-square bg-card rounded-sm" />
@@ -238,7 +238,7 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-20 md:pt-24 px-6 container mx-auto text-center py-20">
+        <div className="pt-12 md:pt-24 px-6 container mx-auto text-center py-20">
           <p className="text-muted-foreground font-body">{t('productDetail.productNotFound')}</p>
           <Link to="/products" className="text-sm font-display font-semibold text-foreground underline mt-4 inline-block">
             {t('productDetail.backToProducts')}
@@ -254,7 +254,7 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-20 md:pt-24 px-6 container mx-auto text-center py-20">
+        <div className="pt-12 md:pt-24 px-6 container mx-auto text-center py-20">
           <p className="text-muted-foreground font-body">{t('productDetail.productNotFound')}</p>
           <Link to="/products" className="text-sm font-display font-semibold text-foreground underline mt-4 inline-block">
             {t('productDetail.backToProducts')}

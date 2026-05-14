@@ -331,7 +331,7 @@ const Products = () => {
         description="Browse our curated catalog of professional outdoor furniture for hospitality. Filter by category, material, style, and compare offers from verified suppliers."
       />
       <Header />
-      <main className="pt-20 md:pt-24 pb-16">
+      <main className="pt-12 md:pt-24 pb-16">
         {/* Supplier filter banner */}
         {supplierSlug && (
           <div className="px-6 mb-4">
