@@ -518,7 +518,7 @@ const ProjectCart = () => {
   }
 
   const inputClass =
-  "w-full text-base font-body bg-card border border-border rounded-full px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
+  "w-full text-base font-body bg-card border border-border rounded-full px-4 py-3 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
   const labelClass =
   "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5";
 
@@ -881,7 +881,7 @@ const ProjectCart = () => {
                         onChange={handle("notes")}
                         placeholder={t('projectCart.additionalNotesPlaceholder')}
                         rows={3}
-                        className="w-full text-base font-body bg-card border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50 resize-none" />
+                        className="w-full text-base font-body bg-card border border-border rounded-lg px-4 py-3 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50 resize-none" />
                       
                       </div>
                     </motion.div>

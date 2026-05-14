@@ -326,7 +326,7 @@ export default function AdminPartners() {
   const set = (field: keyof PartnerForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
 
-  const inputClass = "w-full text-base font-body bg-white border border-border rounded-lg px-3 py-2.5 focus:outline-none focus:border-foreground/40 transition-colors";
+  const inputClass = "w-full text-base font-body bg-white border border-border rounded-lg px-3 py-3 focus:outline-none focus:border-foreground/40 transition-colors";
   const labelClass = "text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1";
 
   // ── Form view ──
@@ -545,7 +545,7 @@ export default function AdminPartners() {
                 value={reviewComment}
                 onChange={(e) => setReviewComment(e.target.value)}
                 rows={2}
-                className="w-full text-base font-body bg-white border border-border rounded-lg px-3 py-2.5 focus:outline-none focus:border-foreground/40 resize-none"
+                className="w-full text-base font-body bg-white border border-border rounded-lg px-3 py-3 focus:outline-none focus:border-foreground/40 resize-none"
                 placeholder={t("adminPartners.reviewCommentPlaceholder")}
               />
             </div>

@@ -369,7 +369,7 @@ const Index = () => {
               </h2>
               <button
                 onClick={() => navigate("/projects/new")}
-                className="mt-6 flex items-center gap-2 text-sm font-display font-semibold text-foreground border border-foreground rounded-full px-5 py-2.5 hover:bg-foreground hover:text-primary-foreground transition-all group">
+                className="mt-6 flex items-center gap-2 text-sm font-display font-semibold text-foreground border border-foreground rounded-full px-5 py-3 min-h-[44px] hover:bg-foreground hover:text-primary-foreground transition-all group">
                 
                 {t('howItWorks.getStarted')} <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
@@ -441,7 +441,7 @@ const Index = () => {
           <div className="flex justify-center mt-12 md:hidden">
             <button
               onClick={() => navigate("/products")}
-              className="flex items-center gap-2 text-sm font-body text-muted-foreground border border-border rounded-full px-5 py-2.5 hover:border-foreground hover:text-foreground transition-all">
+              className="flex items-center gap-2 text-sm font-body text-muted-foreground border border-border rounded-full px-5 py-3 min-h-[44px] hover:border-foreground hover:text-foreground transition-all">
               
               {t('popularProducts.viewAllProducts')} <ArrowRight className="h-4 w-4" />
             </button>

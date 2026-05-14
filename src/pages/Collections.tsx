@@ -185,7 +185,7 @@ export default function Collections() {
       ) : null}
 
       {loading ? (
-        <section className="py-24 bg-[#FAF7F4]">
+        <section className="py-16 md:py-24 bg-[#FAF7F4]">
           <div className="flex items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-foreground border-t-transparent" />
           </div>

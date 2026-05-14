@@ -1251,7 +1251,7 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Validation** : tsc 0 erreur, 629 tests passing.
 
-### Dette 89 — Mobile UX Lot 2 (Élevé) 🟠 Priorité Moyenne
+### Dette 89 — Mobile UX Lot 2 (Élevé) ✅ FIXED 2026-05-14
 
 **Origine** : Audit Mobile UX 2026-05-14.
 
@@ -1263,11 +1263,18 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Fix** : pattern `min-h-[44px]` + ajustement `py-2` → `py-3`. Sections `py-24` → `py-16 md:py-24` pour densité info mobile.
 
-**Effort** : ~45-60 min.
+**Effort réel** : ~15 min.
 
-**Priorité** : cette semaine.
+**Statut** : **✅ FIXED 2026-05-14**.
 
-**Statut** : à fixer après Lot 1.
+**Fixes livrés** :
+- Inputs/selects/textareas : `py-2.5`/`py-2` → `py-3` via sed ciblé sur les lignes contenant `text-base font-body bg-` (filtrage strict, aucun risque de toucher autre chose). ~18 fichiers de formulaire concernés. Combiné avec `text-base` (Lot 1), les inputs atteignent désormais ~44 px de hauteur (WCAG conforme).
+- Index.tsx : "View all products" CTA mobile `py-2.5` → `py-3 min-h-[44px]`. "Get started" CTA section How It Works idem.
+- BecomePartner.tsx : bouton plan card "Get started" `w-full py-2.5` → `w-full py-3 min-h-[44px]`.
+- Auth.tsx : tabs login/register `py-2` → `py-3 min-h-[44px]`.
+- Collections.tsx : section `py-24` → `py-16 md:py-24`.
+
+**Validation** : tsc 0 erreur, 629 tests passing.
 
 ### Dette 90 — Mobile UX Lot 3 (Moyen) 🟡 Priorité Basse
 

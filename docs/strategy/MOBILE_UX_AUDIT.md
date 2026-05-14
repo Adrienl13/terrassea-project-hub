@@ -189,15 +189,16 @@ Filet de sécurité contre les éléments décoratifs `w-[500+px]`.
 
 **Capture** : Dette 88 fermée.
 
-### Lot 2 — ÉLEVÉ (~45-60 min)
+### Lot 2 — ÉLEVÉ ✅ FIXED 2026-05-14
 **Bénéfice : confort tap + densité info**
 
-- Fix #3 — Quick action buttons Index hero
-- Fix #4 — Padding sections `py-24` → `py-16 md:py-24` (Index + autres)
-- Audit + fix CTAs marginaux (E2, E4)
-- BecomePartner inputs `py-2.5` → `py-3` pour WCAG strict
+- Inputs/selects/textareas : sed ciblé `py-2.5`/`py-2` → `py-3` sur lignes `text-base font-body bg-` (~18 fichiers). Combiné avec Lot 1, hauteur ~44 px WCAG.
+- Index.tsx : "View all products" CTA mobile + "Get started" CTA → `py-3 min-h-[44px]`.
+- BecomePartner.tsx : bouton plan card → `py-3 min-h-[44px]`.
+- Auth.tsx : tabs login/register → `py-3 min-h-[44px]`.
+- Collections.tsx : section `py-24` → `py-16 md:py-24`.
 
-**Capture** : Dette 89.
+**Capture** : Dette 89 fermée.
 
 ### Lot 3 — MOYEN (~30 min)
 **Bénéfice : polish**
