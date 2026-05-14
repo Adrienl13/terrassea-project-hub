@@ -1518,6 +1518,35 @@ Le helper `getOptimizedImageUrl` (`src/utils/imageOptimization.ts`) dépend de l
 
 **Statut** : capturé, à activer selon triggers ci-dessus.
 
+### Dette 100 — DOCX → PDF conversion via Edge Function 🟡 Différée Phase 3+
+
+**Origine** : Phase 2 CGV roadmap (2026-05-14). Décision founder explicite : PDF only en MVP, capture dette pour conversion DOCX si demande réelle.
+
+**Contexte** :
+- `CGV_STRATEGY.md` §6 risque 2 documente que la conversion DOCX→PDF non triviale (formatage tableaux, polices, signatures, etc.) impose une Edge Function complexe (libreoffice headless ou équivalent).
+- Pattern industrie B2B sérieux (Stripe Connect, Etsy Seller Policy, AWS Marketplace) = PDF only acceptable et même standard.
+- ROI vs Vague 1 : faible. Marques sérieuses ont déjà leur CGV en PDF (avocats les délivrent en PDF). Demander PDF n'est pas une friction commerciale réelle.
+
+**Décision** :
+- Phase 2 + Phase 3 MVP : **PDF only** dans le bucket `partner-cgv`. Contrainte enforcée à 3 niveaux :
+  1. `partner_cgv.mime_type CHECK = 'application/pdf'`
+  2. `storage.buckets.allowed_mime_types = ['application/pdf']`
+  3. Validation côté formulaire upload partner (Phase 3).
+- Si marque tente d'uploader DOCX : message d'erreur clair avec lien d'aide « Comment convertir Word → PDF en 10 secondes » (Word natif "Save as PDF", LibreOffice, Pages).
+
+**Triggers de réévaluation** :
+- Si ≥ 3 marques distinctes en Vague 2 demandent explicitement la possibilité d'uploader Word.
+- Si onboarding Vague 2 stagne sur l'étape CGV (mesurable : drop-off step rate).
+- Si un cluster de marques niche (artisans, petits ateliers) sans access PDF tools.
+
+**Effort estimé à l'activation** :
+- Edge Function `convert-docx-to-pdf` avec LibreOffice headless ou service tiers (cloudconvert, pdf.co) : 1-2 jours.
+- Sinon API SaaS payante (~50 $/mois pour 1000 conversions) : 0.5 jour intégration.
+
+**Priorité** : Niveau 3 — capture dette, à activer seulement sur signal réel utilisateur.
+
+**Statut** : différé Phase 3+. `partner_cgv.mime_type = 'application/pdf'` enforce la contrainte au niveau DB.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
