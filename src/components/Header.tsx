@@ -139,7 +139,7 @@ const Header = () => {
         transition={{ duration: 0.5 }}
         className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md"
       >
-        <div className="container mx-auto flex items-center justify-between py-5 px-6">
+        <div className="container mx-auto flex items-center justify-between py-3 px-4 md:py-5 md:px-6">
           <Link to="/" className="font-display text-xl font-bold tracking-tight text-foreground">
             TERRASSEA <span className="text-terracotta">HUB</span>
           </Link>
@@ -262,7 +262,7 @@ const Header = () => {
 
             {/* Mobile hamburger */}
             <button
-              className="md:hidden p-1.5 text-foreground"
+              className="md:hidden p-3 -m-3 text-foreground min-h-[44px] min-w-[44px] flex items-center justify-center"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
             >
