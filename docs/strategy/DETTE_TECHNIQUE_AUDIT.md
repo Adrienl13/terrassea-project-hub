@@ -1385,6 +1385,52 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Statut** : à planifier Phase 3 (50+ marques, post-POC réussi).
 
+### Dette 96 — Mobile Perf Lot 1 (Critique) 🔴 Priorité Haute
+
+**Origine** : `docs/strategy/MOBILE_PERFORMANCE_AUDIT.md` (2026-05-14).
+
+**Description** : 2 quick wins critical-path :
+1. `pdf-lib` (430 KB raw / 178 KB gzip) tiré statiquement par `src/lib/pdfCoverPage.ts` → import statique remonte jusqu'à `QuotePdfUploader.tsx:11`. Refactor en `await import("pdf-lib")` interne à la fonction → chunk vendor-pdf devient dynamic lazy.
+2. 87 % des `<img>` (66/76) sans `loading="lazy"` → patch sed global sur les images en dessous du fold.
+
+**Gain estimé** : -430 KB critical path + LCP mobile -1.5 à -2 s sur 4G.
+
+**Effort** : ~1 h.
+
+**Priorité** : Niveau 2 (avant démarchage actif marques Salone, gain immédiat).
+
+**Statut** : à fixer.
+
+### Dette 97 — Mobile Perf Lot 2 (Élevé) 🟠 Priorité Moyenne
+
+**Origine** : `docs/strategy/MOBILE_PERFORMANCE_AUDIT.md` (2026-05-14).
+
+**Description** : Helper `getOptimizedImageUrl(url, { width, format: 'webp' })` qui ajoute les query params Supabase Storage natifs (`?width=400&format=webp`). Intégrer dans tous les `<img>` produits via composant `<ProductImage>` partagé.
+
+**Gain estimé** : -50 à -90 % du payload images sur mobile (iPhone reçoit 400×400 webp au lieu de 1920×1920 png).
+
+**Effort** : ~2-3 h.
+
+**Priorité** : Niveau 3.
+
+**Statut** : à fixer après Lot 1.
+
+### Dette 98 — Mobile Perf Lot 3 (Moyen) ⏳ Priorité Basse
+
+**Origine** : `docs/strategy/MOBILE_PERFORMANCE_AUDIT.md` (2026-05-14).
+
+**Description** : 
+- Setup `rollup-plugin-visualizer` pour cartographier précisément les 1.1 MB d'`index.js`.
+- Selon résultats : splitter contexts globaux, helpers partagés, types Supabase, ou imports massifs.
+- Setup Lighthouse CI + budgets perf (`.lighthouserc.json`).
+- Audit alternatives `framer-motion` 129 KB si critique.
+
+**Effort** : ~3-5 h.
+
+**Priorité** : Niveau 4 (post Lots 1+2 stabilisés).
+
+**Statut** : à fixer après Lots 1+2.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
