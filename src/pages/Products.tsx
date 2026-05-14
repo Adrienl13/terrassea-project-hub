@@ -321,7 +321,7 @@ const Products = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <SEO
         title={
           filters.categories.length > 0
@@ -331,7 +331,7 @@ const Products = () => {
         description="Browse our curated catalog of professional outdoor furniture for hospitality. Filter by category, material, style, and compare offers from verified suppliers."
       />
       <Header />
-      <main className="pt-24 pb-16">
+      <main className="pt-20 md:pt-24 pb-16">
         {/* Supplier filter banner */}
         {supplierSlug && (
           <div className="px-6 mb-4">
@@ -685,9 +685,9 @@ function ProductListCard({ product, onAdd, isBrandProduct }: { product: DBProduc
       </Link>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <div>
+          <div className="min-w-0 flex-1">
             <Link to={`/products/${product.id}`}>
-              <h3 className="font-display font-semibold text-sm text-foreground hover:underline inline-flex items-center gap-1.5">
+              <h3 className="font-display font-semibold text-sm text-foreground hover:underline inline-flex flex-wrap items-center gap-1.5 break-words">
                 {localName}
                 {isBrandProduct ? (
                   <span className="inline-flex items-center gap-0.5 text-[8px] font-display font-semibold uppercase tracking-wider bg-[#D4603A] text-white px-1.5 py-0.5 rounded-full shrink-0">
@@ -697,7 +697,7 @@ function ProductListCard({ product, onAdd, isBrandProduct }: { product: DBProduc
               </h3>
             </Link>
             {product.brand_source && (
-              <p className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">
+              <p className="text-[10px] text-muted-foreground font-body uppercase tracking-wider truncate">
                 {product.brand_source}
               </p>
             )}

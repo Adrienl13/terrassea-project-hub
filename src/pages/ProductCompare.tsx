@@ -319,7 +319,7 @@ const ProductCompare = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-24 px-6 container mx-auto text-center py-20">
+        <div className="pt-20 md:pt-24 px-6 container mx-auto text-center py-20">
           <p className="text-sm text-muted-foreground font-body mb-4">
             {t("compare.no_products_to_compare")}
           </p>
@@ -344,7 +344,7 @@ const ProductCompare = () => {
     <div className="min-h-screen bg-background">
       <SEO title="Compare Products" noindex />
       <Header />
-      <main className="pt-24 pb-16 px-6">
+      <main className="pt-20 md:pt-24 pb-16 px-6">
         <div className="container mx-auto">
           <nav className="mb-6">
             <Link

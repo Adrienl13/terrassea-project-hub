@@ -199,7 +199,7 @@ const Auth = () => {
       <SEO title="Sign In" noindex />
       <Header />
 
-      <div className="pt-28 pb-16 px-6">
+      <div className="pt-20 md:pt-28 pb-16 px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

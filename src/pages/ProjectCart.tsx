@@ -497,7 +497,7 @@ const ProjectCart = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-32 pb-24 px-6 text-center">
+        <div className="pt-24 md:pt-32 pb-24 px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="w-16 h-16 rounded-full bg-green-500/10 text-green-700 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
               ✓
@@ -526,7 +526,7 @@ const ProjectCart = () => {
     <div className="min-h-screen bg-background">
       <SEO title="Project Cart" noindex />
       <Header />
-      <div className="pt-28 pb-24 px-6">
+      <div className="pt-20 md:pt-28 pb-24 px-6">
         <div className="container mx-auto">
           {/* Back */}
           <div className="flex items-center gap-4 mb-8">

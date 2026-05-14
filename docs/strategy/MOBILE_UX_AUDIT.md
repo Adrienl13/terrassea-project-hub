@@ -219,7 +219,18 @@ Filet de sécurité contre les éléments décoratifs `w-[500+px]`.
 | Lot 1 (Critique) | ✅ FIXED | 25 min | 18 |
 | Lot 2 (Élevé) | ✅ FIXED | 15 min | 21 |
 | Lot 3 (Moyen) | ✅ FIXED | 10 min | 2 |
-| **Total** | **3/3** | **~50 min** | **~30 uniques** |
+| Lot 4 (Hot fixes founder real-device) | ✅ FIXED | 20 min | 14 |
+| **Total** | **4/4** | **~70 min** | **~40 uniques** |
+
+### Lot 4 — hot fixes (founder real device testing) ✅ FIXED 2026-05-14
+
+Issues identifiées par founder en testant sur téléphone réel après les Lots 1-3 (non couvertes par audit statique initial) :
+
+1. **Espace banner global trop important mobile** — `pt-24`/`pt-28`/`pt-32` appliqués mobile alors qu'header fixed n'occupe que 64-80 px. Sed global responsive sur **14 fichiers** (pages + ProServiceLanding) : `pt-24` → `pt-20 md:pt-24`, `pt-28` → `pt-20 md:pt-28`, `pt-32` → `pt-24 md:pt-32`. Mobile gagne 16-32 px de densité d'info.
+2. **Catalogue overflow horizontal** — `Products.tsx` container racine ajoute `overflow-x-hidden` (defensive locale en plus du body global Lot 1). `ProductListCard` titre + brand : `min-w-0 flex-1` sur wrapper + `flex-wrap break-words` sur h3 + `truncate` sur brand → noms longs cassés proprement, pas de débordement.
+3. **ProductDetail densité** — Right column `space-y-6` → `space-y-4 md:space-y-6`. Sections séparées par `border-t border-border pt-6 space-y-4` → `pt-4 md:pt-6 space-y-3 md:space-y-4`. Information plus dense mobile, espacée desktop.
+
+**Leçon** : audit statique manque les issues contextuelles. Real device testing reste source of truth pour finaliser.
 
 ### Lot 4 (optionnel) — Convention ADR
 

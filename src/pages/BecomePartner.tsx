@@ -312,7 +312,7 @@ const BecomePartner = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <section className="pt-32 pb-24 px-6">
+        <section className="pt-24 md:pt-32 pb-24 px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -355,7 +355,7 @@ const BecomePartner = () => {
       <SEO title="Become a Partner" description="Join TerrasseaHUB as a verified supplier. Reach hospitality buyers across 9 European countries. Free Starter plan available." />
       <Header />
 
-      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+      <section className="pt-24 md:pt-32 pb-20 px-6 relative overflow-hidden">
         {/* Fond coloré */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-[#D4603A]/8 via-background to-background" />

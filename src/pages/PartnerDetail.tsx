@@ -186,7 +186,7 @@ export default function PartnerDetail() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-32 container mx-auto px-6">
+        <div className="pt-24 md:pt-32 container mx-auto px-6">
           <div className="h-8 w-48 bg-muted rounded animate-pulse mb-4" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
@@ -205,7 +205,7 @@ export default function PartnerDetail() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-32 container mx-auto px-6 text-center">
+        <div className="pt-24 md:pt-32 container mx-auto px-6 text-center">
           <h1 className="font-display text-2xl font-bold text-foreground">{t("partnerDetail.supplierNotFound")}</h1>
           <Link to="/partners" className="text-sm text-muted-foreground hover:text-foreground mt-4 inline-block">
             {t("partnerDetail.backToPartners")}
@@ -235,7 +235,7 @@ export default function PartnerDetail() {
       <Header />
 
       {/* ── HERO STRIP ── */}
-      <section className="pt-24 pb-8 px-6 border-b border-border" style={{ background: "#FAF7F4" }}>
+      <section className="pt-20 md:pt-24 pb-8 px-6 border-b border-border" style={{ background: "#FAF7F4" }}>
         <div className="container mx-auto max-w-6xl">
           <Link
             to="/partners"

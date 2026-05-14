@@ -347,7 +347,7 @@ export default function Partners() {
       <Header />
 
       {/* ── HERO ── */}
-      <section className="pt-28 pb-16 px-6 bg-gradient-to-b from-muted/50 to-background">
+      <section className="pt-20 md:pt-28 pb-16 px-6 bg-gradient-to-b from-muted/50 to-background">
         <div className="container mx-auto max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>

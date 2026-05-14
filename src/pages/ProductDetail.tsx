@@ -219,7 +219,7 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-24 px-6 container mx-auto animate-pulse">
+        <div className="pt-20 md:pt-24 px-6 container mx-auto animate-pulse">
           <div className="h-6 w-32 bg-card rounded mb-8" />
           <div className="grid md:grid-cols-2 gap-10">
             <div className="aspect-square bg-card rounded-sm" />
@@ -238,7 +238,7 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-24 px-6 container mx-auto text-center py-20">
+        <div className="pt-20 md:pt-24 px-6 container mx-auto text-center py-20">
           <p className="text-muted-foreground font-body">{t('productDetail.productNotFound')}</p>
           <Link to="/products" className="text-sm font-display font-semibold text-foreground underline mt-4 inline-block">
             {t('productDetail.backToProducts')}
@@ -254,7 +254,7 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="pt-24 px-6 container mx-auto text-center py-20">
+        <div className="pt-20 md:pt-24 px-6 container mx-auto text-center py-20">
           <p className="text-muted-foreground font-body">{t('productDetail.productNotFound')}</p>
           <Link to="/products" className="text-sm font-display font-semibold text-foreground underline mt-4 inline-block">
             {t('productDetail.backToProducts')}
@@ -383,7 +383,7 @@ const ProductDetail = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="space-y-6"
+                className="space-y-4 md:space-y-6"
               >
                 {/* Header */}
                 <div>
@@ -556,7 +556,7 @@ const ProductDetail = () => {
                 </div>
 
                 {/* Technical specs */}
-                <div className="border-t border-border pt-6 space-y-4">
+                <div className="border-t border-border pt-4 md:pt-6 space-y-3 md:space-y-4">
                   <h2 className="font-display text-sm font-bold text-foreground uppercase tracking-wider">
                     {t('productDetail.technicalSpecs')}
                   </h2>
@@ -604,7 +604,7 @@ const ProductDetail = () => {
 
                 {/* Documents */}
                 {product.documents.length > 0 && (
-                   <div className="border-t border-border pt-6">
+                   <div className="border-t border-border pt-4 md:pt-6">
                     <h2 className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-3">
                       {t('productDetail.documents')}
                     </h2>
