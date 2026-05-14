@@ -79,9 +79,9 @@ export default function ProductPreviewDrawer({ productId, onClose }: ProductPrev
               {/* Image */}
               <div className="aspect-[4/3] rounded-sm overflow-hidden border border-border bg-muted">
                 {product.image_url ? (
-                  <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                 ) : product.gallery_urls?.[0] ? (
-                  <img src={product.gallery_urls[0]} alt={product.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={product.gallery_urls[0]} alt={product.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Package className="h-12 w-12 text-muted-foreground/20" />

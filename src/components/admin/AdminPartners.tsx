@@ -471,7 +471,7 @@ export default function AdminPartners() {
 
         <div className="flex items-start gap-4 p-5 border border-border rounded-xl bg-card">
           <div className="w-14 h-14 rounded-xl bg-muted border border-border flex items-center justify-center overflow-hidden">
-            {selected.logo_url ? <img src={selected.logo_url} alt={selected.name} className="w-full h-full object-cover" /> : <Building2 className="h-6 w-6 text-muted-foreground" />}
+            {selected.logo_url ? <img loading="lazy" src={selected.logo_url} alt={selected.name} className="w-full h-full object-cover" /> : <Building2 className="h-6 w-6 text-muted-foreground" />}
           </div>
           <div className="flex-1">
             <h2 className="font-display text-lg font-bold text-foreground">{selected.name}</h2>
@@ -533,7 +533,7 @@ export default function AdminPartners() {
             {selected.logo_url && (
               <div>
                 <span className="text-[10px] font-display font-semibold text-muted-foreground">{t("adminPartners.logoFieldLabel")}</span>
-                <img src={selected.logo_url} alt="Logo" className="w-12 h-12 rounded-lg border border-border mt-1 object-cover" />
+                <img loading="lazy" src={selected.logo_url} alt="Logo" className="w-12 h-12 rounded-lg border border-border mt-1 object-cover" />
               </div>
             )}
 
@@ -641,7 +641,7 @@ export default function AdminPartners() {
                 onClick={() => { setSelectedId(partner.id); setView("detail"); }}
                 className="flex items-center gap-3 px-4 py-3 border border-border rounded-xl hover:border-foreground/15 transition-colors cursor-pointer group">
                 <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center overflow-hidden shrink-0">
-                  {partner.logo_url ? <img src={partner.logo_url} alt={partner.name} className="w-full h-full object-cover" /> : <Building2 className="h-4 w-4 text-muted-foreground" />}
+                  {partner.logo_url ? <img loading="lazy" src={partner.logo_url} alt={partner.name} className="w-full h-full object-cover" /> : <Building2 className="h-4 w-4 text-muted-foreground" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

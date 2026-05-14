@@ -244,7 +244,7 @@ const SupplierRecommendations = ({ productId, productName, variantId }: Supplier
         <div className={`border rounded-sm p-3 mb-2 ${isSelected(recommended.id) ? "border-primary bg-primary/5" : "border-primary/20 bg-primary/5"}`}>
           <div className="flex items-start gap-3">
             {isBrandOffer(recommended) && recommended.partner?.logo_url ? (
-              <img src={recommended.partner.logo_url} alt={getSupplierDisplayName(recommended, 0, t)} className="w-8 h-8 rounded-full object-cover bg-card flex-shrink-0" />
+              <img loading="lazy" src={recommended.partner.logo_url} alt={getSupplierDisplayName(recommended, 0, t)} className="w-8 h-8 rounded-full object-cover bg-card flex-shrink-0" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-card flex items-center justify-center text-xs font-display font-bold text-muted-foreground flex-shrink-0">
                 {isBrandOffer(recommended) ? (recommended.partner?.name?.charAt(0) || "?") : "1"}

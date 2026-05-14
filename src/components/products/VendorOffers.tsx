@@ -193,7 +193,7 @@ function SupplierAvatar({ index, isAdmin, offer }: {
 }) {
   const showReal = isAdmin || offer.pricing_mode === "on_request";
   if (showReal && offer.partner?.logo_url) {
-    return <img src={offer.partner.logo_url} alt={offer.partner?.name || ""} className="w-8 h-8 rounded-full object-cover bg-card" />;
+    return <img loading="lazy" src={offer.partner.logo_url} alt={offer.partner?.name || ""} className="w-8 h-8 rounded-full object-cover bg-card" />;
   }
   if (showReal) {
     return (

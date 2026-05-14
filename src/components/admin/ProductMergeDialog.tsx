@@ -44,7 +44,7 @@ function ProductPicker({ products, excludeId, onPick, label }: {
           <button key={p.id} onClick={() => onPick(p)}
             className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all text-left">
             {p.image_url ? (
-              <img src={p.image_url} alt={p.name} className="w-11 h-11 rounded-lg object-cover border border-border shrink-0" />
+              <img loading="lazy" src={p.image_url} alt={p.name} className="w-11 h-11 rounded-lg object-cover border border-border shrink-0" />
             ) : (
               <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center shrink-0">
                 <span className="text-[8px] text-muted-foreground">N/A</span>
@@ -82,7 +82,7 @@ function ProductCard({ product, badge, badgeColor, onClear }: {
   return (
     <div className={`flex items-center gap-4 p-3 border rounded-xl ${badgeColor}`}>
       {product.image_url ? (
-        <img src={product.image_url} alt={product.name} className="w-14 h-14 rounded-lg object-cover border border-border" />
+        <img loading="lazy" src={product.image_url} alt={product.name} className="w-14 h-14 rounded-lg object-cover border border-border" />
       ) : (
         <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center">
           <span className="text-[9px] text-muted-foreground">N/A</span>

@@ -374,7 +374,7 @@ export default function AdminProductReview() {
               >
                 {/* Product thumbnail */}
                 {pd.image_url ? (
-                  <img src={pd.image_url} alt="" className="w-14 h-14 rounded-xl object-cover border border-border shrink-0" />
+                  <img loading="lazy" src={pd.image_url} alt="" className="w-14 h-14 rounded-xl object-cover border border-border shrink-0" />
                 ) : (
                   <div className="w-14 h-14 rounded-xl bg-foreground/5 flex items-center justify-center shrink-0">
                     <Package className="h-6 w-6 text-muted-foreground/40" />

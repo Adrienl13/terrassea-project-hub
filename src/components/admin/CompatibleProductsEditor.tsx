@@ -62,7 +62,7 @@ export default function CompatibleProductsEditor({ label, description, value, on
         <div className="flex flex-wrap gap-1.5">
           {selectedProducts.map(p => (
             <div key={p.id} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-card text-[10px] font-body">
-              {p.image_url && <img src={p.image_url} alt="" className="w-5 h-5 rounded object-cover" />}
+              {p.image_url && <img loading="lazy" src={p.image_url} alt="" className="w-5 h-5 rounded object-cover" />}
               <span className="text-foreground font-medium truncate max-w-[160px]">{p.name}</span>
               <span className="text-muted-foreground">{p.brand_source}</span>
               <button onClick={() => remove(p.id)} className="ml-0.5 text-muted-foreground hover:text-destructive">
@@ -95,7 +95,7 @@ export default function CompatibleProductsEditor({ label, description, value, on
               onClick={() => add(p.id)}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-card/80 transition-colors"
             >
-              {p.image_url && <img src={p.image_url} alt="" className="w-7 h-7 rounded object-cover shrink-0" />}
+              {p.image_url && <img loading="lazy" src={p.image_url} alt="" className="w-7 h-7 rounded object-cover shrink-0" />}
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-body font-medium text-foreground truncate">{p.name}</p>
                 <p className="text-[9px] font-body text-muted-foreground truncate">

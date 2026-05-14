@@ -508,7 +508,7 @@ export default function AdminBrandManagement() {
               }`}
             >
               {brand.logo_url ? (
-                <img src={brand.logo_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                <img loading="lazy" src={brand.logo_url} alt="" className="w-5 h-5 rounded-full object-cover" />
               ) : (
                 <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center">
                   <Crown className="h-3 w-3 text-purple-500" />
@@ -560,7 +560,7 @@ export default function AdminBrandManagement() {
               <div className="border border-purple-200 rounded-xl p-5 bg-gradient-to-r from-purple-50/80 to-violet-50/50">
                 <div className="flex items-start gap-4">
                   {selectedBrand.logo_url ? (
-                    <img src={selectedBrand.logo_url} alt="" className="w-14 h-14 rounded-xl object-cover border border-purple-100" />
+                    <img loading="lazy" src={selectedBrand.logo_url} alt="" className="w-14 h-14 rounded-xl object-cover border border-purple-100" />
                   ) : (
                     <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center">
                       <Crown className="h-7 w-7 text-purple-500" />

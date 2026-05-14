@@ -519,7 +519,7 @@ export default function AdminAIScanner() {
                 {/* Image */}
                 <div className="w-10 h-10 rounded-lg bg-secondary/50 overflow-hidden flex-shrink-0">
                   {product.image_url ? (
-                    <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                    <img loading="lazy" src={product.image_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Package className="w-4 h-4 text-muted-foreground/40" />

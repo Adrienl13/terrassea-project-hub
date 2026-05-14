@@ -91,7 +91,7 @@ function TopProductsWidget({ partnerId, onNavigate }: { partnerId: string | null
           >
             <div className="flex items-center gap-2">
               {item.product?.image_url ? (
-                <img src={item.product.image_url} alt="" className="w-6 h-6 rounded object-cover" />
+                <img loading="lazy" src={item.product.image_url} alt="" className="w-6 h-6 rounded object-cover" />
               ) : (
                 <Star className="h-3.5 w-3.5 text-amber-500" />
               )}

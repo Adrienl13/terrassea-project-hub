@@ -306,7 +306,7 @@ const QuoteRequestModal = ({
                   {/* Product summary pill */}
                   <div className="flex items-center gap-3 bg-card border border-border rounded-xl p-3 mb-5">
                     {product.image_url && (
-                      <img src={product.image_url} alt={product.name} className="w-12 h-12 rounded-lg object-cover" />
+                      <img loading="lazy" src={product.image_url} alt={product.name} className="w-12 h-12 rounded-lg object-cover" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-display font-bold text-foreground truncate">{product.name}</p>

@@ -136,7 +136,7 @@ export default function BrandReferencesManager({ partnerId }: { partnerId: strin
               {selectedRef.photos.map((url, i) => (
                 <CarouselItem key={i}>
                   <div className="aspect-[16/9] rounded-2xl overflow-hidden">
-                    <img src={url} alt={`${selectedRef.title} — ${i + 1}`} className="w-full h-full object-cover" />
+                    <img loading="lazy" src={url} alt={`${selectedRef.title} — ${i + 1}`} className="w-full h-full object-cover" />
                   </div>
                 </CarouselItem>
               ))}
@@ -146,7 +146,7 @@ export default function BrandReferencesManager({ partnerId }: { partnerId: strin
           </Carousel>
         ) : selectedRef.photos.length === 1 ? (
           <div className="aspect-[16/9] rounded-2xl overflow-hidden mb-6">
-            <img src={selectedRef.photos[0]} alt={selectedRef.title} className="w-full h-full object-cover" />
+            <img loading="lazy" src={selectedRef.photos[0]} alt={selectedRef.title} className="w-full h-full object-cover" />
           </div>
         ) : null}
 
@@ -182,7 +182,7 @@ export default function BrandReferencesManager({ partnerId }: { partnerId: strin
                 <Link key={p.id} to={`/products/${p.id}`} className="border border-purple-100 rounded-2xl overflow-hidden group hover:shadow-lg hover:shadow-purple-100/50 transition-all bg-white">
                   <div className="aspect-square bg-gradient-to-br from-purple-50 to-violet-50 overflow-hidden">
                     {p.image_url ? (
-                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <img loading="lazy" src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center"><ImageIcon className="h-8 w-8 text-purple-200" /></div>
                     )}
@@ -232,7 +232,7 @@ export default function BrandReferencesManager({ partnerId }: { partnerId: strin
             >
               <div className="h-40 relative overflow-hidden">
                 {cover ? (
-                  <img src={cover} alt={ref.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img loading="lazy" src={cover} alt={ref.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center">
                     <ImageIcon className="h-10 w-10 text-purple-300" />
@@ -418,7 +418,7 @@ function ReferenceForm({
           <div className="grid grid-cols-2 gap-3 mb-2">
             {photos.map((url, i) => (
               <div key={i} className="relative rounded-xl overflow-hidden aspect-[16/10]">
-                <img src={url} alt="" className="w-full h-full object-cover" />
+                <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
                 <button onClick={() => setPhotos((p) => p.filter((_, idx) => idx !== i))} className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80">
                   <X className="h-3 w-3" />
                 </button>
@@ -459,7 +459,7 @@ function ReferenceForm({
             <div className="flex flex-wrap gap-2 mb-3">
               {selectedProducts.map((p) => (
                 <span key={p.id} className="inline-flex items-center gap-2 text-xs font-display font-semibold bg-purple-50 text-purple-700 border border-purple-200 rounded-full pl-1.5 pr-2.5 py-1">
-                  {p.image_url && <img src={p.image_url} alt="" className="h-5 w-5 rounded-full object-cover" />}
+                  {p.image_url && <img loading="lazy" src={p.image_url} alt="" className="h-5 w-5 rounded-full object-cover" />}
                   {p.name}
                   <button type="button" onClick={() => setProductIds((prev) => prev.filter((id) => id !== p.id))}>
                     <X className="h-2.5 w-2.5" />
@@ -488,7 +488,7 @@ function ReferenceForm({
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-purple-50 transition-colors"
                 >
                   {p.image_url ? (
-                    <img src={p.image_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
+                    <img loading="lazy" src={p.image_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
                   ) : (
                     <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center"><Package className="h-3.5 w-3.5 text-purple-400" /></div>
                   )}

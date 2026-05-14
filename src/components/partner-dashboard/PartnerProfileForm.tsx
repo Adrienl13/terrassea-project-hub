@@ -630,7 +630,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
             <label className={labelClass}>Image principale (header de votre page marque)</label>
             {form.hero_image_url ? (
               <div className="relative rounded-xl overflow-hidden">
-                <img src={form.hero_image_url} alt="" className="w-full h-44 object-cover" />
+                <img loading="lazy" src={form.hero_image_url} alt="" className="w-full h-44 object-cover" />
                 <button onClick={() => setForm((p) => ({ ...p, hero_image_url: "" }))} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors">
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -649,7 +649,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
             <label className={labelClass}>Photo de couverture (pour les listings)</label>
             {form.cover_photo_url ? (
               <div className="relative w-48 rounded-xl overflow-hidden">
-                <img src={form.cover_photo_url} alt="" className="w-full h-32 object-cover" />
+                <img loading="lazy" src={form.cover_photo_url} alt="" className="w-full h-32 object-cover" />
                 <button onClick={() => setForm((p) => ({ ...p, cover_photo_url: "" }))} className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80">
                   <X className="h-3 w-3" />
                 </button>
@@ -725,7 +725,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
             <div className="grid grid-cols-3 gap-3 mb-3">
               {form.gallery_urls.map((url, i) => (
                 <div key={i} className="relative rounded-xl overflow-hidden aspect-[4/3]">
-                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
                   <button onClick={() => setForm((p) => ({ ...p, gallery_urls: p.gallery_urls.filter((_, idx) => idx !== i) }))} className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80">
                     <X className="h-3 w-3" />
                   </button>

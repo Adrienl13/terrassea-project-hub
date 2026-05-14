@@ -357,7 +357,7 @@ export default function BrandNetworkDashboard({ partnerId }: BrandNetworkDashboa
               <div key={d.id} className="flex items-center gap-4 p-4 border border-purple-100 rounded-2xl bg-white hover:shadow-sm hover:shadow-purple-100/50 transition-all">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-50 to-violet-50 flex items-center justify-center shrink-0">
                   {d.partner?.logo_url ? (
-                    <img src={d.partner.logo_url} alt={d.partner?.name || ""} className="w-7 h-7 rounded-lg object-contain" />
+                    <img loading="lazy" src={d.partner.logo_url} alt={d.partner?.name || ""} className="w-7 h-7 rounded-lg object-contain" />
                   ) : (
                     <MapPin className="h-4 w-4 text-purple-400" />
                   )}

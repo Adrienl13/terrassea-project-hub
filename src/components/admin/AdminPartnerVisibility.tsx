@@ -119,7 +119,7 @@ export default function AdminPartnerVisibility() {
                 {/* Logo / Flag */}
                 <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center shrink-0 overflow-hidden">
                   {p.logo_url ? (
-                    <img src={p.logo_url} alt={p.name} className="w-full h-full object-cover" />
+                    <img loading="lazy" src={p.logo_url} alt={p.name} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-lg">{countryFlag(p.country_code)}</span>
                   )}

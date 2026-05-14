@@ -924,7 +924,7 @@ export default function AddProductForm({
                   <div className="flex gap-2 flex-wrap">
                     {galleryFiles.map((g, i) => (
                       <div key={i} className="relative w-16 h-16 rounded-sm overflow-hidden border-2 border-blue-200">
-                        <img src={g.preview} alt="" className="w-full h-full object-cover" />
+                        <img loading="lazy" src={g.preview} alt="" className="w-full h-full object-cover" />
                         <button
                           type="button"
                           onClick={() => removeGalleryFile(i)}
@@ -978,7 +978,7 @@ export default function AddProductForm({
                   <div className="flex gap-2 flex-wrap">
                     {envFiles.map((g, i) => (
                       <div key={i} className="relative w-16 h-16 rounded-sm overflow-hidden border-2 border-green-200">
-                        <img src={g.preview} alt="" className="w-full h-full object-cover" />
+                        <img loading="lazy" src={g.preview} alt="" className="w-full h-full object-cover" />
                         <button
                           type="button"
                           onClick={() => removeEnvFile(i)}

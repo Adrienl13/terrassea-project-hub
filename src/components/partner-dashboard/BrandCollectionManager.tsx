@@ -204,7 +204,7 @@ export default function BrandCollectionManager({
         {/* Header */}
         <div className="relative overflow-hidden rounded-2xl mb-6">
           {selectedCollection.cover_image_url ? (
-            <img src={selectedCollection.cover_image_url} alt="" className="w-full h-48 object-cover" />
+            <img loading="lazy" src={selectedCollection.cover_image_url} alt="" className="w-full h-48 object-cover" />
           ) : (
             <div className="w-full h-48 bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-700" />
           )}
@@ -268,7 +268,7 @@ export default function BrandCollectionManager({
                 <div key={item.id} className="border border-purple-100 rounded-2xl overflow-hidden group hover:shadow-lg hover:shadow-purple-100/50 transition-all bg-white">
                   <div className="aspect-square bg-gradient-to-br from-purple-50 to-violet-50 relative overflow-hidden">
                     {item.product?.image_url ? (
-                      <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <img loading="lazy" src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <ImageIcon className="h-8 w-8 text-purple-200" />
@@ -303,7 +303,7 @@ export default function BrandCollectionManager({
                 <div key={sub.id} className="border border-amber-200 rounded-2xl overflow-hidden bg-amber-50/30">
                   <div className="aspect-square bg-gradient-to-br from-amber-50 to-orange-50 relative overflow-hidden">
                     {sub.product_data?.image_url ? (
-                      <img src={sub.product_data.image_url} alt={sub.product_data.name} className="w-full h-full object-cover opacity-70" />
+                      <img loading="lazy" src={sub.product_data.image_url} alt={sub.product_data.name} className="w-full h-full object-cover opacity-70" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <ImageIcon className="h-8 w-8 text-amber-200" />
@@ -392,7 +392,7 @@ export default function BrandCollectionManager({
             >
               <div className="h-36 relative overflow-hidden">
                 {cover ? (
-                  <img src={cover} alt={coll.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img loading="lazy" src={cover} alt={coll.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center">
                     <FolderOpen className="h-10 w-10 text-purple-300" />
@@ -598,7 +598,7 @@ function CollectionForm({
             >
               {coverPreview ? (
                 <>
-                  <img src={coverPreview} alt="" className="w-full h-full object-cover" />
+                  <img loading="lazy" src={coverPreview} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Upload className="h-6 w-6 text-white" />
                   </div>

@@ -1,4 +1,7 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+// pdf-lib is dynamic-imported inside addCoverPageToPdf to keep the 430 KB
+// library out of the critical-path bundle. The few module-level constants
+// that used rgb() are now raw [r, g, b] tuples; conversion happens lazily.
+// Dette 96 (2026-05-14).
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -87,14 +90,14 @@ const STRINGS: Record<string, Record<string, string>> = {
   },
 };
 
-// ── Colors ─────────────────────────────────────────────────────────────────────
+// ── Colors (raw tuples — converted to rgb() lazily inside the function) ────────
 
-const TERRASSEA_ORANGE = rgb(212 / 255, 96 / 255, 58 / 255);   // #D4603A
-const DARK = rgb(26 / 255, 26 / 255, 26 / 255);
-const GRAY = rgb(120 / 255, 120 / 255, 120 / 255);
-const LIGHT_BG = rgb(250 / 255, 247 / 255, 245 / 255);
-const WHITE = rgb(1, 1, 1);
-const WARNING_BG = rgb(255 / 255, 247 / 255, 237 / 255);
+const COLOR_TERRASSEA_ORANGE: [number, number, number] = [212 / 255, 96 / 255, 58 / 255];   // #D4603A
+const COLOR_DARK:             [number, number, number] = [26 / 255, 26 / 255, 26 / 255];
+const COLOR_GRAY:             [number, number, number] = [120 / 255, 120 / 255, 120 / 255];
+const COLOR_LIGHT_BG:         [number, number, number] = [250 / 255, 247 / 255, 245 / 255];
+const COLOR_WHITE:            [number, number, number] = [1, 1, 1];
+const COLOR_WARNING_BG:       [number, number, number] = [255 / 255, 247 / 255, 237 / 255];
 
 // ── Main function ──────────────────────────────────────────────────────────────
 
@@ -106,6 +109,16 @@ export async function addCoverPageToPdf(
   originalPdfBytes: ArrayBuffer | Uint8Array,
   data: CoverPageData
 ): Promise<Uint8Array> {
+  // Dynamic import: pdf-lib (~430 KB) is fetched only when generating a PDF cover.
+  const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib");
+
+  const TERRASSEA_ORANGE = rgb(...COLOR_TERRASSEA_ORANGE);
+  const DARK = rgb(...COLOR_DARK);
+  const GRAY = rgb(...COLOR_GRAY);
+  const LIGHT_BG = rgb(...COLOR_LIGHT_BG);
+  const WHITE = rgb(...COLOR_WHITE);
+  const WARNING_BG = rgb(...COLOR_WARNING_BG);
+
   const locale = data.locale || "fr";
   const s = STRINGS[locale] || STRINGS.fr;
 

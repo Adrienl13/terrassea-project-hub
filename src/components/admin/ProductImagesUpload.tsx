@@ -288,7 +288,7 @@ function SectionMulti({
               key={`${url}-${i}`}
               className="relative group aspect-square rounded-lg overflow-hidden border border-border bg-muted"
             >
-              <img src={url} alt="" className="w-full h-full object-cover" />
+              <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
               <button
                 type="button"
                 onClick={() => onRemove(i)}

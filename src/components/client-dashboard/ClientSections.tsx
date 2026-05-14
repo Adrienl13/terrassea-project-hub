@@ -752,7 +752,7 @@ export function ClientProjectDetail({
                   >
                     {/* Thumbnail */}
                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-border shrink-0 bg-gray-50">
-                      <img src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
                     </div>
                     {/* Name + brand */}
                     <div className="flex-1 min-w-0">
@@ -782,7 +782,7 @@ export function ClientProjectDetail({
                         <div className="flex gap-4">
                           {/* Larger image */}
                           <div className="w-32 sm:w-40 shrink-0 aspect-square rounded-lg overflow-hidden border border-border bg-gray-50">
-                            <img src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
+                            <img loading="lazy" src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
                           </div>
 
                           {/* Full recap */}
@@ -900,7 +900,7 @@ export function ClientProjectDetail({
                 <div className="flex items-center gap-3 px-4 py-3">
                   {/* Product thumbnail */}
                   <div className="w-11 h-11 rounded-lg overflow-hidden border border-border shrink-0 bg-gray-50">
-                    <img src={q.productImage || "/placeholder.svg"} alt={q.productName} className="w-full h-full object-cover" />
+                    <img loading="lazy" src={q.productImage || "/placeholder.svg"} alt={q.productName} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -1028,7 +1028,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
         <div className="flex items-start gap-4">
           {activeQuote.productImage && (
             <div className="w-16 h-16 rounded-lg overflow-hidden border border-border shrink-0 bg-gray-50">
-              <img src={activeQuote.productImage} alt={activeQuote.productName} className="w-full h-full object-cover" />
+              <img loading="lazy" src={activeQuote.productImage} alt={activeQuote.productName} className="w-full h-full object-cover" />
             </div>
           )}
           <div className="flex-1 min-w-0">
@@ -1252,7 +1252,7 @@ export function ClientQuotesSection({ onNavigate }: { onNavigate?: ClientSection
             >
               {/* Product thumbnail */}
               <div className="w-12 h-12 rounded-lg overflow-hidden border border-border shrink-0 bg-gray-50">
-                <img src={q.productImage || "/placeholder.svg"} alt={q.productName} className="w-full h-full object-cover" />
+                <img loading="lazy" src={q.productImage || "/placeholder.svg"} alt={q.productName} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -1812,7 +1812,7 @@ export function ClientFavouritesSection({
                 {/* Logo or flag */}
                 <div className="w-12 h-12 rounded-lg bg-card border border-border flex items-center justify-center text-xl shrink-0 overflow-hidden">
                   {s.logoUrl ? (
-                    <img src={s.logoUrl} alt={s.name} className="w-full h-full object-cover" />
+                    <img loading="lazy" src={s.logoUrl} alt={s.name} className="w-full h-full object-cover" />
                   ) : s.countryCode ? (
                     <span className="text-2xl">{countryFlag(s.countryCode)}</span>
                   ) : (

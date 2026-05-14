@@ -222,7 +222,7 @@ export default function AddToProjectModal({
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-sm overflow-hidden border border-border shrink-0 bg-muted">
                         {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          <img loading="lazy" src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <Package className="h-4 w-4 text-muted-foreground/30" />

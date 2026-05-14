@@ -257,7 +257,7 @@ export default function BrandPage() {
           </Link>
           <div className="flex items-end gap-6">
             {brand.logo_url && (
-              <img src={brand.logo_url} alt={brand.name} className="h-20 w-20 rounded-2xl object-contain bg-white/10 backdrop-blur-sm p-3 border border-white/10" />
+              <img loading="lazy" src={brand.logo_url} alt={brand.name} className="h-20 w-20 rounded-2xl object-contain bg-white/10 backdrop-blur-sm p-3 border border-white/10" />
             )}
             <div className="flex-1">
               <h1 className="font-display text-4xl md:text-5xl font-bold text-white tracking-tight">{brand.name}</h1>
@@ -358,7 +358,7 @@ export default function BrandPage() {
                     {galleryImages.map((url, i) => (
                       <CarouselItem key={i}>
                         <div className="aspect-[4/3] rounded-2xl overflow-hidden">
-                          <img src={url} alt={`${brand.name} — ${i + 1}`} className="w-full h-full object-cover" />
+                          <img loading="lazy" src={url} alt={`${brand.name} — ${i + 1}`} className="w-full h-full object-cover" />
                         </div>
                       </CarouselItem>
                     ))}
@@ -368,11 +368,11 @@ export default function BrandPage() {
                 </Carousel>
               ) : galleryImages.length === 1 ? (
                 <div className="aspect-[4/3] rounded-2xl overflow-hidden">
-                  <img src={galleryImages[0]} alt={brand.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={galleryImages[0]} alt={brand.name} className="w-full h-full object-cover" />
                 </div>
               ) : brand.cover_photo_url ? (
                 <div className="aspect-[4/3] rounded-2xl overflow-hidden">
-                  <img src={brand.cover_photo_url} alt={brand.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={brand.cover_photo_url} alt={brand.name} className="w-full h-full object-cover" />
                 </div>
               ) : (
                 <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-[#F5F0EB] to-[#E8E0D8] flex items-center justify-center">
@@ -424,7 +424,7 @@ export default function BrandPage() {
                     <button onClick={() => setExpandedRef(isExpanded ? null : ref.id)} className="w-full text-left">
                       <div className={`relative overflow-hidden ${isExpanded ? "h-64" : "h-48"}`}>
                         {cover ? (
-                          <img src={cover} alt={ref.title} className="w-full h-full object-cover" />
+                          <img loading="lazy" src={cover} alt={ref.title} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
                             <Package className="h-10 w-10 text-amber-300" />
@@ -453,7 +453,7 @@ export default function BrandPage() {
                           <div className="grid grid-cols-3 gap-2 mb-6">
                             {ref.photos.slice(1).map((url, i) => (
                               <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden">
-                                <img src={url} alt="" className="w-full h-full object-cover" />
+                                <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
                               </div>
                             ))}
                           </div>
@@ -470,7 +470,7 @@ export default function BrandPage() {
                                 <Link key={p.id} to={urlForProduct(p, p.owner_brand_slug)} className="group border border-border rounded-xl overflow-hidden hover:border-[#D4603A] hover:shadow-sm transition-all">
                                   <div className="aspect-square bg-muted overflow-hidden">
                                     {p.image_url ? (
-                                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                      <img loading="lazy" src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                     ) : (
                                       <div className="w-full h-full flex items-center justify-center"><Package className="h-6 w-6 text-muted-foreground/30" /></div>
                                     )}
@@ -522,7 +522,7 @@ export default function BrandPage() {
                         <div key={item.id} className="group">
                           <div className="aspect-square rounded-xl overflow-hidden bg-muted mb-2">
                             {item.product?.image_url ? (
-                              <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                              <img loading="lazy" src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">{t("brand.noPhoto")}</div>
                             )}
@@ -597,7 +597,7 @@ export default function BrandPage() {
       <section className="bg-[#1C1A17] py-16">
         <div className="container mx-auto px-6 text-center">
           {brand.logo_url && (
-            <img src={brand.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-white/10 p-1.5 mx-auto mb-5" />
+            <img loading="lazy" src={brand.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-white/10 p-1.5 mx-auto mb-5" />
           )}
           <h2 className="font-display text-2xl md:text-3xl font-bold text-white mb-3">
             {t("brand.outdoorProject")}

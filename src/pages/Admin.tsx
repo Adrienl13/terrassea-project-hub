@@ -708,7 +708,7 @@ function ProductForm({
         </div>
         {/* Live image preview */}
         {form.image_url && (
-          <img src={form.image_url} alt="" className="w-16 h-16 rounded-xl object-cover border border-border" />
+          <img loading="lazy" src={form.image_url} alt="" className="w-16 h-16 rounded-xl object-cover border border-border" />
         )}
       </div>
 
@@ -1514,7 +1514,7 @@ function ProductsTab() {
                       {/* Image */}
                       <td className="px-2 py-2.5">
                         {imgSrc ? (
-                          <img src={imgSrc} alt={product.name} className="w-9 h-9 rounded-lg object-cover" />
+                          <img loading="lazy" src={imgSrc} alt={product.name} className="w-9 h-9 rounded-lg object-cover" />
                         ) : (
                           <div className="w-9 h-9 rounded-lg bg-foreground/5 flex items-center justify-center">
                             <Package className="h-4 w-4 text-muted-foreground/30" />

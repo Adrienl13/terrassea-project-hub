@@ -54,7 +54,7 @@ function ProductRow({
     <div className="flex items-center gap-4 px-4 py-3 border border-border rounded-sm hover:border-foreground/20 transition-colors">
       <div className="w-12 h-12 rounded-sm overflow-hidden border border-border shrink-0 bg-muted">
         {image ? (
-          <img src={image} alt={name} className="w-full h-full object-cover" />
+          <img loading="lazy" src={image} alt={name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Package className="h-5 w-5 text-muted-foreground/30" />
@@ -430,7 +430,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
                     >
                       {/* Thumbnail */}
                       {thumbUrl ? (
-                        <img src={thumbUrl as string} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted border border-border shrink-0" />
+                        <img loading="lazy" src={thumbUrl as string} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted border border-border shrink-0" />
                       ) : (
                         <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border shrink-0">
                           <Package className="h-5 w-5 text-muted-foreground/30" />
@@ -604,7 +604,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
                       onClick={() => setEditingSubmission({ id: sub.id, productData: pd, targetProductId: sub.target_product_id || undefined })}
                     >
                       {thumbUrl ? (
-                        <img src={thumbUrl as string} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted border border-border shrink-0" />
+                        <img loading="lazy" src={thumbUrl as string} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted border border-border shrink-0" />
                       ) : (
                         <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border shrink-0">
                           <Package className="h-5 w-5 text-muted-foreground/30" />

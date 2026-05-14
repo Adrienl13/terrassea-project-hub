@@ -466,7 +466,7 @@ export function ArchitectOverview({
             {favourites.slice(0, 6).map((p: any) => (
               <div key={p.id} onClick={() => navigate(`/products/${p.id}`)} className="group cursor-pointer">
                 <div className="relative aspect-square rounded-sm overflow-hidden border border-border mb-1.5">
-                  <img src={p.image_url || "/placeholder.svg"} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <img loading="lazy" src={p.image_url || "/placeholder.svg"} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
                 <p className="text-[11px] font-display font-semibold text-foreground truncate">{p.name}</p>
                 <p className="text-[10px] font-body text-muted-foreground">{p.price_min ? `${t('ad.overview.fromPrice')} €${p.price_min}` : t('ad.overview.onRequest')}</p>
@@ -951,7 +951,7 @@ export function ArchitectProjectDetail({
                               <div className="flex items-center gap-2.5">
                                 <div className="w-8 h-8 rounded-sm overflow-hidden border border-border shrink-0 bg-muted">
                                   {prod.image ? (
-                                    <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
+                                    <img loading="lazy" src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center">
                                       <FolderOpen className="h-3 w-3 text-muted-foreground/30" />
@@ -1783,7 +1783,7 @@ function CallDetailExpanded({
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         {r.partnerLogo ? (
-                          <img src={r.partnerLogo} alt={displayName} className="w-7 h-7 rounded-full object-cover border border-border" />
+                          <img loading="lazy" src={r.partnerLogo} alt={displayName} className="w-7 h-7 rounded-full object-cover border border-border" />
                         ) : (
                           <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-[10px] font-display font-bold">{displayInitial}</div>
                         )}
@@ -1823,7 +1823,7 @@ function CallDetailExpanded({
                             <tr key={pi} className={pi % 2 === 0 ? "" : "bg-muted/20"}>
                               <td className="px-3 py-1.5">
                                 <div className="flex items-center gap-2">
-                                  {p.image && <img src={p.image} alt={p.name} className="w-6 h-6 rounded-sm object-cover border border-border shrink-0" />}
+                                  {p.image && <img loading="lazy" src={p.image} alt={p.name} className="w-6 h-6 rounded-sm object-cover border border-border shrink-0" />}
                                   <span className="text-[10px] font-body text-foreground">{p.name}</span>
                                 </div>
                               </td>

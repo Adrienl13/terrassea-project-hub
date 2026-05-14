@@ -101,7 +101,7 @@ export default function ProductPhotoLinker({
               <div className="flex items-center gap-2 flex-wrap">
                 {mainImage && (
                   <div className="relative">
-                    <img src={mainImage} alt="Principal" className="w-16 h-16 rounded-lg object-cover border-2 border-foreground" />
+                    <img loading="lazy" src={mainImage} alt="Principal" className="w-16 h-16 rounded-lg object-cover border-2 border-foreground" />
                     <span className="absolute -top-1 -left-1 w-5 h-5 bg-foreground rounded-full flex items-center justify-center">
                       <Star className="h-2.5 w-2.5 text-primary-foreground fill-primary-foreground" />
                     </span>
@@ -109,7 +109,7 @@ export default function ProductPhotoLinker({
                 )}
                 {gallery.map((url, i) => (
                   <div key={i} className="relative group">
-                    <img src={url} alt={`Gallery ${i}`} className="w-16 h-16 rounded-lg object-cover border border-border" />
+                    <img loading="lazy" src={url} alt={`Gallery ${i}`} className="w-16 h-16 rounded-lg object-cover border border-border" />
                     <button
                       onClick={() => setAsMain(url)}
                       className="absolute -top-1 -left-1 w-5 h-5 bg-muted-foreground/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -153,7 +153,7 @@ export default function ProductPhotoLinker({
                         "border-transparent hover:border-foreground/20"
                       }`}
                     >
-                      <img src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
                       {isSelected && (
                         <div className={`absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center ${
                           isMain ? "bg-foreground" : "bg-blue-500"

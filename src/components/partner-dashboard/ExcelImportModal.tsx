@@ -1458,7 +1458,7 @@ export default function ExcelImportModal({
                   <div key={p.id} className="flex items-center gap-3 p-2.5">
                     <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden border border-border">
                       {p.image_url ? (
-                        <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                        <img loading="lazy" src={p.image_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <ImageIcon className="h-3.5 w-3.5 text-muted-foreground/30" />
                       )}
@@ -1485,7 +1485,7 @@ export default function ExcelImportModal({
                   <div className="flex flex-wrap gap-2">
                     {unmatchedPhotos.map((file, i) => (
                       <div key={i} className="relative group">
-                        <img src={URL.createObjectURL(file)} alt={file.name}
+                        <img loading="lazy" src={URL.createObjectURL(file)} alt={file.name}
                           className="w-14 h-14 rounded-lg object-cover border border-amber-200 cursor-pointer hover:ring-2 hover:ring-foreground transition-all"
                           onClick={() => setManualAssign(manualAssign === String(i) ? null : String(i))}
                         />

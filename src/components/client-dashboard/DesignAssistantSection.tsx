@@ -99,7 +99,7 @@ function PastAnalysisCard({ analysis, t }: { analysis: PastAnalysis; t: (k: stri
         {/* Thumbnail */}
         <div className="w-24 h-24 flex-shrink-0 rounded-sm overflow-hidden bg-muted">
           {imageUrl ? (
-            <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+            <img loading="lazy" src={imageUrl} alt="" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
               <Camera className="w-6 h-6" />

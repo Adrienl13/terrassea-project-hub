@@ -150,7 +150,7 @@ export default function PhotoGalleryManager({ partnerId, onClose }: Props) {
             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
               {photos.map(photo => (
                 <div key={photo.name} className="relative group aspect-square rounded-lg overflow-hidden border border-border bg-muted">
-                  <img src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(photo.name); }}
                     disabled={deleting === photo.name}

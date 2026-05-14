@@ -211,13 +211,13 @@ export default function Collections() {
                   <div className="w-full md:w-2/5 shrink-0">
                     {heroImg ? (
                       <div className="aspect-[4/3] rounded-2xl overflow-hidden">
-                        <img src={heroImg} alt={brand.name} className="w-full h-full object-cover" />
+                        <img loading="lazy" src={heroImg} alt={brand.name} className="w-full h-full object-cover" />
                       </div>
                     ) : (
                       <div className="aspect-[4/3] rounded-2xl bg-[#1C1A17] flex items-center justify-center relative overflow-hidden">
                         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M0 20L20 0l20 20-20 20z' fill-opacity='.05'/%3E%3C/g%3E%3C/svg%3E\")" }} />
                         {brand.logo_url ? (
-                          <img src={brand.logo_url} alt={brand.name} className="h-20 w-20 object-contain opacity-80" />
+                          <img loading="lazy" src={brand.logo_url} alt={brand.name} className="h-20 w-20 object-contain opacity-80" />
                         ) : (
                           <span className="font-display text-5xl font-bold text-white/20">{brand.name.charAt(0)}</span>
                         )}
@@ -229,7 +229,7 @@ export default function Collections() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-4">
                       {brand.logo_url && heroImg ? (
-                        <img src={brand.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-muted p-1" />
+                        <img loading="lazy" src={brand.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-muted p-1" />
                       ) : null}
                       <div>
                         <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground tracking-tight">
@@ -298,7 +298,7 @@ export default function Collections() {
                               className="group flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-background hover:border-foreground/30 transition-colors"
                             >
                               {thumb ? (
-                                <img src={thumb} alt="" className="h-5 w-5 rounded-full object-cover" />
+                                <img loading="lazy" src={thumb} alt="" className="h-5 w-5 rounded-full object-cover" />
                               ) : (
                                 <div className="h-5 w-5 rounded-full bg-gradient-to-br from-stone-200 to-stone-300 flex items-center justify-center">
                                   <span className="text-[7px] font-bold text-stone-500">{collName.charAt(0)}</span>
