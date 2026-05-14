@@ -303,7 +303,8 @@ partner-cgv/
 ## 5. Plan d'implémentation
 
 ### Phase 1 — Rédaction cadre Terrassea v1 ✅ LIVRÉE 2026-05-14
-- Fichier : `legal/terrassea-terms-v1.md` (5 blocs A+B+C+D+E + F + 3 annexes, FR, B2B+B2C, `self_validated`)
+- Fichier FR (authoritative) : `legal/terrassea-terms-v1.md` (5 blocs A+B+C+D+E + F + 3 annexes, B2B+B2C, `self_validated`)
+- Fichier EN (informational, FR prevails) : `legal/terrassea-terms-v1-en.md` — traduction informationnelle ajoutée 2026-05-14 pour outreach Salone, disclaimer non-authoritative en tête, références juridiques FR préservées
 - Inspiré Stripe Connect Terms (structure) + Etsy Seller Policy (clarté)
 - Mentions provisoires Vague 1 préservées (Founding Partner, médiateur à désigner, DPO formel à désigner)
 - Placeholders à compléter founder : `[SIREN]`, `[adresse]`, `[forme juridique]`, ville
