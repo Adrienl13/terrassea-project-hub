@@ -345,9 +345,9 @@ const ProductDetail = () => {
         reviewStats={reviewStats}
       />
       <Header />
-      <main className="pt-20 pb-16 md:pt-24">
+      <main className="pt-16 pb-12 md:pt-24 md:pb-16">
         {/* Breadcrumb */}
-        <div className="px-6 container mx-auto mb-6">
+        <div className="px-6 container mx-auto mb-3 md:mb-6">
           <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs font-body text-muted-foreground">
             <Link to="/products" className="hover:text-foreground transition-colors flex items-center gap-1">
               <ArrowLeft className="h-3 w-3" /> {t('nav.products')}
@@ -710,11 +710,15 @@ const ProductDetail = () => {
 };
 
 function SpecRow({ label, value }: { label: string; value: string }) {
+  // Mobile UX V2 — chaque ligne devient une rangée flex justify-between
+  // pour éviter le pattern "label sur 1 ligne / value sur ligne suivante"
+  // induit par grid-cols-1 mobile. Fonctionne aussi dans grid 2-cols desktop
+  // (chaque SpecRow occupe une cellule, contenu flex à l'intérieur).
   return (
-    <>
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground capitalize">{value}</span>
-    </>
+    <div className="flex justify-between items-baseline gap-3 py-1 border-b border-border/30 last:border-0 sm:py-0 sm:border-0">
+      <span className="text-muted-foreground flex-shrink-0">{label}</span>
+      <span className="text-foreground capitalize text-right sm:text-left break-words min-w-0">{value}</span>
+    </div>
   );
 }
 

@@ -220,7 +220,27 @@ Filet de sécurité contre les éléments décoratifs `w-[500+px]`.
 | Lot 2 (Élevé) | ✅ FIXED | 15 min | 21 |
 | Lot 3 (Moyen) | ✅ FIXED | 10 min | 2 |
 | Lot 4 (Hot fixes founder real-device) | ✅ FIXED | 20 min | 14 |
-| **Total** | **4/4** | **~70 min** | **~40 uniques** |
+| Lot 5 (V2 audit screenshots systemic) | ✅ FIXED | 30 min | 2 |
+| **Total** | **5/5** | **~100 min** | **~42 uniques** |
+
+### V2 Audit (14 mai 2026, screenshots iPhone founder)
+
+3 problèmes systémiques révélés par les screenshots, non couverts par l'audit V1 :
+
+#### V2-1 — Espace top page ProductDetail persistant
+- `main pt-20 pb-16 md:pt-24` + breadcrumb `mb-6` = ~80 px mobile avant breadcrumb + 24 px sous breadcrumb = visuel "énorme blanc".
+- **Fix** : `pt-16 pb-12 md:pt-24 md:pb-16` + breadcrumb `mb-3 md:mb-6`. Gain ~30 px de densité mobile.
+
+#### V2-2 — Technical Specifications layout dégradé mobile
+- `SpecRow` retournait un Fragment de 2 spans dans grid `grid-cols-1 sm:grid-cols-2 gap-3`. Sur mobile (1 col), chaque span occupait une rangée → label sur ligne 1, value sur ligne 2 = chaque spec sur 2 lignes. 13 specs × 2 = 26 lignes.
+- **Fix** : SpecRow refactoré pour retourner un `<div flex justify-between items-baseline>` avec `border-b border-border/30 last:border-0 sm:border-0`. Une rangée = 1 ligne avec label gauche, valeur droite. Sur desktop (sm:), bordures retirées et padding annulé, grid 2-cols reprend l'agencement. **~50 % de hauteur économisée mobile**.
+
+#### V2-3 — CertificationCard cassée mobile
+- Layout `flex items-start gap-3` + button `flex-shrink-0` forçait icon + info + button sur une rangée → info middle écrasée à ~120 px → "Fire Class M1 (FR)" cassé en 5 lignes (1 mot par ligne).
+- **Fix** : layout repensé en 2 sections : (a) `flex gap-3` avec icon + info + bouton `hidden sm:inline-flex` (desktop only) ; (b) bouton `sm:hidden mt-3 w-full` (mobile only, full-width). Details `flex flex-col sm:flex-row` (stack mobile, row desktop). Labels boutons plus explicites mobile ("Télécharger le PV" vs "PV").
+- Section parent `mt-12` → `mt-6 md:mt-12`.
+
+**Leçon** : code-static audit + real device + screenshots = loop UX complète. Les patterns systémiques (SpecRow Fragment, CertificationCard layout) n'apparaissent qu'au rendu réel.
 
 ### Lot 4 — hot fixes (founder real device testing) ✅ FIXED 2026-05-14
 

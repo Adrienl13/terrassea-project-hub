@@ -97,48 +97,66 @@ function CertificationCard({
     URL.revokeObjectURL(url);
   }
 
+  // Mobile UX V2 — stack vertical mobile (icon+title row, details below,
+  // CTA full-width below) ; layout horizontal préservé desktop.
   return (
-    <div className="border border-border rounded-md p-4 flex items-start gap-3 hover:border-foreground/40 transition-colors">
-      <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
-        {certification.logo_url ? (
-          <img
-            src={certification.logo_url}
-            alt={certification.name}
-            className="w-full h-full object-contain p-1"
-          />
-        ) : (
-          <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-display font-semibold text-sm text-foreground">
-            {certification.name}
-          </span>
-          {expired && (
-            <Badge className="text-[9px] bg-red-500/10 text-red-700 border-red-500/20">
-              Expiré
-            </Badge>
+    <div className="border border-border rounded-md p-4 hover:border-foreground/40 transition-colors">
+      <div className="flex items-start gap-3">
+        <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+          {certification.logo_url ? (
+            <img
+              src={certification.logo_url}
+              alt={certification.name}
+              className="w-full h-full object-contain p-1"
+            />
+          ) : (
+            <ShieldCheck className="h-5 w-5 text-muted-foreground" />
           )}
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1 flex-wrap">
-          {pvNumber && <span>PV n° {pvNumber}</span>}
-          {labName && <span>Labo : {labName}</span>}
-          {certNumber && <span>N° {certNumber}</span>}
-          {validityStr && <span>Valide jusqu'au {validityStr}</span>}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-display font-semibold text-sm text-foreground break-words">
+              {certification.name}
+            </span>
+            {expired && (
+              <Badge className="text-[9px] bg-red-500/10 text-red-700 border-red-500/20">
+                Expiré
+              </Badge>
+            )}
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 text-[11px] text-muted-foreground mt-1 gap-y-0.5 sm:flex-wrap">
+            {pvNumber && <span>PV n° {pvNumber}</span>}
+            {labName && <span>Labo : {labName}</span>}
+            {certNumber && <span>N° {certNumber}</span>}
+            {validityStr && <span>Valide jusqu'au {validityStr}</span>}
+          </div>
         </div>
+        {documentPath && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            className="flex-shrink-0 hidden sm:inline-flex"
+          >
+            {isAuthenticated ? (
+              <><FileText className="h-3.5 w-3.5 mr-1" /> {isProduct ? "PV" : "Certificat"}</>
+            ) : (
+              <><Lock className="h-3.5 w-3.5 mr-1" /> Connexion</>
+            )}
+          </Button>
+        )}
       </div>
       {documentPath && (
         <Button
           variant="outline"
           size="sm"
           onClick={handleDownload}
-          className="flex-shrink-0"
+          className="mt-3 w-full sm:hidden"
         >
           {isAuthenticated ? (
-            <><FileText className="h-3.5 w-3.5 mr-1" /> {isProduct ? "PV" : "Certificat"}</>
+            <><FileText className="h-3.5 w-3.5 mr-1" /> {isProduct ? "Télécharger le PV" : "Télécharger le certificat"}</>
           ) : (
-            <><Lock className="h-3.5 w-3.5 mr-1" /> Connexion</>
+            <><Lock className="h-3.5 w-3.5 mr-1" /> Se connecter pour télécharger</>
           )}
         </Button>
       )}
@@ -169,7 +187,7 @@ export default function ProductCertificationsPublic({
   }
 
   return (
-    <section className="px-6 mt-12">
+    <section className="px-6 mt-6 md:mt-12">
       <div className="container mx-auto">
         <h2 className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
           <ShieldCheck className="h-4 w-4" />
