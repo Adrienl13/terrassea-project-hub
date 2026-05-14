@@ -1225,6 +1225,56 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Statut** : capturé, à exécuter avant Vague 2.
 
+### Dette 88 — Mobile UX Lot 1 (Critique) 🔴 Priorité Haute
+
+**Origine** : Audit Mobile UX 2026-05-14 (`docs/strategy/MOBILE_UX_AUDIT.md`).
+
+**Description** : 3 issues niveau critique identifiées :
+- **iOS Safari input zoom auto** : `inputClass` de `BecomePartner.tsx:305` utilise `text-sm` (14 px) — iOS Safari zoome auto le viewport dès qu'on tape dans un champ. Affecte 10+ inputs du formulaire d'inscription partenaire. Probable même bug dans `BecomePartnerLaunch.tsx`.
+- **Header mobile drawer close button `p-1`** (~20 px) bien en dessous des 44 px WCAG → geste imprécis.
+- **Defense `overflow-x: hidden` body** absent → potentielle scrollbar horizontale via éléments décoratifs `w-[500-600px]` Index hero.
+
+**Fix** : 3 micro-edits documentés au §5 du `MOBILE_UX_AUDIT.md`. `text-sm` → `text-base` corrige 10+ champs d'une ligne.
+
+**Effort** : ~30 min total.
+
+**Priorité** : **ASAP** — avant prochaine démo marque post-Salone. Le fix iOS input zoom seul élimine le show-stopper le plus probable du ressenti founder.
+
+**Statut** : à fixer.
+
+### Dette 89 — Mobile UX Lot 2 (Élevé) 🟠 Priorité Moyenne
+
+**Origine** : Audit Mobile UX 2026-05-14.
+
+**Description** : 4 issues élevées :
+- Quick action buttons Index hero (~32 px hauteur) sub-WCAG 44 px.
+- "View all products" CTA (~40 px) marginal.
+- `grid-cols-2` sur écrans < 380 px : blocs serrés.
+- BecomePartner inputs `py-2.5` (~36 px) marginal hors WCAG.
+
+**Fix** : pattern `min-h-[44px]` + ajustement `py-2` → `py-3`. Sections `py-24` → `py-16 md:py-24` pour densité info mobile.
+
+**Effort** : ~45-60 min.
+
+**Priorité** : cette semaine.
+
+**Statut** : à fixer après Lot 1.
+
+### Dette 90 — Mobile UX Lot 3 (Moyen) 🟡 Priorité Basse
+
+**Origine** : Audit Mobile UX 2026-05-14.
+
+**Description** : Polish.
+- Grids `grid-cols-2` → `grid-cols-1 sm:grid-cols-2` pour contenu dense.
+- ProductDetail breadcrumb `pt-24` → `pt-16 md:pt-24`.
+- Hero decorations responsive ou cachées sur petit phone.
+
+**Effort** : ~30 min.
+
+**Priorité** : semaine prochaine.
+
+**Statut** : à fixer après Lots 1+2.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
