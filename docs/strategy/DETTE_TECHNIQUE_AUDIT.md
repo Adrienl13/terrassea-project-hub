@@ -1096,7 +1096,7 @@ Aucun caller dans la codebase n'invoque `auto-workflow` avec ces actions :
 **Statut** : cadrage stratégique fait, **Phase 1 (rédaction cadre v1) LIVRÉE 2026-05-14**.
 
 **Phase 1 livrée 2026-05-14** :
-- Fichier `legal/terrassea-terms-v1.md` créé. 5 blocs complets (A statut juridique / B droits consommateur / C RGPD / D recours et juridiction / E responsabilité Terrassea) + Bloc F dispositions communes + 3 annexes (formulaire rétractation, lexique, contact).
+- Fichier `legal/terrassea-terms-v1-fr.md` créé (renommé 2026-05-14 depuis `terrassea-terms-v1.md` pour clarté FR/EN). 5 blocs complets (A statut juridique / B droits consommateur / C RGPD / D recours et juridiction / E responsabilité Terrassea) + Bloc F dispositions communes + 3 annexes (formulaire rétractation, lexique, contact). Traduction informationnelle ajoutée le même jour : `terrassea-terms-v1-en.md` (non-authoritative).
 - Langue autoritative : français. Périmètre B2B + B2C. Statut `self_validated`.
 - Mentions provisoires Vague 1 explicites : Founding Partner pré-commercial, médiateur conso à désigner avant Vague 2, DPO formel à désigner. Statut juridique du document clairement indiqué (non revu par avocat).
 - Placeholders à compléter par founder : `[SIREN]`, `[adresse]`, `[forme juridique]`, ville du siège, médiateur agréé final.

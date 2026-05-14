@@ -14,7 +14,7 @@
 
 > This English version is provided for informational purposes only.
 >
-> In case of any conflict, ambiguity or difference of interpretation between this English translation and the French original ([`terrassea-terms-v1.md`](./terrassea-terms-v1.md)), **the French version shall prevail** and constitutes the only legally binding document.
+> In case of any conflict, ambiguity or difference of interpretation between this English translation and the French original ([`terrassea-terms-v1-fr.md`](./terrassea-terms-v1-fr.md)), **the French version shall prevail** and constitutes the only legally binding document.
 
 ---
 
