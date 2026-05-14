@@ -345,17 +345,17 @@ const ProductDetail = () => {
         reviewStats={reviewStats}
       />
       <Header />
-      <main className="pt-24 pb-16">
+      <main className="pt-20 pb-16 md:pt-24">
         {/* Breadcrumb */}
         <div className="px-6 container mx-auto mb-6">
-          <nav className="flex items-center gap-2 text-xs font-body text-muted-foreground">
+          <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs font-body text-muted-foreground">
             <Link to="/products" className="hover:text-foreground transition-colors flex items-center gap-1">
               <ArrowLeft className="h-3 w-3" /> {t('nav.products')}
             </Link>
-            <ChevronRight className="h-3 w-3" />
+            <ChevronRight className="h-3 w-3 flex-shrink-0" />
             <Link to={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-foreground transition-colors capitalize">{product.category}</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-foreground">{localName}</span>
+            <ChevronRight className="h-3 w-3 flex-shrink-0" />
+            <span className="text-foreground break-words min-w-0">{localName}</span>
           </nav>
         </div>
 
@@ -560,7 +560,7 @@ const ProductDetail = () => {
                   <h2 className="font-display text-sm font-bold text-foreground uppercase tracking-wider">
                     {t('productDetail.technicalSpecs')}
                   </h2>
-                  <div className="grid grid-cols-2 gap-3 text-xs font-body">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-body">
                     {product.category && <SpecRow label={t('productDetail.category')} value={product.category} />}
                     {product.subcategory && <SpecRow label={t('productDetail.subcategory')} value={product.subcategory} />}
                     {dimensions.length > 0 && <SpecRow label={t('productDetail.dimensions')} value={dimensions.join(" × ")} />}

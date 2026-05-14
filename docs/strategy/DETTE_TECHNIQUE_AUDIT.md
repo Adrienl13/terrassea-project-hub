@@ -1276,7 +1276,7 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Validation** : tsc 0 erreur, 629 tests passing.
 
-### Dette 90 — Mobile UX Lot 3 (Moyen) 🟡 Priorité Basse
+### Dette 90 — Mobile UX Lot 3 (Moyen) ✅ FIXED 2026-05-14
 
 **Origine** : Audit Mobile UX 2026-05-14.
 
@@ -1285,11 +1285,30 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 - ProductDetail breadcrumb `pt-24` → `pt-16 md:pt-24`.
 - Hero decorations responsive ou cachées sur petit phone.
 
-**Effort** : ~30 min.
+**Effort réel** : ~10 min.
 
-**Priorité** : semaine prochaine.
+**Statut** : **✅ FIXED 2026-05-14**.
 
-**Statut** : à fixer après Lots 1+2.
+**Fixes livrés** :
+- Index.tsx:378 — How It Works grid `grid-cols-2` → `grid-cols-1 sm:grid-cols-2` (lisibilité optimale petits écrans iPhone SE).
+- ProductDetail.tsx:563 — Technical specs grid `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`.
+- ProductDetail.tsx:589 — Pro features grid (icône + label compact) : conservé en 2-col mobile (densité OK).
+- ProductDetail.tsx:351 — Breadcrumb : ajout `aria-label="Breadcrumb"` + `flex-wrap gap-x-2 gap-y-1` + `flex-shrink-0` sur les chevrons + `break-words min-w-0` sur le nom produit. Élimine l'overflow horizontal quand le nom produit est long.
+- ProductDetail.tsx:348 — Main `pt-24 pb-16` → `pt-20 pb-16 md:pt-24` (80px mobile, 96px desktop).
+- Décorations Index hero `w-[500-600px]` : aucune action — déjà neutralisées par le filet `overflow-x: hidden body` Lot 1.
+
+**Validation** : tsc 0 erreur, 629 tests passing.
+
+---
+
+**🎯 Audit Mobile UX complet — CLOSED**
+
+3 lots livrés en **~50 min total** sur la journée :
+- Lot 1 (Critique) : 25 min — 18 fichiers
+- Lot 2 (Élevé) : 15 min — 21 fichiers
+- Lot 3 (Moyen) : 10 min — 2 fichiers
+
+**Impact business** : démarchage marques Salone bénéficie immédiatement d'une UX mobile aux standards WCAG 2.1, sans zoom iOS auto, sans overflow horizontal, avec tap targets et densité info adaptées à toutes les tailles d'écran de 320 px à desktop.
 
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 

@@ -200,14 +200,26 @@ Filet de sécurité contre les éléments décoratifs `w-[500+px]`.
 
 **Capture** : Dette 89 fermée.
 
-### Lot 3 — MOYEN (~30 min)
+### Lot 3 — MOYEN ✅ FIXED 2026-05-14
 **Bénéfice : polish**
 
-- Grids `grid-cols-2` → `grid-cols-1 sm:grid-cols-2` quand contenu dense (Index L378, ProductDetail L563+589)
-- ProductDetail breadcrumb `pt-24` → `pt-16 md:pt-24`
-- Hero decorations responsive (`hidden sm:block` ou réduction)
+- Index.tsx:378 + ProductDetail.tsx:563 grids `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`.
+- ProductDetail.tsx breadcrumb : `flex-wrap` + `aria-label` + `flex-shrink-0`/`break-words` (élimine overflow horizontal sur nom produit long).
+- ProductDetail.tsx main `pt-24` → `pt-20 md:pt-24`.
+- Hero decorations Index : aucune action — déjà neutralisées par `overflow-x: hidden body` (Lot 1).
 
-**Capture** : Dette 90.
+**Capture** : Dette 90 fermée.
+
+---
+
+**🎯 Audit Mobile UX complet — CLOSED**
+
+| Lot | Statut | Effort réel | Fichiers |
+|---|---|---|---|
+| Lot 1 (Critique) | ✅ FIXED | 25 min | 18 |
+| Lot 2 (Élevé) | ✅ FIXED | 15 min | 21 |
+| Lot 3 (Moyen) | ✅ FIXED | 10 min | 2 |
+| **Total** | **3/3** | **~50 min** | **~30 uniques** |
 
 ### Lot 4 (optionnel) — Convention ADR
 

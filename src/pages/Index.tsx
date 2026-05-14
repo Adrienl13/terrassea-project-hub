@@ -375,7 +375,7 @@ const Index = () => {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
                 { icon: Sparkles, titleKey: "howItWorks.step1Title", textKey: "howItWorks.step1Text" },
                 { icon: Compass, titleKey: "howItWorks.step2Title", textKey: "howItWorks.step2Text" },
