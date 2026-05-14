@@ -1310,6 +1310,81 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Impact business** : démarchage marques Salone bénéficie immédiatement d'une UX mobile aux standards WCAG 2.1, sans zoom iOS auto, sans overflow horizontal, avec tap targets et densité info adaptées à toutes les tailles d'écran de 320 px à desktop.
 
+### Dette 92 — Quick Quote Wizard MVP 🟠 Priorité Haute
+
+**Origine** : `docs/strategy/AI_CONVERSATIONAL_ROADMAP.md` — Phase 1 (2026-05-14).
+
+**Description** : Form structuré multi-étapes capturant les intentions d'achat (type établissement / projet / espace / quantité / budget / style) et produisant 3-6 produits matchés + 1 suggestion bundle. Alternative pragmatique à l'IA conversationnelle pour Vague 1 : pas de coût LLM, pas d'hallucinations, capture la **data structurée** qui servira plus tard au POC IA (Dette 94).
+
+**Triggers** :
+- 15+ marques Founding Partner approuvées
+- 500+ produits actifs catalogue
+- Démarchage Salone stabilisé
+- Phase 1 CGV livrée
+
+**Effort** : 3-5 jours dev (founder solo avec Claude Code).
+
+**Priorité** : Niveau 2 — différenciateur + data lever long terme.
+
+**Statut** : à planifier Phase 1 (15-25 marques).
+
+### Dette 93 — Catalogue enrichment process ⏳ Priorité Moyenne
+
+**Origine** : `docs/strategy/AI_CONVERSATIONAL_ROADMAP.md` — Phase 1 (2026-05-14).
+
+**Description** : Mettre en place un process structuré d'enrichissement catalogue (template specs riches pour marques, scoring qualité par produit, audit avant ouverture POC IA). Sans data qualité, l'IA conversationnelle (Dette 94) ne peut pas donner de pertinence > 80 %.
+
+**Triggers** : avant Phase 2 (POC IA interne), idéalement pendant Phase 1.
+
+**Effort** : process + template + audit régulier — pas de "fin" claire, c'est une discipline d'onboarding marques.
+
+**Priorité** : Niveau 3.
+
+**Statut** : à mettre en place Phase 1.
+
+### Dette 94 — POC IA conversationnelle interne 🟠 Priorité Haute (post Phase 1)
+
+**Origine** : `docs/strategy/AI_CONVERSATIONAL_ROADMAP.md` — Phase 2 (2026-05-14).
+
+**Description** : POC interne (PAS public) pour valider la pertinence d'une IA conversationnelle sur le catalogue Terrassea réel. Objectifs : mesurer pertinence (% cas testés), identifier hallucinations, évaluer coût LLM réel, décider GO/NO-GO lancement public (Dette 95).
+
+**Triggers** :
+- 25+ marques actives
+- 1 000+ produits matures
+- Quick Quote Wizard (Dette 92) a généré 100+ requêtes pour data intentions
+- Founder bandwidth dispo 1-2 semaines exploration
+
+**Critères de réussite (pour passer Phase 3)** :
+- Pertinence > 80 % cas testés
+- Hallucinations < 5 % (eval rigoureux)
+- Coût LLM justifiable vs GMV
+
+**Effort** : 1-2 semaines exploration.
+
+**Priorité** : Niveau 2 — décision GO/NO-GO lancement public.
+
+**Statut** : à planifier Phase 2 (25-50 marques).
+
+### Dette 95 — Multi-provider LLM architecture ⏳ Priorité Moyenne
+
+**Origine** : `docs/strategy/AI_CONVERSATIONAL_ROADMAP.md` — Phase 3 (2026-05-14).
+
+**Description** : Architecture multi-provider dès le lancement public IA conversationnelle (Anthropic Claude principal + Mistral Large EU fallback). Évite la dépendance unique provider et permet l'optimisation coûts par routing intelligent.
+
+**Triggers** : Phase 3 (lancement public IA).
+
+**Critères de design** :
+- Abstraction provider (interface unique)
+- Fallback automatique si provider down
+- Cache intelligent réponses fréquentes
+- Monitoring coûts par provider
+
+**Effort** : 3-5 jours architecture.
+
+**Priorité** : Niveau 3.
+
+**Statut** : à planifier Phase 3 (50+ marques, post-POC réussi).
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
