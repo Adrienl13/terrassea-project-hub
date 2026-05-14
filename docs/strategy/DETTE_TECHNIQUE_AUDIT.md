@@ -1435,7 +1435,7 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
   - `ProductGallery.tsx` image principale : `width=800 + srcSet [400, 800, 1200, 1600] + loading=eager + fetchPriority=high`. Thumbnails : `width=128 height=128 resize=cover`.
 - 640 tests (629 + 11 nouveaux) passing.
 
-### Dette 98 — Mobile Perf Lot 3 (Moyen) ⏳ Priorité Basse
+### Dette 98 — Mobile Perf Lot 3 (Moyen) ✅ FIXED 2026-05-14
 
 **Origine** : `docs/strategy/MOBILE_PERFORMANCE_AUDIT.md` (2026-05-14).
 
@@ -1445,11 +1445,22 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 - Setup Lighthouse CI + budgets perf (`.lighthouserc.json`).
 - Audit alternatives `framer-motion` 129 KB si critique.
 
-**Effort** : ~3-5 h.
+**Effort réel** : ~45 min.
 
-**Priorité** : Niveau 4 (post Lots 1+2 stabilisés).
+**Statut** : **✅ FIXED 2026-05-14**.
 
-**Statut** : à fixer après Lots 1+2.
+**Fix livré** :
+- `rollup-plugin-visualizer` installé en devDependency. Plugin Vite opt-in via `ANALYZE=1 bun run build` → produit `dist/stats.html` (treemap interactif).
+- Script `bun run build:analyze` ajouté au `package.json`.
+- **Audit visualizer a immédiatement révélé le coupable** : les 4 locales i18n (en/fr/es/it) statiquement importées dans `src/i18n/index.ts` représentaient **1 067 KB raw / 286 KB gzip** dans `index.js` — 86 % du bloat.
+- `src/i18n/index.ts` refactoré pour lazy-load les locales via `import("./locales/{lng}.json")` dynamique. Bootstrap synchrone avec bundle vide, locale active fetchée immédiatement, autres locales chargées au changement de langue.
+- **Résultat** : `index.js` passé de **1 101 KB → 100 KB = -91 %**. Chaque locale devient un chunk séparé (240-260 KB raw / 68-74 KB gzip) chargé à la demande.
+- Lighthouse CI configuré (`.lighthouserc.json`) avec budgets perf 75 %, a11y 85 %, BP 85 %, SEO 90 %, LCP 4000ms, CLS 0.1. Script `bun run audit:lighthouse` (nécessite installation `@lhci/cli` quand utilisé).
+- 640 tests passing.
+
+**Ne pas faire post-Lot 3** :
+- `framer-motion` 129 KB : utilisé partout, alternative non triviale, gain limité par rapport à l'effort. Out of scope.
+- Manual chunks vendor recharts / pdf : déjà optimaux. Vendor chunks restent grands mais lazy-loadés (account / admin / pdf).
 
 ### Dette 99 — Activer Supabase Pro pour image transforms 🟠 En attente
 
