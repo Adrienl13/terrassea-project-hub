@@ -310,11 +310,37 @@ partner-cgv/
 - Placeholders à compléter founder : `[SIREN]`, `[adresse]`, `[forme juridique]`, ville
 - Migration `terrassea_terms` v1 = Phase 2 (à venir)
 
-### Phase 2 — Migrations DB + Storage (1 jour)
-- 4 tables (partner_cgv, partner_cgv_metadata, cgv_acceptances, terrassea_terms)
-- RLS policies
-- Bucket Storage `partner-cgv` + politiques
-- Edge Function `convert-docx-to-pdf` (ou capture dette si trop complexe)
+### Phase 2 — Migrations DB + Storage ✅ LIVRÉE 2026-05-14
+
+**Phase 2.0 — Pré-requis Dette 101** : `partners.deleted_at` + refactor RPC `delete_partner_cascade` en soft-delete + RLS public partners filtre `deleted_at IS NULL`. Migration `20260514130000_dette_101_partners_soft_delete.sql`.
+
+**Phase 2.1 — Schema CGV** : 4 tables créées avec RLS + indexes + contraintes.
+- `terrassea_terms` : version int + `git_commit_sha` + `fr_source_path` / `en_source_path` (git-tracked, pas de duplication Storage) + `fr_sha256` / `en_sha256` + `legal_review_status` + `published_at`.
+- `partner_cgv` : versioning per-partner avec `sha256`, contrainte unique partielle "un seul active par partner", contrainte mime_type PDF only (Dette 100).
+- `partner_cgv_metadata` : cache dénormalisé maintenu par trigger `sync_partner_cgv_metadata` (SECURITY DEFINER + search_path hardened).
+- `cgv_acceptances` : journal d'audit immuable, INSERT/UPDATE/DELETE révoqués → seul le RPC `record_cgv_acceptance` (SECURITY DEFINER + search_path hardened) peut écrire. Capte `ip_address` + `user_agent` serveur via `request.headers` PostgREST. RGPD : `user_id ON DELETE SET NULL`.
+- Bucket Storage `partner-cgv` privé, PDF only, 25 MB max. Policies owner upload/read own subfolder + admin all. Lecture buyers = via signed URL Phase 3 (Dette 103 audit log).
+- Migration `20260514140000_cgv_phase_2_1_tables.sql` + hotfix `20260514150500_cgv_phase_2_1_hotfix_revoke_trigger_fn.sql` (REVOKE EXECUTE sur trigger fn).
+
+**Phase 2.2 — Bootstrap v1** : INSERT initial dans `terrassea_terms` pour v1.0 livrée 2026-05-14. Migration `20260514150000_cgv_phase_2_2_bootstrap_terrassea_terms_v1.sql`.
+- `git_commit_sha = 634b5e985fa24aa1b01ea3ad6fbdc2c669dc4414` (rename FR + ajout EN).
+- `fr_sha256 = 22f903204fef...c951358d93`, `en_sha256 = 6685ff34c409...df38c64eb1`.
+- `legal_review_status = self_validated` (Dette 78 lawyer review pending).
+
+**Décisions founder 7/7 Q ouvertes** (cf. session journal 2026-05-14) :
+1. Versioning Terrassea Terms : GIT (storage_path = chemin relatif, sha256 vérification d'intégrité)
+2. Read CGV publique : `status='active'` PUBLIC (obligation EU L.111-7 + pattern industrie + SEO)
+3. REVOKE INSERT sur cgv_acceptances + RPC unique : OK
+4. RGPD user_id SET NULL : OK, anonymisation fine = Dette 102 sur trigger volume
+5. Soft-delete partners + refactor Dette 101 : LIVRÉ
+6. Bootstrap row : migration 2.2 séparée
+7. Edge Function get-signed-cgv-url : Phase 3 (Dette 103 audit log obligatoire avant Vague 2)
+
+**Dettes filles capturées** :
+- Dette 100 : DOCX → PDF différée Phase 3+
+- Dette 101 : Partners soft-delete (FIXED DB+RPC+AdminPartners, follow-up admin lists)
+- Dette 102 : Anonymisation fine cgv_acceptances RGPD
+- Dette 103 : `cgv_url_grants` audit log signed URLs (obligatoire avant Vague 2)
 
 ### Phase 3 — Components frontend (1 jour)
 - `PartnerCGVUploadForm.tsx`

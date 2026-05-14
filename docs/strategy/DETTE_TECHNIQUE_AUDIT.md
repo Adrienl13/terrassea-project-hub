@@ -1547,6 +1547,89 @@ Le helper `getOptimizedImageUrl` (`src/utils/imageOptimization.ts`) dépend de l
 
 **Statut** : différé Phase 3+. `partner_cgv.mime_type = 'application/pdf'` enforce la contrainte au niveau DB.
 
+### Dette 101 — Partners soft-delete (FIXED côté DB + RPC, frontend admin lists à propager) 🟡 Phase RPC livrée
+
+**Origine** : Phase 2 CGV migration (Q5 founder 2026-05-14). Le RPC `delete_partner_cascade` (Dette 75 Lot 2, 2026-05-13) faisait du hard-delete. L'arrivée de Phase 2 CGV impose le soft-delete (`cgv_acceptances.partner_cgv_id ON DELETE RESTRICT` + `partner_cgv.partner_id ON DELETE CASCADE` rendent hard-delete impossible dès qu'une acceptance existe).
+
+**Livré 2026-05-14** :
+- Migration `20260514130000_dette_101_partners_soft_delete.sql` appliquée.
+- `partners.deleted_at timestamptz` ajouté + index partiel `WHERE deleted_at IS NULL`.
+- RLS "Public partners are readable" mise à jour : `USING (is_public = true AND deleted_at IS NULL)`.
+- RPC `delete_partner_cascade` refactoré : `UPDATE deleted_at = now()` au lieu de hard-delete. Retourne `{ success, partner_id, partner_name, soft_deleted_at, mode: 'soft_delete' }`.
+- Frontend `src/components/admin/AdminPartners.tsx:232-250` adapté : message confirmation + toast remplacés par "Archiver / archivé".
+
+**Résiduel à propager (follow-up)** :
+- Queries admin qui listent les partners (AdminAnalytics, AdminBrandManagement, AdminPartnerVisibility, AdminSubscriptions) montrent actuellement aussi les soft-deleted. Décision pragmatique : admin doit pouvoir voir les archivés. Filtrer uniquement si UX dit l'inverse plus tard.
+- Tests : essayer hard-delete via SQL direct sur un partner avec acceptances → doit échouer (RESTRICT). Couverture à ajouter si Vague 2 atteinte.
+- Optionnel : RPC `hard_delete_partner_cascade` avec admin guard + check "aucune acceptance/order/transaction" pour cas RGPD légal exceptionnel. Non implémenté v1.
+
+**Pattern** : SECURITY DEFINER + search_path hardened (Bug #1 / Dette 75 / Dette 74).
+
+**Statut** : DB + RPC + AdminPartners FIXED. Follow-ups optionnels capturés.
+
+### Dette 102 — Mécanisme anonymisation fine cgv_acceptances RGPD 🟢 Différée (déclenchement volume)
+
+**Origine** : Décision founder Phase 2 CGV (Q4 — 2026-05-14). `cgv_acceptances.user_id ON DELETE SET NULL` conserve la preuve d'acceptation pour obligations légales (L.123-22 Code commerce + DSA Art. 14) au prix d'une anonymisation grossière (seul `user_id` devient null, `ip_address` et `user_agent` restent).
+
+**Décision provisoire** :
+- Phase 1 (actuel) : `SET NULL` suffisant. Pattern Stripe / Etsy validé.
+- Phase fine à activer si seuil déclenché.
+
+**Triggers de réévaluation** :
+- ≥ 100 demandes RGPD effacement/an (volumétrie justifiant ROI).
+- Demande CNIL ou enquête formelle pointant le pattern actuel.
+- Acquisition / audit pré-fundraise exigeant best-practice RGPD stricte.
+
+**Mécanisme cible à l'activation** :
+- Trigger AFTER UPDATE OF user_id sur `cgv_acceptances` : si `OLD.user_id IS NOT NULL AND NEW.user_id IS NULL`, alors :
+  - `ip_address = subnet_mask(ip_address, 24)` (garde le /24 pour stats, perd identification individuelle)
+  - `user_agent = regexp_replace(user_agent, '\\d+', 'X', 'g')` (perd versions précises mais garde famille)
+- Ou table séparée `cgv_acceptances_anonymized` avec ces transformations à l'insert.
+
+**Effort estimé** : 0.5 jour (trigger + tests).
+
+**Priorité** : Niveau 3 — déclenchée par volume / audit externe.
+
+**Statut** : différé, mécanisme défini, conditions de déclenchement explicites.
+
+### Dette 103 — cgv_url_grants audit log signed URLs 🟠 Obligatoire avant Vague 2
+
+**Origine** : Décision founder Phase 2 CGV (Q7 — 2026-05-14). Edge Function `get-signed-cgv-url` (Phase 3) générera des URLs signées Storage pour permettre aux buyers de consulter les CGV PDF d'une marque. Sans log, aucune trace de qui a consulté quoi et quand → faille audit + risque légal si litige.
+
+**Décision** :
+- Phase 3 MVP : Edge Function peut livrer sans audit table dans un premier temps si timing serré.
+- **Obligatoire avant Vague 2 transactionnelle** : sans log, on ne peut pas prouver qu'un buyer a consulté les CGV avant son order (DSA + L.111-7 Code conso).
+
+**Schéma envisagé** :
+```sql
+CREATE TABLE public.cgv_url_grants (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES public.user_profiles(id) ON DELETE SET NULL,
+  partner_cgv_id uuid NOT NULL REFERENCES public.partner_cgv(id) ON DELETE RESTRICT,
+  partner_id uuid NOT NULL REFERENCES public.partners(id) ON DELETE SET NULL,
+  signed_url_hash text NOT NULL,  -- sha256 de l'URL, pas l'URL en clair
+  ip_address inet NOT NULL,
+  user_agent text NOT NULL,
+  ttl_seconds int NOT NULL,
+  expires_at timestamptz NOT NULL,
+  granted_at timestamptz NOT NULL DEFAULT now()
+);
+-- RLS : SELECT user own + partner own + admin all ; INSERT via Edge Function uniquement
+```
+
+**Edge Function pattern (à implémenter Phase 3)** :
+- Auth required (rejette sans `Authorization: Bearer`)
+- TTL default **60 s** (décision Q7 founder — pattern Stripe sécurité)
+- TTL max 3600 s
+- Rate limiting : 10 req/user/min, 100 req/user/day (à enforcer côté Edge Function ou via Cloudflare WAF)
+- Insert dans `cgv_url_grants` avant retour URL
+
+**Effort estimé** : 0.5 jour (table + RLS + integration Edge Function).
+
+**Priorité** : Niveau 2 — obligatoire avant Vague 2.
+
+**Statut** : différé Phase 3+, schéma défini, conditions de mise en œuvre explicites.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)

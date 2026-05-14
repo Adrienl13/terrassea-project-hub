@@ -230,21 +230,20 @@ export default function AdminPartners() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer définitivement ce partenaire et toutes ses données associées ? Cette action est irréversible.")) return;
-    // Single atomic RPC handles all 8 NO ACTION FK cleanups + the
-    // products.owner_brand_id RESTRICT case (which the previous frontend
-    // code missed) + the final partner DELETE. PostgreSQL rolls back the
-    // entire transaction if any step fails. (Dette 75 Lot 2)
+    if (!confirm("Archiver ce partenaire ? Le partner sera masqué côté public mais conservé en base pour intégrité audit (CGV, historique, transactions).")) return;
+    // Soft-delete (Dette 101 + Phase 2 CGV) : UPDATE deleted_at = now().
+    // Préserve toutes les FK descendantes (orders, products, cgv_acceptances)
+    // pour intégrité du journal d'audit légal. Pattern industrie marketplace.
     const { data, error } = await supabase.rpc("delete_partner_cascade", {
       p_partner_id: id,
     });
     if (error) {
       console.error("[delete_partner_cascade]", error);
-      toast.error("Erreur lors de la suppression : " + (error.message || ""));
+      toast.error("Erreur lors de l'archivage : " + (error.message || ""));
       return;
     }
-    const payload = (data ?? {}) as { partner_name?: string };
-    toast.success(`Partenaire « ${payload.partner_name ?? "—"} » supprimé définitivement`);
+    const payload = (data ?? {}) as { partner_name?: string; mode?: string };
+    toast.success(`Partenaire « ${payload.partner_name ?? "—"} » archivé`);
     invalidatePartnerCaches();
     setView("list");
   };
