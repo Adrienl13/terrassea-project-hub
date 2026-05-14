@@ -1093,7 +1093,20 @@ Aucun caller dans la codebase n'invoque `auto-workflow` avec ces actions :
 
 **Référence détaillée** : `docs/strategy/CGV_STRATEGY.md` (11 sections, architecture + plan opérationnel + risques).
 
-**Statut** : cadrage stratégique fait, implémentation à planifier après stabilisation Vague 1.
+**Statut** : cadrage stratégique fait, **Phase 1 (rédaction cadre v1) LIVRÉE 2026-05-14**.
+
+**Phase 1 livrée 2026-05-14** :
+- Fichier `legal/terrassea-terms-v1.md` créé. 5 blocs complets (A statut juridique / B droits consommateur / C RGPD / D recours et juridiction / E responsabilité Terrassea) + Bloc F dispositions communes + 3 annexes (formulaire rétractation, lexique, contact).
+- Langue autoritative : français. Périmètre B2B + B2C. Statut `self_validated`.
+- Mentions provisoires Vague 1 explicites : Founding Partner pré-commercial, médiateur conso à désigner avant Vague 2, DPO formel à désigner. Statut juridique du document clairement indiqué (non revu par avocat).
+- Placeholders à compléter par founder : `[SIREN]`, `[adresse]`, `[forme juridique]`, ville du siège, médiateur agréé final.
+- Inspiration assumée : Stripe Connect Terms (structure) + Etsy Seller Policy (clarté).
+
+**Phases restantes** :
+- Phase 2 : migrations DB (4 tables : `partner_cgv`, `partner_cgv_metadata`, `cgv_acceptances`, `terrassea_terms`) + bucket Storage `partner-cgv` + RLS — ~1 j.
+- Phase 3 : 4 composants frontend (PartnerCGVUploadForm, PartnerCGVViewer, CGVAcceptanceCheckbox, AdminCGVOverview) — ~1 j.
+- Phase 4 : tests + déploiement + migration Founding Partners actuels — ~0,5 j.
+- Phase 5 : adhésion médiateur conso agréé avant Vague 2.
 
 ### Dette 78 — Consultation avocat marketplace EU 🔴 Critique avant volume
 

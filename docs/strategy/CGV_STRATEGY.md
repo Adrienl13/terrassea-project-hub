@@ -302,11 +302,12 @@ partner-cgv/
 
 ## 5. Plan d'implémentation
 
-### Phase 1 — Rédaction cadre Terrassea v1 (1-2 jours)
-- Drafter le markdown du cadre Blocs A+B+C+D+E
-- S'inspirer de Stripe Connect Terms / Etsy Terms
-- Mention claire : `legal_review_status: self_validated`
-- Migration `terrassea_terms` v1
+### Phase 1 — Rédaction cadre Terrassea v1 ✅ LIVRÉE 2026-05-14
+- Fichier : `legal/terrassea-terms-v1.md` (5 blocs A+B+C+D+E + F + 3 annexes, FR, B2B+B2C, `self_validated`)
+- Inspiré Stripe Connect Terms (structure) + Etsy Seller Policy (clarté)
+- Mentions provisoires Vague 1 préservées (Founding Partner, médiateur à désigner, DPO formel à désigner)
+- Placeholders à compléter founder : `[SIREN]`, `[adresse]`, `[forme juridique]`, ville
+- Migration `terrassea_terms` v1 = Phase 2 (à venir)
 
 ### Phase 2 — Migrations DB + Storage (1 jour)
 - 4 tables (partner_cgv, partner_cgv_metadata, cgv_acceptances, terrassea_terms)
