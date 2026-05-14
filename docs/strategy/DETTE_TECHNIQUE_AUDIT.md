@@ -1451,6 +1451,62 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Statut** : à fixer après Lots 1+2.
 
+### Dette 99 — Activer Supabase Pro pour image transforms 🟠 En attente
+
+**Origine** : Mobile Performance Lot 2 (commit `f877947`, 2026-05-14). Décision founder : rester Free tier pour le moment (cash discipline), helper prêt à activer.
+
+**Description** :
+Le helper `getOptimizedImageUrl` (`src/utils/imageOptimization.ts`) dépend de l'API **Supabase Render Image** (`/storage/v1/render/image/`), disponible **uniquement à partir du plan Supabase Pro** (~25 $/mois).
+
+| Mode | Comportement |
+|---|---|
+| **Free tier** (actuel) | Endpoint `/render/image/` retourne l'image originale → helper agit en **no-op gracieux**. Aucune régression, aucun gain. |
+| **Pro tier** (futur) | Transformations webp/resize/quality actives → **-95 % à -99 % du payload images** sans aucun changement de code. |
+
+**Triggers d'activation prévus** :
+- Trafic confirmé > 50 visiteurs uniques /jour
+- Transactions Vague 2 démarrées (commissions justifient le coût)
+- Besoin d'autres features Pro : daily backups (résilience production marketplace EU), database snapshots, support prioritaire
+
+**Plan d'activation (5 étapes — pour ne pas réfléchir au moment du switch)** :
+
+1. **Upgrade plan** dans Supabase Dashboard → Pro ~25 $/mois.
+
+2. **Test endpoint** Render Image :
+   ```
+   https://gwgcfgeouropcighpztj.supabase.co/storage/v1/render/image/public/product-images/products/angel-001-1774965572766-1.jpg?width=400&format=webp&quality=80
+   ```
+   Doit servir l'image webp 400px optimisée (~30-50 KB vs ~MB).
+
+3. **Vérifier visuel prod** sur navigateur mobile :
+   - Ouvrir `/products`
+   - DevTools → Network → filtrer Images
+   - Colonne `Type` : `webp` attendu
+   - Colonne `Size` : ~30-50 KB par carte (vs ~MB en Free)
+
+4. **Mesurer impact Lighthouse mobile** sur `/products` et `/products/:id` :
+   - **LCP** : baisse attendue de -1 à -2 secondes
+   - **Total page weight** : -90 % et plus
+
+5. **Surveiller quota Render Image** :
+   - Pro inclut un quota gratuit de transformations.
+   - Au-delà : ~10 $ / million de transformations.
+   - Estimation conservatrice : 100 visiteurs/jour × 20 images = 2 000 transformations/jour = 60 000/mois → très en dessous des quotas Pro standard.
+
+**Dépendances** :
+- Lot 3 Mobile Performance (Dette 98) : `rollup-plugin-visualizer` audit peut bénéficier d'un profilage prod réel post-Pro.
+
+**Note historique** :
+- 14 mai 2026 : helper Lot 2 livré (commit `f877947`) ; founder décide rester Free.
+- Helper en "no-op safe" jusqu'à activation Pro.
+- Aucun travail dev nécessaire au moment du switch — l'optimisation s'active automatiquement.
+
+**Effort réel au moment de l'activation** : ~1 h (upgrade dashboard + tests + monitoring quota).
+
+**Priorité** : Niveau 2 — bloquant le ROI mobile performance Lot 2.
+
+**Statut** : capturé, à activer selon triggers ci-dessus.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)

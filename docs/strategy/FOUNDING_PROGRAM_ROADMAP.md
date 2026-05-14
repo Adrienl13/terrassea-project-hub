@@ -135,8 +135,21 @@ Transitions **réversibles** : on peut rebasculer `full → launch` à tout mome
 - **Dette 68** : Anti-fraude points (rate-limit, dédup invitations, modération manuelle pour Q&A).
 - **Dette 69** : Algorithm boost ranking ordering `partners` listing en Vague 3.
 - **Dette 70** : Migration légère `partners.is_founding` + `founding_joined_at` à isoler (Vague 2 amorce).
+- **Dette 99** : **Activation Supabase Pro** prévue à la bascule Vague 2 — débloque le ROI Mobile Perf Lot 2 (image transforms) + daily backups + database snapshots (résilience production marketplace EU). ~25 $/mois. Helper d'optimisation images déjà en place (commit `f877947`), bascule = zéro changement de code.
 
 Ces dettes sont également listées dans `DETTE_TECHNIQUE_AUDIT.md` pour traçabilité unifiée.
+
+## Infrastructure requise pour Vague 2 transactionnelle
+
+| Composant | Free actuel | Pro requis | Note |
+|---|---|---|---|
+| Database backups quotidiens | ❌ | ✅ | Résilience marketplace EU |
+| Render Image API | ❌ (no-op) | ✅ | Mobile Perf Lot 2 (Dette 97 + 99) |
+| Support email prioritaire | ❌ | ✅ | Réactivité incidents |
+| Database snapshots | limité | ✅ | Recovery time réduit |
+| Coût mensuel | 0 $ | ~25 $ | Cf. Dette 99 |
+
+L'upgrade Supabase Pro est tracé comme **Dette 99**, déclenchée au démarrage transactionnel Vague 2 (commissions justifient le coût).
 
 ---
 

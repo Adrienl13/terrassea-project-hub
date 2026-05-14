@@ -312,8 +312,41 @@ Estimation conservatrice pour un device mobile 4G moyen (5-10 Mbps).
 
 ---
 
+## ⚠️ Note importante — Supabase Pro requis pour le ROI Lot 2
+
+Le **Lot 2** (helper `getOptimizedImageUrl`, commit `f877947`) nécessite **Supabase Pro tier (~25 $/mois)** pour bénéficier des optimisations Render Image API. La capture est suivie via **Dette 99** dans `DETTE_TECHNIQUE_AUDIT.md`.
+
+### Mode actuel (14 mai 2026) — Supabase Free tier
+
+- Helper en place dans le code (`src/utils/imageOptimization.ts`)
+- Endpoint `/storage/v1/render/image/` retourne l'image originale (Free ne le gère pas)
+- **Aucun ROI immédiat mais aucune régression** : helper en no-op gracieux
+- Tests 640/640 OK
+- Helper se comporte aussi en no-op pour toutes URLs non-Supabase (CDN externes, placeholders)
+
+### Mode futur — Supabase Pro tier
+
+- **Activation simple** : upgrade dans Dashboard
+- **Aucun changement de code nécessaire** — l'optimisation s'active automatiquement
+- ROI immédiat : -95 % à -99 % du payload images
+- LCP mobile : -1 à -2 s additionnels
+
+### Triggers d'activation prévus
+
+1. Trafic confirmé > 50 visiteurs uniques /jour
+2. Transactions Vague 2 démarrées (commissions justifient le coût)
+3. Besoin d'autres features Pro : daily backups (résilience production marketplace EU), support prioritaire
+
+### Référence détaillée
+→ **Dette 99** dans `DETTE_TECHNIQUE_AUDIT.md` pour le plan d'activation en 5 étapes.
+
+---
+
 ## 12. Historique
 
 | Date | Auteur | Modification |
 |---|---|---|
 | 14 mai 2026 | Adrien Laniez + Claude | Audit initial — 3 lots cartographiés |
+| 14 mai 2026 | Adrien Laniez + Claude | Lot 1 livré (pdf-lib lazy + img lazy) — Dette 96 ✅ |
+| 14 mai 2026 | Adrien Laniez + Claude | Lot 2 livré (getOptimizedImageUrl helper) — Dette 97 ✅ |
+| 14 mai 2026 | Adrien Laniez + Claude | Capture Dette 99 — Supabase Pro activation pending pour ROI Lot 2 |
