@@ -28,6 +28,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import type { DBProduct } from "@/lib/products";
 import { urlForProduct } from "@/lib/productRoutes";
 import { useFavourites } from "@/contexts/FavouritesContext";
+import { getOptimizedImageUrl } from "@/utils/imageOptimization";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -676,7 +677,7 @@ function ProductListCard({ product, onAdd, isBrandProduct }: { product: DBProduc
       <Link to={`/products/${product.id}`} className="flex-shrink-0">
         <div className="w-24 h-24 overflow-hidden bg-white rounded-sm">
           <img
-            src={product.image_url || "/placeholder.svg"}
+            src={getOptimizedImageUrl(product.image_url, { width: 200, height: 200, resize: "contain" }) || "/placeholder.svg"}
             alt={localName}
             className="w-full h-full object-contain p-1 mix-blend-multiply"
             loading="lazy"

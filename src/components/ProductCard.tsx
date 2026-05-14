@@ -9,6 +9,7 @@ import { ml } from "@/lib/i18nFields";
 import { useProjectCart } from "@/contexts/ProjectCartContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
+import { getOptimizedImageUrl, getResponsiveSrcSet } from "@/utils/imageOptimization";
 import { toast } from "sonner";
 
 const STOCK_DOT: Record<string, { dot: string; label: string }> = {
@@ -55,7 +56,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <Link to={urlForProduct(product, product.owner_brand_slug)} className="block">
         <div className="aspect-square overflow-hidden bg-card rounded-sm mb-4 relative">
           <img
-            src={product.image_url || "/placeholder.svg"}
+            src={getOptimizedImageUrl(product.image_url, { width: 400 }) || "/placeholder.svg"}
+            srcSet={getResponsiveSrcSet(product.image_url, [400, 800])}
             alt={localName}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"

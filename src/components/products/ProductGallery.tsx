@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { getOptimizedImageUrl, getResponsiveSrcSet } from "@/utils/imageOptimization";
 
 interface Props {
   mainImage: string | null;
@@ -56,11 +57,15 @@ export default function ProductGallery({
 
   return (
     <div>
-      {/* Main image */}
+      {/* Main image — above-the-fold on /products/:id, served eager + high priority */}
       <div className="aspect-[4/5] overflow-hidden bg-white rounded-sm mb-4">
         <img
-          src={displayImage}
+          src={getOptimizedImageUrl(displayImage, { width: 800 }) || displayImage}
+          srcSet={getResponsiveSrcSet(displayImage, [400, 800, 1200, 1600])}
+          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 600px"
           alt={productName}
+          loading="eager"
+          fetchPriority="high"
           className="w-full h-full object-contain p-4 mix-blend-multiply transition-all duration-300"
         />
       </div>
@@ -88,7 +93,7 @@ export default function ProductGallery({
                 }`}
               >
                 <img
-                  src={url}
+                  src={getOptimizedImageUrl(url, { width: 128, height: 128, resize: "cover" }) || url}
                   alt=""
                   className="w-full h-full object-cover"
                   loading="lazy"

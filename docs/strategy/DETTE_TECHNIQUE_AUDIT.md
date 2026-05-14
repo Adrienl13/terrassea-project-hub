@@ -1414,7 +1414,7 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Statut** : à fixer.
 
-### Dette 97 — Mobile Perf Lot 2 (Élevé) 🟠 Priorité Moyenne
+### Dette 97 — Mobile Perf Lot 2 (Élevé) ✅ FIXED 2026-05-14
 
 **Origine** : `docs/strategy/MOBILE_PERFORMANCE_AUDIT.md` (2026-05-14).
 
@@ -1422,11 +1422,18 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 
 **Gain estimé** : -50 à -90 % du payload images sur mobile (iPhone reçoit 400×400 webp au lieu de 1920×1920 png).
 
-**Effort** : ~2-3 h.
+**Effort réel** : ~25 min.
 
-**Priorité** : Niveau 3.
+**Statut** : **✅ FIXED 2026-05-14**.
 
-**Statut** : à fixer après Lot 1.
+**Fix livré** :
+- Helper `src/utils/imageOptimization.ts` (`getOptimizedImageUrl` + `getResponsiveSrcSet`). Convertit les URLs Supabase `/storage/v1/object/` en `/storage/v1/render/image/` avec params `width=X&format=webp&quality=80`. URLs non-Supabase retournées telles quelles (safe fallback).
+- 11 tests unitaires (`src/test/imageOptimization.test.ts`).
+- Appliqué à 3 callsites critiques :
+  - `ProductCard.tsx` (cartes catalogue grid) : `width=400 + srcSet [400, 800]`.
+  - `ProductListCard` (catalogue list view) : `width=200 height=200 resize=contain` (96×96 visuel).
+  - `ProductGallery.tsx` image principale : `width=800 + srcSet [400, 800, 1200, 1600] + loading=eager + fetchPriority=high`. Thumbnails : `width=128 height=128 resize=cover`.
+- 640 tests (629 + 11 nouveaux) passing.
 
 ### Dette 98 — Mobile Perf Lot 3 (Moyen) ⏳ Priorité Basse
 
