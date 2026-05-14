@@ -150,7 +150,7 @@ const Index = () => {
       <Header />
 
       {/* ── HERO ──────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative flex flex-col items-center md:min-h-screen md:justify-center px-6 pt-20 pb-16 md:pb-0 overflow-hidden">
+      <section ref={heroRef} className="relative flex flex-col items-center md:min-h-screen md:justify-center px-6 pt-12 md:pt-20 pb-16 md:pb-0 overflow-hidden">
 
         {/* Atmospheric background */}
         <div className="absolute inset-0 pointer-events-none">
