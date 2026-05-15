@@ -700,6 +700,67 @@ export type Database = {
           },
         ]
       }
+      cgv_url_grants: {
+        Row: {
+          expires_at: string
+          granted_at: string
+          id: string
+          ip_address: unknown
+          partner_cgv_id: string
+          partner_id: string | null
+          signed_url_hash: string
+          ttl_seconds: number
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          expires_at: string
+          granted_at?: string
+          id?: string
+          ip_address?: unknown
+          partner_cgv_id: string
+          partner_id?: string | null
+          signed_url_hash: string
+          ttl_seconds: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          expires_at?: string
+          granted_at?: string
+          id?: string
+          ip_address?: unknown
+          partner_cgv_id?: string
+          partner_id?: string | null
+          signed_url_hash?: string
+          ttl_seconds?: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cgv_url_grants_partner_cgv_id_fkey"
+            columns: ["partner_cgv_id"]
+            isOneToOne: false
+            referencedRelation: "partner_cgv"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cgv_url_grants_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cgv_url_grants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbot_conversations: {
         Row: {
           created_at: string | null

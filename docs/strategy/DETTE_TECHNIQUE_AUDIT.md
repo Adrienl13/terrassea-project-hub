@@ -1592,7 +1592,7 @@ Le helper `getOptimizedImageUrl` (`src/utils/imageOptimization.ts`) dépend de l
 
 **Statut** : différé, mécanisme défini, conditions de déclenchement explicites.
 
-### Dette 103 — cgv_url_grants audit log signed URLs 🟠 Obligatoire avant Vague 2
+### Dette 103 — cgv_url_grants audit log signed URLs ✅ FIXED 2026-05-15
 
 **Origine** : Décision founder Phase 2 CGV (Q7 — 2026-05-14). Edge Function `get-signed-cgv-url` (Phase 3) générera des URLs signées Storage pour permettre aux buyers de consulter les CGV PDF d'une marque. Sans log, aucune trace de qui a consulté quoi et quand → faille audit + risque légal si litige.
 
@@ -1624,13 +1624,16 @@ CREATE TABLE public.cgv_url_grants (
 - Rate limiting : 10 req/user/min, 100 req/user/day (à enforcer côté Edge Function ou via Cloudflare WAF)
 - Insert dans `cgv_url_grants` avant retour URL
 
-**Effort estimé** : 0.5 jour (table + RLS + integration Edge Function).
+**Livré 2026-05-15** :
+- Migration `20260515130000_dette_103_cgv_url_grants.sql` appliquée.
+- Table `cgv_url_grants` : `id, user_id, partner_cgv_id (FK RESTRICT), partner_id, signed_url_hash (sha256, jamais URL en clair), ip_address, user_agent, ttl_seconds, expires_at, granted_at`.
+- 3 indexes partiels (user, partner, partner_cgv).
+- RLS : user SELECT own, partner owner SELECT own, admin SELECT all. INSERT/UPDATE/DELETE révoqués anon + authenticated → seul service-role peut écrire.
+- Edge Function `get-signed-cgv-url` re-déployée en v2 : audit log inséré après génération URL signée. Hash sha256(signedUrl) stocké, IP via `x-forwarded-for`/`x-real-ip`, user_agent via header. Échec d'audit ≠ panne fonctionnelle (log warn, return URL quand même — defense in depth).
 
-**Priorité** : Niveau 2 — obligatoire avant Vague 2.
+**Statut** : ✅ FIXED. Toute consultation CGV est désormais journalisée immuable.
 
-**Statut** : différé Phase 3+, schéma défini, conditions de mise en œuvre explicites.
-
-### Dette 104 — PartnerCGVViewer + CGVAcceptanceCheckbox 🟡 Partial FIX (viewer livré, CGVAcceptanceCheckbox résiduel)
+### Dette 104 — PartnerCGVViewer + CGVAcceptanceCheckbox ✅ FIXED 2026-05-15
 
 **Origine** : Phase 3 MVP CGV (2026-05-15).
 
@@ -1640,17 +1643,21 @@ CREATE TABLE public.cgv_url_grants (
 - Intégration `AdminCGVOverview.tsx` : boutons "Voir" sur les partners configurés (current_cgv_id NOT NULL).
 - RPC + smart delete livrés en parallèle (cf. Dette 104 delete et migration `20260515120000_dette_104_partner_cgv_smart_delete.sql`).
 
-**Résiduel pour Vague 2** :
-- `CGVAcceptanceCheckbox.tsx` — case à cocher avant signature devis / placement commande. Appelle RPC `record_cgv_acceptance(context='quote_signature' | 'order_placement', partner_cgv_id, context_reference_id)`. Bloque submit tant que non cochée. Intégration cart + checkout + quote flow.
-- Dépend Dette 103 (cgv_url_grants audit log signed URLs) pour traçabilité consultation pré-acceptation.
+**Livré 2026-05-15 (Phase 3 final)** :
+- `src/components/common/CGVAcceptanceCheckbox.tsx` — composant réutilisable contrôlé avec :
+  - Checkbox + label customisable (default : "J'accepte les CGV de {partnerName}")
+  - Bouton "Voir CGV" intégré → ouvre `PDFViewerModal` via Edge Function signed URL
+  - Sur check → appel RPC `record_cgv_acceptance(p_acceptance_type='partner_cgv', p_context, p_partner_cgv_id, p_context_reference_id)` qui capte IP + UA serveur (anti-spoof client)
+  - Sur succès → set checked + `onAcceptedChange(true)`. Sur échec → revert + toast.
+  - Décocher = toggle UI uniquement (preuve immuable conservée).
+- Props : `partnerCgvId, partnerName, context, contextReferenceId?, onAcceptedChange?, disabled?, label?`.
+- Le parent gère son submit via la callback `onAcceptedChange`. Le composant n'impose rien.
 
-**Pré-requis Vague 2** : Dette 103 audit log + intégration buyer flow.
+**Intégration buyer flow (Vague 2 — out of scope MVP)** :
+- Cart / Checkout : embedder le composant avec `context='order_placement'` + `contextReferenceId={orderId}`.
+- Quote signature : `context='quote_signature'` + `contextReferenceId={quoteId}`.
 
-**Effort estimé résiduel** : 0.5 jour (CGVAcceptanceCheckbox + intégration cart + checkout + tests).
-
-**Priorité** : Niveau 2 — obligatoire avant Vague 2 (sans acceptance prouvée, achat non conforme DSA + L.111-7).
-
-**Statut** : Viewer LIVRÉ. CGVAcceptanceCheckbox différé Vague 2.
+**Statut** : ✅ FIXED. Composant réutilisable livré. Intégration buyer flows = Vague 2 quand cart/checkout/quote signature seront actifs.
 
 ### Dette 104b — RPC delete_partner_cgv smart delete ✅ FIXED 2026-05-15
 

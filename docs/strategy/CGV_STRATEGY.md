@@ -342,7 +342,7 @@ partner-cgv/
 - Dette 102 : Anonymisation fine cgv_acceptances RGPD
 - Dette 103 : `cgv_url_grants` audit log signed URLs (obligatoire avant Vague 2)
 
-### Phase 3 — Components frontend (1 jour) — 🟢 EXTENSION LIVRÉE 2026-05-15 (3/4 components + viewer infra)
+### Phase 3 — Components frontend (1 jour) — ✅ COMPLÈTE LIVRÉE 2026-05-15 (4/4 components + audit log)
 
 **Extension Phase 3 livrée 2026-05-15** :
 - Edge Function `get-signed-cgv-url` (Dette 105 ✅ FIXED) — déployée v1, auth + permission check double (admin OR owner), TTL 60s default.
@@ -352,9 +352,11 @@ partner-cgv/
 - `AdminCGVOverview` : boutons Voir + Supprimer sur partners configurés, AlertDialog confirmation.
 - `src/integrations/supabase/types.ts` régénéré pour inclure les 4 nouvelles tables CGV (Phase 2).
 
-**Résiduel Vague 2 (Dette 104 partial)** :
-- `CGVAcceptanceCheckbox.tsx` — case à cocher pré-signature devis / placement commande
-- Intégration buyer flow (cart + checkout + quote)
+**Phase 3 final livré 2026-05-15** :
+- Dette 103 ✅ FIXED — table `cgv_url_grants` (migration `20260515130000_dette_103_cgv_url_grants.sql`) + Edge Function `get-signed-cgv-url` re-déployée v2 avec audit log (sha256 URL, IP, UA, expires_at) — preuve consultation CGV pré-achat conforme DSA + L.111-7.
+- Dette 104 ✅ FIXED — `src/components/common/CGVAcceptanceCheckbox.tsx` réutilisable : checkbox + "Voir CGV" intégré (modal) + record_cgv_acceptance RPC sur check.
+
+**Intégration buyer flow** : Vague 2 quand cart / checkout / quote signature seront actifs. Le composant est plug-and-play, signature documentée en JSDoc.
 
 
 

@@ -4,10 +4,10 @@
 // Génère une signed URL Supabase Storage (TTL court) pour consulter le PDF
 // d'une CGV partner. Auth requise + permission check (admin OR owner partner).
 //
-// Phase 3 viewer + Dette 105 (resolves).
+// Phase 3 viewer + Dette 105 + Dette 103 (resolves both).
 //
 // Body: { partner_cgv_id: uuid, ttl_seconds?: number }
-// Returns: { url: string, expires_at: string }
+// Returns: { url: string, expires_at: string, ttl_seconds: number }
 //
 // Permissions :
 //   - admin (RPC public.is_admin() via user-auth client)
@@ -17,10 +17,13 @@
 // Statut autorisé : 'active' OU 'archived' (la CGV archivée reste consultable
 // pour preuves d'acceptations passées).
 //
-// TTL : default 60s (pattern Stripe), max 3600s.
+// TTL : default 60s (pattern Stripe), min 30s, max 3600s.
 //
-// Audit cgv_url_grants (Dette 103) : non implémenté dans ce MVP ; capture
-// déjà existante. À ajouter avant Vague 2 transactionnelle.
+// Audit cgv_url_grants (Dette 103) : chaque grant est journalisé immuable —
+// sha256 de la URL signée (la URL elle-même ne doit pas être stockée en
+// clair), ip + user_agent extraits des headers, expires_at calculé.
+// L'échec d'insert audit n'invalide pas le grant pour ne pas casser le flow
+// buyer en cas d'incident temporaire (log warning, return URL quand même).
 // ============================================================================
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -45,6 +48,23 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...CORS, "Content-Type": "application/json" },
   });
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input);
+  const buf = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function extractIp(req: Request): string | null {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) {
+    const first = xff.split(",")[0].trim();
+    if (first) return first;
+  }
+  return req.headers.get("x-real-ip");
 }
 
 Deno.serve(async (req: Request) => {
@@ -137,6 +157,30 @@ Deno.serve(async (req: Request) => {
   }
 
   const expiresAt = new Date(Date.now() + ttl * 1000).toISOString();
+
+  // Dette 103 — journal d'audit immuable. Échec d'insert = log warn seulement,
+  // ne bloque pas le grant (defense in depth ≠ panne fonctionnelle).
+  try {
+    const signedUrlHash = await sha256Hex(signed.signedUrl);
+    const ipAddress = extractIp(req);
+    const userAgent = req.headers.get("user-agent") ?? null;
+
+    const { error: auditErr } = await adminClient.from("cgv_url_grants").insert({
+      user_id: userId,
+      partner_cgv_id: cgvRow.id,
+      partner_id: cgvRow.partner_id,
+      signed_url_hash: signedUrlHash,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      ttl_seconds: ttl,
+      expires_at: expiresAt,
+    });
+    if (auditErr) {
+      console.warn("[get-signed-cgv-url] audit log insert failed", auditErr);
+    }
+  } catch (e) {
+    console.warn("[get-signed-cgv-url] audit log unexpected error", e);
+  }
 
   return json({ url: signed.signedUrl, expires_at: expiresAt, ttl_seconds: ttl });
 });
