@@ -298,6 +298,69 @@ export default function BecomePartnerLaunch() {
         </div>
       </section>
 
+      {/* ── Tiers Founding + mécaniques ────────────────────────── */}
+      <section className="py-16 px-6">
+        <div className="container mx-auto max-w-5xl">
+          <motion.div {...fadeUp} className="text-center mb-10">
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
+              {t("becomePartnerLaunch.tiers.title", "4 tiers Founding, des bénéfices à vie")}
+            </h2>
+            <p className="text-sm font-body text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              {t("becomePartnerLaunch.tiers.intro", "Votre statut évolue selon votre engagement à co-développer Terrassea. Les badges sont gravés à vie : conservés même après la bascule en abonnements payants.")}
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            {[
+              { tier: "founder",  pts: "0+",    name: "Founder",          color: "from-slate-400 to-slate-500",   bg: "bg-slate-50 border-slate-200" },
+              { tier: "silver",   pts: "1 000+", name: "Silver Founder",   color: "from-zinc-400 to-zinc-600",     bg: "bg-zinc-50 border-zinc-300" },
+              { tier: "gold",     pts: "3 000+", name: "Gold Founder",     color: "from-amber-400 to-amber-600",   bg: "bg-amber-50 border-amber-300" },
+              { tier: "platinum", pts: "8 000+", name: "Platinum Founder", color: "from-violet-500 to-violet-700", bg: "bg-violet-50 border-violet-300" },
+            ].map((t, i) => (
+              <motion.div
+                key={t.tier}
+                {...fadeUp}
+                transition={{ ...fadeUp.transition, delay: i * 0.05 }}
+                className={`${t.bg} border rounded-xl p-5 text-center`}
+              >
+                <div className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center mb-3`}>
+                  <Crown className="h-5 w-5 text-white" />
+                </div>
+                <p className="font-display font-bold text-sm text-foreground">{t.name}</p>
+                <p className="text-xs font-body text-muted-foreground mt-1">{t.pts} pts</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.2 }} className="bg-card border border-border rounded-xl p-6">
+            <h3 className="font-display font-bold text-sm text-foreground mb-4">
+              {t("becomePartnerLaunch.tiers.howToEarn", "Comment gagner des points")}
+            </h3>
+            <ul className="space-y-2 text-sm font-body text-foreground">
+              <li className="flex items-start gap-3">
+                <Star className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
+                <span><strong>Onboarding</strong> — profil complété (100), CGV (100), premiers produits (200) — gagnez vos premiers paliers en quelques heures.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Star className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
+                <span><strong>Transactions</strong> — première commande confirmée (500 pts).</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Star className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
+                <span><strong>Invitations</strong> (à venir) — marques approuvées (500), architectes actifs (300), clients avec première commande (300).</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Star className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
+                <span><strong>Co-développement</strong> (à venir) — feedback adopté (200), suggestion implémentée (500).</span>
+              </li>
+            </ul>
+            <p className="mt-4 text-[11px] font-body text-muted-foreground italic">
+              {t("becomePartnerLaunch.tiers.disclaimer", "Le catalogue d'actions et seuils est versionné dans la base — les tiers sont conservés à vie, indépendamment des évolutions futures du programme.")}
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ── Prochaines étapes + CTA ────────────────────────────── */}
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-2xl text-center">

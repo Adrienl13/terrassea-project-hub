@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox, Clock,
-  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag, Lock, ArrowRight, Image as ImageIcon, ShieldCheck, ShoppingBag, FileText,
+  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag, Lock, ArrowRight, Image as ImageIcon, ShieldCheck, ShoppingBag, FileText, Crown,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,6 +66,7 @@ import BrandCollectionManager from "@/components/partner-dashboard/BrandCollecti
 import BrandReferencesManager from "@/components/partner-dashboard/BrandReferencesManager";
 import PartnerCertifications from "@/components/partner-dashboard/PartnerCertifications";
 import PartnerCGVSection from "@/components/partner-dashboard/PartnerCGVSection";
+import FoundingProgramSection from "@/components/partner-dashboard/FoundingProgramSection";
 import BrandNetworkDashboard from "@/components/partner-dashboard/BrandNetworkDashboard";
 import BrandNetworkOverview from "@/components/partner-dashboard/BrandNetworkOverview";
 import BrandMemberOverview from "@/components/partner-dashboard/BrandMemberOverview";
@@ -172,6 +173,7 @@ const NAV_PARTNER_BASE = [
   { id: "featured",     icon: Rocket,          labelKey: "account.featuredProducts", eliteOnly: false },
   { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: false },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
+  { id: "founding",     icon: Crown,           labelKey: "account.founding" },
   { id: "loyalty",      icon: Award,           labelKey: "account.loyalty" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
 ];
@@ -186,6 +188,7 @@ const NAV_BRAND_MEMBER = [
   { id: "references",   icon: ImageIcon,       labelKey: "account.brandReferences" },
   { id: "certifications", icon: ShieldCheck,   labelKey: "account.certifications" },
   { id: "cgv",          icon: FileText,        labelKey: "account.cgv" },
+  { id: "founding",     icon: Crown,           labelKey: "account.founding" },
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
@@ -197,6 +200,7 @@ const NAV_BRAND_NETWORK = [
   { id: "references",   icon: ImageIcon,       labelKey: "account.brandReferences" },
   { id: "network",      icon: Briefcase,       labelKey: "account.brandNetwork" },
   { id: "cgv",          icon: FileText,        labelKey: "account.cgv" },
+  { id: "founding",     icon: Crown,           labelKey: "account.founding" },
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
@@ -703,6 +707,7 @@ const Account = () => {
             case "references":    return <BrandReferencesManager partnerId={partnerId!} />;
             case "certifications": return <PartnerCertifications partnerId={partnerId!} />;
             case "cgv":           return <PartnerCGVSection partnerId={partnerId!} />;
+            case "founding":      return <FoundingProgramSection partnerId={partnerId!} />;
             case "brand-catalogue": return <BrandCatalogueSection partnerId={partnerId!} />;
             case "messages":      return <PartnerMessagesSection />;
             case "network":       return <BrandNetworkDashboard partnerId={partnerId!} />;
@@ -722,6 +727,7 @@ const Account = () => {
           case "catalogue":   return <><PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />{partnerId && <PartnerSubmissionFeedbackSection partnerId={partnerId} />}</>;
           case "certifications": return partnerId ? <PartnerCertifications partnerId={partnerId} /> : null;
           case "cgv":         return partnerId ? <PartnerCGVSection partnerId={partnerId} /> : null;
+          case "founding":    return partnerId ? <FoundingProgramSection partnerId={partnerId} /> : null;
           case "brand-catalogue": return <BrandCatalogueSection partnerId={partnerId!} />;
           case "arrivals":    return <PartnerArrivalsSection partnerId={partnerId} />;
           case "featured":    return partnerPlan === "elite"
