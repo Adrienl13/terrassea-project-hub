@@ -294,3 +294,219 @@ Raisons :
 - Pré-requis : décisions founder sur §9 questions
 - Trigger : démarchage actif marques (3-5 en cours post-Salone) — implémenter AVANT premières intégrations pour capter le tracking dès l'onboarding
 - Dépendances : Dette 65 (déjà capturée) couvre cette mission ; Dette 108 est l'audit + détail d'implémentation
+
+---
+
+## 11. Recadrage stratégique founder (2026-05-15 ajout)
+
+> "L'objectif pour les founder est de proposer des solutions et aider à développer la plateforme notamment avec la partie invitation architecte, marque partenaire, client. Il faut un maximum qui soit récompensé pour le développement mais il ne faut pas que les badges soient faciles à atteindre en une ou deux actions."
+>
+> "Connectons aussi le système d'invitation au point pour qu'automatiquement il récupère les points lors de l'insertion d'un nouveau partenaire grâce à eux (c'est dans une dette je crois)."
+
+Recadrage central : **le Founding Partner n'est pas un programme de fidélité onboarding, c'est un programme de co-développement plateforme.** Les invitations + le feedback structuré sont les leviers principaux d'accumulation de points. L'onboarding solo seul ne doit PAS suffire à atteindre Silver.
+
+Décisions founder validées (questions §9 résolues) :
+
+| Q | Décision |
+|---|---|
+| Q1 | **Option A** — Founding système DISTINCT du Loyalty |
+| Q2 | Bascule launch = **2026-05-11** ; backfill `is_founding=true, founding_joined_at=approved_at WHERE approved_at <= '2026-05-11' AND profile_status='approved'` |
+| Q3 | Tiers basés sur **somme de points** (pondération par impact business — pattern Amex/Marriott) |
+| Q4 | **Cacher Loyalty existant** complètement (nav + route) — pas de Coming Soon. Capture Dette 109 pour réactivation V3. |
+| Q5 | **Phasage 4 actions MVP** Session 1, 4 actions invitations + 3 actions co-dev capturées séparément |
+| Q6 | **Hybride** : DB triggers pour events DB-natifs, Edge function pour actions complexes (batch products), RPC `record_founding_action` partagée |
+
+---
+
+## 12. Audit système d'invitations — Phase A2 (ajout 2026-05-15)
+
+### Inventaire DB
+| Élément | Statut |
+|---|---|
+| Table `invitations` | ❌ INEXISTANTE |
+| Table `referrals` | ❌ INEXISTANTE |
+| Table `sponsorships` | ❌ INEXISTANTE |
+| Colonne `partners.invited_by` | ❌ ABSENTE |
+| Colonne `partners.referred_by` | ❌ ABSENTE |
+| Colonne `partners.invitation_token` | ❌ ABSENTE |
+| **Seul match** : `pro_service_requests.referral_source text` | ✅ Existe — mais c'est **un sondage marketing** ("comment avez-vous connu Terrassea : recommandation / google / Instagram / ..."), pas un système d'invitation user-to-user. Non exploitable pour tracking. |
+
+### Inventaire RPC + Edge functions
+| Élément | Statut |
+|---|---|
+| RPC `invite_*`, `send_invitation`, etc. | ❌ INEXISTANT |
+| Edge function `send-invite*` | ❌ INEXISTANT |
+| Edge function `redeem-invite*` | ❌ INEXISTANT |
+| Pattern email d'invitation | ❌ INEXISTANT (les emails `send-notification-email` / `auto-workflow` existent mais ne couvrent pas l'invitation) |
+
+### Inventaire frontend
+| Élément | Statut | Détail |
+|---|---|---|
+| Component `InvitationForm.tsx` | ❌ | aucun |
+| Hook `useInvitation` | ❌ | aucun |
+| Page `/invite` ou `/redeem` | ❌ | aucune route |
+| `ArchitectSections.tsx:74` | 🟡 placeholder | `EARNING_RULES` UI display avec `{ action: "referral", points: 200 }` — non backé, juste rendu visuel statique |
+| `BecomePartnerLaunch.tsx:25` | 🟡 narrative | `inviteCategories` = liste UI (architects, distributors, designers, resellers, pro_service) sans mécanique |
+| `ProServiceClientHub.tsx:1381` | 🟡 sondage | option `"referral"` dans `<select>` du form, alimente `pro_service_requests.referral_source` |
+| `PartnerLoyaltyProgram.tsx` | 🟡 inactif | aucun pattern d'invitation (utilise loyalty inactive) |
+
+### Inventaire docs
+| Document | Mention |
+|---|---|
+| `FOUNDING_PROGRAM_ROADMAP.md:69-70` | Tableau actions Vague 2 cite "Invitation architecte signée : 5 pts" + "Invitation distributeur signée : 5 pts" sans définir le mécanisme |
+| `FOUNDING_PROGRAM_ROADMAP.md:89` | Critère transition Vague 2→3 : "≥ 100 architectes signés via parrainages Founding" — implicite que mécanique parrainage existerait |
+| `DETTE_TECHNIQUE_AUDIT.md` Dette 68 | Anti-fraude points (rate-limit, **dédup invitations**, modération Q&A) — implicite système invitation existant |
+| `DETTE_TECHNIQUE_AUDIT.md` ligne 548-549 | Flow B (devenir partenaire) mentionne "invitation-only via lien magique" et "userType='partner' redirigé sauf si invitation token présent" — **pattern envisagé mais jamais implémenté** |
+
+### Verdict
+**Aucun système d'invitations user-to-user n'existe.** Les mentions actuelles dans le code sont soit des sondages marketing (`referral_source`), soit des placeholders UI (Rules ArchitectSections, inviteCategories). Le pattern "lien magique invitation" mentionné en Dette 548 reste à concevoir et implémenter.
+
+### Implication pour Vague 2 Founding
+
+Pour récompenser `partner_invited_*`, `architect_invited_*`, `client_invited_*`, **un système d'invitations doit être construit comme chantier prérequis** :
+
+- Table `partner_invitations` (id, inviter_partner_id FK, invitee_email, invitee_role enum, token, created_at, used_at, signed_up_user_id, status enum 'pending'|'used'|'expired')
+- Index unique partial sur (`invitee_email, status='pending'`) pour dédoublonnage anti-spam
+- Anti-fraude self-invitation : check `invitee_email != inviter user_profiles.email`
+- Edge function `send-invite-email` (génère token, envoie email, INSERT row)
+- Edge function `redeem-invitation` (consume token au signup, link `signed_up_user_id`)
+- Trigger DB sur signup user_profile pour matcher email avec invitation pending → status='used'
+- Tracking conversion : trigger ultérieur sur partner profile_status='approved', first_order, etc. pour récompenser l'inviter
+
+**Effort estimé chantier invitations** : 4-6h. **À mener AVANT ou EN PARALLÈLE de Vague 2 Founding actions invitations.**
+
+⚠️ **Cas architectes spécifique** : `user_profiles.user_type` actuel = `admin / client / partner` (PAS `architect`). Les architectes vivent uniquement dans `architect_prospects` (table CRM admin-only fed par agent externe). Pour tracker "architect_invited", il faut soit :
+- (a) Créer `user_type='architect'` + onboarding architecte distinct
+- (b) Garder architectes en CRM, mécanique invitation = juste ajout dans `architect_prospects` (admin trigger)
+- (c) Architectes signent comme `client` au début, promus admin manuellement plus tard
+
+À trancher avec le founder. CLAUDE.md mentionne `architect` dans les user types mais c'est aspirationnel, pas opérationnel.
+
+---
+
+## 13. Catalogue actions Founding enrichi — proposition validée
+
+### Catégorisation par disponibilité technique
+
+**Implémentable Session 1 (DB triggers natifs sur events existants)** :
+
+| Action | Points | Source event | Anti-fraude |
+|---|---|---|---|
+| `profile_completed` | 100 | trigger `partners.profile_status='approved'` (one-shot par partner_id) | Idempotent via UNIQUE (partner_id, action_type='profile_completed') sur founding_actions |
+| `cgv_uploaded` | 100 | trigger `partner_cgv` INSERT première occurrence per partner | Idempotent : check exists row with action='cgv_uploaded' avant insert |
+| `first_5_products` | 200 | trigger `products` count >= 5 first time | One-shot |
+| `first_order_received` | 500 | trigger `orders.status='confirmed'` AND partner_id NOT NULL first time | One-shot |
+
+**Max accessible solo Session 1 : 900 pts** → reste sous le seuil Silver (1000) intentionnellement.
+
+**Différé Dette 110a (nécessite système invitations à construire)** :
+
+| Action | Points | Mécanique |
+|---|---|---|
+| `partner_invited_signup` | 100 | invitation acceptée + signup partner |
+| `partner_invited_approved` | 500 | partner invité approuvé (profile_status='approved') |
+| `architect_invited_signup` | 100 | invitation acceptée + signup architecte |
+| `architect_invited_active` | 300 | architecte invité devient "actif" (1er projet ou interaction) |
+| `client_invited_signup` | 50 | invitation acceptée + signup buyer |
+| `client_invited_first_order` | 300 | client invité passe sa première commande |
+
+**Différé Dette 110b (nécessite logique admin manuelle)** :
+
+| Action | Points | Mécanique |
+|---|---|---|
+| `feedback_submitted` | 50 | partner soumet feedback (form / cron) |
+| `feedback_adopted` | 200 | admin marque feedback adopté |
+| `suggestion_implemented` | 500 | suggestion devient feature (admin trigger manuel) |
+
+**Différé Vague 3 (milestones)** :
+
+| Action | Points |
+|---|---|
+| `10_orders_milestone` | 1000 |
+| `50_orders_milestone` | 2500 |
+
+---
+
+## 14. Seuils Founder/Silver/Gold/Platinum rééquilibrés
+
+Décision founder Q3 : **somme de points**, pas count actions.
+
+| Tier | Seuil points | Profil type |
+|---|---|---|
+| **Founder** | 0+ | Onboarding solo (≤900 pts) — statut historique, badge visible |
+| **Silver** | 1000+ | Onboarding + ≥1 invitation approuvée OU 1 client invité avec order OU feedback adopté |
+| **Gold** | 3000+ | 4-5 invitations actives OU 2-3 marques invitées approuvées + co-dev produit |
+| **Platinum** | 8000+ | "Ambassadeur" — 10+ invitations actives, plusieurs feedbacks adoptés, milestones franchis |
+
+### Validation par cas types
+
+| Cas | Calcul | Total | Tier |
+|---|---|---|---|
+| Onboarding solo complet | 100 + 100 + 200 + 500 | 900 | Founder |
+| + 1 client invité avec order | 900 + 50 + 300 | 1250 | Silver ✅ |
+| + 1 marque invitée approuvée | 900 + 100 + 500 | 1500 | Silver ✅ |
+| + 2 marques approuvées + 1 architecte actif | 900 + 1200 + 400 | 2500 | Silver (presque Gold) |
+| + 5 marques + 3 clients orders + feedback adopté | 900 + 3000 + 1050 + 200 | 5150 | Gold ✅ |
+| + 10 marques + 5 architectes + 3 feedbacks adoptés | 900 + 6000 + 2000 + 600 | 9500 | Platinum ✅ |
+
+Seuils 0/1000/3000/8000 cohérents avec le recadrage "pas atteignable en 1-2 actions" + récompense co-développement.
+
+---
+
+## 15. Plan Session 1 ajusté (post-recadrage)
+
+### Périmètre confirmé Session 1 (~2-2.5h)
+1. Migration `partners.is_founding boolean NOT NULL DEFAULT false` + `founding_joined_at timestamptz`
+2. Trigger `BEFORE INSERT` sur partners : auto-marquage si `pricing_visibility_mode='launch'`
+3. Backfill : `UPDATE partners SET is_founding=true, founding_joined_at=approved_at WHERE approved_at <= '2026-05-11' AND profile_status='approved'`
+4. Table `founding_actions` (id, partner_id FK CASCADE, action_type text CHECK, points int CHECK >= 0, reference_id text, meta jsonb, created_at)
+5. Index unique partial `(partner_id, action_type)` pour les one-shot actions (profile_completed, cgv_uploaded, first_5_products, first_order_received). Cf. `meta` jsonb pour actions répétables futures.
+6. View `founding_partner_scores` agrégeant total_points + tier dérivé (Founder/Silver/Gold/Platinum, seuils 0/1000/3000/8000)
+7. Setting `platform_settings.founding_tiers_config jsonb` (seuils + catalogue points complet, incluant actions différées avec note "not_yet_triggered")
+8. RPC `record_founding_action(p_partner_id, p_action_type, p_reference_id, p_meta)` SECURITY DEFINER + search_path hardened. Logique :
+   - Vérifie action_type valide (lookup `founding_tiers_config.actions`)
+   - Récupère points depuis config (pas hardcoded)
+   - Anti-fraude one-shot : check unique (partner_id, action_type) AVANT INSERT pour actions one-shot
+   - INSERT dans `founding_actions`
+9. 4 triggers DB MVP :
+   - `trg_founding_profile_completed` AFTER UPDATE OF profile_status ON partners
+   - `trg_founding_cgv_uploaded` AFTER INSERT ON partner_cgv (filter sur status='active' first time)
+   - `trg_founding_first_5_products` AFTER INSERT ON products (count check)
+   - `trg_founding_first_order` AFTER UPDATE OF status ON orders (filter confirmed first time)
+10. RLS sur `founding_actions` : partner read own + admin read all
+11. RLS sur view `founding_partner_scores` : public read (badges publics)
+12. Cacher Loyalty existant : commenter route + nav entry dans `Account.tsx` (commit séparé OU même commit Session 1 ?)
+13. Smoke tests SQL : backfill correct ? RPC fonctionne ? triggers déclenchent bien ? scores cohérents ?
+
+### Différé Session 2 (~2.5-3.5h)
+- Hook `useFoundingScore` + types
+- Component `FoundingBadge`
+- Section dashboard partner `FoundingProgramSection`
+- Section seuils + mécaniques dans `BecomePartnerLaunch.tsx`
+- Dashboard `AdminFoundingOverview`
+- Edge function `record-founding-products-batch` (Edge function alt pour batch products)
+- Tests
+
+### Différé chantier dédié (~4-6h)
+- Système d'invitations (table + RPCs + Edge functions + UI) → prérequis pour Dette 110a (triggers invitations)
+
+---
+
+## 16. Captures dettes complémentaires
+
+- **Dette 108** (existante) : Vague 2 Founding Tracking — décisions founder validées, plan Session 1 ajusté
+- **Dette 109** : Réactiver Loyalty Program V3 — composant + tables existent, cachés temporairement Session 1
+- **Dette 110a** : Triggers Founding invitations (partner/architect/client) — dépend chantier système invitations
+- **Dette 110b** : Triggers Founding co-développement produit (feedback_adopted, suggestion_implemented) — dépend logique admin manuelle
+- **Dette 111** : Chantier dédié — Système d'invitations user-to-user (table, RPCs, Edge functions, UI partner side, tracking conversion) — prérequis Dette 110a
+- **Dette 112** : Trancher gestion architectes (`user_type='architect'` vs CRM-only) avant tracking `architect_invited_*`
+
+---
+
+## 17. Questions ouvertes nouvelles pour founder
+
+1. **Système invitations** : chantier séparé maintenant (~4-6h) ou Vague 2.5 après Founding Tracking ? Recommandation : **séparé, après**. Démarrer Founding Tracking avec 4 actions MVP, ajouter invitations comme couche suivante.
+2. **Architectes** : `user_type='architect'` à créer ou rester en CRM-only `architect_prospects` ? Impacte directement comment on track `architect_invited_active`.
+3. **Anti-fraude self-invitation** : email exact ou domaine ? Recommandation : email exact (`invitee_email != inviter.email`) + cooldown 30 jours sur même `invitee_email` pour éviter pings répétés.
+4. **Révocation points si désinscription** : si `client_invited_first_order` puis client demande RGPD effacement, points conservés ? Recommandation : **points conservés** (audit trail immuable, action légitimement effectuée à T).
+5. **Cacher Loyalty** : même commit Session 1 ou commit séparé pour traçabilité ? Recommandation : **commit séparé** (1 chantier = 1 commit clair).

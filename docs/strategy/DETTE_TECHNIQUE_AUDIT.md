@@ -1788,7 +1788,100 @@ CREATE TABLE public.partner_cgv_terms (
 
 **Priorité** : Niveau 2 — bloquant impact tracking founding cohorte initiale.
 
-**Statut** : Phase 1 audit ✅ DONE, Phase 2 build pending validation founder sur §9 questions.
+**Statut** : Phase 1 audit ✅ DONE. **Décisions founder validées 2026-05-15** (cf. audit doc §11) : Option A système distinct ; bascule 2026-05-11 ; tiers somme de points ; Loyalty caché ; phasage 4 actions MVP ; hybride triggers + Edge. Phase 2 Session 1 prête à démarrer.
+
+### Dette 109 — Réactiver Loyalty Program V3 🟢 Différé Vague 3
+
+**Origine** : Décision founder Q4 audit Vague 2 (2026-05-15) — cacher Loyalty existant complètement pendant Founding Vague 2.
+
+**État actuel** : `PartnerLoyaltyProgram.tsx` (475 lignes) + hooks `usePartnerLoyalty/usePartnerTierConfig` + tables `partner_loyalty/partner_points_history` + settings `partner_loyalty_*` restent **intacts en code et en DB** (RLS activé, 0 rows, `loyalty_enabled=false`). Seuls nav entry + route case `loyalty` sont commentés/retirés temporairement.
+
+**Conditions de réactivation** :
+- Vague 3 transactionnelle stabilisée (≥30 partners actifs)
+- Programme Founding mature avec cohorte > 15 marques
+- Décision business explicite founder
+
+**Effort de réactivation** : ~30 min (uncomment route + nav + activer `loyalty_enabled=true` + clarifier UX différence Founding vs Loyalty pour ne pas créer confusion).
+
+**Priorité** : Niveau 3 — différée long terme.
+
+**Statut** : capturé, code préservé.
+
+### Dette 110a — Triggers Founding invitations 🟠 Dépend Dette 111
+
+**Origine** : Recadrage founder Vague 2 (2026-05-15). Catalogue Founding doit récompenser invitations partner/architecte/client mais système d'invitations user-to-user n'existe pas (cf. audit §12).
+
+**Actions à implémenter une fois Dette 111 (système invitations) livrée** :
+- `partner_invited_signup` (100 pts) : invitation marque acceptée + signup
+- `partner_invited_approved` (500 pts) : marque invitée approuvée
+- `architect_invited_signup` (100 pts) : architecte invité signup
+- `architect_invited_active` (300 pts) : architecte invité actif (1er projet/interaction)
+- `client_invited_signup` (50 pts) : client invité signup
+- `client_invited_first_order` (300 pts) : client invité première commande
+
+Triggers DB ou Edge functions selon source event. RPC `record_founding_action` partagée avec actions Session 1.
+
+**Pré-requis** : Dette 111 (système invitations) ET Dette 112 (gestion architectes).
+
+**Effort estimé** : 2-3h post-prérequis (logique triggers + anti-fraude dédoublonnage).
+
+**Priorité** : Niveau 2 — pierre angulaire du recadrage Founding "co-développement".
+
+**Statut** : différé chantier prérequis.
+
+### Dette 110b — Triggers Founding co-développement produit 🟡 Différé Vague 2.5
+
+**Origine** : Recadrage founder Vague 2 (2026-05-15). Catalogue Founding inclut feedback/suggestions admin-valued.
+
+**Actions à implémenter** :
+- `feedback_submitted` (50 pts) : partner soumet feedback via form
+- `feedback_adopted` (200 pts) : admin marque feedback adopté
+- `suggestion_implemented` (500 pts) : suggestion devient feature
+
+Mécanique : form partner + interface admin de modération + RPC `record_founding_action`.
+
+**Effort estimé** : 2-3h (table `partner_feedback` + form partner + admin moderation + triggers RPC).
+
+**Priorité** : Niveau 3 — value co-dev, non bloquant invitations.
+
+**Statut** : capturé, à activer post-MVP Founding.
+
+### Dette 111 — Système d'invitations user-to-user 🔴 Critique pré-Vague 2 invitations
+
+**Origine** : Audit invitations Vague 2 (2026-05-15) — aucun système existant. Mention historique en `DETTE_TECHNIQUE_AUDIT.md:548-549` (Flow B "invitation-only via lien magique") jamais implémentée.
+
+**Périmètre** :
+- Table `partner_invitations` (id, inviter_partner_id FK CASCADE, invitee_email, invitee_role enum 'partner'|'architect'|'client', token text UNIQUE, expires_at, created_at, used_at, signed_up_user_id FK SET NULL, status enum 'pending'|'used'|'expired'|'cancelled')
+- Index unique partial sur (`invitee_email, status='pending'`) anti-spam
+- Anti-fraude self-invitation : check `invitee_email != inviter.user_profiles.email`
+- Edge function `send-invite-email` : génère token (32 random bytes), INSERT row, envoie email avec lien `/auth?invite_token=...`
+- Edge function `redeem-invitation` : consume token au signup, link `signed_up_user_id`, status='used'
+- Trigger DB sur signup `user_profiles` : matche email avec invitation pending → status='used' + link
+- Component partner side `InvitationSection` : form + historique invitations envoyées + statut (pending/used)
+- RLS : inviter read own, admin read all, INSERT via Edge function service-role uniquement
+
+**Effort estimé** : 4-6h (1 migration + 2 Edge functions + 1 component + tests).
+
+**Priorité** : Niveau 2 — prérequis Dette 110a (récompenses invitations Founding).
+
+**Statut** : capturé, chantier dédié à programmer.
+
+### Dette 112 — Gestion architectes (user_type vs CRM-only) 🟡 À trancher
+
+**Origine** : Audit invitations Vague 2 (2026-05-15). CLAUDE.md mentionne `user_type='architect'` mais `user_profiles.user_type` réel = `admin / client / partner` uniquement. Architectes vivent dans `architect_prospects` (CRM admin-only).
+
+**Options** :
+- (a) Créer `user_type='architect'` + onboarding architecte distinct (parcours signup, dashboard adapté, RLS)
+- (b) Garder architectes en CRM, invitation = ajout row dans `architect_prospects` (admin trigger)
+- (c) Architectes signent comme `client` + promotion manuelle plus tard
+
+**Pré-requis** pour Dette 110a `architect_invited_*` tracking.
+
+**Effort estimé** : (a) 4-8h ; (b) 1-2h ; (c) 0h immediate + dette long-terme.
+
+**Priorité** : Niveau 2 — à décider avant chantier invitations Dette 111.
+
+**Statut** : décision founder à prendre.
 
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
