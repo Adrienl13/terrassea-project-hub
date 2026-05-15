@@ -252,6 +252,14 @@ Ajouter un script `bun run audit:lighthouse` qui lance Lighthouse en CI ou local
 - Possible tests visuels pour valider les transformations Supabase Storage
 - Effort : 2-3 h
 
+> **🚨 Status Lot 2 — DÉSACTIVÉ TEMPORAIREMENT (2026-05-15)**
+>
+> Cause : Supabase Free tier ne supporte pas Render Image API comme attendu. Smoke test live a révélé que les images ProductDetail (BAHIA 001, COSTA RICA 004, BAHAMAS 001) étaient **coupées sur les côtés** en Free tier (pieds de chaises tronqués).
+>
+> Le helper `src/utils/imageOptimization.ts` est passé en **no-op explicite** : `getOptimizedImageUrl(url) → url` et `getResponsiveSrcSet() → ''`. Le code original est préservé en commentaire en bas du fichier pour roll-forward sans archéologie git.
+>
+> **Impact** : ROI -95% payload perdu temporairement. Visuel correct. Activation Supabase Pro (Dette 99 escaladée P0) restaurera automatiquement le bénéfice.
+
 ### Lot 3 — MOYEN (~3-5 h) → Dette 98
 
 - **Fix #4** : Setup `rollup-plugin-visualizer` → identifier les responsables d'`index.js` 1.1 MB

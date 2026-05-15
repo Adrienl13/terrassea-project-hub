@@ -1462,7 +1462,14 @@ Pour prévenir la régression, écrire une règle ESLint custom qui :
 - `framer-motion` 129 KB : utilisé partout, alternative non triviale, gain limité par rapport à l'effort. Out of scope.
 - Manual chunks vendor recharts / pdf : déjà optimaux. Vendor chunks restent grands mais lazy-loadés (account / admin / pdf).
 
-### Dette 99 — Activer Supabase Pro pour image transforms 🟠 En attente
+### Dette 99 — Activer Supabase Pro pour image transforms 🔴 P0 ESCALADÉE 2026-05-15
+
+**🚨 Mise à jour 2026-05-15** : escaladée P2 → P0 suite à bug confirmé en Free tier (images ProductDetail coupées : BAHIA 001, COSTA RICA 004, BAHAMAS 001). Le helper `getOptimizedImageUrl` a été désactivé temporairement (no-op explicite côté `src/utils/imageOptimization.ts`) — payload images redevient lourd MAIS visuel correct. ROI Lot 2 (-95% payload) perdu jusqu'à activation Pro. Code original préservé en commentaire pour réactivation post-upgrade sans archéologie git.
+
+**Trigger d'activation** : ASAP si trafic Salone augmente. Sans Pro, les images sont servies en taille originale (souvent 1920×1920 PNG 4MB+), impactant fortement la perf mobile sur 4G.
+
+---
+
 
 **Origine** : Mobile Performance Lot 2 (commit `f877947`, 2026-05-14). Décision founder : rester Free tier pour le moment (cash discipline), helper prêt à activer.
 
