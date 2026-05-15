@@ -1763,6 +1763,33 @@ CREATE TABLE public.partner_cgv_terms (
 
 **Statut** : capturé, mécanisme défini, conditions de déclenchement explicites.
 
+### Dette 108 — Vague 2 Founding Partner Tracking implémentation 🟠 En attente validation founder
+
+**Origine** : Audit existant 2026-05-15 (cf. `docs/strategy/VAGUE_2_FOUNDING_TRACKING_AUDIT.md`).
+
+**Audit fait** :
+- Tables `partner_loyalty` + `partner_points_history` existent en DB (RLS activé, 0 rows, `loyalty_enabled=false`). UI `PartnerLoyaltyProgram.tsx` (475 lignes) + hooks `usePartnerLoyalty` + settings `platform_settings.partner_loyalty_*` complets mais sémantique = loyalty récurrent (tiers business), PAS Founding (tiers silver/gold/platinum, statut "à vie").
+- `FOUNDING_PROGRAM_ROADMAP.md` décrit Vague 2 avec spec complète (table `founding_actions`, view `founding_partner_scores`, colonnes `partners.is_founding/founding_joined_at`, catalogue 8 actions).
+- 3 options stratégiques identifiées (système distinct / réutilisation loyalty / hybride flag program). **Recommandation : Option A — système Founding distinct.**
+
+**6 questions ouvertes pour founder** (cf. §9 du doc audit) :
+1. Option A / B / C ?
+2. Date bascule launch pour backfill is_founding ?
+3. Tiers basés sur count d'actions ou somme de points (discordance roadmap) ?
+4. Loyalty existant : laisser visible (Coming Soon) ou cacher ?
+5. Catalogue actions MVP : 8 d'un coup ou phasage 3-4 prioritaires ?
+6. Auto-tracking : DB triggers, edge functions, ou hybride ?
+
+**Effort estimé selon Option A** : 4.5-6h sur 1-2 sessions, structurées en 4 phases (Schema DB → Logic backend → Frontend → Admin+tests).
+
+**Trigger** : démarchage actif marques (3-5 en cours post-Salone) — implémenter AVANT premières intégrations pour capter le tracking dès l'onboarding.
+
+**Dépendances** : couvre la Dette 65 historique (Vague 2 livraison). Dette 68 (anti-fraude avancée) reste différée à Vague 2.5 ou Vague 3.
+
+**Priorité** : Niveau 2 — bloquant impact tracking founding cohorte initiale.
+
+**Statut** : Phase 1 audit ✅ DONE, Phase 2 build pending validation founder sur §9 questions.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)
