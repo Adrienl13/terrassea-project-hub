@@ -1630,6 +1630,89 @@ CREATE TABLE public.cgv_url_grants (
 
 **Statut** : différé Phase 3+, schéma défini, conditions de mise en œuvre explicites.
 
+### Dette 104 — PartnerCGVViewer + CGVAcceptanceCheckbox 🟠 Obligatoire avant Vague 2
+
+**Origine** : Phase 3 MVP CGV (2026-05-15). Founder a délibérément restreint le scope MVP à 2 components (upload + admin overview). Les 2 components restants sont liés au flow buyer transactionnel (Vague 2).
+
+**Components à livrer** :
+1. `PartnerCGVViewer.tsx` — affiche la CGV active d'une marque, via signed URL (cf. Dette 105). Utilisé sur la page produit + cart + checkout. Trigger ouverture en modal ou page dédiée.
+2. `CGVAcceptanceCheckbox.tsx` — case à cocher avant signature devis / placement commande. Appelle RPC `record_cgv_acceptance(context='quote_signature' | 'order_placement', partner_cgv_id, context_reference_id)`. Bloque le submit tant que non cochée.
+
+**Pré-requis** : Dette 105 (Edge Function get-signed-cgv-url) opérationnelle.
+
+**Effort estimé** : 0.5 jour (les 2 components + intégration cart + checkout + tests).
+
+**Priorité** : Niveau 2 — obligatoire avant Vague 2 (sans acceptance prouvée, achat non conforme DSA + L.111-7).
+
+**Statut** : différé Phase 3.5 / Vague 2.
+
+### Dette 105 — Edge Function get-signed-cgv-url 🟠 Obligatoire avant Vague 2
+
+**Origine** : Phase 3 MVP CGV (2026-05-15). Le bucket `partner-cgv` est privé ; les buyers ne peuvent pas y accéder directement. Edge Function génère une signed URL à courte durée pour leur permettre de consulter le PDF.
+
+**Spec** :
+- Endpoint : `POST /functions/v1/get-signed-cgv-url`
+- Body : `{ partner_cgv_id: uuid, ttl_seconds?: number }`
+- Returns : `{ url: string, expires_at: string }`
+- Validation : `partner_cgv.status = 'active'` requis
+- Auth required (rejette sans `Authorization: Bearer`)
+- TTL default 60 s (décision Q7 founder, pattern Stripe), max 3600 s
+- Rate limiting : 10 req/user/min, 100 req/user/day (Cloudflare WAF ou côté Edge)
+- Insert dans `cgv_url_grants` (Dette 103) avant retour URL
+
+**Effort estimé** : 0.5 jour (function + tests + déploiement).
+
+**Priorité** : Niveau 2 — obligatoire avant Vague 2.
+
+**Statut** : différé Phase 3.5 / Vague 2. Liée Dette 103 (audit log) et Dette 104 (viewer).
+
+### Dette 106 — Edge Function send-cgv-reminder-email 🟢 Optionnelle
+
+**Origine** : Phase 3 MVP CGV (2026-05-15). `AdminCGVOverview` mentionne un bouton « Relancer marque » non implémenté (fonctionnalité différée pour respecter scope MVP 1h30).
+
+**Spec** :
+- Edge Function `send-cgv-reminder-email`
+- Body : `{ partner_id: uuid, locale?: 'fr'|'en'|'es'|'it' }`
+- Lookup contact_email du partner
+- Template multilingual email avec lien dashboard partner /account section CGV
+- Réutilise pattern auto-workflow (Dette 59 Lot D)
+
+**Effort estimé** : 2-3 h (Edge Function + template email + bouton AdminCGVOverview).
+
+**Priorité** : Niveau 3 — UX confort admin. Non bloquant Vague 2 (l'admin peut envoyer un email manuel d'ici là).
+
+**Statut** : différé, capturé pour ne pas l'oublier.
+
+### Dette 107 — Comparateur business terms partners 🟢 Si volume
+
+**Origine** : Phase 3 MVP CGV (2026-05-15). Décision founder Q1 Phase 3 — le PDF est single source of truth, pas de duplication des conditions business (délais, garantie, retours, SAV) en DB pour Vague 1. Pattern industrie validé (Stripe Connect, Etsy, Shopify Partner).
+
+**Trigger de réévaluation** :
+- 50+ marques en Vague 2 (volume justifie la valeur d'un comparateur)
+- Demande explicite utilisateur (architectes B2B comparant délais entre fournisseurs)
+- Acquisition / fundraise pré-due-diligence qui valoriserait la data structurée
+
+**Schéma cible à l'activation** :
+```sql
+CREATE TABLE public.partner_cgv_terms (
+  partner_cgv_id uuid PRIMARY KEY REFERENCES public.partner_cgv(id) ON DELETE CASCADE,
+  manufacturing_lead_time_days int,
+  delivery_lead_time_days_fr int,
+  countries_served text[],
+  warranty_duration_years numeric,
+  standard_return_policy text,
+  custom_return_policy text,
+  sav_email text,
+  ...
+);
+```
+
+**Effort estimé à l'activation** : 1-2 jours (table + form fields + UI comparateur).
+
+**Priorité** : Niveau 3 — value-add post-volume.
+
+**Statut** : capturé, mécanisme défini, conditions de déclenchement explicites.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)

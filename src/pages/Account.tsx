@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FolderOpen, MessageSquare, Heart,
   Package, BarChart3, Settings, LogOut, Plus,
   TrendingUp, Star, ChevronRight, Percent, Inbox, Clock,
-  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag, Lock, ArrowRight, Image as ImageIcon, ShieldCheck, ShoppingBag,
+  AlertTriangle, Rocket, Briefcase, Award, Megaphone, Sparkles, Truck, Tag, Lock, ArrowRight, Image as ImageIcon, ShieldCheck, ShoppingBag, FileText,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -65,6 +65,7 @@ import BrandBriefInbox from "@/components/partner-dashboard/BrandBriefInbox";
 import BrandCollectionManager from "@/components/partner-dashboard/BrandCollectionManager";
 import BrandReferencesManager from "@/components/partner-dashboard/BrandReferencesManager";
 import PartnerCertifications from "@/components/partner-dashboard/PartnerCertifications";
+import PartnerCGVSection from "@/components/partner-dashboard/PartnerCGVSection";
 import BrandNetworkDashboard from "@/components/partner-dashboard/BrandNetworkDashboard";
 import BrandNetworkOverview from "@/components/partner-dashboard/BrandNetworkOverview";
 import BrandMemberOverview from "@/components/partner-dashboard/BrandMemberOverview";
@@ -166,6 +167,7 @@ const NAV_PARTNER_BASE = [
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "catalogue",    icon: Package,         labelKey: "account.catalogue" },
   { id: "certifications", icon: ShieldCheck,   labelKey: "account.certifications" },
+  { id: "cgv",          icon: FileText,        labelKey: "account.cgv" },
   { id: "arrivals",     icon: Truck,           labelKey: "account.arrivals" },
   { id: "featured",     icon: Rocket,          labelKey: "account.featuredProducts", eliteOnly: false },
   { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: false },
@@ -183,6 +185,7 @@ const NAV_BRAND_MEMBER = [
   { id: "collections",  icon: Package,         labelKey: "account.brandCollections" },
   { id: "references",   icon: ImageIcon,       labelKey: "account.brandReferences" },
   { id: "certifications", icon: ShieldCheck,   labelKey: "account.certifications" },
+  { id: "cgv",          icon: FileText,        labelKey: "account.cgv" },
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
@@ -193,6 +196,7 @@ const NAV_BRAND_NETWORK = [
   { id: "collections",  icon: Package,         labelKey: "account.brandCollections" },
   { id: "references",   icon: ImageIcon,       labelKey: "account.brandReferences" },
   { id: "network",      icon: Briefcase,       labelKey: "account.brandNetwork" },
+  { id: "cgv",          icon: FileText,        labelKey: "account.cgv" },
   { id: "messages",     icon: MessageSquare,   labelKey: "account.messages" },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
@@ -698,6 +702,7 @@ const Account = () => {
             case "collections":   return <BrandCollectionManager partnerId={partnerId!} plan={partnerPlan} />;
             case "references":    return <BrandReferencesManager partnerId={partnerId!} />;
             case "certifications": return <PartnerCertifications partnerId={partnerId!} />;
+            case "cgv":           return <PartnerCGVSection partnerId={partnerId!} />;
             case "brand-catalogue": return <BrandCatalogueSection partnerId={partnerId!} />;
             case "messages":      return <PartnerMessagesSection />;
             case "network":       return <BrandNetworkDashboard partnerId={partnerId!} />;
@@ -716,6 +721,7 @@ const Account = () => {
           case "messages":    return <PartnerMessagesSection />;
           case "catalogue":   return <><PartnerCatalogueSection plan={partnerPlan} partnerId={partnerId} />{partnerId && <PartnerSubmissionFeedbackSection partnerId={partnerId} />}</>;
           case "certifications": return partnerId ? <PartnerCertifications partnerId={partnerId} /> : null;
+          case "cgv":         return partnerId ? <PartnerCGVSection partnerId={partnerId} /> : null;
           case "brand-catalogue": return <BrandCatalogueSection partnerId={partnerId!} />;
           case "arrivals":    return <PartnerArrivalsSection partnerId={partnerId} />;
           case "featured":    return partnerPlan === "elite"

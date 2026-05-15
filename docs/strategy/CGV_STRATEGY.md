@@ -342,12 +342,30 @@ partner-cgv/
 - Dette 102 : Anonymisation fine cgv_acceptances RGPD
 - Dette 103 : `cgv_url_grants` audit log signed URLs (obligatoire avant Vague 2)
 
-### Phase 3 — Components frontend (1 jour)
-- `PartnerCGVUploadForm.tsx`
-- `PartnerCGVViewer.tsx`
-- `CGVAcceptanceCheckbox.tsx`
-- `AdminCGVOverview.tsx`
-- Intégration dashboards (partner + admin)
+### Phase 3 — Components frontend (1 jour) — 🟡 MVP LIVRÉE 2026-05-15 (2/4 components)
+
+**MVP scope founder validé** : 2 components prioritaires Vague 1, les 2 autres différés Vague 2.
+
+**Livrés 2026-05-15** :
+- `src/utils/crypto.ts` — helper `computeFileSha256` (Web Crypto API)
+- `src/components/partner-dashboard/PartnerCGVSection.tsx` — upload PDF + form 3 champs (title, effective_date, file) + état actuel + historique versions. Décision founder Q1 Phase 3 : PDF = single source of truth (pas de duplication des conditions business en DB).
+- `src/components/admin/AdminCGVOverview.tsx` — liste partners approuvés (`profile_status='approved' AND deleted_at IS NULL`) + badges Configuré/En attente/Manquant + filtres + recherche.
+- Intégration `src/pages/Account.tsx` : nav item "CGV" ajouté aux 3 nav configs (`NAV_PARTNER_BASE`, `NAV_BRAND_MEMBER`, `NAV_BRAND_NETWORK`) + routing `case "cgv"` dans les 2 blocs de rendu.
+- Intégration `src/pages/Admin.tsx` : tab `cgv` ajouté au type `Tab`, au sidebar CATALOGUE, et au routing.
+- i18n : clé `account.cgv` ajoutée aux 4 locales (en/fr/es/it).
+
+**Différés Vague 2 (Dettes capturées)** :
+- Dette 104 : `PartnerCGVViewer.tsx` + `CGVAcceptanceCheckbox.tsx` (flow buyer pré-achat)
+- Dette 105 : Edge Function `get-signed-cgv-url` (signed URL pour buyers, lié Dette 103 audit + Dette 104)
+- Dette 106 : Edge Function `send-cgv-reminder-email` (bouton relance admin, optionnel)
+- Dette 107 : Comparateur business terms partners (si volume 50+ marques)
+
+**CI post-implémentation** :
+- `bunx tsc --noEmit` : 0 erreur
+- `bun run test` : 640/640 tests passing
+- `bun run lint` : 0 erreur (611 warnings pré-existants, hors scope)
+
+**Smoke test runtime** : à valider live par founder après push (login partner → upload PDF → vérifier `partner_cgv` row + `partner_cgv_metadata` populated par trigger ; login admin → onglet CGV → vérifier badge "Configuré").
 
 ### Phase 4 — Tests + déploiement (0.5 jour)
 - Smoke tests e2e

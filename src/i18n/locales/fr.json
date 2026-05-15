@@ -869,7 +869,8 @@
     "currentPlan": "Votre plan actuel :",
     "upgradeToElite": "Passer au plan Elite",
     "backToDashboard": "← Retour au tableau de bord",
-    "becomePartner": "Devenir partenaire"
+    "becomePartner": "Devenir partenaire",
+    "cgv": "CGV"
   },
   "brandCatalogue": {
     "title": "Catalogue marque",

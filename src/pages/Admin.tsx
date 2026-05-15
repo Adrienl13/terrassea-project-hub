@@ -38,6 +38,7 @@ import AdminAIScanner from "@/components/admin/AdminAIScanner";
 import AdminMaterialBrands from "@/components/admin/AdminMaterialBrands";
 import AdminCertifications from "@/components/admin/AdminCertifications";
 import AdminApplications from "@/components/admin/AdminApplications";
+import AdminCGVOverview from "@/components/admin/AdminCGVOverview";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
 import CompatibleProductsEditor from "@/components/admin/CompatibleProductsEditor";
 import ProductImagesUpload from "@/components/admin/ProductImagesUpload";
@@ -54,7 +55,7 @@ import {
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "product_reviews" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "concept_analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings" | "referentials_brands" | "referentials_certifications";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "product_reviews" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "concept_analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings" | "referentials_brands" | "referentials_certifications" | "cgv";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -1830,6 +1831,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       { id: "products",    icon: Package,      label: "Produits",      badgeKey: "products" },
       { id: "partners",    icon: Building2,     label: "Partenaires", badgeKey: "partners" },
+      { id: "cgv",         icon: FileText,      label: "Suivi CGV" },
       { id: "submissions", icon: Inbox,         label: "Soumissions",   badgeKey: "submissions" },
       { id: "subscriptions", icon: Star,        label: "Abonnements" },
       { id: "brands",        icon: Crown,       label: "Marques" },
@@ -1889,6 +1891,7 @@ const TAB_TITLES: Record<Tab, string> = {
   referentials_brands: "Référentiel — Marques de matériau",
   referentials_certifications: "Référentiel — Certifications",
   ai_scanner: "AI Scanner",
+  cgv: "Suivi CGV partenaires",
 };
 
 const Admin = () => {
@@ -2082,6 +2085,7 @@ const Admin = () => {
           {tab === "dashboard"    && <AdminDashboard />}
           {tab === "users"        && <AdminUsers />}
           {tab === "partners"     && <AdminPartners />}
+          {tab === "cgv"          && <AdminCGVOverview />}
           {tab === "partner_visibility" && <AdminPartnerVisibility />}
           {tab === "subscriptions"      && <AdminSubscriptions />}
           {tab === "ratings"            && <AdminRatingsModeration />}
