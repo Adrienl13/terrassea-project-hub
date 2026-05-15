@@ -56,7 +56,10 @@ import {
 import DesignAssistantSection from "@/components/client-dashboard/DesignAssistantSection";
 import ClientOrdersSection from "@/components/client-dashboard/ClientOrdersSection";
 import PartnerAnalyticsDashboard from "@/components/partner-dashboard/PartnerAnalyticsDashboard";
-import PartnerLoyaltyProgram from "@/components/partner-dashboard/PartnerLoyaltyProgram";
+// Dette 109 — PartnerLoyaltyProgram import retiré temporairement. Composant
+// + tables partner_loyalty/partner_points_history conservés en code pour
+// réactivation Vague 3.
+// import PartnerLoyaltyProgram from "@/components/partner-dashboard/PartnerLoyaltyProgram";
 import PartnerArrivalsSection from "@/components/partner-dashboard/PartnerArrivalsSection";
 import UpgradeSuggestion from "@/components/partner-dashboard/UpgradeSuggestion";
 import PartnerProfileForm from "@/components/partner-dashboard/PartnerProfileForm";
@@ -174,7 +177,8 @@ const NAV_PARTNER_BASE = [
   { id: "proleads",     icon: Briefcase,       labelKey: "account.proLeads", eliteOnly: false },
   { id: "performance",  icon: BarChart3,       labelKey: "account.performance" },
   { id: "founding",     icon: Crown,           labelKey: "account.founding" },
-  { id: "loyalty",      icon: Award,           labelKey: "account.loyalty" },
+  // "loyalty" caché Dette 109 (réactivation Vague 3). Composant +
+  // tables partner_loyalty/partner_points_history préservés en code.
   { id: "settings",     icon: Settings,        labelKey: "account.profileSettings" },
 ];
 
@@ -737,7 +741,7 @@ const Account = () => {
             ? <PartnerProLeadsSection plan={partnerPlan} />
             : <PlanUpgradeGate feature="proleads" currentPlan={partnerPlan} onNavigate={handlePartnerNav} />;
           case "performance": return partnerId ? <PartnerAnalyticsDashboard partnerId={partnerId} tier={partnerPlan} /> : <PartnerPerformanceSection plan={partnerPlan} />;
-          case "loyalty":     return partnerId ? <PartnerLoyaltyProgram partnerId={partnerId} /> : null;
+          // case "loyalty" caché Dette 109 — réactivable Vague 3 (PartnerLoyaltyProgram import préservé)
           default:            return <PartnerOverviewNew plan={partnerPlan} onNavigate={handlePartnerNav} />;
         }
       })();
