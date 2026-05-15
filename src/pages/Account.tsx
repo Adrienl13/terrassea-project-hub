@@ -70,6 +70,8 @@ import BrandReferencesManager from "@/components/partner-dashboard/BrandReferenc
 import PartnerCertifications from "@/components/partner-dashboard/PartnerCertifications";
 import PartnerCGVSection from "@/components/partner-dashboard/PartnerCGVSection";
 import FoundingProgramSection from "@/components/partner-dashboard/FoundingProgramSection";
+import FoundingBadge from "@/components/common/FoundingBadge";
+import { useFoundingScore } from "@/hooks/useFoundingScore";
 import BrandNetworkDashboard from "@/components/partner-dashboard/BrandNetworkDashboard";
 import BrandNetworkOverview from "@/components/partner-dashboard/BrandNetworkOverview";
 import BrandMemberOverview from "@/components/partner-dashboard/BrandMemberOverview";
@@ -461,6 +463,9 @@ const Account = () => {
   const partnerId = partnerData?.id ?? null;
   const partnerProfileCompleted = partnerData?.profile_completed ?? false;
 
+  // Founding tier pour le badge sidebar (Day 13 finalization Lot 1).
+  const { score: foundingScore } = useFoundingScore(partnerId ?? undefined);
+
   const { data: pendingQuoteCount = 0 } = useQuery({
     queryKey: ["partner-pending-count", partnerId],
     queryFn: async () => {
@@ -846,6 +851,9 @@ const Account = () => {
                     </span>
                     {userType === "partner" && (
                       <PlanBadge plan={partnerPlan} />
+                    )}
+                    {userType === "partner" && foundingScore?.isFounding && (
+                      <FoundingBadge tier={foundingScore.tier} size="sm" />
                     )}
                     {userType === "architect" && (
                       <TierBadge tier={architectTier} />

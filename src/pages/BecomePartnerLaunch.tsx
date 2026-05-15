@@ -347,7 +347,12 @@ export default function BecomePartnerLaunch() {
               </li>
               <li className="flex items-start gap-3">
                 <Star className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
-                <span><strong>Invitations</strong> (à venir) — marques approuvées (500), architectes actifs (300), clients avec première commande (300).</span>
+                <span>
+                  <strong>Invitations ♾️ accumulables</strong> (à venir) — marques approuvées (500 pts chacune), architectes actifs (300 pts), clients avec première commande (300 pts).
+                  <span className="block text-xs text-muted-foreground mt-0.5">
+                    Sans limite : plus vous invitez, plus vous montez en tier. Vos produits gagnent aussi en visibilité dans le réseau Terrassea — partenaires invités, architectes prescripteurs et clients qualifiés deviennent autant de points de contact pour votre marque.
+                  </span>
+                </span>
               </li>
               <li className="flex items-start gap-3">
                 <Star className="h-4 w-4 text-foreground shrink-0 mt-0.5" />

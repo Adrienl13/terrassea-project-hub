@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Loader2, Crown } from "lucide-react";
 import FoundingBadge from "@/components/common/FoundingBadge";
+import AdminFoundingPartnerDetail from "@/components/admin/AdminFoundingPartnerDetail";
 import type { FoundingTier } from "@/hooks/useFoundingScore";
 
 type ScoreRow = {
@@ -36,6 +37,7 @@ const TIER_FILTERS: Array<"all" | FoundingTier> = ["all", "founder", "silver", "
 export default function AdminFoundingOverview() {
   const [filterTier, setFilterTier] = useState<"all" | FoundingTier>("all");
   const [search, setSearch] = useState("");
+  const [detailPartnerId, setDetailPartnerId] = useState<string | null>(null);
 
   const { data: scores, isLoading } = useQuery({
     queryKey: ["admin-founding-scores"],
@@ -137,7 +139,11 @@ export default function AdminFoundingOverview() {
               {filtered.map((r) => {
                 const last = latestActions?.get(r.partner_id);
                 return (
-                  <li key={r.partner_id} className="py-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <li
+                    key={r.partner_id}
+                    onClick={() => setDetailPartnerId(r.partner_id)}
+                    className="py-3 flex flex-wrap items-center gap-x-4 gap-y-1 cursor-pointer hover:bg-muted/40 px-2 -mx-2 rounded transition-colors"
+                  >
                     <div className="min-w-[180px]">
                       <div className="font-medium">{r.partner_name}</div>
                       {r.slug ? <div className="text-xs text-muted-foreground">{r.slug}</div> : null}
@@ -162,8 +168,14 @@ export default function AdminFoundingOverview() {
       </Card>
 
       <p className="text-xs text-muted-foreground">
-        Catalogue actions + seuils stockés dans <code>platform_settings.founding_tiers_config</code>. Actions deferred (invitations, co-développement, milestones) seront activées via Dettes 110a/110b/Vague 3.
+        Cliquez sur une ligne pour voir le détail. Catalogue actions + seuils stockés dans <code>platform_settings.founding_tiers_config</code>. Actions deferred (invitations, co-développement, milestones) seront activées via Dettes 110a/110b/Vague 3.
       </p>
+
+      <AdminFoundingPartnerDetail
+        partnerId={detailPartnerId}
+        open={!!detailPartnerId}
+        onOpenChange={(o) => { if (!o) setDetailPartnerId(null); }}
+      />
     </div>
   );
 }

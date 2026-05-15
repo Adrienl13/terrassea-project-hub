@@ -40,6 +40,8 @@ type Partner = {
   profile_submitted_at: string | null;
   profile_review_notes: string | null;
   created_at: string;
+  is_founding: boolean | null;
+  founding_joined_at: string | null;
 };
 
 type PartnerForm = {
@@ -647,6 +649,11 @@ export default function AdminPartners() {
                     <p className="text-xs font-display font-bold text-foreground group-hover:text-[#D4603A] truncate">{partner.name}</p>
                     <span className="text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 capitalize shrink-0">{partner.partner_type}</span>
                     <span className="text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: `${planCfg.color}12`, color: planCfg.color }}>{planCfg.label}</span>
+                    {partner.is_founding && (
+                      <span className="text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full shrink-0 bg-amber-50 text-amber-700 flex items-center gap-1">
+                        <Crown className="h-2.5 w-2.5" /> Founding
+                      </span>
+                    )}
                     <span className={`text-[9px] font-display font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
                       partner.profile_completed ? "bg-green-50 text-green-700"
                         : (partner as Record<string, unknown>).profile_status === "pending_review" ? "bg-amber-50 text-amber-700"

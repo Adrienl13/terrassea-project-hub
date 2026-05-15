@@ -170,17 +170,26 @@ export default function FoundingProgramSection({ partnerId }: { partnerId: strin
             <CardTitle>Comment gagner des points</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              💡 Les actions marquées <span className="font-medium">♾️ Accumulable</span> peuvent être réalisées plusieurs fois — chaque répétition donne les points correspondants. Les invitations approuvées amplifient aussi la visibilité de vos produits dans le réseau.
+            </p>
             {actionsByCategory.map(({ category, actions }) => (
               <div key={category}>
                 <h3 className="text-sm font-semibold mb-2">{CATEGORY_LABEL[category]}</h3>
                 <ul className="space-y-1.5">
                   {actions.map(([actionType, c]) => {
                     const Icon = ACTION_ICONS[actionType] ?? Sparkles;
+                    const accumulable = !c.one_shot;
                     return (
                       <li key={actionType} className="flex flex-wrap items-center gap-2 text-sm">
                         <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span>{formatActionName(actionType)}</span>
-                        <Badge variant="secondary" className="text-[10px]">+{c.points} pts</Badge>
+                        <Badge variant="secondary" className="text-[10px]">+{c.points} pts{accumulable ? " / occurrence" : ""}</Badge>
+                        {accumulable ? (
+                          <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700">
+                            ♾️ Accumulable
+                          </Badge>
+                        ) : null}
                         {!c.active ? (
                           <Badge variant="outline" className="text-[10px] text-muted-foreground">
                             Bientôt
