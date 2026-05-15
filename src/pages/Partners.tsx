@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavouritePartners } from "@/hooks/useFavouritesDB";
 import { ml } from "@/lib/i18nFields";
+import FoundingBadge from "@/components/common/FoundingBadge";
+import type { FoundingTier } from "@/hooks/useFoundingScore";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
@@ -34,6 +36,9 @@ interface Partner {
   is_public: boolean | null;
   priority_order: number | null;
   website: string | null;
+  is_founding: boolean | null;
+  founding_tier: string | null;
+  founding_tier_rank: number | null;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -162,6 +167,13 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
                 <Star className="h-3 w-3 fill-[#D4603A]" />
                 {t('partners.featured')}
               </span>
+            </div>
+          )}
+
+          {/* Founding badge (Vague 2.5 — top-left au-dessus du type badge) */}
+          {partner.is_founding && partner.founding_tier && (
+            <div className="absolute top-3 left-3">
+              <FoundingBadge tier={partner.founding_tier as FoundingTier} size="sm" />
             </div>
           )}
 
@@ -307,9 +319,10 @@ export default function Partners() {
         .from("partners")
         .select("*")
         .eq("profile_status", "approved")
+        .order("founding_tier_rank", { ascending: false, nullsFirst: false })
         .order("priority_order", { ascending: false });
       if (error) throw error;
-      return (data || []) as Partner[];
+      return (data || []) as unknown as Partner[];
     },
   });
 

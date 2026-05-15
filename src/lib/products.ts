@@ -82,6 +82,9 @@ export interface DBProduct {
   product_slug:   string;
   /** ÉTAPE 9b-2b : denormalized partners.slug joined via owner_brand_id (or partner_id fallback). Optional — null if no owner brand resolved. */
   owner_brand_slug?: string | null;
+  // Vague 2.5 : Founding tier de la marque propriétaire (pour badge ProductCard + boost ranking)
+  partner_founding_tier?: string | null;
+  partner_founding_tier_rank?: number | null;
   collection:     string | null;
   brand_source:   string | null;
   supplier_internal: string | null;
@@ -239,6 +242,7 @@ export async function fetchProducts(): Promise<DBProduct[]> {
   if (productsRes.error) throw productsRes.error;
 
   // Fetch partner plans + subscription commission overrides + owner_brand slug (9b-2b)
+  // + Founding tier rank/tier pour boost ranking Vague 2.5
   const ownerBrandIds = [...new Set((productsRes.data ?? []).map(p => p.owner_brand_id).filter(Boolean))];
   const partnerIds = [...new Set([
     ...(productsRes.data ?? []).map(p => p.partner_id).filter(Boolean),
@@ -247,14 +251,20 @@ export async function fetchProducts(): Promise<DBProduct[]> {
   const partnerPlans = new Map<string, string>();
   const partnerCommissions = new Map<string, number | null>();
   const partnerSlugs = new Map<string, string>();
+  const partnerFoundingTier = new Map<string, string | null>();
+  const partnerFoundingRank = new Map<string, number>();
   if (partnerIds.length > 0) {
     const [{ data: partners }, { data: subs }] = await Promise.all([
-      supabase.from("partners").select("id, plan, slug").in("id", partnerIds),
+      supabase.from("partners").select("id, plan, slug, is_founding, founding_tier, founding_tier_rank").in("id", partnerIds),
       supabase.from("partner_subscriptions").select("partner_id, commission_rate").in("partner_id", partnerIds),
     ]);
     for (const p of partners ?? []) {
       partnerPlans.set(p.id, p.plan || "starter");
       if (p.slug) partnerSlugs.set(p.id, p.slug);
+      if (p.is_founding) {
+        partnerFoundingTier.set(p.id, p.founding_tier ?? "founder");
+        partnerFoundingRank.set(p.id, p.founding_tier_rank ?? 1);
+      }
     }
     for (const s of subs ?? []) {
       if (s.commission_rate != null) {
@@ -263,7 +273,7 @@ export async function fetchProducts(): Promise<DBProduct[]> {
     }
   }
 
-  return (productsRes.data ?? []).map((raw) => {
+  const products = (productsRes.data ?? []).map((raw) => {
     const stats   = offerStats.get(raw.id);
     const product = normalizeProduct(raw);
 
@@ -284,6 +294,11 @@ export async function fetchProducts(): Promise<DBProduct[]> {
     const ownerId = (raw as { owner_brand_id?: string | null }).owner_brand_id ?? product.partner_id;
     product.owner_brand_slug = ownerId ? partnerSlugs.get(ownerId) ?? null : null;
 
+    // Vague 2.5 : denormalize founding tier pour badge ProductCard
+    const tierOwnerId = ownerId ?? product.partner_id;
+    product.partner_founding_tier = tierOwnerId ? (partnerFoundingTier.get(tierOwnerId) ?? null) : null;
+    product.partner_founding_tier_rank = tierOwnerId ? (partnerFoundingRank.get(tierOwnerId) ?? 0) : 0;
+
     // Apply commission to client-facing prices (subscription override > plan default)
     if (product.price_min != null) {
       product.price_min = applyCommission(product.price_min, plan, commissionRate);
@@ -300,6 +315,18 @@ export async function fetchProducts(): Promise<DBProduct[]> {
     }
     return product;
   });
+
+  // Vague 2.5 : tri secondaire par tier_rank Founding DESC, conserve priority_score DESC
+  // initial pour les ties. ORDER BY combiné (founding_tier_rank DESC NULLS LAST,
+  // priority_score DESC) appliqué côté JS pour éviter join sql lourd.
+  products.sort((a, b) => {
+    const rankA = a.partner_founding_tier_rank ?? 0;
+    const rankB = b.partner_founding_tier_rank ?? 0;
+    if (rankA !== rankB) return rankB - rankA;
+    return (b.priority_score ?? 0) - (a.priority_score ?? 0);
+  });
+
+  return products;
 }
 
 // ── Fetch single product ──────────────────────────────────

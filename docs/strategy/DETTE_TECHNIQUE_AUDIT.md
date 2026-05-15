@@ -1914,6 +1914,40 @@ Mécanique : form partner + interface admin de modération + RPC `record_foundin
 
 **Statut** : décision founder à prendre.
 
+### Dette 114 — Vague 2.5 Founding Visibility Boost ✅ FIXED 2026-05-15
+
+**Origine** : Audit validation Vague 2 (2026-05-15). Constat : tracking + UI badges livrés Session 1+2+finalization, mais **impact visibilité sur listings publics manquant** (Products.tsx, Collections.tsx, Partners.tsx, ProductCard tous sans `is_founding`/`founding_tier_rank` dans leurs ORDER BY).
+
+**Livré** :
+- Migration `20260515180000_vague_2_5_founding_visibility_cache.sql` :
+  - Colonnes cache `partners.founding_tier`, `founding_tier_rank` (int 1-4), `founding_total_points` (sync via trigger AFTER founding_actions)
+  - Index partiel `idx_partners_founding_tier_rank` pour ORDER BY DESC NULLS LAST efficient
+  - Helper IMMUTABLE `founding_tier_to_rank(text) RETURNS int` (platinum=4, gold=3, silver=2, founder=1)
+  - Trigger `sync_partner_founding_cache` SECURITY DEFINER + search_path hardened
+  - `auto_mark_founding_partner` étendu : init founding_tier='founder' + rank=1 + points=0 lors de l'auto-marquage cohort launch
+  - Backfill cohorte existante (Pros Import : founder, rank=1, 100 pts)
+
+- Frontend ORDER BY boost :
+  - `Partners.tsx` : ORDER BY `founding_tier_rank DESC NULLS LAST` puis `priority_order DESC`
+  - `Collections.tsx` : idem + `name`
+  - `src/lib/products.ts fetchProducts()` : SELECT partners enrichi avec `is_founding, founding_tier, founding_tier_rank`. Maps tier + rank par partner. Sort côté JS final par `(founding_tier_rank desc, priority_score desc)`.
+  - `DBProduct` : nouveaux champs optionnels `partner_founding_tier` + `partner_founding_tier_rank` denormalisés au moment de fetchProducts
+
+- Frontend badges visuels :
+  - `ProductCard` : `<FoundingBadge tier={product.partner_founding_tier} size="sm" />` en bottom-left absolute si tier présent
+  - `Partners.tsx` card : badge top-left absolute
+  - `Collections.tsx` brand header : badge inline à côté du nom
+  - `BrandPage.tsx` header hero : badge inline à côté du h1
+
+**Validation SQL** :
+- Trigger sync testé en transaction rollback : +500 pts → cache `founding_total_points=600`, tier='founder' (toujours <1000) ✅
+- Transitions tier validées : 900 → founder ; 1100 → silver ; 3600 → gold ✅
+- Accumulable testé : 5× partner_invited_approved avec ref_id distincts → 5×500=2500 pts ✅
+
+**Validation CI** : tsc 0 erreur, 640/640 tests OK, lint 0 erreur.
+
+**Statut** : ✅ FIXED. Impact visibilité opérationnel : Founding partners passent en haut des listings publics, badges affichés sur cartes produits/collections/partners.
+
 ### Dette 47 — 4 callsites source_offer_id brand-only à nettoyer
 
 **Origine** : Investigation Dette 45b (2026-05-07)

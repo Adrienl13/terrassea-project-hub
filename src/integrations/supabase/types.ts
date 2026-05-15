@@ -2985,6 +2985,9 @@ export type Database = {
           description_it: string | null
           founded_year: number | null
           founding_joined_at: string | null
+          founding_tier: string | null
+          founding_tier_rank: number | null
+          founding_total_points: number
           gallery_urls: string[] | null
           hero_image_url: string | null
           id: string
@@ -3037,6 +3040,9 @@ export type Database = {
           description_it?: string | null
           founded_year?: number | null
           founding_joined_at?: string | null
+          founding_tier?: string | null
+          founding_tier_rank?: number | null
+          founding_total_points?: number
           gallery_urls?: string[] | null
           hero_image_url?: string | null
           id?: string
@@ -3089,6 +3095,9 @@ export type Database = {
           description_it?: string | null
           founded_year?: number | null
           founding_joined_at?: string | null
+          founding_tier?: string | null
+          founding_tier_rank?: number | null
+          founding_total_points?: number
           gallery_urls?: string[] | null
           hero_image_url?: string | null
           id?: string
@@ -6220,6 +6229,7 @@ export type Database = {
         Args: { p_date: string; p_locale: string }
         Returns: string
       }
+      founding_tier_to_rank: { Args: { p_tier: string }; Returns: number }
       fuzzy_search_products: {
         Args: {
           category_filter?: string

@@ -12,6 +12,8 @@ import ProjectBriefModal from "@/components/products/ProjectBriefModal";
 import type { ProductOffer } from "@/lib/productOffers";
 import type { DBProduct } from "@/lib/products";
 import { urlForProduct } from "@/lib/productRoutes";
+import FoundingBadge from "@/components/common/FoundingBadge";
+import type { FoundingTier } from "@/hooks/useFoundingScore";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,6 +40,9 @@ interface BrandPartner {
   contact_name: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  is_founding: boolean | null;
+  founding_tier: string | null;
+  founding_tier_rank: number | null;
 }
 
 interface BrandReferenceItem {
@@ -260,7 +265,12 @@ export default function BrandPage() {
               <img loading="lazy" src={brand.logo_url} alt={brand.name} className="h-20 w-20 rounded-2xl object-contain bg-white/10 backdrop-blur-sm p-3 border border-white/10" />
             )}
             <div className="flex-1">
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-white tracking-tight">{brand.name}</h1>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="font-display text-4xl md:text-5xl font-bold text-white tracking-tight">{brand.name}</h1>
+                {brand.is_founding && brand.founding_tier ? (
+                  <FoundingBadge tier={brand.founding_tier as FoundingTier} />
+                ) : null}
+              </div>
               {tagline && <p className="text-sm font-body text-white/60 mt-2 max-w-xl">{tagline}.</p>}
               <div className="flex flex-wrap items-center gap-4 mt-4">
                 {flag && brand.country && (

@@ -11,6 +11,8 @@ import { useCompare } from "@/contexts/CompareContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
 import { getOptimizedImageUrl, getResponsiveSrcSet } from "@/utils/imageOptimization";
 import { toast } from "sonner";
+import FoundingBadge from "@/components/common/FoundingBadge";
+import type { FoundingTier } from "@/hooks/useFoundingScore";
 
 const STOCK_DOT: Record<string, { dot: string; label: string }> = {
   available:    { dot: "bg-green-500",       label: "In stock"     },
@@ -72,6 +74,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
           >
             <Heart className={`h-3.5 w-3.5 ${fav ? "text-white fill-white" : "text-gray-500"}`} />
           </button>
+          {product.partner_founding_tier ? (
+            <div className="absolute bottom-2 left-2">
+              <FoundingBadge tier={product.partner_founding_tier as FoundingTier} size="sm" />
+            </div>
+          ) : null}
           <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={(e) => { e.preventDefault(); addToCompare(product); }}

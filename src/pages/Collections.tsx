@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import FoundingBadge from "@/components/common/FoundingBadge";
+import type { FoundingTier } from "@/hooks/useFoundingScore";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +24,11 @@ interface BrandPartner {
   founded_year: number | null;
   specialties: string[] | null;
   certifications: string[] | null;
+  partner_mode: string | null;
+  priority_order: number | null;
+  is_founding: boolean | null;
+  founding_tier: string | null;
+  founding_tier_rank: number | null;
 }
 
 interface CollectionOffer {
@@ -75,9 +82,10 @@ export default function Collections() {
       try {
         const { data, error: err } = await supabase
           .from("partners")
-          .select("id, slug, name, logo_url, country, country_code, description, partner_mode, hero_image_url, cover_photo_url, founded_year, specialties, certifications, priority_order")
+          .select("id, slug, name, logo_url, country, country_code, description, partner_mode, hero_image_url, cover_photo_url, founded_year, specialties, certifications, priority_order, is_founding, founding_tier, founding_tier_rank")
           .in("partner_mode", ["brand_member", "brand_network"])
           .eq("is_active", true)
+          .order("founding_tier_rank", { ascending: false, nullsFirst: false })
           .order("priority_order", { ascending: true, nullsFirst: false })
           .order("name");
 
@@ -232,9 +240,14 @@ export default function Collections() {
                         <img loading="lazy" src={brand.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-muted p-1" />
                       ) : null}
                       <div>
-                        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-                          {brand.name}
-                        </h2>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+                            {brand.name}
+                          </h2>
+                          {brand.is_founding && brand.founding_tier ? (
+                            <FoundingBadge tier={brand.founding_tier as FoundingTier} size="sm" />
+                          ) : null}
+                        </div>
                         <div className="flex items-center gap-2 mt-1">
                           {flag ? <span className="text-sm">{flag}</span> : null}
                           {brand.country ? (
