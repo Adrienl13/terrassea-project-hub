@@ -1788,7 +1788,38 @@ CREATE TABLE public.partner_cgv_terms (
 
 **Priorité** : Niveau 2 — bloquant impact tracking founding cohorte initiale.
 
-**Statut** : Phase 1 audit ✅ DONE. **Décisions founder validées 2026-05-15** (cf. audit doc §11) : Option A système distinct ; bascule 2026-05-11 ; tiers somme de points ; Loyalty caché ; phasage 4 actions MVP ; hybride triggers + Edge. Phase 2 Session 1 prête à démarrer.
+**Statut** : Session 1 ✅ LIVRÉE 2026-05-15. Migrations `20260515160000_dette_108_vague_2_founding_tracking.sql` + hotfix `20260515160500_dette_108_hotfix_security_invoker_revoke_triggers.sql` appliquées.
+
+**Livré Session 1** :
+- Colonnes `partners.is_founding boolean NOT NULL DEFAULT false` + `founding_joined_at timestamptz` + index partiel
+- Trigger `BEFORE INSERT partners` auto-marquage si `pricing_visibility_mode='launch'` (function `auto_mark_founding_partner`)
+- Table `founding_actions` (event log append-only) + UNIQUE constraint anti-fraude `(partner_id, action_type, COALESCE(reference_id, ''))` + 3 indexes
+- RLS founding_actions : partner read own, admin read all, INSERT/UPDATE/DELETE révoqués
+- Setting `platform_settings.founding_tiers_config` jsonb avec catalogue 15 actions + seuils 0/1000/3000/8000
+- RPC `record_founding_action(p_partner_id, p_action_type, p_reference_id, p_meta)` SECURITY DEFINER + search_path hardened, REVOKE EXECUTE pour anon+auth (trigger/service-role only), lookup points depuis config + check `active=true`
+- View `founding_partner_scores` avec tier dérivé, `security_invoker=true` (RLS héritée)
+- Fonction publique `get_partner_founding_tier(uuid) RETURNS jsonb` (badges) GRANT EXECUTE TO anon+authenticated
+- 3 trigger functions DB :
+  - `trg_founding_profile_completed` AFTER UPDATE OF profile_status ON partners
+  - `trg_founding_cgv_uploaded` AFTER INSERT ON partner_cgv
+  - `trg_founding_first_order` AFTER UPDATE OF status ON orders
+- Backfill `is_founding=true` pour cohorte pré-2026-05-11 (1 partner "Pros Import" matched)
+- Backfill rétroactif actions complétées (1 row profile_completed inséré)
+- Hotfix security advisors : ALTER VIEW security_invoker=true + REVOKE EXECUTE sur les 4 trigger functions (jamais appelées via RPC)
+- Types Supabase régénérés (`src/integrations/supabase/types.ts` +200 lignes, 47 refs founding)
+
+**Smoke tests SQL passés** :
+- 1 partner is_founding=true ✅ (Pros Import, joined 2026-03-24)
+- 1 founding_action profile_completed 100 pts (backfill rétroactif) ✅
+- View retourne tier='founder' (100 pts < 1000) ✅
+- `get_partner_founding_tier()` retourne `{tier:'founder', is_founding:true, founding_joined_at:'2026-03-24'}` ✅
+- Trigger cgv_uploaded fire correctement (testé en transaction ROLLBACK : INSERT partner_cgv status='active' → +1 row cgv_uploaded 100 pts) ✅
+- Anti-fraude dédup : double `record_founding_action('profile_completed')` → second appel returns NULL, total reste à 1 ✅
+- Action deferred `partner_invited_signup` (active=false) → RPC raise exception explicite ✅
+
+**Advisors** : 11 founding entries (1 ERROR + 10 WARN) avant hotfix → 2 entries restantes après (2 WARN intentionnels sur `get_partner_founding_tier` exposed à anon+auth pour badges publics, pattern documenté).
+
+**Session 2 différée** (~2.5-3.5h) : Hook `useFoundingScore`, Component `FoundingBadge`, dashboard partner `FoundingProgramSection`, section explainer `BecomePartnerLaunch.tsx`, dashboard `AdminFoundingOverview`, Edge function `record-founding-products-batch` (action `first_5_products`), cacher Loyalty existant (commit séparé), tests.
 
 ### Dette 109 — Réactiver Loyalty Program V3 🟢 Différé Vague 3
 
