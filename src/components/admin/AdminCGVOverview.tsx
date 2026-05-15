@@ -3,13 +3,19 @@
 // attente / Manquant) selon la décision founder Q2 Phase 3 (2026-05-14).
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, ShieldAlert, ShieldX, Search, Loader2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import PDFViewerModal from "@/components/common/PDFViewerModal";
+import { ShieldCheck, ShieldAlert, ShieldX, Search, Loader2, Eye, Trash2 } from "lucide-react";
 
 const PENDING_DAYS = 7;
 
@@ -59,8 +65,17 @@ function StatusBadge({ status }: { status: CGVStatus }) {
 }
 
 export default function AdminCGVOverview() {
+  const queryClient = useQueryClient();
   const [filterStatus, setFilterStatus] = useState<"all" | CGVStatus>("all");
   const [search, setSearch] = useState("");
+
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const [viewerTitle, setViewerTitle] = useState("");
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerLoadingId, setViewerLoadingId] = useState<string | null>(null);
+
+  const [deleteTarget, setDeleteTarget] = useState<{ cgvId: string; partnerName: string; version: number } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-cgv-overview"],
@@ -123,6 +138,52 @@ export default function AdminCGVOverview() {
     return rows;
   }, [enriched, filterStatus, search]);
 
+  const handleView = async (cgvId: string, label: string) => {
+    setViewerLoadingId(cgvId);
+    try {
+      const { data, error } = await supabase.functions.invoke("get-signed-cgv-url", {
+        body: { partner_cgv_id: cgvId },
+      });
+      if (error || !data?.url) {
+        console.error("[admin CGV view]", error);
+        toast.error("Impossible d'afficher le PDF (" + (error?.message ?? "inconnu") + ").");
+        return;
+      }
+      setViewerTitle(label);
+      setViewerUrl(data.url as string);
+      setViewerOpen(true);
+    } finally {
+      setViewerLoadingId(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.rpc("delete_partner_cgv", { p_cgv_id: deleteTarget.cgvId });
+      if (error) {
+        console.error("[admin CGV delete]", error);
+        toast.error("Échec de la suppression : " + (error.message || "inconnu"));
+        return;
+      }
+      const payload = (data ?? {}) as { action?: string; storage_path?: string; acceptances_count?: number };
+      if (payload.action === "deleted" && payload.storage_path) {
+        const { error: storageErr } = await supabase.storage.from("partner-cgv").remove([payload.storage_path]);
+        if (storageErr) console.warn("[admin CGV storage cleanup]", storageErr);
+      }
+      if (payload.action === "archived") {
+        toast.success(`CGV archivée (preuves d'acceptation préservées : ${payload.acceptances_count ?? 0}).`);
+      } else {
+        toast.success("CGV supprimée.");
+      }
+      setDeleteTarget(null);
+      void queryClient.invalidateQueries({ queryKey: ["admin-cgv-overview"] });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -174,7 +235,7 @@ export default function AdminCGVOverview() {
           ) : (
             <ul className="divide-y">
               {filtered.map((r) => (
-                <li key={r.id} className="py-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <li key={r.id} className="py-3 flex flex-wrap items-center gap-x-3 gap-y-1">
                   <div className="min-w-[200px]">
                     <div className="font-medium">{r.name}</div>
                     {r.slug ? <div className="text-xs text-muted-foreground">{r.slug}</div> : null}
@@ -188,7 +249,29 @@ export default function AdminCGVOverview() {
                       <span>· approuvé {new Date(r.profile_reviewed_at).toLocaleDateString()}</span>
                     ) : null}
                   </div>
-                  <div className="ml-auto"><StatusBadge status={r.status} /></div>
+                  <div className="ml-auto flex items-center gap-2">
+                    <StatusBadge status={r.status} />
+                    {r.current_cgv_id ? (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleView(r.current_cgv_id!, `${r.name} — CGV v${r.current_version}`)}
+                          disabled={viewerLoadingId === r.current_cgv_id}
+                        >
+                          {viewerLoadingId === r.current_cgv_id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Eye className="h-3 w-3" />}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteTarget({ cgvId: r.current_cgv_id!, partnerName: r.name, version: r.current_version ?? 0 })}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </>
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -199,6 +282,45 @@ export default function AdminCGVOverview() {
       <p className="text-xs text-muted-foreground">
         Bouton « Relancer marque » via email — Dette 106 capturée (Edge Function send-cgv-reminder-email à venir, ne bloque pas le MVP Phase 3).
       </p>
+
+      <PDFViewerModal
+        open={viewerOpen}
+        url={viewerUrl}
+        onOpenChange={(o) => {
+          setViewerOpen(o);
+          if (!o) setViewerUrl(null);
+        }}
+        title={viewerTitle}
+      />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette CGV ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget ? (
+                <>
+                  Vous êtes sur le point de supprimer la <strong>CGV v{deleteTarget.version}</strong> de <strong>{deleteTarget.partnerName}</strong>.
+                  <br /><br />
+                  Si elle n'a pas encore été acceptée par un client, elle sera <strong>définitivement supprimée</strong>.
+                  Sinon, elle sera <strong>archivée</strong> pour préserver les preuves d'acceptation (obligation légale).
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => { e.preventDefault(); void handleConfirmDelete(); }}
+              disabled={deleting}
+            >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Confirmer la suppression
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

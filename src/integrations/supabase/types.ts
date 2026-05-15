@@ -629,6 +629,77 @@ export type Database = {
         }
         Relationships: []
       }
+      cgv_acceptances: {
+        Row: {
+          acceptance_type: string
+          accepted_at: string
+          context: string
+          context_reference_id: string | null
+          id: string
+          ip_address: unknown
+          partner_cgv_id: string | null
+          partner_id: string | null
+          terrassea_terms_id: string | null
+          user_agent: string
+          user_id: string | null
+        }
+        Insert: {
+          acceptance_type: string
+          accepted_at?: string
+          context: string
+          context_reference_id?: string | null
+          id?: string
+          ip_address: unknown
+          partner_cgv_id?: string | null
+          partner_id?: string | null
+          terrassea_terms_id?: string | null
+          user_agent: string
+          user_id?: string | null
+        }
+        Update: {
+          acceptance_type?: string
+          accepted_at?: string
+          context?: string
+          context_reference_id?: string | null
+          id?: string
+          ip_address?: unknown
+          partner_cgv_id?: string | null
+          partner_id?: string | null
+          terrassea_terms_id?: string | null
+          user_agent?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cgv_acceptances_partner_cgv_id_fkey"
+            columns: ["partner_cgv_id"]
+            isOneToOne: false
+            referencedRelation: "partner_cgv"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cgv_acceptances_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cgv_acceptances_terrassea_terms_id_fkey"
+            columns: ["terrassea_terms_id"]
+            isOneToOne: false
+            referencedRelation: "terrassea_terms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cgv_acceptances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chatbot_conversations: {
         Row: {
           created_at: string | null
@@ -2150,6 +2221,137 @@ export type Database = {
           },
         ]
       }
+      partner_cgv: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          byte_size: number
+          created_at: string
+          created_by: string | null
+          effective_date: string
+          id: string
+          mime_type: string
+          partner_id: string
+          sha256: string
+          status: string
+          storage_path: string
+          title: string
+          version: number
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          byte_size: number
+          created_at?: string
+          created_by?: string | null
+          effective_date: string
+          id?: string
+          mime_type?: string
+          partner_id: string
+          sha256: string
+          status: string
+          storage_path: string
+          title: string
+          version: number
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          byte_size?: number
+          created_at?: string
+          created_by?: string | null
+          effective_date?: string
+          id?: string
+          mime_type?: string
+          partner_id?: string
+          sha256?: string
+          status?: string
+          storage_path?: string
+          title?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_cgv_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_cgv_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_cgv_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_cgv_metadata: {
+        Row: {
+          admin_reviewed_at: string | null
+          admin_reviewed_by: string | null
+          current_cgv_id: string | null
+          current_version: number | null
+          last_updated_at: string
+          needs_renewal: boolean
+          partner_id: string
+          renewal_reason: string | null
+        }
+        Insert: {
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
+          current_cgv_id?: string | null
+          current_version?: number | null
+          last_updated_at?: string
+          needs_renewal?: boolean
+          partner_id: string
+          renewal_reason?: string | null
+        }
+        Update: {
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
+          current_cgv_id?: string | null
+          current_version?: number | null
+          last_updated_at?: string
+          needs_renewal?: boolean
+          partner_id?: string
+          renewal_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_cgv_metadata_admin_reviewed_by_fkey"
+            columns: ["admin_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_cgv_metadata_current_cgv_id_fkey"
+            columns: ["current_cgv_id"]
+            isOneToOne: false
+            referencedRelation: "partner_cgv"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_cgv_metadata_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: true
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_commissions: {
         Row: {
           commission_amount: number | null
@@ -2515,6 +2717,7 @@ export type Database = {
           country_code: string | null
           cover_photo_url: string | null
           created_at: string | null
+          deleted_at: string | null
           delivery_countries: string[] | null
           description: string | null
           description_es: string | null
@@ -2564,6 +2767,7 @@ export type Database = {
           country_code?: string | null
           cover_photo_url?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           delivery_countries?: string[] | null
           description?: string | null
           description_es?: string | null
@@ -2613,6 +2817,7 @@ export type Database = {
           country_code?: string | null
           cover_photo_url?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           delivery_countries?: string[] | null
           description?: string | null
           description_es?: string | null
@@ -5155,6 +5360,65 @@ export type Database = {
         }
         Relationships: []
       }
+      terrassea_terms: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          en_sha256: string | null
+          en_source_path: string | null
+          fr_sha256: string
+          fr_source_path: string
+          git_commit_sha: string
+          id: string
+          legal_review_status: string
+          notes: string | null
+          published_at: string
+          supersedes_version: number | null
+          title: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          en_sha256?: string | null
+          en_source_path?: string | null
+          fr_sha256: string
+          fr_source_path: string
+          git_commit_sha: string
+          id?: string
+          legal_review_status: string
+          notes?: string | null
+          published_at: string
+          supersedes_version?: number | null
+          title: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          en_sha256?: string | null
+          en_source_path?: string | null
+          fr_sha256?: string
+          fr_source_path?: string
+          git_commit_sha?: string
+          id?: string
+          legal_review_status?: string
+          notes?: string | null
+          published_at?: string
+          supersedes_version?: number | null
+          title?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "terrassea_terms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_favourites: {
         Row: {
           created_at: string
@@ -5569,6 +5833,7 @@ export type Database = {
         Returns: string
       }
       delete_partner_cascade: { Args: { p_partner_id: string }; Returns: Json }
+      delete_partner_cgv: { Args: { p_cgv_id: string }; Returns: Json }
       expire_overdue_quotes: { Args: never; Returns: number }
       format_currency_locale: {
         Args: { p_amount: number; p_locale: string }
@@ -5724,6 +5989,16 @@ export type Database = {
       }
       next_invoice_number: { Args: never; Returns: string }
       next_payment_reference: { Args: never; Returns: string }
+      record_cgv_acceptance: {
+        Args: {
+          p_acceptance_type: string
+          p_context: string
+          p_context_reference_id?: string
+          p_partner_cgv_id?: string
+          p_terrassea_terms_id?: string
+        }
+        Returns: string
+      }
       render_transactional_email: {
         Args: {
           p_body: string

@@ -342,7 +342,21 @@ partner-cgv/
 - Dette 102 : Anonymisation fine cgv_acceptances RGPD
 - Dette 103 : `cgv_url_grants` audit log signed URLs (obligatoire avant Vague 2)
 
-### Phase 3 — Components frontend (1 jour) — 🟡 MVP LIVRÉE 2026-05-15 (2/4 components)
+### Phase 3 — Components frontend (1 jour) — 🟢 EXTENSION LIVRÉE 2026-05-15 (3/4 components + viewer infra)
+
+**Extension Phase 3 livrée 2026-05-15** :
+- Edge Function `get-signed-cgv-url` (Dette 105 ✅ FIXED) — déployée v1, auth + permission check double (admin OR owner), TTL 60s default.
+- RPC `delete_partner_cgv` (Dette 104b ✅ FIXED) — smart delete : hard si 0 acceptances, archive sinon. Migration `20260515120000_dette_104_partner_cgv_smart_delete.sql` appliquée.
+- Component réutilisable `src/components/common/PDFViewerModal.tsx` (iframe-based).
+- `PartnerCGVSection` : boutons Voir + Supprimer sur active + chaque ligne historique, AlertDialog confirmation obligatoire.
+- `AdminCGVOverview` : boutons Voir + Supprimer sur partners configurés, AlertDialog confirmation.
+- `src/integrations/supabase/types.ts` régénéré pour inclure les 4 nouvelles tables CGV (Phase 2).
+
+**Résiduel Vague 2 (Dette 104 partial)** :
+- `CGVAcceptanceCheckbox.tsx` — case à cocher pré-signature devis / placement commande
+- Intégration buyer flow (cart + checkout + quote)
+
+
 
 **MVP scope founder validé** : 2 components prioritaires Vague 1, les 2 autres différés Vague 2.
 

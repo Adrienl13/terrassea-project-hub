@@ -1630,41 +1630,84 @@ CREATE TABLE public.cgv_url_grants (
 
 **Statut** : différé Phase 3+, schéma défini, conditions de mise en œuvre explicites.
 
-### Dette 104 — PartnerCGVViewer + CGVAcceptanceCheckbox 🟠 Obligatoire avant Vague 2
+### Dette 104 — PartnerCGVViewer + CGVAcceptanceCheckbox 🟡 Partial FIX (viewer livré, CGVAcceptanceCheckbox résiduel)
 
-**Origine** : Phase 3 MVP CGV (2026-05-15). Founder a délibérément restreint le scope MVP à 2 components (upload + admin overview). Les 2 components restants sont liés au flow buyer transactionnel (Vague 2).
+**Origine** : Phase 3 MVP CGV (2026-05-15).
 
-**Components à livrer** :
-1. `PartnerCGVViewer.tsx` — affiche la CGV active d'une marque, via signed URL (cf. Dette 105). Utilisé sur la page produit + cart + checkout. Trigger ouverture en modal ou page dédiée.
-2. `CGVAcceptanceCheckbox.tsx` — case à cocher avant signature devis / placement commande. Appelle RPC `record_cgv_acceptance(context='quote_signature' | 'order_placement', partner_cgv_id, context_reference_id)`. Bloque le submit tant que non cochée.
+**Livré 2026-05-15 (extension Phase 3)** :
+- `src/components/common/PDFViewerModal.tsx` — modal réutilisable (iframe-based) pour afficher un PDF via URL signée. Plug-and-play partner + admin.
+- Intégration `PartnerCGVSection.tsx` : boutons "Voir" sur CGV active + chaque ligne historique. Loading state par row. Modal s'ouvre avec titre contextualisé `CGV v{N} — {title}`.
+- Intégration `AdminCGVOverview.tsx` : boutons "Voir" sur les partners configurés (current_cgv_id NOT NULL).
+- RPC + smart delete livrés en parallèle (cf. Dette 104 delete et migration `20260515120000_dette_104_partner_cgv_smart_delete.sql`).
 
-**Pré-requis** : Dette 105 (Edge Function get-signed-cgv-url) opérationnelle.
+**Résiduel pour Vague 2** :
+- `CGVAcceptanceCheckbox.tsx` — case à cocher avant signature devis / placement commande. Appelle RPC `record_cgv_acceptance(context='quote_signature' | 'order_placement', partner_cgv_id, context_reference_id)`. Bloque submit tant que non cochée. Intégration cart + checkout + quote flow.
+- Dépend Dette 103 (cgv_url_grants audit log signed URLs) pour traçabilité consultation pré-acceptation.
 
-**Effort estimé** : 0.5 jour (les 2 components + intégration cart + checkout + tests).
+**Pré-requis Vague 2** : Dette 103 audit log + intégration buyer flow.
+
+**Effort estimé résiduel** : 0.5 jour (CGVAcceptanceCheckbox + intégration cart + checkout + tests).
 
 **Priorité** : Niveau 2 — obligatoire avant Vague 2 (sans acceptance prouvée, achat non conforme DSA + L.111-7).
 
-**Statut** : différé Phase 3.5 / Vague 2.
+**Statut** : Viewer LIVRÉ. CGVAcceptanceCheckbox différé Vague 2.
 
-### Dette 105 — Edge Function get-signed-cgv-url 🟠 Obligatoire avant Vague 2
+### Dette 104b — RPC delete_partner_cgv smart delete ✅ FIXED 2026-05-15
 
-**Origine** : Phase 3 MVP CGV (2026-05-15). Le bucket `partner-cgv` est privé ; les buyers ne peuvent pas y accéder directement. Edge Function génère une signed URL à courte durée pour leur permettre de consulter le PDF.
+**Origine** : Extension Phase 3 (2026-05-15).
+
+**Livré** :
+- Migration `20260515120000_dette_104_partner_cgv_smart_delete.sql` appliquée.
+- RPC `public.delete_partner_cgv(p_cgv_id uuid) RETURNS jsonb` — SECURITY DEFINER + search_path hardened.
+- Logique smart : 0 acceptances → hard delete row ; ≥1 acceptances → archive (status='archived', archived_at, archive_reason). Préserve audit trail légal.
+- Permissions : admin override OR owner partner (`partners.user_id = auth.uid() AND deleted_at IS NULL`).
+- Retour `{ action: 'archived'|'deleted', cgv_id, partner_id, storage_path, previous_status, acceptances_count }`.
+- Storage cleanup côté client (best-effort) après `action='deleted'`.
+- Frontend `PartnerCGVSection.tsx` + `AdminCGVOverview.tsx` : boutons Supprimer avec `AlertDialog` confirmation obligatoire (titre, description claire entre archive vs delete, action destructive style).
+
+**Trigger sync_partner_cgv_metadata** déclenche sur DELETE et UPDATE OF status — cache `partner_cgv_metadata.current_cgv_id` rafraîchi automatiquement.
+
+**Statut** : ✅ FIXED.
+
+### Dette 105 — Edge Function get-signed-cgv-url ✅ FIXED 2026-05-15
+
+**Origine** : Phase 3 MVP CGV (2026-05-15).
+
+**Livré** :
+- `supabase/functions/get-signed-cgv-url/index.ts` — déployé v1 ACTIVE.
+- `Authorization: Bearer` required (rejette si absent).
+- Permission check double : admin via `userClient.rpc('is_admin')` OU owner partner via service-role lookup `partners.user_id = userId AND deleted_at IS NULL`.
+- Status check : `partner_cgv.status IN ('active','archived')` (archived reste consultable pour preuves passées).
+- TTL : default 60 s (pattern Stripe), min 30 s, max 3600 s.
+- Returns `{ url, expires_at, ttl_seconds }`.
+- Body validation : `partner_cgv_id` (uuid string) required.
+- Réponse JSON typée avec CORS handling.
+- Intégration frontend : `supabase.functions.invoke('get-signed-cgv-url', { body: { partner_cgv_id } })` côté PartnerCGVSection + AdminCGVOverview.
+
+**Résiduel pour Vague 2** :
+- Rate limiting (10 req/user/min, 100 req/user/day) — capturé Dette 105b si signalé.
+- Insert dans `cgv_url_grants` audit log — Dette 103 (obligatoire avant Vague 2 transactionnelle).
+
+**Statut** : ✅ FIXED. Rate limit + audit log = follow-ups Dette 103 / 105b.
+
+### Dette 105b — Rate limiting get-signed-cgv-url 🟢 Si abus
+
+**Origine** : Extension Phase 3 (2026-05-15). Décision founder Q7 mentionnait rate limit ; non implémenté en MVP pour respecter scope.
+
+**Trigger d'activation** :
+- Signal d'abus (volume request anormal d'un user)
+- Préparation Vague 2 transactionnelle (mesure défense en profondeur)
 
 **Spec** :
-- Endpoint : `POST /functions/v1/get-signed-cgv-url`
-- Body : `{ partner_cgv_id: uuid, ttl_seconds?: number }`
-- Returns : `{ url: string, expires_at: string }`
-- Validation : `partner_cgv.status = 'active'` requis
-- Auth required (rejette sans `Authorization: Bearer`)
-- TTL default 60 s (décision Q7 founder, pattern Stripe), max 3600 s
-- Rate limiting : 10 req/user/min, 100 req/user/day (Cloudflare WAF ou côté Edge)
-- Insert dans `cgv_url_grants` (Dette 103) avant retour URL
+- 10 req/user/min, 100 req/user/day
+- Option A : Cloudflare WAF rule par auth user_id (gratuit, hors function)
+- Option B : Table `cgv_url_grants` (Dette 103) avec count check côté Edge Function
 
-**Effort estimé** : 0.5 jour (function + tests + déploiement).
+**Effort estimé** : 1-2 h (selon option A ou B).
 
-**Priorité** : Niveau 2 — obligatoire avant Vague 2.
+**Priorité** : Niveau 3 — réactif.
 
-**Statut** : différé Phase 3.5 / Vague 2. Liée Dette 103 (audit log) et Dette 104 (viewer).
+**Statut** : capturé.
 
 ### Dette 106 — Edge Function send-cgv-reminder-email 🟢 Optionnelle
 
