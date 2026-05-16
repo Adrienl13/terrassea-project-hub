@@ -11,6 +11,23 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
 };
 
+// Stripe signature tolerance window. Mirrors the Stripe SDK default
+// (300 seconds). Red-team M6 (2026-05-16): the prior implementation
+// included the timestamp in the HMAC payload but did not enforce a
+// freshness window, so any once-signed event remained replayable
+// indefinitely if it leaked. Constant-time compare added to match
+// Stripe SDK behaviour.
+const STRIPE_SIG_TOLERANCE_SECONDS = 300;
+
+function timingSafeEqualHex(aHex: string, bHex: string): boolean {
+  if (aHex.length !== bHex.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aHex.length; i++) {
+    diff |= aHex.charCodeAt(i) ^ bHex.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 async function verifyStripeSignature(payload: string, sigHeader: string, secret: string): Promise<boolean> {
   try {
     const parts = sigHeader.split(",").reduce((acc: Record<string, string>, part) => {
@@ -22,6 +39,12 @@ async function verifyStripeSignature(payload: string, sigHeader: string, secret:
     const signature = parts["v1"];
     if (!timestamp || !signature) return false;
 
+    // Enforce freshness window — reject events older than the tolerance.
+    const ts = parseInt(timestamp, 10);
+    if (!Number.isFinite(ts)) return false;
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (Math.abs(nowSec - ts) > STRIPE_SIG_TOLERANCE_SECONDS) return false;
+
     const signedPayload = `${timestamp}.${payload}`;
     const key = await crypto.subtle.importKey(
       "raw",
@@ -32,7 +55,7 @@ async function verifyStripeSignature(payload: string, sigHeader: string, secret:
     );
     const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signedPayload));
     const expected = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
-    return expected === signature;
+    return timingSafeEqualHex(expected, signature);
   } catch {
     return false;
   }

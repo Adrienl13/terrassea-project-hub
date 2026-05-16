@@ -68,10 +68,16 @@ Deno.serve(async (req) => {
       return jsonResponse(403, { error: "API connection is not active. Enable it in your dashboard." });
     }
 
-    // Optional: verify webhook secret if provided
+    // Verify webhook secret when configured on the connection. Red-team M3
+    // (2026-05-16): the prior `&& webhookSecret &&` short-circuit let an
+    // attacker who held a stolen API key bypass the second factor simply
+    // by omitting the X-Webhook-Secret header. Now: if a webhook_secret is
+    // set on the connection, the header is mandatory and must match.
     const webhookSecret = req.headers.get("x-webhook-secret");
-    if (connection.webhook_secret && webhookSecret && webhookSecret !== connection.webhook_secret) {
-      return jsonResponse(401, { error: "Invalid webhook secret" });
+    if (connection.webhook_secret) {
+      if (!webhookSecret || webhookSecret !== connection.webhook_secret) {
+        return jsonResponse(401, { error: "Missing or invalid webhook secret" });
+      }
     }
 
     // ── Parse payload ──
@@ -126,25 +132,55 @@ Deno.serve(async (req) => {
       const status = item[mapping.status_field] ?? item.status;
       const deliveryDays = item.delivery_days ?? item.delivery_delay_days;
 
-      // Build update object
+      // Build update object. Red-team M4 (2026-05-16): the prior code did
+      // `Number(price)` with no bounds check, so a malicious or compromised
+      // partner could set price to 0.01 or even a negative number and win
+      // every auto-assign attribution (auto-workflow ranks offers by price
+      // ASC). Reject non-finite numbers, negative prices, and absurd
+      // stock_quantity values; finer per-offer delta caps remain a future
+      // task.
       const updateData: Record<string, any> = {};
       if (stockQty !== undefined && stockQty !== null) {
-        updateData.stock_quantity = Number(stockQty);
+        const n = Number(stockQty);
+        if (!Number.isFinite(n) || n < 0 || n > 1_000_000) {
+          failed++;
+          errors.push(`Invalid stock_quantity for SKU ${sku}: ${stockQty}`);
+          continue;
+        }
+        updateData.stock_quantity = n;
         // Auto-determine stock status if not explicitly provided
         if (!status) {
-          if (Number(stockQty) <= 0) updateData.stock_status = "out_of_stock";
-          else if (Number(stockQty) < 10) updateData.stock_status = "low_stock";
+          if (n <= 0) updateData.stock_status = "out_of_stock";
+          else if (n < 10) updateData.stock_status = "low_stock";
           else updateData.stock_status = "in_stock";
         }
       }
       if (price !== undefined && price !== null) {
-        updateData.price = Number(price);
+        const p = Number(price);
+        if (!Number.isFinite(p) || p <= 0 || p > 10_000_000) {
+          failed++;
+          errors.push(`Invalid price for SKU ${sku}: ${price}`);
+          continue;
+        }
+        updateData.price = p;
       }
       if (status) {
+        const ALLOWED_STATUS = ["in_stock", "out_of_stock", "low_stock", "discontinued"];
+        if (!ALLOWED_STATUS.includes(String(status))) {
+          failed++;
+          errors.push(`Invalid status for SKU ${sku}: ${status}`);
+          continue;
+        }
         updateData.stock_status = status;
       }
       if (deliveryDays !== undefined && deliveryDays !== null) {
-        updateData.delivery_delay_days = Number(deliveryDays);
+        const d = Number(deliveryDays);
+        if (!Number.isFinite(d) || d < 0 || d > 365) {
+          failed++;
+          errors.push(`Invalid delivery_days for SKU ${sku}: ${deliveryDays}`);
+          continue;
+        }
+        updateData.delivery_delay_days = d;
       }
 
       if (Object.keys(updateData).length === 0) {

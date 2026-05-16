@@ -61,11 +61,52 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
-    const { message, conversationId, sessionId, userId, productContext } = await req.json();
+    const { message, conversationId, sessionId, userId: bodyUserId, productContext } = await req.json();
     if (!message) {
       return new Response(JSON.stringify({ error: "Missing message" }), {
         status: 400, headers: { ...CORS, "Content-Type": "application/json" },
       });
+    }
+
+    // Resolve the authenticated user from the JWT when present, ignoring any
+    // client-supplied body.userId. Red-team M5 (2026-05-16): the prior code
+    // trusted body.userId and stamped it onto chatbot_conversations.user_id,
+    // letting an anonymous attacker attribute conversations to a victim or
+    // poison another user's chat history by passing their conversationId.
+    // Anonymous sessions keep working via sessionId only.
+    let resolvedUserId: string | null = null;
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+    if (authHeader) {
+      try {
+        const userSupabase = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") || "", {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const { data: userData } = await userSupabase.auth.getUser();
+        if (userData?.user?.id) resolvedUserId = userData.user.id;
+      } catch {
+        // Treat unverifiable token as anonymous
+      }
+    }
+    void bodyUserId; // intentionally ignored
+
+    // If a conversationId is supplied, refuse to reuse it across identities.
+    // For authenticated callers, the conversation's stored user_id must match.
+    if (conversationId) {
+      const { data: conv } = await supabase
+        .from("chatbot_conversations")
+        .select("user_id, session_id")
+        .eq("id", conversationId)
+        .maybeSingle();
+      if (conv) {
+        const mismatch =
+          (resolvedUserId && conv.user_id && conv.user_id !== resolvedUserId) ||
+          (!resolvedUserId && conv.user_id);
+        if (mismatch) {
+          return new Response(JSON.stringify({ error: "Conversation not accessible" }), {
+            status: 403, headers: { ...CORS, "Content-Type": "application/json" },
+          });
+        }
+      }
     }
 
     // Check settings
@@ -97,11 +138,12 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Get or create conversation
+    // Get or create conversation. user_id always comes from the resolved JWT;
+    // body.userId is ignored (see M5 comment above).
     let convId = conversationId;
     if (!convId) {
       const { data: conv } = await supabase.from("chatbot_conversations").insert({
-        user_id: userId || null,
+        user_id: resolvedUserId,
         session_id: sessionId || crypto.randomUUID(),
         messages_count: 0,
       }).select("id").single();
