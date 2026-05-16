@@ -1,9 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Verify cron secret to prevent unauthorized calls
+  // Verify cron secret. Fail-closed if env is unset — without the explicit
+  // null-check, an unset CRON_SECRET would let the template literal compare
+  // against the literal string "Bearer undefined" and accept any caller
+  // sending that header.
+  const cronSecret = process.env.CRON_SECRET;
   const authHeader = req.headers.authorization;
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
