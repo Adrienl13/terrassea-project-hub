@@ -9,6 +9,21 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
+// HTML-escape values before interpolating into email body templates. Closes
+// red-team H7 (2026-05-16) stored-HTML-injection: a partner with a crafted
+// company name, or any visitor inserting a quote with a crafted product_name,
+// could plant phishing markup into emails sent to other partners/clients
+// under the noreply@terrassea.com from-address.
+function escapeHtml(s: unknown): string {
+  if (s === null || s === undefined) return "";
+  return String(s).replace(/[&<>"']/g, (c) => (
+    c === "&" ? "&amp;" :
+    c === "<" ? "&lt;" :
+    c === ">" ? "&gt;" :
+    c === '"' ? "&quot;" : "&#39;"
+  ));
+}
+
 async function getSetting(key: string): Promise<string | null> {
   const { data } = await supabase
     .from("platform_settings")
@@ -134,7 +149,7 @@ async function autoAssignPartner(quoteRequestId: string) {
     await sendEmail(
       assignedPartnerEmail,
       "Terrassea — Nouvelle demande de devis",
-      `<p>Bonjour ${assignedPartnerName},</p><p>Une nouvelle demande de devis vous a été attribuée sur Terrassea. Connectez-vous à votre espace partenaire pour répondre.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+      `<p>Bonjour ${escapeHtml(assignedPartnerName)},</p><p>Une nouvelle demande de devis vous a été attribuée sur Terrassea. Connectez-vous à votre espace partenaire pour répondre.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
       `Bonjour ${assignedPartnerName}, une nouvelle demande de devis vous a été attribuée sur Terrassea. Connectez-vous à votre espace partenaire pour répondre.`
     );
   }
@@ -295,7 +310,7 @@ async function autoCreateOrder(quoteRequestId: string) {
     await sendEmail(
       quote.email,
       "Terrassea — Votre commande a été créée",
-      `<p>Bonjour${quote.client_first_name ? ` ${quote.client_first_name}` : ""},</p><p>Suite à l'acceptation de votre devis, votre commande a été créée. Un acompte de ${depositPercent}% (€${depositAmount.toLocaleString()}) est attendu pour lancer la production.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+      `<p>Bonjour${quote.client_first_name ? ` ${escapeHtml(quote.client_first_name)}` : ""},</p><p>Suite à l'acceptation de votre devis, votre commande a été créée. Un acompte de ${depositPercent}% (€${depositAmount.toLocaleString()}) est attendu pour lancer la production.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
       `Bonjour, suite à l'acceptation de votre devis, votre commande a été créée. Un acompte de ${depositPercent}% (€${depositAmount}) est attendu pour lancer la production.`
     );
   }
@@ -326,7 +341,7 @@ async function reminderPartner48h() {
       await sendEmail(
         q.partner.contact_email,
         "Terrassea — Rappel : demande de devis en attente",
-        `<p>Bonjour ${q.partner.name},</p><p>Vous avez une demande de devis en attente pour <strong>${q.product_name}</strong> depuis plus de 48 heures. Merci de vous connecter à votre espace partenaire pour y répondre.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+        `<p>Bonjour ${escapeHtml(q.partner.name)},</p><p>Vous avez une demande de devis en attente pour <strong>${escapeHtml(q.product_name)}</strong> depuis plus de 48 heures. Merci de vous connecter à votre espace partenaire pour y répondre.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
         `Bonjour ${q.partner.name}, vous avez une demande de devis en attente pour ${q.product_name} depuis plus de 48h. Merci de vous connecter pour y répondre.`
       );
       sent++;
@@ -360,7 +375,7 @@ async function reminderClient7d() {
       await sendEmail(
         q.email,
         "Terrassea — Votre devis attend votre validation",
-        `<p>Bonjour${q.client_first_name ? ` ${q.client_first_name}` : ""},</p><p>Votre devis pour <strong>${q.product_name}</strong> est en attente de validation depuis 7 jours. N'hésitez pas à vous connecter pour le consulter et le valider.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+        `<p>Bonjour${q.client_first_name ? ` ${escapeHtml(q.client_first_name)}` : ""},</p><p>Votre devis pour <strong>${escapeHtml(q.product_name)}</strong> est en attente de validation depuis 7 jours. N'hésitez pas à vous connecter pour le consulter et le valider.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
         `Bonjour, votre devis pour ${q.product_name} est en attente de validation depuis 7 jours. Connectez-vous pour le consulter.`
       );
       sent++;
@@ -397,7 +412,7 @@ async function reminderExpiry3d() {
       await sendEmail(
         q.email,
         "Terrassea — Votre devis expire bientôt",
-        `<p>Bonjour${q.client_first_name ? ` ${q.client_first_name}` : ""},</p><p>Votre devis pour <strong>${q.product_name}</strong> expire le <strong>${expiryDate}</strong>. Pensez à le valider avant cette date.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
+        `<p>Bonjour${q.client_first_name ? ` ${escapeHtml(q.client_first_name)}` : ""},</p><p>Votre devis pour <strong>${escapeHtml(q.product_name)}</strong> expire le <strong>${expiryDate}</strong>. Pensez à le valider avant cette date.</p><p>Cordialement,<br/>L'équipe Terrassea</p>`,
         `Bonjour, votre devis pour ${q.product_name} expire le ${expiryDate}. Pensez à le valider avant cette date.`
       );
       sent++;
@@ -421,7 +436,7 @@ async function notifyOrderShipped(orderId: string) {
   if (!order.client_email) return { skipped: true, reason: "No client email" };
 
   const trackingInfo = order.tracking_number
-    ? `<p>Numéro de suivi : <strong>${order.tracking_number}</strong>${order.shipping_carrier ? ` (${order.shipping_carrier})` : ""}</p>`
+    ? `<p>Numéro de suivi : <strong>${escapeHtml(order.tracking_number)}</strong>${order.shipping_carrier ? ` (${escapeHtml(order.shipping_carrier)})` : ""}</p>`
     : "";
   const trackingText = order.tracking_number
     ? `Numéro de suivi : ${order.tracking_number}${order.shipping_carrier ? ` (${order.shipping_carrier})` : ""}`
@@ -430,7 +445,7 @@ async function notifyOrderShipped(orderId: string) {
   await sendEmail(
     order.client_email,
     "Terrassea — Votre commande a été expédiée",
-    `<p>Bonjour${order.client_name ? ` ${order.client_name}` : ""},</p><p>Votre commande pour <strong>${order.product_name}</strong> a été expédiée.</p>${trackingInfo}<p>Cordialement,<br/>L'équipe Terrassea</p>`,
+    `<p>Bonjour${order.client_name ? ` ${escapeHtml(order.client_name)}` : ""},</p><p>Votre commande pour <strong>${escapeHtml(order.product_name)}</strong> a été expédiée.</p>${trackingInfo}<p>Cordialement,<br/>L'équipe Terrassea</p>`,
     `Bonjour, votre commande pour ${order.product_name} a été expédiée. ${trackingText}`
   );
 
