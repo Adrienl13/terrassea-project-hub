@@ -24,6 +24,36 @@ function clampTitle(t: string): string {
 const BOT_UA =
   /GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-SearchBot|Claude-Web|Google-Extended|Google-Agent|PerplexityBot|Bytespider|CCBot|Cohere-ai|YouBot|Meta-ExternalAgent|Googlebot|bingbot|BingPreview|AppleBot|facebookexternalhit|FacebookBot|Twitterbot/i;
 
+// ── Escapers ────────────────────────────────────────────────────────
+// HTML-escape DB values before interpolating into the SSR output. Closes
+// red-team H9 (2026-05-16) stored XSS: a partner-controlled description,
+// product name, or slug rendered as raw HTML to bot/SEO crawlers executes
+// in the terrassea.com origin when the prerendered snapshot is opened in
+// an in-app browser (FB/LinkedIn preview, Google cache, AI search bot).
+function escapeHtml(s: unknown): string {
+  if (s === null || s === undefined) return "";
+  return String(s).replace(/[&<>"']/g, (c) => (
+    c === "&" ? "&amp;" :
+    c === "<" ? "&lt;" :
+    c === ">" ? "&gt;" :
+    c === '"' ? "&quot;" : "&#39;"
+  ));
+}
+
+// JSON.stringify does NOT escape "</script>". When the resulting string is
+// embedded inside `<script type="application/ld+json">…</script>`, a value
+// containing the literal substring "</script>" closes the block and any
+// trailing content is parsed as new markup. Replace "<" with its JSON
+// unicode escape to keep the block self-contained.
+function escapeJsonLd(obj: unknown): string {
+  return JSON.stringify(obj).replace(/</g, "\\u003c");
+}
+
+function escapeList(arr: unknown): string {
+  if (!Array.isArray(arr)) return "";
+  return arr.map(escapeHtml).join(", ");
+}
+
 // ── Shared JSON-LD blocks ────────────────────────────────────────────
 
 const ORG_JSONLD = {
@@ -134,12 +164,13 @@ function getRouteConfig(path: string, query: URLSearchParams): RouteConfig {
   // Products listing
   if (path === "/products") {
     const catLabel = category ? category.replace(/-/g, " ") : "all categories";
+    const safeCatLabel = escapeHtml(catLabel);
     return {
       title: `${category ? catLabel.charAt(0).toUpperCase() + catLabel.slice(1) + " — " : ""}Outdoor Furniture Catalogue | ${SITE_NAME}`,
       description: `Browse professional outdoor ${catLabel} for hotels, restaurants, and cafés. Compare verified suppliers and request free quotes on ${SITE_NAME}.`,
       schemas: [ORG_JSONLD],
       bodyHtml: `
-        <h1>Outdoor Furniture Catalogue${category ? ` — ${catLabel}` : ""}</h1>
+        <h1>Outdoor Furniture Catalogue${category ? ` — ${safeCatLabel}` : ""}</h1>
         <p>Browse professional outdoor furniture for hospitality. Filter by category, material, style, and compare offers from verified European suppliers.</p>
         <h2>Categories</h2>
         <ul>${CATEGORIES.map(c => `<li><a href="${BASE}/products?category=${c}">${c.replace(/-/g, " ")}</a></li>`).join("")}</ul>
@@ -273,6 +304,9 @@ async function getProductConfig(productId: string): Promise<RouteConfig | null> 
   const name = p.name_en || p.name || "Product";
   const desc = p.short_description_en || p.short_description || `${name} — professional outdoor furniture on TerrasseaHUB.`;
 
+  // JSON-LD receives the RAW values; escapeJsonLd handles `<` for the
+  // </script> escape. HTML rendering of these values is escaped separately
+  // via escapeHtml().
   const productSchema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -296,34 +330,17 @@ async function getProductConfig(productId: string): Promise<RouteConfig | null> 
     };
   }
 
-  // Fetch review stats for AggregateRating
-  const { data: reviewStats } = await supabase
-    .from("product_review_stats")
-    .select("*")
-    .eq("product_id", p.id)
-    .maybeSingle();
-
-  if (reviewStats?.review_count > 0) {
-    productSchema.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: reviewStats.avg_rating,
-      reviewCount: reviewStats.review_count,
-      bestRating: 5,
-      worstRating: 1,
-    };
-  }
-
   return {
     title: clampTitle(`${name} | ${SITE_NAME}`),
     description: desc,
     schemas: [ORG_JSONLD, productSchema],
     bodyHtml: `
-      <h1>${name}</h1>
-      <p>${desc}</p>
-      ${p.category ? `<p>Category: ${p.category}</p>` : ""}
-      ${p.brand_name ? `<p>Brand: ${p.brand_name} — available on TerrasseaHUB</p>` : ""}
+      <h1>${escapeHtml(name)}</h1>
+      <p>${escapeHtml(desc)}</p>
+      ${p.category ? `<p>Category: ${escapeHtml(p.category)}</p>` : ""}
+      ${p.brand_name ? `<p>Brand: ${escapeHtml(p.brand_name)} — available on TerrasseaHUB</p>` : ""}
       ${p.price_min != null ? `<p>From €${Number(p.price_min).toFixed(2)}</p>` : ""}
-      ${p.image_url ? `<img src="${p.image_url}" alt="${name}" width="600" />` : ""}
+      ${p.image_url ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(name)}" width="600" />` : ""}
       <p><a href="${BASE}/products">Back to catalogue</a> | <a href="${BASE}/">TerrasseaHUB</a></p>
     `,
   };
@@ -374,7 +391,7 @@ async function getPartnersConfig(): Promise<RouteConfig> {
       <p>${partners.length} verified manufacturers, brands, and distributors of professional outdoor furniture for the hospitality industry.</p>
       <h2>Featured Suppliers</h2>
       <ul>
-        ${visiblePartners.map(p => `<li>${p.name}${p.country ? ` — ${p.country}` : ""} — <a href="${BASE}/partners/${p.slug}">View on TerrasseaHUB</a></li>`).join("")}
+        ${visiblePartners.map(p => `<li>${escapeHtml(p.name)}${p.country ? ` — ${escapeHtml(p.country)}` : ""} — <a href="${BASE}/partners/${encodeURIComponent(p.slug || "")}">View on TerrasseaHUB</a></li>`).join("")}
       </ul>
       ${anonCount > 0 ? `<p>+ ${anonCount} additional verified suppliers available on the platform.</p>` : ""}
       <p><a href="${BASE}/products">Browse Products</a> | <a href="${BASE}/become-partner">Become a Supplier</a></p>
@@ -397,13 +414,15 @@ async function getPartnerDetailConfig(slug: string): Promise<RouteConfig | null>
   // Non-visible partners: anonymous prerender
   if (!isVisible) {
     const typeLabel = (p.partner_type || "supplier").replace(/^\w/, (c: string) => c.toUpperCase());
+    const safeTypeLabel = escapeHtml(typeLabel);
+    const safeCountry = escapeHtml(p.country);
     return {
       title: clampTitle(`Verified ${typeLabel}${p.country ? ` — ${p.country}` : ""} | ${SITE_NAME}`),
       description: `Verified ${typeLabel.toLowerCase()} of outdoor furniture${p.country ? ` based in ${p.country}` : ""}. Request quotes via TerrasseaHUB.`,
       schemas: [ORG_JSONLD],
       bodyHtml: `
-        <h1>Verified ${typeLabel} on TerrasseaHUB</h1>
-        <p>This supplier is a verified ${typeLabel.toLowerCase()} of professional outdoor furniture${p.country ? ` based in ${p.country}` : ""}.</p>
+        <h1>Verified ${safeTypeLabel} on TerrasseaHUB</h1>
+        <p>This supplier is a verified ${safeTypeLabel.toLowerCase()} of professional outdoor furniture${p.country ? ` based in ${safeCountry}` : ""}.</p>
         <p>Request free quotes and compare offers from multiple suppliers on <a href="${BASE}/">TerrasseaHUB</a>.</p>
       `,
     };
@@ -450,12 +469,12 @@ async function getPartnerDetailConfig(slug: string): Promise<RouteConfig | null>
     description: `${p.name}: ${desc.slice(0, 150)}. Browse their collection and request quotes on TerrasseaHUB.`,
     schemas,
     bodyHtml: `
-      <h1>${p.name} — Available on TerrasseaHUB</h1>
-      ${p.logo_url ? `<img src="${p.logo_url}" alt="${p.name}" width="200" />` : ""}
-      <p>${desc}</p>
-      ${p.country ? `<p>Based in ${p.country}</p>` : ""}
-      ${Array.isArray(p.specialties) && p.specialties.length ? `<p>Specialties: ${p.specialties.join(", ")}</p>` : ""}
-      ${productItems.length > 0 ? `<h2>${productItems.length} products available</h2><ul>${productItems.map((item: any) => `<li><a href="${item.item.url}">${item.item.name}</a></li>`).join("")}</ul>` : ""}
+      <h1>${escapeHtml(p.name)} — Available on TerrasseaHUB</h1>
+      ${p.logo_url ? `<img src="${escapeHtml(p.logo_url)}" alt="${escapeHtml(p.name)}" width="200" />` : ""}
+      <p>${escapeHtml(desc)}</p>
+      ${p.country ? `<p>Based in ${escapeHtml(p.country)}</p>` : ""}
+      ${Array.isArray(p.specialties) && p.specialties.length ? `<p>Specialties: ${escapeList(p.specialties)}</p>` : ""}
+      ${productItems.length > 0 ? `<h2>${productItems.length} products available</h2><ul>${productItems.map((item: any) => `<li><a href="${escapeHtml(item.item.url)}">${escapeHtml(item.item.name)}</a></li>`).join("")}</ul>` : ""}
       <p><a href="${BASE}/partners">All suppliers</a> | <a href="${BASE}/products">Browse catalogue</a></p>
     `,
   };
@@ -517,7 +536,7 @@ async function getBrandConfig(slug: string): Promise<RouteConfig | null> {
 
   let collectionsHtml = "";
   for (const [colName, products] of collections) {
-    collectionsHtml += `<h3>${colName}</h3><ul>${products.map((p: any) => `<li><a href="${BASE}/products/${p.id}">${p.name_en || p.name}</a></li>`).join("")}</ul>`;
+    collectionsHtml += `<h3>${escapeHtml(colName)}</h3><ul>${products.map((p: any) => `<li><a href="${BASE}/products/${encodeURIComponent(p.id)}">${escapeHtml(p.name_en || p.name)}</a></li>`).join("")}</ul>`;
   }
 
   return {
@@ -525,13 +544,13 @@ async function getBrandConfig(slug: string): Promise<RouteConfig | null> {
     description: `Explore ${b.name} outdoor furniture collection on TerrasseaHUB. ${desc.slice(0, 120)}`,
     schemas,
     bodyHtml: `
-      <h1>${b.name} — Available on TerrasseaHUB</h1>
-      ${b.logo_url ? `<img src="${b.logo_url}" alt="${b.name}" width="200" />` : ""}
-      <p>${desc}</p>
-      ${b.country ? `<p>Based in ${b.country}</p>` : ""}
-      ${Array.isArray(b.specialties) && b.specialties.length ? `<p>Specialties: ${b.specialties.join(", ")}</p>` : ""}
+      <h1>${escapeHtml(b.name)} — Available on TerrasseaHUB</h1>
+      ${b.logo_url ? `<img src="${escapeHtml(b.logo_url)}" alt="${escapeHtml(b.name)}" width="200" />` : ""}
+      <p>${escapeHtml(desc)}</p>
+      ${b.country ? `<p>Based in ${escapeHtml(b.country)}</p>` : ""}
+      ${Array.isArray(b.specialties) && b.specialties.length ? `<p>Specialties: ${escapeList(b.specialties)}</p>` : ""}
       ${collectionsHtml ? `<h2>Collections</h2>${collectionsHtml}` : ""}
-      <p>All products by ${b.name} are available exclusively through <a href="${BASE}/">TerrasseaHUB</a>. <a href="${BASE}/products">Browse full catalogue</a>.</p>
+      <p>All products by ${escapeHtml(b.name)} are available exclusively through <a href="${BASE}/">TerrasseaHUB</a>. <a href="${BASE}/products">Browse full catalogue</a>.</p>
     `,
   };
 }
@@ -539,36 +558,44 @@ async function getBrandConfig(slug: string): Promise<RouteConfig | null> {
 // ── HTML builder ──────────────────────────────────────────────────────
 
 function buildHtml(config: RouteConfig, canonicalUrl: string): string {
+  // escapeJsonLd replaces "<" with "<" so a DB value containing
+  // "</script>" cannot break out of the JSON-LD <script> block.
   const schemasHtml = config.schemas
-    .map((s) => `<script type="application/ld+json">${JSON.stringify(s)}</script>`)
+    .map((s) => `<script type="application/ld+json">${escapeJsonLd(s)}</script>`)
     .join("\n    ");
+
+  // Title and description may carry DB-authored content (product name,
+  // partner name). Escape both as HTML content and attribute values.
+  const safeTitle = escapeHtml(config.title);
+  const safeDesc = escapeHtml(config.description);
+  const safeCanonical = escapeHtml(canonicalUrl);
 
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${config.title}</title>
-    <meta name="description" content="${config.description}" />
+    <title>${safeTitle}</title>
+    <meta name="description" content="${safeDesc}" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-    <link rel="canonical" href="${canonicalUrl}" />
-    <meta property="og:title" content="${config.title}" />
-    <meta property="og:description" content="${config.description}" />
+    <link rel="canonical" href="${safeCanonical}" />
+    <meta property="og:title" content="${safeTitle}" />
+    <meta property="og:description" content="${safeDesc}" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="${canonicalUrl}" />
+    <meta property="og:url" content="${safeCanonical}" />
     <meta property="og:image" content="${BASE}/og-image.png" />
     <meta property="og:site_name" content="${SITE_NAME}" />
     <meta property="og:locale" content="fr_FR" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="${config.title}" />
-    <meta name="twitter:description" content="${config.description}" />
+    <meta name="twitter:title" content="${safeTitle}" />
+    <meta name="twitter:description" content="${safeDesc}" />
     <meta name="twitter:image" content="${BASE}/og-image.png" />
-    <link rel="alternate" hreflang="fr" href="${canonicalUrl}" />
-    <link rel="alternate" hreflang="en" href="${canonicalUrl}" />
-    <link rel="alternate" hreflang="it" href="${canonicalUrl}" />
-    <link rel="alternate" hreflang="es" href="${canonicalUrl}" />
-    <link rel="alternate" hreflang="de" href="${canonicalUrl}" />
-    <link rel="alternate" hreflang="x-default" href="${canonicalUrl}" />
+    <link rel="alternate" hreflang="fr" href="${safeCanonical}" />
+    <link rel="alternate" hreflang="en" href="${safeCanonical}" />
+    <link rel="alternate" hreflang="it" href="${safeCanonical}" />
+    <link rel="alternate" hreflang="es" href="${safeCanonical}" />
+    <link rel="alternate" hreflang="de" href="${safeCanonical}" />
+    <link rel="alternate" hreflang="x-default" href="${safeCanonical}" />
     ${schemasHtml}
   </head>
   <body>
