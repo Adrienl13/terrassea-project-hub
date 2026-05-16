@@ -96,20 +96,23 @@ export function usePartnerQuotes() {
       partnerConditions?: string;
     }) => {
       const { quoteId, status, unitPrice, totalPrice, tvaRate, deliveryDelayDays, deliveryConditions, paymentConditions, validityDays, partnerConditions } = params;
-      const updates: any = { status };
-      if (unitPrice !== undefined) updates.unit_price = unitPrice;
-      if (totalPrice !== undefined) updates.total_price = totalPrice;
-      if (tvaRate !== undefined) updates.tva_rate = tvaRate;
-      if (deliveryDelayDays !== undefined) updates.delivery_delay_days = deliveryDelayDays;
-      if (deliveryConditions !== undefined) updates.delivery_conditions = deliveryConditions;
-      if (paymentConditions !== undefined) updates.payment_conditions = paymentConditions;
-      if (partnerConditions !== undefined) updates.partner_conditions = partnerConditions;
-      if (validityDays !== undefined) {
-        updates.validity_days = validityDays;
-        updates.validity_expires_at = new Date(Date.now() + validityDays * 86400000).toISOString();
-      }
-      if (status === "replied") updates.replied_at = new Date().toISOString();
-      const { error } = await supabase.from("quote_requests").update(updates).eq("id", quoteId);
+      // Partner updates route through update_quote_as_partner RPC (red-team
+      // H4, 2026-05-16). The direct .from("quote_requests").update() path is
+      // blocked at the RLS layer — the RPC enforces the column whitelist and
+      // owner check, and protect_signed_quote_requests blocks identity /
+      // signature fields at the trigger layer.
+      const { error } = await supabase.rpc("update_quote_as_partner" as any, {
+        p_quote_id: quoteId,
+        p_status: status ?? null,
+        p_unit_price: unitPrice ?? null,
+        p_total_price: totalPrice ?? null,
+        p_tva_rate: tvaRate ?? null,
+        p_delivery_delay_days: deliveryDelayDays ?? null,
+        p_delivery_conditions: deliveryConditions ?? null,
+        p_payment_conditions: paymentConditions ?? null,
+        p_partner_conditions: partnerConditions ?? null,
+        p_validity_days: validityDays ?? null,
+      });
       if (error) throw error;
 
       // Email is now sent server-side by notify_quote_status_changed when
