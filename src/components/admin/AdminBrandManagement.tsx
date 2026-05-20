@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,7 @@ import {
   FileText, Eye, ShoppingCart, Package, TrendingUp, TrendingDown,
   Download, Calendar, ChevronDown, ChevronUp, Building2,
   Globe, Users, Inbox, Layers, Zap, Settings2, FolderOpen,
-  ArrowRight, Activity, Percent, MapPin, Clock,
+  ArrowRight, Activity, Percent, MapPin, Clock, FileEdit,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════
@@ -533,22 +534,32 @@ export default function AdminBrandManagement() {
 
       {selectedBrand && (
         <>
-          {/* Tabs */}
-          <div className="flex gap-1 border-b border-border">
-            {tabItems.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-body font-medium border-b-2 transition-all ${
-                  activeTab === tab.id
-                    ? "border-purple-600 text-purple-700"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <tab.icon className="h-3.5 w-3.5" />
-                {tab.label}
-              </button>
-            ))}
+          {/* Tabs + edit-content shortcut */}
+          <div className="flex items-center justify-between gap-2 border-b border-border">
+            <div className="flex gap-1 flex-wrap">
+              {tabItems.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-body font-medium border-b-2 transition-all ${
+                    activeTab === tab.id
+                      ? "border-purple-600 text-purple-700"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <tab.icon className="h-3.5 w-3.5" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <Link
+              to={`/admin/brands/${selectedBrand.id}/edit`}
+              className="flex items-center gap-1.5 px-3 py-1.5 mb-1.5 text-xs font-body font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all whitespace-nowrap"
+              title={t("adminBrands.editBrandContentHint", "Éditer profil, collections, références et catalogue")}
+            >
+              <FileEdit className="h-3.5 w-3.5" />
+              {t("adminBrands.editBrandContent", "Éditer le contenu")}
+            </Link>
           </div>
 
           {/* ═══════════════════════════════════════════════════ */}

@@ -67,6 +67,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 
 // Lazy-loaded heavy page components
 const Admin = lazy(() => import("./pages/Admin"));
+const AdminBrandEditor = lazy(() => import("./components/admin/AdminBrandEditor"));
 const ProjectBuilder = lazy(() => import("./pages/ProjectBuilder"));
 const ProductCompare = lazy(() => import("./pages/ProductCompare"));
 const BecomePartner = lazy(() => import("./pages/BecomePartner"));
@@ -127,6 +128,7 @@ const App = () => (
                   <Route path="/brands/:slug" element={<BrandPage />} />
                   <Route path="/collections" element={<Collections />} />
                   <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+                  <Route path="/admin/brands/:partnerId/edit" element={<ProtectedRoute requireAdmin><AdminBrandEditor /></ProtectedRoute>} />
                   <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                   <Route path="/messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                   <Route path="/login" element={<Auth />} />
