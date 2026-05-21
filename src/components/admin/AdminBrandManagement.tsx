@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +9,12 @@ import {
   FileText, Eye, ShoppingCart, Package, TrendingUp, TrendingDown,
   Download, Calendar, ChevronDown, ChevronUp, Building2,
   Globe, Users, Inbox, Layers, Zap, Settings2, FolderOpen,
-  ArrowRight, Activity, Percent, MapPin, Clock, FileEdit,
+  ArrowRight, Activity, Percent, MapPin, Clock, FileEdit, Plus,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
@@ -198,10 +202,64 @@ function DistributorCommissionEditor({ distributor, onSaved }: { distributor: an
 export default function AdminBrandManagement() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<BrandTab>("overview");
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState(30);
+
+  // ── Create-brand quick modal ──────────────────────────────
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createPlan, setCreatePlan] = useState<"brand_member" | "brand_network">("brand_member");
+  const [createEmail, setCreateEmail] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const slugify = (s: string) =>
+    s.toLowerCase().trim()
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .slice(0, 60) || `brand-${Date.now()}`;
+
+  const handleCreateBrand = async () => {
+    const name = createName.trim();
+    if (!name) {
+      toast.error(t("adminBrands.createNameRequired", "Le nom de la marque est obligatoire."));
+      return;
+    }
+    setCreating(true);
+    const slug = slugify(name);
+    const { data, error } = await supabase
+      .from("partners")
+      .insert({
+        name,
+        slug,
+        partner_type: "brand",
+        partner_mode: createPlan,
+        plan: createPlan,
+        contact_email: createEmail.trim() || null,
+        visibility_level: createPlan === "brand_network" ? "featured" : "standard",
+        is_active: true,
+        is_public: true,
+        profile_status: "draft",
+      } as any)
+      .select("id")
+      .single();
+    setCreating(false);
+    if (error || !data) {
+      toast.error(t("adminBrands.createError", "Échec de la création :") + " " + (error?.message || ""));
+      return;
+    }
+    toast.success(t("adminBrands.createSuccess", "Marque créée. Redirection vers l'éditeur…"));
+    queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
+    setCreateOpen(false);
+    setCreateName("");
+    setCreateEmail("");
+    setCreatePlan("brand_member");
+    navigate(`/admin/brands/${data.id}/edit`);
+  };
 
   // ── Fetch all brand partners ──────────────────────────────
   const { data: brands = [], isLoading: brandsLoading } = useQuery({
@@ -483,7 +541,109 @@ export default function AdminBrandManagement() {
             {t("adminBrands.brandsCount", { count: brands.length })} &middot; {t("adminBrands.brandsSubtitle")}
           </p>
         </div>
+        <button
+          onClick={() => setCreateOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-2 text-xs font-body font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-all whitespace-nowrap shadow-sm"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          {t("adminBrands.createBrand", "+ Créer une marque")}
+        </button>
       </div>
+
+      {/* Create brand modal */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("adminBrands.createBrandTitle", "Créer une nouvelle marque")}</DialogTitle>
+            <DialogDescription>
+              {t("adminBrands.createBrandHint", "Saisis l'essentiel ici. Tu pourras compléter logo, photos, descriptions et collections juste après dans l'éditeur.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div>
+              <label className="block text-[11px] font-body font-semibold mb-1.5 text-foreground">
+                {t("adminBrands.createBrandName", "Nom de la marque")} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={createName}
+                onChange={e => setCreateName(e.target.value)}
+                placeholder="Ex : Tribù, Vondom, Manutti…"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm font-body focus:outline-none focus:ring-2 focus:ring-purple-200"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-body font-semibold mb-1.5 text-foreground">
+                {t("adminBrands.createBrandPlan", "Plan")}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCreatePlan("brand_member")}
+                  className={`px-3 py-2 rounded-lg border text-xs font-body transition-all text-left ${
+                    createPlan === "brand_member"
+                      ? "border-purple-400 bg-purple-50 text-purple-800"
+                      : "border-border bg-white text-foreground hover:border-purple-200"
+                  }`}
+                >
+                  <div className="font-semibold">Brand Member</div>
+                  <div className="text-[10px] text-muted-foreground mt-0.5">€799 / mois · vente directe</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreatePlan("brand_network")}
+                  className={`px-3 py-2 rounded-lg border text-xs font-body transition-all text-left ${
+                    createPlan === "brand_network"
+                      ? "border-violet-400 bg-violet-50 text-violet-800"
+                      : "border-border bg-white text-foreground hover:border-violet-200"
+                  }`}
+                >
+                  <div className="font-semibold">Brand Network</div>
+                  <div className="text-[10px] text-muted-foreground mt-0.5">€1 299 / mois · réseau distrib.</div>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-body font-semibold mb-1.5 text-foreground">
+                {t("adminBrands.createBrandEmail", "Email de contact")}
+                <span className="text-muted-foreground font-normal"> ({t("adminBrands.optional", "optionnel")})</span>
+              </label>
+              <input
+                type="email"
+                value={createEmail}
+                onChange={e => setCreateEmail(e.target.value)}
+                placeholder="contact@marque.com"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm font-body focus:outline-none focus:ring-2 focus:ring-purple-200"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setCreateOpen(false)}
+              disabled={creating}
+              className="px-4 py-2 text-xs font-body font-semibold text-muted-foreground hover:text-foreground"
+            >
+              {t("adminBrands.cancel", "Annuler")}
+            </button>
+            <button
+              type="button"
+              onClick={handleCreateBrand}
+              disabled={creating || !createName.trim()}
+              className="px-4 py-2 text-xs font-body font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {creating
+                ? t("adminBrands.creating", "Création…")
+                : t("adminBrands.createAndEdit", "Créer et éditer")}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Brand selector + search */}
       <div className="flex flex-col md:flex-row gap-3">
