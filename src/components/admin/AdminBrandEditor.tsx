@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, User, Layers, BookOpen, Package, Crown } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowLeft, User, Layers, BookOpen, Package, Crown, Mail, CheckCircle2 } from "lucide-react";
 import type { PartnerPlan } from "@/lib/partnerConstants";
 import PartnerProfileForm from "@/components/partner-dashboard/PartnerProfileForm";
 import BrandCollectionManager from "@/components/partner-dashboard/BrandCollectionManager";
@@ -15,7 +16,9 @@ type EditorTab = "profile" | "collections" | "references" | "catalogue";
 export default function AdminBrandEditor() {
   const { partnerId } = useParams<{ partnerId: string }>();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<EditorTab>("profile");
+  const [inviting, setInviting] = useState(false);
 
   const { data: partner, isLoading } = useQuery({
     queryKey: ["admin-brand-edit", partnerId],
@@ -23,7 +26,7 @@ export default function AdminBrandEditor() {
       if (!partnerId) return null;
       const { data, error } = await supabase
         .from("partners")
-        .select("id, name, slug, logo_url, plan, partner_mode, partner_type, profile_completed")
+        .select("id, name, slug, logo_url, plan, partner_mode, partner_type, profile_completed, contact_email, user_id")
         .eq("id", partnerId)
         .maybeSingle();
       if (error) throw error;
@@ -31,6 +34,44 @@ export default function AdminBrandEditor() {
     },
     enabled: !!partnerId,
   });
+
+  const handleInvite = async () => {
+    if (!partnerId || !partner) return;
+    if (partner.user_id) {
+      toast.info(t("adminBrandEditor.alreadyInvitedToast", "Cette marque a déjà un compte lié."));
+      return;
+    }
+    if (!partner.contact_email) {
+      toast.error(t("adminBrandEditor.missingEmailToast", "Renseigne d'abord l'email de contact dans l'onglet Profil."));
+      setActiveTab("profile");
+      return;
+    }
+    const confirmed = window.confirm(
+      t(
+        "adminBrandEditor.inviteConfirm",
+        `Envoyer un email d'invitation à ${partner.contact_email} ? La marque recevra un lien magique pour activer son compte.`,
+      ),
+    );
+    if (!confirmed) return;
+    setInviting(true);
+    const { data, error } = await supabase.functions.invoke("invite-brand-partner", {
+      body: { partner_id: partnerId },
+    });
+    setInviting(false);
+    if (error) {
+      toast.error(t("adminBrandEditor.inviteError", "Échec de l'invitation :") + " " + (error.message || ""));
+      return;
+    }
+    if (data?.already_invited) {
+      toast.info(t("adminBrandEditor.alreadyInvitedToast", "Cette marque a déjà un compte lié."));
+    } else if (data?.ok) {
+      toast.success(t("adminBrandEditor.inviteSuccess", "Invitation envoyée ✉️"));
+    } else if (data?.error) {
+      toast.error(data.error);
+    }
+    queryClient.invalidateQueries({ queryKey: ["admin-brand-edit", partnerId] });
+    queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
+  };
 
   if (!partnerId) {
     return (
@@ -73,27 +114,57 @@ export default function AdminBrandEditor() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
       {/* Breadcrumb + header */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <Link
-          to="/admin"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm font-body"
-        >
-          <ArrowLeft className="h-4 w-4" /> {t("adminBrandEditor.backToAdmin", "Admin")}
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        {partner.logo_url ? (
-          <img loading="lazy" src={partner.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+      <div className="flex items-center gap-3 flex-wrap justify-between">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Link
+            to="/admin"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm font-body"
+          >
+            <ArrowLeft className="h-4 w-4" /> {t("adminBrandEditor.backToAdmin", "Admin")}
+          </Link>
+          <span className="text-muted-foreground">/</span>
+          {partner.logo_url ? (
+            <img loading="lazy" src={partner.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+              <Crown className="h-4 w-4 text-purple-500" />
+            </div>
+          )}
+          <h1 className="text-lg font-display font-semibold">{partner.name}</h1>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+            partner.plan === "brand_network" ? "bg-violet-100 text-violet-700" : "bg-purple-100 text-purple-700"
+          }`}>
+            {partner.plan === "brand_network" ? "Network" : "Member"}
+          </span>
+        </div>
+
+        {/* Invite button — visible only when partner has no user_id yet */}
+        {partner.user_id ? (
+          <span
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-body font-semibold text-emerald-700 bg-emerald-50 rounded-lg"
+            title={t("adminBrandEditor.alreadyInvitedTitle", "Compte utilisateur déjà créé pour cette marque")}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            {t("adminBrandEditor.alreadyInvited", "Marque invitée")}
+          </span>
         ) : (
-          <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-            <Crown className="h-4 w-4 text-purple-500" />
-          </div>
+          <button
+            type="button"
+            onClick={handleInvite}
+            disabled={inviting || !partner.contact_email}
+            title={
+              !partner.contact_email
+                ? t("adminBrandEditor.inviteNeedsEmail", "Renseigne d'abord l'email de contact dans l'onglet Profil")
+                : t("adminBrandEditor.inviteHint", "Envoie un email d'invitation avec un lien magique")
+            }
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-body font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-all whitespace-nowrap shadow-sm"
+          >
+            <Mail className="h-3.5 w-3.5" />
+            {inviting
+              ? t("adminBrandEditor.inviting", "Envoi…")
+              : t("adminBrandEditor.inviteBrand", "Inviter cette marque")}
+          </button>
         )}
-        <h1 className="text-lg font-display font-semibold">{partner.name}</h1>
-        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-          partner.plan === "brand_network" ? "bg-violet-100 text-violet-700" : "bg-purple-100 text-purple-700"
-        }`}>
-          {partner.plan === "brand_network" ? "Network" : "Member"}
-        </span>
       </div>
 
       {/* Tabs */}
@@ -117,7 +188,13 @@ export default function AdminBrandEditor() {
       {/* Tab content */}
       <div>
         {activeTab === "profile" && (
-          <PartnerProfileForm partnerId={partnerId} />
+          <PartnerProfileForm
+            partnerId={partnerId}
+            onCompleted={() => {
+              queryClient.invalidateQueries({ queryKey: ["admin-brand-edit", partnerId] });
+              queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
+            }}
+          />
         )}
         {activeTab === "collections" && (
           <BrandCollectionManager partnerId={partnerId} plan={planForUI} />
