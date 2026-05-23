@@ -10,11 +10,15 @@ import {
   Download, Calendar, ChevronDown, ChevronUp, Building2,
   Globe, Users, Inbox, Layers, Zap, Settings2, FolderOpen,
   ArrowRight, Activity, Percent, MapPin, Clock, FileEdit, Plus,
+  Sparkles,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import FoundingBadge from "@/components/common/FoundingBadge";
+import { usePricingMode } from "@/hooks/usePricingMode";
+import type { FoundingTier } from "@/hooks/useFoundingScore";
 
 // ═══════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
@@ -215,6 +219,11 @@ export default function AdminBrandManagement() {
   const [createEmail, setCreateEmail] = useState("");
   const [creating, setCreating] = useState(false);
 
+  // Read launch-mode flag so we can surface the auto-founding behavior of the
+  // trg_auto_mark_founding_partner trigger (forces is_founding=true on INSERT
+  // while pricing_visibility_mode='launch').
+  const isLaunchMode = usePricingMode() === "launch";
+
   const slugify = (s: string) =>
     s.toLowerCase().trim()
       .normalize("NFD").replace(/[̀-ͯ]/g, "")
@@ -267,7 +276,7 @@ export default function AdminBrandManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("partners")
-        .select("id, name, logo_url, plan, partner_mode, brand_features, is_active, country, created_at")
+        .select("id, name, logo_url, plan, partner_mode, brand_features, is_active, country, created_at, is_founding, founding_tier")
         .in("plan", ["brand_member", "brand_network"])
         .order("name");
       if (error) throw error;
@@ -561,6 +570,37 @@ export default function AdminBrandManagement() {
           </DialogHeader>
 
           <div className="space-y-3 py-2">
+            {isLaunchMode && (
+              <div className="rounded-lg border border-violet-300 bg-violet-50/70 px-3 py-2.5">
+                <div className="flex items-start gap-2">
+                  <Sparkles className="h-4 w-4 text-violet-600 mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-body font-semibold text-violet-900 leading-snug">
+                      {t(
+                        "adminBrands.foundingBanner",
+                        "Cette marque sera enregistrée comme Founding Partner.",
+                      )}
+                    </div>
+                    <div className="text-[10px] font-body text-violet-700/90 mt-0.5 leading-snug">
+                      {t(
+                        "adminBrands.foundingBannerHelp",
+                        "Auto-marqué par le trigger DB tant que le mode launch est actif. Bascule en /admin/settings → pricing_visibility_mode pour désactiver.",
+                      )}
+                    </div>
+                    <label className="flex items-center gap-1.5 mt-2 text-[11px] font-body text-violet-900">
+                      <input
+                        type="checkbox"
+                        checked
+                        disabled
+                        className="h-3.5 w-3.5 rounded border-violet-400 text-violet-600 cursor-not-allowed accent-violet-600"
+                      />
+                      {t("adminBrands.foundingCheckboxLabel", "Founding Partner (géré automatiquement)")}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-[11px] font-body font-semibold mb-1.5 text-foreground">
                 {t("adminBrands.createBrandName", "Nom de la marque")} <span className="text-red-500">*</span>
@@ -681,6 +721,12 @@ export default function AdminBrandManagement() {
               }`}>
                 {brand.plan === "brand_network" ? "Network" : "Member"}
               </span>
+              {brand.is_founding && (
+                <FoundingBadge
+                  tier={(brand.founding_tier as FoundingTier | null) ?? "founder"}
+                  size="sm"
+                />
+              )}
             </button>
           ))}
         </div>

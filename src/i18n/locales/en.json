@@ -4744,7 +4744,10 @@
     "catalogueSyncDesc": "{{count}} product(s) synced to distributors",
     "allCollections": "All collections",
     "collections": "Collections",
-    "saveCommission": "Save"
+    "saveCommission": "Save",
+    "foundingBanner": "This brand will be registered as a Founding Partner.",
+    "foundingBannerHelp": "Auto-flagged by the DB trigger while pricing_visibility_mode='launch'. Switch in /admin/settings to disable.",
+    "foundingCheckboxLabel": "Founding Partner (handled automatically)"
   },
   "becomePartnerLaunch": {
     "seoTitle": "Join Terrassea — Founding Partner Program",
@@ -4850,5 +4853,10 @@
       "point2": "Our team reviews your profile within 48 business hours",
       "point3": "You start your Founding program immediately"
     }
+  },
+  "adminBrandEditor": {
+    "foundingBannerLabel": "Founding Partner",
+    "foundingSince": "since",
+    "foundingPoints": "pts"
   }
 }

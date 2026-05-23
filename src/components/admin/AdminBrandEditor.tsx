@@ -10,6 +10,8 @@ import PartnerProfileForm from "@/components/partner-dashboard/PartnerProfileFor
 import BrandCollectionManager from "@/components/partner-dashboard/BrandCollectionManager";
 import BrandReferencesManager from "@/components/partner-dashboard/BrandReferencesManager";
 import { PartnerCatalogueSection } from "@/components/partner-dashboard/PartnerCatalogueSection";
+import FoundingBadge from "@/components/common/FoundingBadge";
+import type { FoundingTier } from "@/hooks/useFoundingScore";
 
 type EditorTab = "profile" | "collections" | "references" | "catalogue";
 
@@ -26,7 +28,7 @@ export default function AdminBrandEditor() {
       if (!partnerId) return null;
       const { data, error } = await supabase
         .from("partners")
-        .select("id, name, slug, logo_url, plan, partner_mode, partner_type, profile_completed, contact_email, user_id")
+        .select("id, name, slug, logo_url, plan, partner_mode, partner_type, profile_completed, contact_email, user_id, is_founding, founding_tier, founding_joined_at, founding_total_points")
         .eq("id", partnerId)
         .maybeSingle();
       if (error) throw error;
@@ -166,6 +168,40 @@ export default function AdminBrandEditor() {
           </button>
         )}
       </div>
+
+      {/* Founding partner banner — visible only if the brand is in the founding cohort.
+          Tier defaults to 'founder' (rank 1, 0+ points) when the cache column is NULL,
+          since semantically every is_founding=true partner is at least a founder. */}
+      {partner.is_founding && (
+        <div className="rounded-xl border border-violet-300 bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <FoundingBadge
+              tier={(partner.founding_tier as FoundingTier | null) ?? "founder"}
+              size="md"
+            />
+            <div className="text-[11px] font-body text-violet-900 flex items-center gap-2 flex-wrap">
+              <span className="font-semibold">
+                {t("adminBrandEditor.foundingBannerLabel", "Founding Partner")}
+              </span>
+              {partner.founding_joined_at && (
+                <span className="text-violet-700/80">
+                  ·{" "}
+                  {t("adminBrandEditor.foundingSince", "depuis")}{" "}
+                  {new Date(partner.founding_joined_at).toLocaleDateString(undefined, {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+              )}
+              <span className="text-violet-700/80">
+                · {partner.founding_total_points ?? 0}{" "}
+                {t("adminBrandEditor.foundingPoints", "pts")}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-border overflow-x-auto">
