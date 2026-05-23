@@ -9,10 +9,9 @@ After an admin creates a brand row in the `partners` table (via the
 
 1. Validates that the caller is an admin user (`user_profiles.user_type = 'admin'`).
 2. Loads the partner, checks it's a brand, has a `contact_email`, isn't deleted, and isn't already linked to a `user_id`.
-3. Calls `supabase.auth.admin.inviteUserByEmail(email)` — Supabase Auth creates the auth user and sends the built-in invitation email containing a magic link. Idempotent : if the email is already in `auth.users`, the existing user is reused.
-4. Upserts a `user_profiles` row with `user_type='partner'`, best-guess first/last name from `partner.contact_name`, company set to `partner.name`.
-5. Sets `partners.user_id = <new_user_id>` (only if still NULL, to guard against races).
-6. Inserts `brand_users { brand_id, user_id, role='owner', granted_by=admin_id }` if not already present.
+3. Calls `supabase.auth.admin.inviteUserByEmail(email, { data: { user_type: 'partner', first_name, last_name, company, ... } })` — Supabase Auth creates the auth user and sends the built-in invitation email containing a magic link. The metadata seeds `user_profiles` via the `handle_new_user` trigger (so the row lands with `user_type='partner'` directly — a post-hoc UPDATE would be blocked by `trg_prevent_user_type_change`). Idempotent : if the email is already in `auth.users`, the existing user is reused and their `user_profiles` row is left untouched.
+4. Sets `partners.user_id = <new_user_id>` (only if still NULL, to guard against races).
+5. Inserts `brand_users { brand_id, user_id, role='owner', granted_by=admin_id }` if not already present.
 
 ## Required secrets
 
@@ -52,9 +51,9 @@ Content-Type: application/json
 ## Tables touched
 
 - `partners` — UPDATE `user_id` (only on rows where it was NULL)
-- `user_profiles` — UPSERT
 - `brand_users` — INSERT (skipped if already present)
 - `auth.users` — INSERT via Supabase Auth admin API (handled by Supabase, not directly)
+- `user_profiles` — populated indirectly by the `handle_new_user` trigger from the invite metadata. **Not** touched by this function for already-existing users.
 
 ## Re-enable procedure
 

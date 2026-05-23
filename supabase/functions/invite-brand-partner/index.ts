@@ -1,9 +1,19 @@
 // invite-brand-partner — Admin-only edge function that invites a brand
 // partner to the platform after their row was created via the admin
 // shortcut. Creates the auth user (or reuses one if email exists),
-// stamps the user_profiles row, links partners.user_id, and inserts
-// the brand_users (owner) join. Supabase Auth's built-in invitation
-// email is sent automatically by inviteUserByEmail.
+// links partners.user_id, and inserts the brand_users (owner) join.
+// Supabase Auth's built-in invitation email is sent automatically by
+// inviteUserByEmail.
+//
+// user_profiles is NOT touched here. For new auth users, the
+// public.handle_new_user trigger on auth.users seeds the user_profiles
+// row from raw_user_meta_data, which is why we pass user_type +
+// first_name + last_name + company in the inviteUserByEmail data
+// payload. A post-hoc UPDATE that flipped user_type would be rejected
+// by the trg_prevent_user_type_change trigger (auth.uid() is NULL
+// under service role, so the trigger's admin check fails closed).
+// For existing users, their profile stays as-is — we only attach
+// them to the brand via partners.user_id and brand_users.
 //
 // Idempotency : safe to call multiple times. If partner.user_id is
 // already set, returns ok with `already_invited: true`. If the email
@@ -14,10 +24,9 @@
 // SUPABASE_SERVICE_ROLE_KEY, ALLOWED_ORIGIN.
 //
 // Auth model : caller's JWT must belong to a user_profiles row with
-// user_type='admin'. Service role bypasses caller validation only
-// when invoked server-to-server (no Authorization header check
-// short-circuit — service role JWT still passes the admin gate
-// because public.is_admin() returns true for the postgres owner).
+// user_type='admin'. Service-role JWTs do not pass the admin gate —
+// they have no `sub` claim, so auth.getUser() fails and the function
+// returns 401.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -114,9 +123,26 @@ Deno.serve(async (req) => {
   // 2. Invite or reuse existing auth user
   let inviteUserId: string | null = null;
 
+  const firstNameGuess = (partner.contact_name || partner.name || "").split(" ")[0] || "";
+  const lastNameGuess  = (partner.contact_name || "").split(" ").slice(1).join(" ") || "";
+
   const { data: inviteData, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(
     email,
-    { data: { partner_id: partner.id, partner_name: partner.name, role: "brand-owner" } },
+    {
+      data: {
+        // Consumed by public.handle_new_user (trigger on auth.users INSERT) to
+        // seed the user_profiles row with the correct user_type from the start.
+        // Setting user_type via a follow-up UPDATE would be rejected by
+        // trg_prevent_user_type_change since auth.uid() is NULL under service role.
+        user_type: "partner",
+        first_name: firstNameGuess,
+        last_name: lastNameGuess,
+        company: partner.name,
+        partner_id: partner.id,
+        partner_name: partner.name,
+        role: "brand-owner",
+      },
+    },
   );
 
   if (inviteData?.user) {
@@ -145,26 +171,11 @@ Deno.serve(async (req) => {
     return json({ error: "Invitation returned no user and no error" }, 500);
   }
 
-  // 3. Ensure user_profiles row
-  const firstNameGuess = (partner.contact_name || partner.name || "").split(" ")[0] || null;
-  const lastNameGuess  = (partner.contact_name || "").split(" ").slice(1).join(" ") || null;
-
-  const { error: profileErr } = await admin
-    .from("user_profiles")
-    .upsert({
-      id: inviteUserId,
-      email,
-      user_type: "partner",
-      first_name: firstNameGuess,
-      last_name: lastNameGuess,
-      company: partner.name,
-    } as any, { onConflict: "id" });
-
-  if (profileErr) {
-    return json({ error: "Failed to upsert user_profiles: " + profileErr.message }, 500);
-  }
-
-  // 4. Link partners.user_id (only if still NULL — guard against race)
+  // 3. Link partners.user_id (only if still NULL — guard against race).
+  //    user_profiles is intentionally NOT modified here :
+  //    - New users : handle_new_user already seeded the row from the metadata above.
+  //    - Existing users : their profile is theirs ; we don't clobber names/company.
+  //      They keep their original user_type and are added as brand_users below.
   const { error: partnerUpdateErr } = await admin
     .from("partners")
     .update({ user_id: inviteUserId } as any)
@@ -175,7 +186,7 @@ Deno.serve(async (req) => {
     return json({ error: "Failed to link partners.user_id: " + partnerUpdateErr.message }, 500);
   }
 
-  // 5. Insert brand_users (owner) join — idempotent via existence check
+  // 4. Insert brand_users (owner) join — idempotent via existence check
   const { data: existingMembership } = await admin
     .from("brand_users")
     .select("id")
