@@ -2968,6 +2968,7 @@ export type Database = {
           admin_notes: string | null
           admin_visibility_override: boolean | null
           application_id: string | null
+          brand_features: Json | null
           certifications: string[] | null
           city: string | null
           contact_email: string | null
@@ -3023,6 +3024,7 @@ export type Database = {
           admin_notes?: string | null
           admin_visibility_override?: boolean | null
           application_id?: string | null
+          brand_features?: Json | null
           certifications?: string[] | null
           city?: string | null
           contact_email?: string | null
@@ -3078,6 +3080,7 @@ export type Database = {
           admin_notes?: string | null
           admin_visibility_override?: boolean | null
           application_id?: string | null
+          brand_features?: Json | null
           certifications?: string[] | null
           city?: string | null
           contact_email?: string | null
@@ -4153,6 +4156,61 @@ export type Database = {
           },
           {
             foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_views: {
+        Row: {
+          country_code: string | null
+          created_at: string
+          id: string
+          partner_id: string | null
+          product_id: string
+          session_id: string | null
+          source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          partner_id?: string | null
+          product_id: string
+          session_id?: string | null
+          source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          partner_id?: string | null
+          product_id?: string
+          session_id?: string | null
+          source?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_views_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "founding_partner_scores"
+            referencedColumns: ["partner_id"]
+          },
+          {
+            foreignKeyName: "product_views_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_views_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -6139,6 +6197,10 @@ export type Database = {
         }
         Returns: Json
       }
+      architect_owns_request: {
+        Args: { p_request_id: string }
+        Returns: boolean
+      }
       create_admin_notification: {
         Args: {
           p_body?: string
@@ -6380,6 +6442,10 @@ export type Database = {
       }
       next_invoice_number: { Args: never; Returns: string }
       next_payment_reference: { Args: never; Returns: string }
+      partner_matches_request: {
+        Args: { p_request_id: string }
+        Returns: boolean
+      }
       record_cgv_acceptance: {
         Args: {
           p_acceptance_type: string
@@ -6472,6 +6538,21 @@ export type Database = {
           p_siren?: string
         }
         Returns: undefined
+      }
+      update_quote_as_partner: {
+        Args: {
+          p_delivery_conditions?: string
+          p_delivery_delay_days?: number
+          p_partner_conditions?: string
+          p_payment_conditions?: string
+          p_quote_id: string
+          p_status?: string
+          p_total_price?: number
+          p_tva_rate?: number
+          p_unit_price?: number
+          p_validity_days?: number
+        }
+        Returns: Json
       }
       verify_partner_as_admin: {
         Args: {
