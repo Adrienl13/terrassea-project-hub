@@ -401,3 +401,75 @@ auto-loggé mais password jamais changé → blocage si déconnexion.
 2. **Dette 56 — Staging Supabase** — Q3 2026, post acquisition phase.
 3. **Sujets reportés à dimanche soir** : audits invitations
    (admin → partner / brand network) + currency multi-locale.
+
+---
+
+## Session 2026-05-31 — Première marque réelle : onboarding de bout en bout
+
+**Contexte** : premier accord marque signé. Mise en production du flow complet
+d'intégration (marque + produits + invitation). Commit front `3cab535` poussé
+sur `main` (Vercel). Edge function `invite-brand-partner` déployée v5.
+
+### Système — changements livrés
+
+1. **Attribution `partner_id` admin (produits pour le compte d'une marque)**
+   `ExcelImportModal` + `AddProductForm` + `useProductSubmissions.submitProduct`
+   étaient câblés sur le partner du *user connecté* → un admin ne pouvait ni
+   importer ni ajouter de produits pour une marque (import abandonné « Aucun
+   profil partenaire trouvé » ; ajout manuel attribué à l'UUID admin → violation
+   FK à l'approbation). Fix : prop/option `partnerId` optionnelle threadée depuis
+   `PartnerCatalogueSection` (déjà fournie par `AdminBrandEditor`). RLS
+   `"Admins full access to submissions"` autorise déjà l'insert pour tout
+   `partner_id`. Aucun changement dans le dashboard partenaire (même valeur).
+
+2. **Email d'invitation brandé + définition de mot de passe** (résout en partie
+   **Dette 54** / **Dette 51**) — `invite-brand-partner` n'utilise plus l'email
+   générique Supabase : `createUser` (sans email) → `generateLink(type:'recovery',
+   redirectTo: SITE_URL/reset-password)` → email **Terrassea brandé** via
+   `send-notification-email` (provider `webhook`→Resend, déjà actif). CTA →
+   `/reset-password` → `RecoveryGuard` + `Auth.tsx` (`updateUser({ password })`).
+   La marque définit son propre mot de passe. Création de marque ≠ envoi d'email
+   (uniquement au clic « Inviter »).
+
+3. **Bouton « Supprimer » dans `AdminBrandEditor`** — appelle la RPC existante
+   `delete_partner_cascade` (soft-delete `deleted_at`, Dette 101). `AdminPartners`
+   l'avait déjà ; l'éditeur de marque non.
+
+### 3 gotchas résolus pour les edge functions invoquées navigateur
+
+(diagnostiqués via `get_logs` edge-function + auth — voir mémoire
+`feedback_edge_fn_verify_jwt_cors`)
+- **`verify_jwt: true`** bloquait la requête avant la fonction (0 log,
+  « Failed to send a request »). → redéployée `verify_jwt: false` (auth interne
+  par `requireAdmin` conservée).
+- **CORS origine figée** (`https://terrassea.com`) cassait le POST depuis tout
+  autre domaine (préflight 204 puis POST bloqué navigateur). → reflet dynamique
+  de l'`Origin` sur allowlist (terrassea.com + sous-domaines, vercel, lovable,
+  localhost).
+- **`listUsers` 500** sur lignes `auth.users` avec `email_change` NULL (bug
+  GoTrue). → code refactoré pour résoudre l'utilisateur via `generateLink`
+  (supprime `listUsers`).
+
+### Données
+
+- **Remédiation `auth.users`** : `UPDATE ... SET col = COALESCE(col,'')` sur
+  `confirmation_token / recovery_token / email_change / email_change_token_new /
+  _current / phone_change / phone_change_token / reauthentication_token`
+  (2 lignes corrigées, 0 NULL restant). Cause racine du 500 `listUsers`.
+  **Non versionné en migration** (réparation ponctuelle data, schéma auth) — à
+  formaliser si récurrence.
+- **Purge marques de test** : `Test` + `Test 2` supprimées définitivement
+  (hard DELETE par id, 0 référence FK).
+
+### Validation
+- `bunx tsc --noEmit` clean · `bun run lint` 0 erreur (warnings pré-existants) ·
+  `bun run test` 633/633 · `bun run build` OK.
+- Edge function `invite-brand-partner` v5 ACTIVE (verify_jwt=false).
+
+### Reste / à surveiller
+- Ajouter `https://terrassea.com/reset-password` dans Auth → Redirect URLs
+  (RecoveryGuard rattrape sinon — non bloquant).
+- Email brandé en **FR uniquement** (marché primaire) — localiser si besoin.
+- Suite onboarding marque : import CSV ~200 produits via `ExcelImportModal`
+  (chemin déterministe, étendre `colAliases` pour les 27 specs si le fichier
+  fournisseur les porte).
