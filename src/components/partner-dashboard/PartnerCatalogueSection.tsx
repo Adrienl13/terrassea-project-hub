@@ -721,6 +721,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         <Suspense fallback={null}>
           <AddProductForm
             plan={plan}
+            partnerId={partnerId ?? undefined}
             onClose={() => setShowAddForm(false)}
             onSuccess={() => {
               setShowAddForm(false);
@@ -756,6 +757,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         <Suspense fallback={null}>
           <AddProductForm
             plan={plan}
+            partnerId={partnerId ?? undefined}
             editMode
             editProductId={editingProduct.productId}
             editInitialData={editingProduct.productData}
@@ -773,6 +775,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         <Suspense fallback={null}>
           <AddProductForm
             plan={plan}
+            partnerId={partnerId ?? undefined}
             editMode={!!editingSubmission.targetProductId}
             editProductId={editingSubmission.targetProductId}
             editInitialData={editingSubmission.productData}
@@ -792,6 +795,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         <Suspense fallback={null}>
           <ExcelImportModal
             plan={plan}
+            partnerId={partnerId ?? undefined}
             onClose={() => setShowExcelImport(false)}
             onSuccess={(count) => {
               setShowExcelImport(false);

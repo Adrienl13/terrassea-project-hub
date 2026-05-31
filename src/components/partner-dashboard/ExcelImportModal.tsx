@@ -148,10 +148,14 @@ export default function ExcelImportModal({
   plan,
   onClose,
   onSuccess,
+  partnerId: partnerIdProp,
 }: {
   plan: PartnerPlan;
   onClose: () => void;
   onSuccess: (count: number) => void;
+  // Explicit target partner (admin acting on behalf of a brand). When absent,
+  // the partner is resolved from the logged-in user.
+  partnerId?: string;
 }) {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
@@ -762,9 +766,10 @@ export default function ExcelImportModal({
       return;
     }
 
-    // Resolve partner_id
-    let partnerId: string | null = null;
-    if (user) {
+    // Resolve partner_id. An explicit override (admin acting on behalf of a
+    // brand) wins; otherwise resolve from the logged-in user's partner row.
+    let partnerId: string | null = partnerIdProp ?? null;
+    if (!partnerId && user) {
       const { data } = await supabase.from("partners").select("id").eq("user_id", user.id).maybeSingle();
       partnerId = data?.id || null;
     }

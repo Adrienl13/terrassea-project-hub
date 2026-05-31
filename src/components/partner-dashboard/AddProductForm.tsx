@@ -181,6 +181,7 @@ export default function AddProductForm({
   editInitialData,
   editSubmissionId,
   collectionName,
+  partnerId,
 }: {
   plan: PartnerPlan;
   editMode?: boolean;
@@ -190,6 +191,9 @@ export default function AddProductForm({
   onClose: () => void;
   onSuccess: () => void;
   collectionName?: string;
+  // Explicit target partner (admin acting on behalf of a brand). When absent,
+  // the partner is resolved from the logged-in user inside submitProduct.
+  partnerId?: string;
 }) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -644,6 +648,7 @@ export default function AddProductForm({
         ...(editMode && editProductId
           ? { editMode: true, targetProductId: editProductId }
           : {}),
+        ...(partnerId ? { partnerId } : {}),
         variants: enrichedVariants,
       });
 

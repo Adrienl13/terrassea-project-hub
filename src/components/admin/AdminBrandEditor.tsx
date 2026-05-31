@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, User, Layers, BookOpen, Package, Crown, Mail, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, User, Layers, BookOpen, Package, Crown, Mail, CheckCircle2, Trash2 } from "lucide-react";
 import type { PartnerPlan } from "@/lib/partnerConstants";
 import PartnerProfileForm from "@/components/partner-dashboard/PartnerProfileForm";
 import BrandCollectionManager from "@/components/partner-dashboard/BrandCollectionManager";
@@ -19,8 +19,10 @@ export default function AdminBrandEditor() {
   const { partnerId } = useParams<{ partnerId: string }>();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<EditorTab>("profile");
   const [inviting, setInviting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: partner, isLoading } = useQuery({
     queryKey: ["admin-brand-edit", partnerId],
@@ -51,7 +53,7 @@ export default function AdminBrandEditor() {
     const confirmed = window.confirm(
       t(
         "adminBrandEditor.inviteConfirm",
-        `Envoyer un email d'invitation à ${partner.contact_email} ? La marque recevra un lien magique pour activer son compte.`,
+        `Envoyer l'email de bienvenue à ${partner.contact_email} ? La marque recevra un lien pour définir son mot de passe et accéder à son espace.`,
       ),
     );
     if (!confirmed) return;
@@ -73,6 +75,31 @@ export default function AdminBrandEditor() {
     }
     queryClient.invalidateQueries({ queryKey: ["admin-brand-edit", partnerId] });
     queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
+  };
+
+  const handleDelete = async () => {
+    if (!partnerId || !partner) return;
+    const confirmed = window.confirm(
+      t(
+        "adminBrandEditor.deleteConfirm",
+        `Supprimer la marque « ${partner.name} » ?\n\nElle sera retirée des listes et masquée côté public. Ses produits, commandes et CGV sont conservés en base (délié) pour l'intégrité de l'audit. Action gérée par delete_partner_cascade.`,
+      ),
+    );
+    if (!confirmed) return;
+    setDeleting(true);
+    const { data, error } = await supabase.rpc("delete_partner_cascade", { p_partner_id: partnerId });
+    setDeleting(false);
+    if (error) {
+      toast.error(t("adminBrandEditor.deleteError", "Échec de la suppression :") + " " + (error.message || ""));
+      return;
+    }
+    const payload = (data ?? {}) as { partner_name?: string };
+    toast.success(
+      t("adminBrandEditor.deleteSuccess", "Marque supprimée :") + " " + (payload.partner_name ?? partner.name),
+    );
+    queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-brand-edit", partnerId] });
+    navigate("/admin");
   };
 
   if (!partnerId) {
@@ -140,33 +167,49 @@ export default function AdminBrandEditor() {
           </span>
         </div>
 
-        {/* Invite button — visible only when partner has no user_id yet */}
-        {partner.user_id ? (
-          <span
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-body font-semibold text-emerald-700 bg-emerald-50 rounded-lg"
-            title={t("adminBrandEditor.alreadyInvitedTitle", "Compte utilisateur déjà créé pour cette marque")}
-          >
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            {t("adminBrandEditor.alreadyInvited", "Marque invitée")}
-          </span>
-        ) : (
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Invite button — visible only when partner has no user_id yet */}
+          {partner.user_id ? (
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-body font-semibold text-emerald-700 bg-emerald-50 rounded-lg"
+              title={t("adminBrandEditor.alreadyInvitedTitle", "Compte utilisateur déjà créé pour cette marque")}
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {t("adminBrandEditor.alreadyInvited", "Marque invitée")}
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleInvite}
+              disabled={inviting || !partner.contact_email}
+              title={
+                !partner.contact_email
+                  ? t("adminBrandEditor.inviteNeedsEmail", "Renseigne d'abord l'email de contact dans l'onglet Profil")
+                  : t("adminBrandEditor.inviteHint", "Envoie un email d'invitation avec un lien magique")
+              }
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-body font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-all whitespace-nowrap shadow-sm"
+            >
+              <Mail className="h-3.5 w-3.5" />
+              {inviting
+                ? t("adminBrandEditor.inviting", "Envoi…")
+                : t("adminBrandEditor.inviteBrand", "Inviter cette marque")}
+            </button>
+          )}
+
+          {/* Delete (soft-delete via delete_partner_cascade) */}
           <button
             type="button"
-            onClick={handleInvite}
-            disabled={inviting || !partner.contact_email}
-            title={
-              !partner.contact_email
-                ? t("adminBrandEditor.inviteNeedsEmail", "Renseigne d'abord l'email de contact dans l'onglet Profil")
-                : t("adminBrandEditor.inviteHint", "Envoie un email d'invitation avec un lien magique")
-            }
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-body font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-all whitespace-nowrap shadow-sm"
+            onClick={handleDelete}
+            disabled={deleting}
+            title={t("adminBrandEditor.deleteHint", "Supprimer cette marque (archivage avec préservation de l'audit)")}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-body font-semibold text-red-600 border border-red-200 hover:bg-red-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
           >
-            <Mail className="h-3.5 w-3.5" />
-            {inviting
-              ? t("adminBrandEditor.inviting", "Envoi…")
-              : t("adminBrandEditor.inviteBrand", "Inviter cette marque")}
+            <Trash2 className="h-3.5 w-3.5" />
+            {deleting
+              ? t("adminBrandEditor.deleting", "Suppression…")
+              : t("adminBrandEditor.deleteBrand", "Supprimer")}
           </button>
-        )}
+        </div>
       </div>
 
       {/* Founding partner banner — visible only if the brand is in the founding cohort.

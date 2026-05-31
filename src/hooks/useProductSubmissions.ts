@@ -49,6 +49,10 @@ export function useProductSubmission() {
       editMode?: boolean;
       targetProductId?: string;
       variants?: LocalVariantRow[];
+      // Explicit target partner (admin acting on behalf of a brand). When
+      // absent, the partner is resolved from the logged-in user. RLS still
+      // gates who may write for which partner_id (admins: any; partners: own).
+      partnerId?: string;
     }): Promise<{
       submissionId: string;
       duplicate: SimilarityResult | null;
@@ -117,13 +121,18 @@ export function useProductSubmission() {
           }
         }
 
-        // 4. Resolve the actual partners.id (not the auth user id)
-        const { data: partnerRow } = await supabase
-          .from("partners")
-          .select("id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        const resolvedPartnerId = partnerRow?.id ?? user.id;
+        // 4. Resolve the actual partners.id (not the auth user id).
+        // An explicit override (admin acting on behalf of a brand) wins;
+        // otherwise resolve from the logged-in user's partner row.
+        let resolvedPartnerId = options?.partnerId ?? null;
+        if (!resolvedPartnerId) {
+          const { data: partnerRow } = await supabase
+            .from("partners")
+            .select("id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          resolvedPartnerId = partnerRow?.id ?? user.id;
+        }
 
         // 5. Upsert into product_submissions (replace existing pending edit for same product)
         const isEdit = options?.editMode && options?.targetProductId;
