@@ -1374,7 +1374,7 @@ function ProRequestCard({ request, interested = [], onConnect, onOpenConversatio
           onClick={onEdit}
           className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-display font-semibold text-muted-foreground border border-border rounded-full hover:text-foreground hover:border-foreground/40 transition-colors"
         >
-          <PenTool className="h-3 w-3" /> {t("proHub.client.viewEdit", "Voir / Modifier")}
+          <Pencil className="h-3 w-3" /> {t("proHub.client.viewEdit", "Voir / Modifier")}
         </button>
       </div>
 
