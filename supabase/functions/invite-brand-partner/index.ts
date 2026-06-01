@@ -260,25 +260,80 @@ Deno.serve(async (req) => {
   //    send-notification-email, which owns the provider/Resend config.
   const greetName = firstNameGuess || partner.name;
   const subject = `Bienvenue sur Terrassea — activez l'espace de ${partner.name}`;
-  const bodyHtml = `<!DOCTYPE html><html><body style="margin:0;background:#f5f4f2;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a">
-  <div style="max-width:520px;margin:0 auto;padding:40px 28px">
-    <p style="font-size:18px;font-weight:700;margin:0 0 24px">Terrassea</p>
-    <p style="font-size:15px;line-height:1.5">Bonjour ${greetName},</p>
-    <p style="font-size:15px;line-height:1.5">Votre espace marque <strong>${partner.name}</strong> est prêt sur Terrassea. Pour y accéder, définissez votre mot de passe :</p>
-    <p style="margin:28px 0"><a href="${actionLink}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:13px 30px;border-radius:24px">Définir mon mot de passe</a></p>
-    <p style="font-size:13px;line-height:1.5;color:#555">Ce lien est personnel et expire après un court délai. Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br><span style="word-break:break-all;color:#777">${actionLink}</span></p>
-    <p style="font-size:13px;line-height:1.5;color:#555;margin-top:24px">À très vite,<br>L'équipe Terrassea</p>
-  </div></body></html>`;
-  const bodyText = `Bonjour ${greetName},
+  // Email-safe HTML : table layout + inline styles + preheader + responsive.
+  // Brand palette : ink #1A1A1A, cream #F5F3EF, terracotta accent #C9623C.
+  const bodyHtml = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="x-apple-disable-message-reformatting" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>Bienvenue sur Terrassea</title>
+<!--[if mso]><style type="text/css">body,table,td,a{font-family:Helvetica,Arial,sans-serif !important;}</style><![endif]-->
+<style>
+  @media only screen and (max-width:600px){
+    .container{width:100% !important;}
+    .px{padding-left:24px !important;padding-right:24px !important;}
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#F5F3EF;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#F5F3EF;">Dernière étape : définissez votre mot de passe pour accéder à l'espace marque ${partner.name}.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F3EF;">
+  <tr><td align="center" style="padding:32px 16px;">
+    <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
+      <tr><td class="px" style="padding:6px 40px 22px;">
+        <span style="font-family:'Manrope',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;letter-spacing:3px;color:#1A1A1A;">TERRASSEA</span>
+      </td></tr>
+      <tr><td>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border:1px solid #ECE7DF;border-radius:16px;">
+          <tr><td style="height:4px;line-height:4px;font-size:0;background:#C9623C;border-radius:16px 16px 0 0;">&nbsp;</td></tr>
+          <tr><td class="px" style="padding:40px 44px 0;">
+            <h1 style="margin:0;font-family:'Manrope',Helvetica,Arial,sans-serif;font-size:24px;line-height:1.25;font-weight:800;color:#1A1A1A;">Bienvenue, ${greetName}</h1>
+            <p style="margin:14px 0 0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#4A4A4A;">Votre espace marque <strong style="color:#1A1A1A;">${partner.name}</strong> est prêt sur Terrassea. Dernière étape : définissez votre mot de passe pour y accéder.</p>
+          </td></tr>
+          <tr><td class="px" align="left" style="padding:30px 44px 6px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+              <td align="center" bgcolor="#C9623C" style="border-radius:999px;">
+                <a href="${actionLink}" target="_blank" style="display:inline-block;padding:15px 36px;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#FFFFFF;background:#C9623C;border:1px solid #C9623C;border-radius:999px;">Définir mon mot de passe</a>
+              </td>
+            </tr></table>
+          </td></tr>
+          <tr><td class="px" style="padding:18px 44px 0;">
+            <p style="margin:0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#8A8A8A;">Ce lien est personnel et expire après un court délai. Si le bouton ne fonctionne pas, copiez-collez ce lien :</p>
+            <p style="margin:6px 0 0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;word-break:break-all;"><a href="${actionLink}" target="_blank" style="color:#C9623C;text-decoration:underline;">${actionLink}</a></p>
+          </td></tr>
+          <tr><td class="px" style="padding:28px 44px 40px;">
+            <div style="border-top:1px solid #ECE7DF;padding-top:20px;">
+              <p style="margin:0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#4A4A4A;">À très vite,<br /><strong style="color:#1A1A1A;">L'équipe Terrassea</strong></p>
+            </div>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td class="px" style="padding:22px 40px 8px;">
+        <p style="margin:0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:11px;line-height:1.6;color:#A09A90;">Terrassea — AI marketplace for hospitality projects.<br />Vous recevez cet email car ${partner.name} a été invitée à rejoindre la plateforme.</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+  const bodyText = `Bienvenue, ${greetName}
 
-Votre espace marque ${partner.name} est prêt sur Terrassea. Pour y accéder, définissez votre mot de passe :
+Votre espace marque ${partner.name} est prêt sur Terrassea.
+Dernière étape : définissez votre mot de passe pour y accéder.
 
+Définir mon mot de passe :
 ${actionLink}
 
 Ce lien est personnel et expire après un court délai.
 
 À très vite,
-L'équipe Terrassea`;
+L'équipe Terrassea
+
+—
+Terrassea — AI marketplace for hospitality projects.`;
 
   let emailSent = false;
   let emailDetail = "";
