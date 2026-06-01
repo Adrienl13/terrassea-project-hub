@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, ThumbsUp, ThumbsDown, FileText, Clock,
-  CheckCircle2, Eye, Sparkles, Inbox,
+  CheckCircle2, Eye, Sparkles, Inbox, Info,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -100,6 +100,9 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
         <h1 className="font-display text-2xl font-bold tracking-tight">{t("proHub.partner.title")}</h1>
         <p className="text-sm font-body text-muted-foreground mt-1">{t("proHub.partner.subtitle")}</p>
       </div>
+
+      {/* How Pro Service works — onboarding explainer */}
+      <HowItWorks />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -223,6 +226,33 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+function HowItWorks() {
+  const { t } = useTranslation();
+  const steps = [
+    { n: 1, title: t("proHub.partner.aboutStep1Title"), desc: t("proHub.partner.aboutStep1Desc") },
+    { n: 2, title: t("proHub.partner.aboutStep2Title"), desc: t("proHub.partner.aboutStep2Desc") },
+    { n: 3, title: t("proHub.partner.aboutStep3Title"), desc: t("proHub.partner.aboutStep3Desc") },
+  ];
+  return (
+    <div className="rounded-2xl border border-border bg-muted/30 p-5">
+      <div className="flex items-center gap-2 mb-1">
+        <Info className="h-4 w-4 text-terracotta" />
+        <h2 className="font-display text-sm font-bold text-foreground">{t("proHub.partner.aboutTitle")}</h2>
+      </div>
+      <p className="text-xs font-body text-muted-foreground mb-4 max-w-2xl leading-relaxed">{t("proHub.partner.aboutIntro")}</p>
+      <div className="grid sm:grid-cols-3 gap-3">
+        {steps.map(s => (
+          <div key={s.n} className="rounded-xl bg-background border border-border p-4">
+            <div className="w-6 h-6 rounded-full bg-terracotta/10 text-terracotta font-display font-bold text-xs flex items-center justify-center mb-2">{s.n}</div>
+            <h3 className="font-display text-xs font-bold text-foreground">{s.title}</h3>
+            <p className="text-[11px] font-body text-muted-foreground mt-1 leading-relaxed">{s.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function FounderBanner({ tier }: { tier: FoundingTier }) {
   const { t } = useTranslation();
