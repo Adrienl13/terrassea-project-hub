@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
@@ -70,6 +70,38 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
     },
     enabled: !!profile?.email,
   });
+
+  // Interested brands per request (sanitized client feed) — drives the
+  // "Mettre en relation" action that closes the loop.
+  const { data: clientFeed = [], refetch: refetchFeed } = useQuery({
+    queryKey: ["pro-service-client-feed", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("pro_service_client_feed").select("*");
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const interestedByRequest = useMemo(() => {
+    const m = new Map<string, any[]>();
+    (clientFeed as any[]).forEach((row) => {
+      if (!["partner_interested", "client_connected"].includes(row.match_status)) return;
+      if (!m.has(row.request_id)) m.set(row.request_id, []);
+      m.get(row.request_id)!.push(row);
+    });
+    return m;
+  }, [clientFeed]);
+
+  const handleConnectBrand = async (matchId: string) => {
+    const convId = await store.connectMatch(matchId);
+    if (convId) {
+      toast.success(t("proHub.client.connectSuccess", "Mise en relation effectuée — échangez dans Messages."));
+      refetchFeed();
+      navigate("/messages");
+    } else {
+      toast.error(t("proHub.client.connectError", "Échec de la mise en relation."));
+    }
+  };
 
   // Also keep mock projects as fallback display
   const myProjects = store.projects.slice(0, 5);
@@ -264,7 +296,13 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
               ) : (
                 <div className="space-y-3">
                   {myProRequests.map((req: any) => (
-                    <ProRequestCard key={req.id} request={req} />
+                    <ProRequestCard
+                      key={req.id}
+                      request={req}
+                      interested={interestedByRequest.get(req.id) || []}
+                      onConnect={handleConnectBrand}
+                      onOpenConversation={() => navigate("/messages")}
+                    />
                   ))}
                 </div>
               )}
@@ -1276,7 +1314,13 @@ const PRO_REQUEST_STATUS_MAP: Record<string, { label: string; style: string }> =
   completed: { label: "Termin\u00e9", style: "bg-muted text-muted-foreground" },
 };
 
-function ProRequestCard({ request }: { request: any }) {
+function ProRequestCard({ request, interested = [], onConnect, onOpenConversation }: {
+  request: any;
+  interested?: any[];
+  onConnect: (matchId: string) => void;
+  onOpenConversation: (convId: string) => void;
+}) {
+  const { t } = useTranslation();
   const sc = PRO_REQUEST_STATUS_MAP[request.status] || PRO_REQUEST_STATUS_MAP.pending;
   const createdDate = request.created_at ? new Date(request.created_at).toLocaleDateString("fr-FR") : "";
 
@@ -1309,6 +1353,47 @@ function ProRequestCard({ request }: { request: any }) {
           )}
         </div>
       </div>
+
+      {/* Interested brands — close the loop : connect with a responding brand */}
+      {interested.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-border space-y-2">
+          <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-terracotta">
+            {t("proHub.client.interestedBrands", "Marques intéressées")}
+          </p>
+          {interested.map((b: any) => (
+            <div key={b.match_id} className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 min-w-0">
+                {b.partner_logo ? (
+                  <img loading="lazy" src={b.partner_logo} alt="" className="w-6 h-6 rounded-full object-cover" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[9px] font-display font-bold text-muted-foreground">
+                    {(b.partner_name || "?").charAt(0)}
+                  </div>
+                )}
+                <span className="text-xs font-display font-semibold text-foreground truncate">{b.partner_name}</span>
+                {b.score_total ? (
+                  <span className="text-[9px] font-body text-muted-foreground">{b.score_total}% {t("proHub.common.match")}</span>
+                ) : null}
+              </div>
+              {b.match_status === "client_connected" ? (
+                <button
+                  onClick={() => onOpenConversation(b.conversation_id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-display font-semibold text-foreground border border-border rounded-full hover:border-foreground transition-colors"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" /> {t("proHub.client.openConversation", "Ouvrir la conversation")}
+                </button>
+              ) : (
+                <button
+                  onClick={() => onConnect(b.match_id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-display font-semibold text-white bg-terracotta rounded-full hover:opacity-90 transition-opacity"
+                >
+                  <Send className="h-3.5 w-3.5" /> {t("proHub.client.connectAction", "Mettre en relation")}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
