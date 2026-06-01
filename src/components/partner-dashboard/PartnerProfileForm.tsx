@@ -153,7 +153,11 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
       }
     };
     load();
-  }, [partnerId, profile]);
+    // Load once per partner. We intentionally do NOT depend on `profile`:
+    // it changes reference on every auth refresh/window-focus, which would
+    // re-run this effect and reset the form — wiping the user's unsaved edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partnerId]);
 
   // Count completed fields for progress
   const completedFields = [
