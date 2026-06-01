@@ -193,7 +193,7 @@ Deno.serve(async (req) => {
     },
   });
 
-  let createdUserId: string | null = createData?.user?.id ?? null;
+  const createdUserId: string | null = createData?.user?.id ?? null;
   if (!createdUserId && createErr) {
     const msg = (createErr.message || "").toLowerCase();
     const looksLikeExisting = msg.includes("already") || msg.includes("registered") || msg.includes("exists");
