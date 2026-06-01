@@ -26,6 +26,7 @@ export interface ProServiceStore {
   declineProject: (projectId: string, professionalId: string) => void;
   // Persisted to pro_service_matches (DB)
   respondToMatch: (matchId: string, interested: boolean) => Promise<void>;
+  connectMatch: (matchId: string) => Promise<string | null>;
   proposeMatch: (requestId: string, partnerId: string) => Promise<void>;
 }
 
@@ -106,10 +107,45 @@ function uiToDbStatus(s: ConnectionStatus): string {
   }
 }
 
+// Partner-facing sanitized feed (pro_service_partner_feed): one row per match,
+// joined to its request, WITHOUT client contact until connected (R2).
+function mapFeedToProject(row: any): ProProject {
+  return {
+    id: row.request_id,
+    title: row.project_title || "Untitled project",
+    clientType: row.project_type || "other",
+    city: row.project_city || "",
+    country: row.project_country || "",
+    budget: row.budget_range || "",
+    budgetNum: parseBudgetNum(row.budget_range),
+    covers: row.quantity_estimate || 0,
+    area: row.surface_area ? `${row.surface_area} m²` : "",
+    needs: row.categories_needed || [],
+    style: (row.style_preferences || []).join(", "),
+    timeline: row.timeline || "",
+    status: mapRequestStatus(row.request_status),
+    matchedCount: 0,
+    createdAt: row.match_created_at?.split("T")[0] || "",
+    clientName: row.client_name || undefined,
+    clientCompany: row.client_company || undefined,
+  };
+}
+
+function mapFeedToConnection(row: any): ProConnection {
+  return {
+    id: row.match_id,
+    projectId: row.request_id,
+    professionalId: row.partner_id,
+    status: mapConnectionStatus(row.match_status),
+    connectedAt: row.match_created_at?.split("T")[0] || "",
+    respondedAt: row.partner_responded_at || undefined,
+  };
+}
+
 // ── Main hook ─────────────────────────────────────────────────────────────────
 
 export function useProServiceStore(): ProServiceStore {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [projects, setProjects] = useState<ProProject[]>([]);
   const [connections, setConnections] = useState<ProConnection[]>([]);
   const [supplierCalls] = useState<SupplierCall[]>([]);
@@ -128,6 +164,24 @@ export function useProServiceStore(): ProServiceStore {
     async function fetchData() {
       setIsLoading(true);
       try {
+        // Partners read ONLY the sanitized feed (no client contact until
+        // connected — R2). They have no direct SELECT on pro_service_requests.
+        if (profile?.user_type === "partner") {
+          const { data: feed, error: feedErr } = await supabase
+            .from("pro_service_partner_feed")
+            .select("*")
+            .order("match_created_at", { ascending: false });
+          if (feedErr) console.error("Failed to fetch pro_service_partner_feed:", feedErr.message);
+          if (cancelled) return;
+          const rows = feed || [];
+          const projMap = new Map<string, ProProject>();
+          rows.forEach((r: any) => { if (!projMap.has(r.request_id)) projMap.set(r.request_id, mapFeedToProject(r)); });
+          setProjects(Array.from(projMap.values()));
+          setConnections(rows.map(mapFeedToConnection));
+          return;
+        }
+
+        // Admin / client / architect : raw tables (their own RLS scopes them).
         // Fetch pro_service_requests as projects
         const { data: requests, error: reqErr } = await supabase
           .from("pro_service_requests")
@@ -173,7 +227,7 @@ export function useProServiceStore(): ProServiceStore {
 
     fetchData();
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [user?.id, profile?.user_type]);
 
   // ── Actions (optimistic, local-only for now) ───────────────────────────────
 
@@ -194,18 +248,29 @@ export function useProServiceStore(): ProServiceStore {
     if (error) console.error("updateConnectionStatus failed:", error.message);
   }, []);
 
-  // Partner accepts/declines a proposed match — persisted (RLS: partner owns it).
+  // Partner accepts/declines a proposed match — via RPC (atomic transition +
+  // client notification, cross-user). RLS alone can't notify the client.
   const respondToMatch = useCallback(async (matchId: string, interested: boolean) => {
-    const dbStatus = interested ? "partner_interested" : "partner_declined";
     const respondedAt = new Date().toISOString();
     setConnections(prev => prev.map(c =>
-      c.id === matchId ? { ...c, status: mapConnectionStatus(dbStatus), respondedAt } : c
+      c.id === matchId
+        ? { ...c, status: mapConnectionStatus(interested ? "partner_interested" : "partner_declined"), respondedAt }
+        : c
     ));
-    const { error } = await supabase
-      .from("pro_service_matches")
-      .update({ status: dbStatus, partner_responded_at: respondedAt } as any)
-      .eq("id", matchId);
+    const { error } = await supabase.rpc("respond_to_pro_service_match", {
+      p_match_id: matchId,
+      p_interested: interested,
+    });
     if (error) console.error("respondToMatch failed:", error.message);
+  }, []);
+
+  // Client (or admin) connects with an interested partner — via RPC
+  // (creates conversation + participants + first message, notifies partner).
+  const connectMatch = useCallback(async (matchId: string): Promise<string | null> => {
+    const { data, error } = await supabase.rpc("connect_pro_service_match", { p_match_id: matchId });
+    if (error) { console.error("connectMatch failed:", error.message); return null; }
+    setConnections(prev => prev.map(c => c.id === matchId ? { ...c, status: "accepted" } : c));
+    return (data as { conversation_id?: string } | null)?.conversation_id ?? null;
   }, []);
 
   // Admin proposes a partner to a request — INSERT a 'suggested' match.
@@ -248,6 +313,7 @@ export function useProServiceStore(): ProServiceStore {
     addArchitectRequest,
     declineProject,
     respondToMatch,
+    connectMatch,
     proposeMatch,
   };
 }
