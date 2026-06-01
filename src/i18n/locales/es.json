@@ -3474,6 +3474,8 @@
     "noMessagesYet": "Aún no hay mensajes",
     "yourMessagePlaceholder": "Su mensaje...",
     "sendError": "Error de envío",
+    "attach": "Adjuntar un archivo (imagen / PDF)",
+    "attachError": "Error al subir un adjunto.",
     "newConversation": "Nueva conversación",
     "recipient": "Destinatario",
     "recipientSearchPlaceholder": "Buscar por nombre, email, empresa...",

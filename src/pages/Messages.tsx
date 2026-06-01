@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sanitizePostgrest as sanitize } from "@/lib/sanitizePostgrest";
 import {
   MessageSquare, Send, ArrowLeft, Plus, Search,
-  User, Building2, Shield, Compass, X,
+  User, Building2, Shield, Compass, X, Paperclip, FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
@@ -213,10 +213,12 @@ function NewConversationModal({ onClose, onCreate }: {
 function ConversationThread({ conversationId, onBack }: { conversationId: string; onBack: () => void }) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { messages, sendMessage, markConversationRead } = useMessages(conversationId);
+  const { messages, sendMessage, uploadMessageAttachment, markConversationRead } = useMessages(conversationId);
   const { conversations } = useConversations();
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const conv = conversations.find(c => c.id === conversationId);
@@ -232,11 +234,18 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
   }, [messages.length]);
 
   const handleSend = async () => {
-    if (!input.trim() || sending) return;
+    if ((!input.trim() && pendingFiles.length === 0) || sending) return;
     setSending(true);
     try {
-      await sendMessage(input);
+      const uploaded = [];
+      for (const f of pendingFiles) {
+        const a = await uploadMessageAttachment(f);
+        if (a) uploaded.push(a);
+        else toast.error(t("messages.attachError", "Échec de l'envoi d'une pièce jointe."));
+      }
+      await sendMessage(input, uploaded);
       setInput("");
+      setPendingFiles([]);
     } catch (err: any) {
       toast.error(err.message || t("messages.sendError"));
     } finally {
@@ -293,13 +302,31 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
                     {msg.sender ? [msg.sender.first_name, msg.sender.last_name].filter(Boolean).join(" ") || msg.sender.email : "?"}
                   </p>
                 )}
-                <div className={`px-3.5 py-2.5 rounded-2xl text-sm font-body leading-relaxed ${
-                  isMe
-                    ? "bg-foreground text-primary-foreground rounded-br-sm"
-                    : "bg-card border border-border text-foreground rounded-bl-sm"
-                }`}>
-                  {msg.body}
-                </div>
+                {msg.body && (
+                  <div className={`px-3.5 py-2.5 rounded-2xl text-sm font-body leading-relaxed ${
+                    isMe
+                      ? "bg-foreground text-primary-foreground rounded-br-sm"
+                      : "bg-card border border-border text-foreground rounded-bl-sm"
+                  }`}>
+                    {msg.body}
+                  </div>
+                )}
+                {msg.attachments && msg.attachments.length > 0 && (
+                  <div className={`mt-1 flex flex-col gap-1.5 ${isMe ? "items-end" : "items-start"}`}>
+                    {msg.attachments.map((a, i) => (
+                      a.type?.startsWith("image/") && a.url ? (
+                        <a key={i} href={a.url} target="_blank" rel="noopener noreferrer">
+                          <img loading="lazy" src={a.url} alt={a.name} className="max-w-[200px] max-h-48 rounded-xl border border-border object-cover" />
+                        </a>
+                      ) : (
+                        <a key={i} href={a.url || "#"} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card text-xs font-body text-foreground hover:border-foreground/30 transition-colors max-w-[220px]">
+                          <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <span className="truncate">{a.name}</span>
+                        </a>
+                      )
+                    ))}
+                  </div>
+                )}
                 <p className={`text-[9px] font-body text-muted-foreground/60 mt-0.5 ${isMe ? "text-right" : ""}`}>
                   {msg.created_at ? timeAgo(msg.created_at, t("messages.timeNow")) : ""}
                 </p>
@@ -311,7 +338,43 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
 
       {/* Input */}
       <div className="px-4 py-3 border-t border-border shrink-0">
+        {pendingFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {pendingFiles.map((f, i) => (
+              <span key={i} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted text-[11px] font-body max-w-[180px]">
+                <FileText className="h-3 w-3 shrink-0 text-muted-foreground" />
+                <span className="truncate">{f.name}</span>
+                <button
+                  onClick={() => setPendingFiles(prev => prev.filter((_, idx) => idx !== i))}
+                  className="text-muted-foreground hover:text-foreground shrink-0"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
         <div className="flex items-end gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const files = Array.from(e.target.files || []);
+              setPendingFiles(prev => [...prev, ...files].slice(0, 5));
+              e.target.value = "";
+            }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending}
+            title={t("messages.attach", "Joindre un fichier (image / PDF)")}
+            className="p-2.5 text-muted-foreground hover:text-foreground border border-border rounded-full transition-colors shrink-0 disabled:opacity-50"
+          >
+            <Paperclip className="h-4 w-4" />
+          </button>
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
@@ -324,7 +387,7 @@ function ConversationThread({ conversationId, onBack }: { conversationId: string
           />
           <button
             onClick={handleSend}
-            disabled={!input.trim() || sending}
+            disabled={(!input.trim() && pendingFiles.length === 0) || sending}
             className="p-2.5 bg-foreground text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity shrink-0"
           >
             <Send className="h-4 w-4" />

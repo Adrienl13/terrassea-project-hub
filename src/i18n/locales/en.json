@@ -3474,6 +3474,8 @@
     "noMessagesYet": "No messages yet",
     "yourMessagePlaceholder": "Your message...",
     "sendError": "Send error",
+    "attach": "Attach a file (image / PDF)",
+    "attachError": "Failed to upload an attachment.",
     "newConversation": "New conversation",
     "recipient": "Recipient",
     "recipientSearchPlaceholder": "Search by name, email, company...",

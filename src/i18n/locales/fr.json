@@ -3489,6 +3489,8 @@
     "noMessagesYet": "Aucun message pour l'instant",
     "yourMessagePlaceholder": "Votre message...",
     "sendError": "Erreur d'envoi",
+    "attach": "Joindre un fichier (image / PDF)",
+    "attachError": "Échec de l'envoi d'une pièce jointe.",
     "newConversation": "Nouvelle conversation",
     "recipient": "Destinataire",
     "recipientSearchPlaceholder": "Rechercher par nom, email, entreprise...",

@@ -30,11 +30,14 @@ export type ConversationSummary = {
   unread_count: number;
 };
 
+export type MessageAttachment = { path: string; name: string; type: string; url?: string };
+
 export type Message = {
   id: string;
   conversation_id: string;
   sender_id: string | null;
   body: string;
+  attachments?: MessageAttachment[];
   created_at: string | null;
   sender?: {
     first_name: string | null;
@@ -183,10 +186,24 @@ export function useMessages(conversationId: string | null) {
       const profileMap: Record<string, any> = {};
       (profiles || []).forEach(p => { profileMap[p.id] = p; });
 
-      return (data || []).map(m => ({
+      const mapped = (data || []).map(m => ({
         ...m,
         sender: m.sender_id ? profileMap[m.sender_id] : undefined,
       }));
+
+      // Resolve signed URLs for attachments (private bucket).
+      const paths = mapped.flatMap((m: any) => (m.attachments || []).map((a: any) => a.path)).filter(Boolean);
+      if (paths.length > 0) {
+        const { data: signed } = await supabase.storage.from("message-attachments").createSignedUrls(paths, 3600);
+        const urlByPath: Record<string, string> = {};
+        (signed || []).forEach((s: any) => { if (s.path && s.signedUrl) urlByPath[s.path] = s.signedUrl; });
+        mapped.forEach((m: any) => {
+          if (Array.isArray(m.attachments)) {
+            m.attachments = m.attachments.map((a: any) => ({ ...a, url: urlByPath[a.path] }));
+          }
+        });
+      }
+      return mapped;
     },
     refetchInterval: 10_000,
   });
@@ -213,13 +230,27 @@ export function useMessages(conversationId: string | null) {
     return () => { supabase.removeChannel(channel); };
   }, [conversationId, user?.id, queryClient]);
 
-  const sendMessage = async (body: string) => {
-    if (!conversationId || !user?.id || !body.trim()) return;
+  const uploadMessageAttachment = async (file: File): Promise<MessageAttachment | null> => {
+    if (!conversationId) return null;
+    const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+    const path = `${conversationId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("message-attachments")
+      .upload(path, file, { contentType: file.type });
+    if (error) { console.error("attachment upload failed:", error.message); return null; }
+    return { path, name: file.name, type: file.type };
+  };
+
+  const sendMessage = async (body: string, attachments: MessageAttachment[] = []) => {
+    const trimmed = body.trim();
+    if (!conversationId || !user?.id) return;
+    if (!trimmed && attachments.length === 0) return;
     const { error } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: user.id,
-      body: body.trim(),
-    });
+      body: trimmed,
+      attachments: attachments.map(({ path, name, type }) => ({ path, name, type })),
+    } as any);
     if (error) throw error;
 
     // Mark as read
@@ -243,7 +274,7 @@ export function useMessages(conversationId: string | null) {
     queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
   };
 
-  return { messages, sendMessage, markConversationRead, ...rest };
+  return { messages, sendMessage, uploadMessageAttachment, markConversationRead, ...rest };
 }
 
 export async function createConversation(

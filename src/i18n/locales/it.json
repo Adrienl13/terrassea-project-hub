@@ -3474,6 +3474,8 @@
     "noMessagesYet": "Nessun messaggio per ora",
     "yourMessagePlaceholder": "Il tuo messaggio...",
     "sendError": "Errore di invio",
+    "attach": "Allega un file (immagine / PDF)",
+    "attachError": "Impossibile caricare un allegato.",
     "newConversation": "Nuova conversazione",
     "recipient": "Destinatario",
     "recipientSearchPlaceholder": "Cerca per nome, email, azienda...",
