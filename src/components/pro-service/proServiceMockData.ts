@@ -99,6 +99,8 @@ export interface ProConnection {
   status: ConnectionStatus;
   connectedAt: string;
   message?: string;
+  /** Set once the partner has accepted/declined the proposed match (DB partner_responded_at). */
+  respondedAt?: string;
 }
 
 // ── Mock Projects ─────────────────────────────────────────────────────────────

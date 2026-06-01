@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  MapPin, FileText, CheckCircle2, Clock, BarChart3,
-  Users, ArrowRight, ThumbsUp, XCircle,
+  MapPin, FileText, CheckCircle2, Clock,
+  Users, ThumbsUp, XCircle, Send,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  STATUS_CONFIG, CONNECTION_STATUS_CONFIG,
-  type ProProject, type ProConnection,
+  STATUS_CONFIG,
+  type ProConnection,
 } from "./proServiceMockData";
 import { type ProServiceStore } from "./useProServiceStore";
 
@@ -17,6 +19,21 @@ export default function ProServiceAdminHub({ store }: { store: ProServiceStore }
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("all_requests");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // Brand partners eligible to be proposed on a request.
+  const { data: brandPartners = [] } = useQuery({
+    queryKey: ["pro-admin-brand-partners"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("partners")
+        .select("id, name")
+        .eq("partner_type", "brand")
+        .is("deleted_at", null)
+        .order("name");
+      return (data || []) as { id: string; name: string }[];
+    },
+  });
+  const partnerName = (id: string) => brandPartners.find(p => p.id === id)?.name || id;
 
   const pendingMatches = store.connections.filter(c => c.status === "pending");
 
@@ -126,6 +143,7 @@ export default function ProServiceAdminHub({ store }: { store: ProServiceStore }
                           <p className="text-[9px] font-body text-muted-foreground">{t("proHub.admin.connections")}</p>
                         </div>
                       </div>
+                      <ProposeRow partners={brandPartners} onPropose={(pid) => store.proposeMatch(project.id, pid)} />
                     </div>
                   );
                 })}
@@ -144,13 +162,12 @@ export default function ProServiceAdminHub({ store }: { store: ProServiceStore }
               ) : (
                 pendingMatches.map(conn => {
                   const project = store.projects.find(p => p.id === conn.projectId);
-                  const pro = store.professionals.find(p => p.id === conn.professionalId);
-                  if (!project || !pro) return null;
+                  if (!project) return null;
                   return (
                     <div key={conn.id} className="border border-amber-200 rounded-xl p-4 bg-amber-50/30">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="text-xs font-display font-semibold text-foreground mb-1">{pro.name} ({pro.company})</p>
+                          <p className="text-xs font-display font-semibold text-foreground mb-1">{partnerName(conn.professionalId)}</p>
                           <p className="text-[10px] font-body text-muted-foreground">
                             → {project.title}
                           </p>
@@ -235,6 +252,40 @@ function StatCard({ icon: Icon, value, label }: { icon: any; value: string; labe
         <p className="font-display font-bold text-lg text-foreground">{value}</p>
         <p className="text-[10px] font-body text-muted-foreground">{label}</p>
       </div>
+    </div>
+  );
+}
+
+function ProposeRow({ partners, onPropose }: { partners: { id: string; name: string }[]; onPropose: (partnerId: string) => void }) {
+  const { t } = useTranslation();
+  const [sel, setSel] = useState("");
+  const [sent, setSent] = useState(false);
+  if (sent) {
+    return (
+      <div className="mt-3 pt-3 border-t border-border">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-display font-semibold text-green-600">
+          <CheckCircle2 className="h-3.5 w-3.5" /> {t("proHub.admin.proposeSent", "Marque proposée")}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 pt-3 border-t border-border flex items-center gap-2 flex-wrap">
+      <select
+        value={sel}
+        onChange={e => setSel(e.target.value)}
+        className="text-[11px] font-body border border-border rounded-lg px-2 py-1.5 bg-background min-w-[160px]"
+      >
+        <option value="">{t("proHub.admin.proposeSelect", "Choisir une marque…")}</option>
+        {partners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+      </select>
+      <button
+        disabled={!sel}
+        onClick={() => { onPropose(sel); setSent(true); }}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-display font-semibold text-white bg-foreground rounded-full disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
+      >
+        <Send className="h-3.5 w-3.5" /> {t("proHub.admin.proposeBtn", "Proposer")}
+      </button>
     </div>
   );
 }

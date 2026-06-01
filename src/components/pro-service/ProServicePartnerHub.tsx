@@ -54,38 +54,27 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
   };
 
   const myConnections = myId ? getConnectionsForProfessional(store.connections, myId) : [];
-  const connectedProjectIds = new Set(myConnections.map(c => c.projectId));
-  const availableProjects = store.projects.filter(
-    p => !connectedProjectIds.has(p.id) && ["submitted", "in_review", "matched"].includes(p.status)
-  );
-
-  const pendingConnections = myConnections.filter(c => c.status === "pending");
+  // "Available" = matches an admin proposed to this partner, not yet responded to.
+  const availableConns = myConnections.filter(c => !c.respondedAt && c.status !== "declined" && c.status !== "completed");
+  const pendingConnections = myConnections.filter(c => !!c.respondedAt && c.status === "pending");
   const acceptedConnections = myConnections.filter(c => c.status === "accepted");
   const completedConnections = myConnections.filter(c => c.status === "completed");
 
   const isFounding = partner?.is_founding === true;
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
-    { id: "available", label: t("proHub.partner.tabAvailable"), count: availableProjects.length },
-    { id: "applications", label: t("proHub.partner.tabApplications"), count: pendingConnections.length + acceptedConnections.length },
+    { id: "available", label: t("proHub.partner.tabAvailable"), count: availableConns.length },
+    { id: "applications", label: t("proHub.partner.tabApplications"), count: pendingConnections.length },
     { id: "connected", label: t("proHub.partner.tabConnected"), count: acceptedConnections.length },
     { id: "completed", label: t("proHub.partner.tabCompleted"), count: completedConnections.length },
   ];
 
-  const interestShown = connectedProjectIds;
-
-  const handleExpressInterest = (projectId: string) => {
-    store.addConnection({
-      projectId,
-      professionalId: myId,
-      status: "pending",
-      connectedAt: new Date().toISOString().split("T")[0],
-      message: "Interest expressed via supplier marketplace.",
-    });
+  const handleExpressInterest = (matchId: string) => {
+    store.respondToMatch(matchId, true);
   };
 
-  const handleDecline = (projectId: string) => {
-    store.declineProject(projectId, myId);
+  const handleDecline = (matchId: string) => {
+    store.respondToMatch(matchId, false);
   };
 
   return (
@@ -106,7 +95,7 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon={Eye} value={availableProjects.length} label={t("proHub.partner.statAvailable")} accent />
+        <StatCard icon={Eye} value={availableConns.length} label={t("proHub.partner.statAvailable")} accent />
         <StatCard icon={Clock} value={pendingConnections.length} label={t("proHub.partner.statPending")} />
         <StatCard icon={CheckCircle2} value={acceptedConnections.length} label={t("proHub.partner.statConnected")} />
         <StatCard icon={FileText} value={completedConnections.length} label={t("proHub.partner.statCompleted")} />
@@ -144,7 +133,7 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
         >
           {tab === "available" && (
             <div className="space-y-4">
-              {availableProjects.length === 0 ? (
+              {availableConns.length === 0 ? (
                 <EmptyState
                   icon={Inbox}
                   title={t("proHub.partner.emptyAvailableTitle", "Vos premiers leads arrivent bientôt")}
@@ -152,16 +141,20 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
                   founderHint={isFounding ? t("proHub.partner.founderPriority", "Accès prioritaire founder activé — vous serez notifié en premier.") : undefined}
                 />
               ) : (
-                availableProjects.map(project => (
-                  <AvailableProjectCard
-                    key={project.id}
-                    project={project}
-                    matchScore={computeMatchScore(project, myPro)}
-                    expressed={interestShown.has(project.id)}
-                    onExpress={() => handleExpressInterest(project.id)}
-                    onDecline={() => handleDecline(project.id)}
-                  />
-                ))
+                availableConns.map(conn => {
+                  const project = store.projects.find(p => p.id === conn.projectId);
+                  if (!project) return null;
+                  return (
+                    <AvailableProjectCard
+                      key={conn.id}
+                      project={project}
+                      matchScore={computeMatchScore(project, myPro)}
+                      expressed={false}
+                      onExpress={() => handleExpressInterest(conn.id)}
+                      onDecline={() => handleDecline(conn.id)}
+                    />
+                  );
+                })
               )}
             </div>
           )}

@@ -24,6 +24,9 @@ export interface ProServiceStore {
   updateConnectionStatus: (connId: string, status: ConnectionStatus) => void;
   addArchitectRequest: (req: ArchitectRequest) => void;
   declineProject: (projectId: string, professionalId: string) => void;
+  // Persisted to pro_service_matches (DB)
+  respondToMatch: (matchId: string, interested: boolean) => Promise<void>;
+  proposeMatch: (requestId: string, partnerId: string) => Promise<void>;
 }
 
 // ── Helpers: map DB rows to ProService types ──────────────────────────────────
@@ -72,13 +75,35 @@ function mapMatchToConnection(row: any): ProConnection {
     status: mapConnectionStatus(row.status),
     connectedAt: row.created_at?.split("T")[0] || "",
     message: row.partner_response || undefined,
+    respondedAt: row.partner_responded_at || undefined,
   };
 }
 
+// Map the DB match status vocabulary (pro_service_matches.status CHECK) to the
+// UI ConnectionStatus used across the hubs.
 function mapConnectionStatus(status: string | null): ConnectionStatus {
-  const valid: ConnectionStatus[] = ["pending", "accepted", "declined", "completed"];
-  if (status && valid.includes(status as any)) return status as ConnectionStatus;
-  return "pending";
+  switch (status) {
+    case "partner_declined":
+    case "cancelled":
+      return "declined";
+    case "client_connected":
+      return "accepted";
+    case "completed":
+      return "completed";
+    // suggested / admin_approved / sent_to_partner / partner_interested
+    default:
+      return "pending";
+  }
+}
+
+// Map a UI action to a valid DB status (admin connect/cancel).
+function uiToDbStatus(s: ConnectionStatus): string {
+  switch (s) {
+    case "accepted": return "client_connected";
+    case "declined": return "cancelled";
+    case "completed": return "completed";
+    default: return "sent_to_partner";
+  }
 }
 
 // ── Main hook ─────────────────────────────────────────────────────────────────
@@ -159,10 +184,39 @@ export function useProServiceStore(): ProServiceStore {
     ]);
   }, []);
 
-  const updateConnectionStatus = useCallback((connId: string, status: ConnectionStatus) => {
-    setConnections(prev =>
-      prev.map(c => c.id === connId ? { ...c, status } : c)
-    );
+  // Admin approve/reject — persisted to pro_service_matches (DB vocabulary).
+  const updateConnectionStatus = useCallback(async (connId: string, status: ConnectionStatus) => {
+    setConnections(prev => prev.map(c => c.id === connId ? { ...c, status } : c));
+    const { error } = await supabase
+      .from("pro_service_matches")
+      .update({ status: uiToDbStatus(status) } as any)
+      .eq("id", connId);
+    if (error) console.error("updateConnectionStatus failed:", error.message);
+  }, []);
+
+  // Partner accepts/declines a proposed match — persisted (RLS: partner owns it).
+  const respondToMatch = useCallback(async (matchId: string, interested: boolean) => {
+    const dbStatus = interested ? "partner_interested" : "partner_declined";
+    const respondedAt = new Date().toISOString();
+    setConnections(prev => prev.map(c =>
+      c.id === matchId ? { ...c, status: mapConnectionStatus(dbStatus), respondedAt } : c
+    ));
+    const { error } = await supabase
+      .from("pro_service_matches")
+      .update({ status: dbStatus, partner_responded_at: respondedAt } as any)
+      .eq("id", matchId);
+    if (error) console.error("respondToMatch failed:", error.message);
+  }, []);
+
+  // Admin proposes a partner to a request — INSERT a 'suggested' match.
+  const proposeMatch = useCallback(async (requestId: string, partnerId: string) => {
+    const { data, error } = await supabase
+      .from("pro_service_matches")
+      .insert({ request_id: requestId, partner_id: partnerId, status: "suggested", score_total: 50 } as any)
+      .select("*")
+      .single();
+    if (error) { console.error("proposeMatch failed:", error.message); return; }
+    if (data) setConnections(prev => [mapMatchToConnection(data), ...prev]);
   }, []);
 
   const addArchitectRequest = useCallback((req: ArchitectRequest) => {
@@ -193,6 +247,8 @@ export function useProServiceStore(): ProServiceStore {
     updateConnectionStatus,
     addArchitectRequest,
     declineProject,
+    respondToMatch,
+    proposeMatch,
   };
 }
 
