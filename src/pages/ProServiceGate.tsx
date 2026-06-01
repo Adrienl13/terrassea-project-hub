@@ -14,24 +14,30 @@ import {
 const ProService = lazy(() => import("./ProService"));
 
 export default function ProServiceGate() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { t } = useTranslation();
 
-  // Check if current partner is a validated brand
+  // Resolve the logged-in partner by user_id (robust — contact_email match was
+  // fragile). Pro Service is open to Founding Partners (development policy) and
+  // to validated brands.
   const { data: partnerAccess, isLoading: partnerLoading } = useQuery({
-    queryKey: ["pro-service-access", profile?.email],
+    queryKey: ["pro-service-access", user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("partners")
-        .select("partner_type, profile_completed, profile_status")
-        .eq("contact_email", profile!.email)
+        .select("partner_type, profile_completed, profile_status, is_founding")
+        .eq("user_id", user!.id)
+        .is("deleted_at", null)
         .maybeSingle();
       if (!data) return { allowed: false };
-      const isBrand = data.partner_type === "brand";
-      const isValidated = data.profile_completed && data.profile_status === "approved";
-      return { allowed: isBrand && isValidated };
+      const isFounding = data.is_founding === true;
+      const isValidatedBrand =
+        data.partner_type === "brand" &&
+        data.profile_completed &&
+        data.profile_status === "approved";
+      return { allowed: isFounding || isValidatedBrand };
     },
-    enabled: !!profile?.email && profile?.user_type === "partner",
+    enabled: !!user?.id && profile?.user_type === "partner",
   });
 
   // Admins and validated brands get the real ProService page
