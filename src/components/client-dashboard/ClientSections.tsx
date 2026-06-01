@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useConversations, useMessages, createConversation } from "@/hooks/useConversations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFavourites } from "@/contexts/FavouritesContext";
@@ -486,6 +486,61 @@ function FavMiniCard({ product, onRemove }: { product: any; onRemove: () => void
 // ── CLIENT PROJECTS ─────────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
+function ProServiceProjectsBlock() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: requests = [] } = useQuery({
+    queryKey: ["client-pro-service-requests", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pro_service_requests")
+        .select("id, project_title, project_city, status, created_at")
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  if (requests.length === 0) return null;
+
+  return (
+    <div className="rounded-xl border border-terracotta/20 bg-terracotta/[0.03] p-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-display font-bold text-foreground flex items-center gap-1.5">
+          <Users className="h-3.5 w-3.5 text-terracotta" /> {t("cd.proService.title", "Mes projets Pro Service")}
+        </p>
+        <button
+          onClick={() => navigate("/pro-service")}
+          className="text-[11px] font-display font-semibold text-terracotta hover:underline inline-flex items-center gap-1"
+        >
+          {t("cd.proService.openHub", "Ouvrir le hub")} <ArrowRight className="h-3 w-3" />
+        </button>
+      </div>
+      <div className="space-y-2">
+        {requests.map((r: any) => (
+          <button
+            key={r.id}
+            onClick={() => navigate("/pro-service")}
+            className="w-full flex items-center justify-between gap-3 px-3 py-2.5 bg-background border border-border rounded-lg hover:border-terracotta/40 transition-colors text-left"
+          >
+            <div className="min-w-0">
+              <p className="text-xs font-display font-semibold text-foreground truncate">{r.project_title}</p>
+              <p className="text-[10px] font-body text-muted-foreground flex items-center gap-1 mt-0.5">
+                <span className="text-terracotta font-semibold">Pro Service</span>
+                {r.project_city ? (
+                  <><span>·</span><MapPin className="h-2.5 w-2.5" /> {r.project_city}</>
+                ) : null}
+              </p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ClientProjectsSection({ onNavigate }: { onNavigate: ClientSectionSetter }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -547,6 +602,9 @@ export function ClientProjectsSection({ onNavigate }: { onNavigate: ClientSectio
           className="w-full pl-9 pr-4 py-2.5 border border-border rounded-lg text-xs font-body focus:outline-none focus:border-foreground/40 transition-colors"
         />
       </div>
+
+      {/* Pro Service requests — surfaced alongside regular projects */}
+      <ProServiceProjectsBlock />
 
       {/* Project list */}
       {filtered.length === 0 ? (

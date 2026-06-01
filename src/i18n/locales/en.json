@@ -972,6 +972,7 @@
     "user": "User"
   },
   "cd": {
+    "proService": { "title": "My Pro Service projects", "openHub": "Open hub" },
     "welcome": "Welcome back, {{name}}!",
     "welcomeSubtitle": "Here's an overview of your projects and sourcing activity.",
     "seasonalTip": "Spring season is approaching — start planning your outdoor space now.",

@@ -972,6 +972,7 @@
     "user": "Utilisateur"
   },
   "cd": {
+    "proService": { "title": "Mes projets Pro Service", "openHub": "Ouvrir le hub" },
     "welcome": "Bonjour {{name}} !",
     "welcomeSubtitle": "Voici un aperçu de vos projets et de votre activité de sourcing.",
     "seasonalTip": "La saison printemps approche — c'est le moment idéal pour préparer votre terrasse.",
