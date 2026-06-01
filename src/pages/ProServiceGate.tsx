@@ -40,13 +40,15 @@ export default function ProServiceGate() {
     enabled: !!user?.id && profile?.user_type === "partner",
   });
 
-  // Admins and validated brands get the real ProService page
-  if (profile?.user_type === "admin" || partnerAccess?.allowed) {
+  // Clients, architects, admins and anonymous visitors all get the real page —
+  // ProService renders the correct hub (or the public landing) per role. ONLY a
+  // partner that is neither a founder nor a validated brand sees the teaser below.
+  if (profile?.user_type !== "partner" || partnerAccess?.allowed) {
     return <ProService />;
   }
 
-  // Loading state for partner check
-  if (profile?.user_type === "partner" && partnerLoading) {
+  // Partner eligibility still resolving
+  if (partnerLoading) {
     return (
       <>
         <Header />
