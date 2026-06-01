@@ -1361,34 +1361,48 @@ function ProRequestCard({ request, interested = [], onConnect, onOpenConversatio
             {t("proHub.client.interestedBrands", "Marques intéressées")}
           </p>
           {interested.map((b: any) => (
-            <div key={b.match_id} className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-2 min-w-0">
-                {b.partner_logo ? (
-                  <img loading="lazy" src={b.partner_logo} alt="" className="w-6 h-6 rounded-full object-cover" />
+            <div key={b.match_id} className="rounded-xl border border-border p-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <a
+                  href={b.partner_slug ? `/brands/${b.partner_slug}` : "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 min-w-0 group"
+                  title={t("proHub.client.viewBrand", "Voir la marque")}
+                >
+                  {b.partner_logo ? (
+                    <img loading="lazy" src={b.partner_logo} alt="" className="w-7 h-7 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[10px] font-display font-bold text-muted-foreground">
+                      {(b.partner_name || "?").charAt(0)}
+                    </div>
+                  )}
+                  <span className="text-xs font-display font-semibold text-foreground truncate group-hover:text-terracotta transition-colors">{b.partner_name}</span>
+                  <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                  {b.score_total ? (
+                    <span className="text-[9px] font-body text-muted-foreground shrink-0">{b.score_total}% {t("proHub.common.match")}</span>
+                  ) : null}
+                </a>
+                {b.match_status === "client_connected" ? (
+                  <button
+                    onClick={() => onOpenConversation(b.conversation_id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-display font-semibold text-foreground border border-border rounded-full hover:border-foreground transition-colors"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" /> {t("proHub.client.openConversation", "Ouvrir la conversation")}
+                  </button>
                 ) : (
-                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[9px] font-display font-bold text-muted-foreground">
-                    {(b.partner_name || "?").charAt(0)}
-                  </div>
+                  <button
+                    onClick={() => onConnect(b.match_id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-display font-semibold text-white bg-terracotta rounded-full hover:opacity-90 transition-opacity"
+                  >
+                    <Send className="h-3.5 w-3.5" /> {t("proHub.client.connectAction", "Mettre en relation")}
+                  </button>
                 )}
-                <span className="text-xs font-display font-semibold text-foreground truncate">{b.partner_name}</span>
-                {b.score_total ? (
-                  <span className="text-[9px] font-body text-muted-foreground">{b.score_total}% {t("proHub.common.match")}</span>
-                ) : null}
               </div>
-              {b.match_status === "client_connected" ? (
-                <button
-                  onClick={() => onOpenConversation(b.conversation_id)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-display font-semibold text-foreground border border-border rounded-full hover:border-foreground transition-colors"
-                >
-                  <MessageSquare className="h-3.5 w-3.5" /> {t("proHub.client.openConversation", "Ouvrir la conversation")}
-                </button>
-              ) : (
-                <button
-                  onClick={() => onConnect(b.match_id)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-display font-semibold text-white bg-terracotta rounded-full hover:opacity-90 transition-opacity"
-                >
-                  <Send className="h-3.5 w-3.5" /> {t("proHub.client.connectAction", "Mettre en relation")}
-                </button>
+              {b.partner_response && (
+                <p className="mt-2 text-[11px] font-body text-muted-foreground italic border-l-2 border-terracotta/30 pl-2">
+                  "{b.partner_response}"
+                </p>
               )}
             </div>
           ))}

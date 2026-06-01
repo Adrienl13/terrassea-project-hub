@@ -25,7 +25,7 @@ export interface ProServiceStore {
   addArchitectRequest: (req: ArchitectRequest) => void;
   declineProject: (projectId: string, professionalId: string) => void;
   // Persisted to pro_service_matches (DB)
-  respondToMatch: (matchId: string, interested: boolean) => Promise<void>;
+  respondToMatch: (matchId: string, interested: boolean, message?: string) => Promise<void>;
   connectMatch: (matchId: string) => Promise<string | null>;
   proposeMatch: (requestId: string, partnerId: string) => Promise<void>;
 }
@@ -250,16 +250,17 @@ export function useProServiceStore(): ProServiceStore {
 
   // Partner accepts/declines a proposed match — via RPC (atomic transition +
   // client notification, cross-user). RLS alone can't notify the client.
-  const respondToMatch = useCallback(async (matchId: string, interested: boolean) => {
+  const respondToMatch = useCallback(async (matchId: string, interested: boolean, message?: string) => {
     const respondedAt = new Date().toISOString();
     setConnections(prev => prev.map(c =>
       c.id === matchId
-        ? { ...c, status: mapConnectionStatus(interested ? "partner_interested" : "partner_declined"), respondedAt }
+        ? { ...c, status: mapConnectionStatus(interested ? "partner_interested" : "partner_declined"), respondedAt, message: message || c.message }
         : c
     ));
     const { error } = await supabase.rpc("respond_to_pro_service_match", {
       p_match_id: matchId,
       p_interested: interested,
+      p_message: message || null,
     });
     if (error) console.error("respondToMatch failed:", error.message);
   }, []);

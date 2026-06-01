@@ -69,8 +69,8 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
     { id: "completed", label: t("proHub.partner.tabCompleted"), count: completedConnections.length },
   ];
 
-  const handleExpressInterest = (matchId: string) => {
-    store.respondToMatch(matchId, true);
+  const handleExpressInterest = (matchId: string, message?: string) => {
+    store.respondToMatch(matchId, true, message);
   };
 
   const handleDecline = (matchId: string) => {
@@ -150,7 +150,7 @@ export default function ProServicePartnerHub({ store }: { store: ProServiceStore
                       project={project}
                       matchScore={computeMatchScore(project, myPro)}
                       expressed={false}
-                      onExpress={() => handleExpressInterest(conn.id)}
+                      onExpress={(msg) => handleExpressInterest(conn.id, msg)}
                       onDecline={() => handleDecline(conn.id)}
                     />
                   );
@@ -285,9 +285,10 @@ function AvailableProjectCard({
   project, matchScore, expressed, onExpress, onDecline,
 }: {
   project: ProProject; matchScore: number;
-  expressed: boolean; onExpress: () => void; onDecline: () => void;
+  expressed: boolean; onExpress: (message?: string) => void; onDecline: () => void;
 }) {
   const { t } = useTranslation();
+  const [message, setMessage] = useState("");
   return (
     <div className="border border-border rounded-2xl p-5 hover:border-foreground/20 hover:shadow-sm transition-all">
       <div className="flex items-start justify-between gap-4">
@@ -326,15 +327,24 @@ function AvailableProjectCard({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border">
-        {expressed ? (
+      {expressed ? (
+        <div className="mt-4 pt-3 border-t border-border">
           <span className="text-xs font-display font-semibold text-green-600 flex items-center gap-1.5">
             <CheckCircle2 className="h-4 w-4" /> {t("proHub.partner.interestSent")}
           </span>
-        ) : (
-          <>
+        </div>
+      ) : (
+        <div className="mt-4 pt-3 border-t border-border space-y-2">
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={2}
+            placeholder={t("proHub.partner.messagePlaceholder", "Votre message à l'établissement (optionnel) — pourquoi vous êtes le bon choix…")}
+            className="w-full text-xs font-body border border-border rounded-lg px-3 py-2 bg-background resize-none focus:outline-none focus:border-foreground/30"
+          />
+          <div className="flex items-center gap-2">
             <button
-              onClick={onExpress}
+              onClick={() => onExpress(message)}
               className="flex items-center gap-1.5 px-4 py-2 text-xs font-display font-semibold bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
             >
               <ThumbsUp className="h-3.5 w-3.5" /> {t("proHub.partner.expressInterest")}
@@ -345,9 +355,9 @@ function AvailableProjectCard({
             >
               <ThumbsDown className="h-3.5 w-3.5" /> {t("proHub.partner.decline")}
             </button>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
