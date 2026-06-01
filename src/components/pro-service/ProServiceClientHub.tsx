@@ -1505,6 +1505,7 @@ function NewProRequestForm({
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
+  const [consent, setConsent] = useState(false); // RGPD — share with relevant brands
 
   const [form, setForm] = useState({
     // Section 1: Establishment
@@ -1628,6 +1629,11 @@ function NewProRequestForm({
 
   const handleSubmit = async () => {
     if (!validateStep(3)) return;
+
+    if (!consent) {
+      toast.error(t("proHub.client.consentRequired", "Veuillez accepter le partage de votre demande pour continuer."));
+      return;
+    }
 
     // Qualification check
     if (!isQualified) {
@@ -2159,6 +2165,24 @@ function NewProRequestForm({
             </motion.div>
           </AnimatePresence>
 
+          {/* RGPD consent — required on the last step before submitting */}
+          {step === TOTAL_STEPS - 1 && (
+            <label className="flex items-start gap-2.5 mt-6 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[#D4603A]"
+              />
+              <span className="text-[11px] font-body text-muted-foreground leading-relaxed">
+                {t("proHub.client.consentLabel", "J'accepte que Terrassea partage ma demande avec les marques pertinentes pour me mettre en relation, conformément à la")}{" "}
+                <a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="text-[#D4603A] underline">
+                  {t("proHub.client.privacyPolicy", "politique de confidentialité")}
+                </a>.
+              </span>
+            </label>
+          )}
+
           {/* Navigation buttons */}
           <div className="flex items-center justify-between mt-8 pt-5 border-t border-border">
             {step > 0 ? (
@@ -2185,7 +2209,7 @@ function NewProRequestForm({
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={submitting}
+                disabled={submitting || !consent}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 text-sm font-display font-semibold text-white rounded-full hover:opacity-90 transition-opacity disabled:opacity-40"
                 style={{ background: "linear-gradient(135deg, #D4603A, #c4502a)" }}
               >

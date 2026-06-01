@@ -126,23 +126,11 @@ export default function ProServiceLanding() {
       return;
     }
     if (!qualified) { setPhase("not_qualified"); return; }
-    setSubmitting(true);
-    try {
-      await supabase.from("pro_service_requests").insert({
-        project_title: `Pro Service — ${form.company || form.name}`,
-        project_type: form.establishmentType || "other",
-        client_name: form.name, client_company: form.company,
-        client_email: form.email, client_phone: form.phone,
-        project_city: form.location, budget_range: form.budget, timeline: form.timeline,
-        description: `${form.notes}\n\nType: ${form.establishmentType}\nCovers: ${form.covers}\nSpaces: ${form.spaces}\nStyle: ${form.style}\nConstraints: ${form.constraints}`,
-        status: "open",
-      });
-      setPhase("submitted");
-    } catch {
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
+    // Account required to publish (no anonymous submissions — RGPD + lead
+    // quality). Send the visitor to sign up; they submit from the client hub
+    // where client_user_id is set and consent is collected.
+    toast.info(t("proService.signUpToPublish", "Créez un compte pour publier votre projet et suivre les réponses des marques."));
+    navigate(`/auth?role=client&next=${encodeURIComponent("/pro-service")}`);
   };
 
   const inputClass = "w-full text-base font-body bg-white border border-border rounded-full px-4 py-3 focus:outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50";
