@@ -217,6 +217,7 @@ export default function AdminBrandManagement() {
   const [createName, setCreateName] = useState("");
   const [createPlan, setCreatePlan] = useState<"brand_member" | "brand_network">("brand_member");
   const [createEmail, setCreateEmail] = useState("");
+  const [createFounding, setCreateFounding] = useState(true);
   const [creating, setCreating] = useState(false);
 
   // Read launch-mode flag so we can surface the auto-founding behavior of the
@@ -253,6 +254,8 @@ export default function AdminBrandManagement() {
         is_active: true,
         is_public: true,
         profile_status: "draft",
+        is_founding: createFounding,
+        founding_tier: createFounding ? "founder" : null,
       } as any)
       .select("id")
       .single();
@@ -267,6 +270,7 @@ export default function AdminBrandManagement() {
     setCreateName("");
     setCreateEmail("");
     setCreatePlan("brand_member");
+    setCreateFounding(true);
     navigate(`/admin/brands/${data.id}/edit`);
   };
 
@@ -645,6 +649,33 @@ export default function AdminBrandManagement() {
                   <div className="text-[10px] text-muted-foreground mt-0.5">€1 299 / mois · réseau distrib.</div>
                 </button>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-body font-semibold mb-1.5 text-foreground">
+                {t("adminBrands.createBrandStatus", "Statut")}
+              </label>
+              <button
+                type="button"
+                onClick={() => setCreateFounding(v => !v)}
+                aria-pressed={createFounding}
+                className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border text-xs font-body transition-all text-left ${
+                  createFounding
+                    ? "border-terracotta/50 bg-terracotta/[0.06]"
+                    : "border-border bg-white hover:border-terracotta/30"
+                }`}
+              >
+                <span className="flex items-center gap-2 min-w-0">
+                  <Crown className={`h-4 w-4 shrink-0 ${createFounding ? "text-terracotta" : "text-muted-foreground"}`} />
+                  <span className="min-w-0">
+                    <span className="font-semibold block text-foreground">{t("adminBrands.foundingPartner", "Founding Partner")}</span>
+                    <span className="text-[10px] text-muted-foreground">{t("adminBrands.foundingPartnerDesc", "Accès prioritaire + badge fondateur")}</span>
+                  </span>
+                </span>
+                <span className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors shrink-0 ${createFounding ? "bg-terracotta justify-end" : "bg-muted justify-start"}`}>
+                  <span className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                </span>
+              </button>
             </div>
 
             <div>
