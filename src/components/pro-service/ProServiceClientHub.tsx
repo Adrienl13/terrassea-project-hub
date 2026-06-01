@@ -27,6 +27,7 @@ type Tab = "requests" | "find_architect" | "find_pro" | "completed";
 type View =
   | { type: "list" }
   | { type: "new-request" }
+  | { type: "edit-pro-request"; request: any }
   | { type: "request-architect" }
   | { type: "architect-request-detail"; requestId: string }
   | { type: "pro-detail"; proId: string }
@@ -208,6 +209,21 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
     );
   }
 
+  if (view.type === "edit-pro-request") {
+    return (
+      <NewProRequestForm
+        editRequest={view.request}
+        onCancel={() => setView({ type: "list" })}
+        onSubmitted={() => {
+          queryClient.invalidateQueries({ queryKey: ["my-pro-requests"] });
+          queryClient.invalidateQueries({ queryKey: ["pro-service-client-feed"] });
+          setView({ type: "list" });
+          setTab("requests");
+        }}
+      />
+    );
+  }
+
   // ── List view ──
 
   return (
@@ -302,6 +318,7 @@ export default function ProServiceClientHub({ store }: { store: ProServiceStore 
                       interested={interestedByRequest.get(req.id) || []}
                       onConnect={handleConnectBrand}
                       onOpenConversation={() => navigate("/messages")}
+                      onEdit={() => setView({ type: "edit-pro-request", request: req })}
                     />
                   ))}
                 </div>
@@ -1314,11 +1331,12 @@ const PRO_REQUEST_STATUS_MAP: Record<string, { label: string; style: string }> =
   completed: { label: "Termin\u00e9", style: "bg-muted text-muted-foreground" },
 };
 
-function ProRequestCard({ request, interested = [], onConnect, onOpenConversation }: {
+function ProRequestCard({ request, interested = [], onConnect, onOpenConversation, onEdit }: {
   request: any;
   interested?: any[];
   onConnect: (matchId: string) => void;
   onOpenConversation: (convId: string) => void;
+  onEdit: () => void;
 }) {
   const { t } = useTranslation();
   const sc = PRO_REQUEST_STATUS_MAP[request.status] || PRO_REQUEST_STATUS_MAP.pending;
@@ -1352,6 +1370,12 @@ function ProRequestCard({ request, interested = [], onConnect, onOpenConversatio
             </div>
           )}
         </div>
+        <button
+          onClick={onEdit}
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-display font-semibold text-muted-foreground border border-border rounded-full hover:text-foreground hover:border-foreground/40 transition-colors"
+        >
+          <PenTool className="h-3 w-3" /> {t("proHub.client.viewEdit", "Voir / Modifier")}
+        </button>
       </div>
 
       {/* Interested brands — close the loop : connect with a responding brand */}
@@ -1493,9 +1517,11 @@ function parseBudgetRange(val: string): number | null {
 function NewProRequestForm({
   onCancel,
   onSubmitted,
+  editRequest,
 }: {
   onCancel: () => void;
   onSubmitted: () => void;
+  editRequest?: any;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -1505,36 +1531,36 @@ function NewProRequestForm({
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
-  const [consent, setConsent] = useState(false); // RGPD — share with relevant brands
+  const [consent, setConsent] = useState(!!editRequest); // RGPD — already consented when editing
 
   const [form, setForm] = useState({
     // Section 1: Establishment
-    establishmentType: "",
-    establishmentName: "",
-    location: "",
-    covers: "",
-    surfaceArea: "",
-    projectNature: "new",
+    establishmentType: editRequest?.project_type || "",
+    establishmentName: editRequest?.establishment_name || "",
+    location: editRequest?.project_city || "",
+    covers: editRequest?.quantity_estimate != null ? String(editRequest.quantity_estimate) : "",
+    surfaceArea: editRequest?.surface_area != null ? String(editRequest.surface_area) : "",
+    projectNature: editRequest?.project_nature || "new",
     // Section 2: Need
-    categories: [] as string[],
-    style: "",
-    colors: "",
-    materials: [] as string[],
-    constraints: "",
+    categories: (editRequest?.categories_needed as string[]) || [],
+    style: editRequest?.style_preferences?.[0] || "",
+    colors: editRequest?.colors_preferred || "",
+    materials: (editRequest?.materials_preferred as string[]) || [],
+    constraints: editRequest?.constraints_text || "",
     // Section 3: Budget & Planning
-    budget: "",
-    timeline: "",
-    desiredDate: "",
+    budget: editRequest?.budget_range || "",
+    timeline: editRequest?.timeline || "",
+    desiredDate: editRequest?.desired_date || "",
     // Section 4: Accompaniment + Contact
-    accompanimentType: "",
-    notes: "",
-    referralSource: "",
-    fullName: profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "",
-    email: profile?.email || "",
-    phone: "",
-    company: "",
-    siren: "",
-    clientFunction: "",
+    accompanimentType: editRequest?.accompaniment_type || "",
+    notes: editRequest?.description || "",
+    referralSource: editRequest?.referral_source || "",
+    fullName: editRequest?.client_name || (profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : ""),
+    email: editRequest?.client_email || profile?.email || "",
+    phone: editRequest?.client_phone || "",
+    company: editRequest?.client_company || "",
+    siren: editRequest?.siren || "",
+    clientFunction: editRequest?.client_function || "",
   });
 
   const handle = (field: string) =>
@@ -1643,7 +1669,7 @@ function NewProRequestForm({
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("pro_service_requests").insert({
+      const payload = {
         client_name: form.fullName,
         client_email: form.email,
         client_phone: form.phone,
@@ -1659,7 +1685,6 @@ function NewProRequestForm({
         timeline: form.timeline,
         description: form.notes,
         special_requirements: form.constraints,
-        status: "pending",
         establishment_name: form.establishmentName,
         surface_area: form.surfaceArea ? parseFloat(form.surfaceArea) : null,
         project_nature: form.projectNature,
@@ -1671,25 +1696,39 @@ function NewProRequestForm({
         referral_source: form.referralSource,
         client_function: form.clientFunction,
         siren: form.siren,
-        client_user_id: authUser?.id || null,
-      } as any);
+      };
+
+      let error;
+      if (editRequest?.id) {
+        // Edit : update in place (status + ownership untouched).
+        ({ error } = await supabase.from("pro_service_requests").update(payload as any).eq("id", editRequest.id));
+      } else {
+        ({ error } = await supabase.from("pro_service_requests").insert({
+          ...payload,
+          status: "pending",
+          client_user_id: authUser?.id || null,
+        } as any));
+      }
 
       if (error) throw error;
 
-      const { data: admins } = await supabase
-        .from("user_profiles")
-        .select("id")
-        .eq("user_type", "admin");
+      // Notify admins only on a NEW request.
+      if (!editRequest) {
+        const { data: admins } = await supabase
+          .from("user_profiles")
+          .select("id")
+          .eq("user_type", "admin");
 
-      if (admins && admins.length > 0) {
-        const notifications = admins.map(admin => ({
-          user_id: admin.id,
-          type: "pro_service",
-          title: "Nouvelle demande Pro Service",
-          body: `${form.fullName} (${form.company}) a soumis une demande Pro Service pour ${form.establishmentName}.`,
-          link: "/admin",
-        }));
-        await supabase.from("notifications").insert(notifications);
+        if (admins && admins.length > 0) {
+          const notifications = admins.map(admin => ({
+            user_id: admin.id,
+            type: "pro_service",
+            title: "Nouvelle demande Pro Service",
+            body: `${form.fullName} (${form.company}) a soumis une demande Pro Service pour ${form.establishmentName}.`,
+            link: "/admin",
+          }));
+          await supabase.from("notifications").insert(notifications);
+        }
       }
 
       // Confirmation email is now sent server-side by
