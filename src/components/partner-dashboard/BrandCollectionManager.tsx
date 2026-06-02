@@ -96,8 +96,7 @@ export default function BrandCollectionManager({
         .from("product_offers")
         .select("id, collection_name, product_id, product:product_id(id, name, image_url, category)")
         .eq("partner_id", partnerId)
-        .eq("is_active", true)
-        .is("source_offer_id", null);
+        .eq("is_active", true);
       if (error) throw error;
       return (data ?? []) as CollectionProduct[];
     },

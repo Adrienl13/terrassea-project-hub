@@ -324,26 +324,27 @@ function ReferenceForm({
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [productSearch, setProductSearch] = useState("");
 
-  // Partner's products for selector
+  // Partner's catalogue for the selector. Read straight from `products`
+  // (partner_id) — the same source the display resolves from and the
+  // collection picker uses. (The previous product_offers query filtered on a
+  // `source_offer_id` column that doesn't exist, so it always errored → empty.)
   const { data: partnerProducts = [] } = useQuery({
     queryKey: ["brand-ref-partner-products", partnerId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("product_offers")
-        .select("product:product_id(id, name, image_url)")
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, image_url")
         .eq("partner_id", partnerId)
-        .eq("is_active", true)
-        .is("source_offer_id", null);
-      const products = (data ?? []).map((d: any) => d.product).filter(Boolean) as LinkedProduct[];
-      // Dedupe by id
-      const seen = new Set<string>();
-      return products.filter((p) => { if (seen.has(p.id)) return false; seen.add(p.id); return true; });
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as LinkedProduct[];
     },
   });
 
-  const filteredProducts = partnerProducts.filter(
-    (p) => !productIds.includes(p.id) && p.name.toLowerCase().includes(productSearch.toLowerCase()),
-  );
+  const available = partnerProducts.filter((p) => !productIds.includes(p.id));
+  const filteredProducts = productSearch
+    ? available.filter((p) => p.name.toLowerCase().includes(productSearch.toLowerCase()))
+    : available;
 
   const selectedProducts = partnerProducts.filter((p) => productIds.includes(p.id));
 
@@ -470,37 +471,51 @@ function ReferenceForm({
               ))}
             </div>
           )}
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input
-              value={productSearch}
-              onChange={(e) => setProductSearch(e.target.value)}
-              className="w-full text-xs font-body border border-purple-200 rounded-full pl-9 pr-3 py-2 focus:outline-none focus:border-purple-500"
-              placeholder="Rechercher un produit de votre catalogue..."
-            />
-          </div>
-          {productSearch && filteredProducts.length > 0 && (
-            <div className="mt-2 border border-purple-100 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-              {filteredProducts.slice(0, 8).map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => { setProductIds((prev) => [...prev, p.id]); setProductSearch(""); }}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-purple-50 transition-colors"
-                >
-                  {p.image_url ? (
-                    <img loading="lazy" src={p.image_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
-                  ) : (
-                    <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center"><Package className="h-3.5 w-3.5 text-purple-400" /></div>
-                  )}
-                  <span className="text-xs font-display font-semibold text-foreground truncate">{p.name}</span>
-                </button>
-              ))}
+          {partnerProducts.length === 0 ? (
+            <div className="border border-dashed border-purple-200 rounded-xl px-4 py-5 text-center">
+              <Package className="h-6 w-6 text-purple-300 mx-auto mb-2" />
+              <p className="text-xs font-display font-semibold text-foreground">Aucun produit dans votre catalogue</p>
+              <p className="text-[10px] font-body text-muted-foreground mt-1">
+                Ajoutez d'abord des produits à votre catalogue pour pouvoir les relier à ce projet.
+              </p>
             </div>
-          )}
-          {productSearch && filteredProducts.length === 0 && (
-            <p className="text-[10px] font-body text-muted-foreground mt-2">Aucun produit trouvé</p>
+          ) : (
+            <>
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <input
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="w-full text-xs font-body border border-purple-200 rounded-full pl-9 pr-3 py-2 focus:outline-none focus:border-purple-500"
+                  placeholder="Rechercher un produit de votre catalogue..."
+                />
+              </div>
+              {filteredProducts.length > 0 ? (
+                <div className="mt-2 border border-purple-100 rounded-xl overflow-hidden max-h-56 overflow-y-auto">
+                  {filteredProducts.slice(0, 12).map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => { setProductIds((prev) => [...prev, p.id]); setProductSearch(""); }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-purple-50 transition-colors"
+                    >
+                      {p.image_url ? (
+                        <img loading="lazy" src={p.image_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
+                      ) : (
+                        <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center"><Package className="h-3.5 w-3.5 text-purple-400" /></div>
+                      )}
+                      <span className="text-xs font-display font-semibold text-foreground truncate">{p.name}</span>
+                      <Plus className="h-3.5 w-3.5 text-purple-400 ml-auto flex-shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] font-body text-muted-foreground mt-2">
+                  {productSearch ? "Aucun produit trouvé" : "Tous vos produits sont déjà liés à ce projet."}
+                </p>
+              )}
+            </>
           )}
         </div>
 
