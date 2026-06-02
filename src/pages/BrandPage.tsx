@@ -399,9 +399,21 @@ export default function BrandPage() {
             {/* Story + identity */}
             <div>
               {brand.description && (
-                <p className="text-base sm:text-lg font-body text-foreground/75 leading-relaxed first-letter:text-5xl first-letter:font-display first-letter:font-bold first-letter:text-[#D4603A] first-letter:float-left first-letter:leading-[0.85] first-letter:mr-2.5 first-letter:mt-1">
-                  {brand.description}
-                </p>
+                <div className="space-y-4">
+                  {brand.description.split(/\n{2,}|\n/).map((para) => para.trim()).filter(Boolean).map((para, i) => (
+                    <p
+                      key={i}
+                      className={
+                        "text-base sm:text-lg font-body text-foreground/75 leading-relaxed" +
+                        (i === 0
+                          ? " first-letter:text-5xl first-letter:font-display first-letter:font-bold first-letter:text-[#D4603A] first-letter:float-left first-letter:leading-[0.85] first-letter:mr-2.5 first-letter:mt-1"
+                          : "")
+                      }
+                    >
+                      {para}
+                    </p>
+                  ))}
+                </div>
               )}
 
               {/* Identity card */}
@@ -812,9 +824,11 @@ function CollectionDetailModal({
       {/* ── Story ── */}
       {coll.description ? (
         <section className="py-14 sm:py-20 px-6">
-          <p className="max-w-2xl mx-auto text-center text-base sm:text-lg font-body text-foreground/80 leading-relaxed">
-            {coll.description}
-          </p>
+          <div className="max-w-2xl mx-auto text-center space-y-4">
+            {coll.description.split(/\n{2,}|\n/).map((p: string) => p.trim()).filter(Boolean).map((para: string, i: number) => (
+              <p key={i} className="text-base sm:text-lg font-body text-foreground/80 leading-relaxed">{para}</p>
+            ))}
+          </div>
         </section>
       ) : (
         <div className="pt-14" />
