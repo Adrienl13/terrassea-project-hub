@@ -360,10 +360,12 @@ function ReferenceForm({
       const ext = file.name.split(".").pop() || "jpg";
       const path = `brand-references/${partnerId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
       const { error } = await supabase.storage.from("partner-assets").upload(path, file, { contentType: file.type });
-      if (!error) {
-        const { data: urlData } = supabase.storage.from("partner-assets").getPublicUrl(path);
-        newUrls.push(urlData.publicUrl);
+      if (error) {
+        toast.error(`Échec de l'upload : ${error.message}`);
+        continue;
       }
+      const { data: urlData } = supabase.storage.from("partner-assets").getPublicUrl(path);
+      newUrls.push(urlData.publicUrl);
     }
     setPhotos((prev) => [...prev, ...newUrls]);
     setUploadingPhotos(false);
