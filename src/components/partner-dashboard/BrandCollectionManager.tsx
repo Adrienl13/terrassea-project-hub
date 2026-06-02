@@ -64,10 +64,13 @@ export default function BrandCollectionManager({
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingCollection, setEditingCollection] = useState<BrandCollection | null>(null);
 
+  const [showLinkPicker, setShowLinkPicker] = useState(false);
+
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["brand-collections", partnerId] });
     queryClient.invalidateQueries({ queryKey: ["brand-collection-offers", partnerId] });
     queryClient.invalidateQueries({ queryKey: ["brand-pending-submissions", partnerId] });
+    queryClient.invalidateQueries({ queryKey: ["brand-products-linkable", partnerId] });
   };
 
   // ── Queries ───────────────────────────────────────────────────────────────
@@ -112,6 +115,34 @@ export default function BrandCollectionManager({
       return (data ?? []) as PendingSubmission[];
     },
   });
+
+  // Real product↔collection relation (products.collection_id) — lets the brand
+  // attach EXISTING catalogue products to a collection without duplicating them.
+  const { data: brandProducts = [] } = useQuery({
+    queryKey: ["brand-products-linkable", partnerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, image_url, category, collection_id, publish_status")
+        .eq("partner_id", partnerId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      // `collection_id` is a fresh column not yet in the generated Supabase types.
+      return (data ?? []) as unknown as Array<{
+        id: string; name: string; image_url: string | null;
+        category: string | null; collection_id: string | null; publish_status: string | null;
+      }>;
+    },
+  });
+
+  const setProductCollection = async (productId: string, collectionId: string | null) => {
+    const { error } = await supabase
+      .from("products")
+      .update({ collection_id: collectionId } as any)
+      .eq("id", productId);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    invalidate();
+  };
 
   const getProductCount = (collName: string) =>
     allOffers.filter((o) => o.collection_name === collName).length;
@@ -190,6 +221,7 @@ export default function BrandCollectionManager({
   if (view === "detail" && selectedCollection) {
     const products = allOffers.filter((o) => o.collection_name === selectedCollection.name);
     const pending = pendingSubmissions.filter((s) => s.product_data?.collection === selectedCollection.name);
+    const linkedProducts = brandProducts.filter((p) => p.collection_id === selectedCollection.id);
 
     return (
       <div>
@@ -249,13 +281,73 @@ export default function BrandCollectionManager({
           </div>
         </div>
 
-        {/* Add product CTA */}
-        <button
-          onClick={() => setShowAddProduct(true)}
-          className="w-full mb-6 flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-purple-300 rounded-xl text-sm font-display font-semibold text-purple-600 hover:border-purple-500 hover:bg-purple-50/50 transition-all"
-        >
-          <Plus className="h-4 w-4" /> Ajouter un produit à cette collection
-        </button>
+        {/* Actions : lier existant (relation, zéro doublon) ou créer nouveau */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <button
+            onClick={() => setShowLinkPicker(true)}
+            className="flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-display font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)" }}
+          >
+            <FolderOpen className="h-4 w-4" /> Lier des produits existants
+          </button>
+          <button
+            onClick={() => setShowAddProduct(true)}
+            className="flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-purple-300 rounded-xl text-sm font-display font-semibold text-purple-600 hover:border-purple-500 hover:bg-purple-50/50 transition-all"
+          >
+            <Plus className="h-4 w-4" /> Créer un nouveau produit
+          </button>
+        </div>
+
+        {/* Linked products (relation products.collection_id) */}
+        {linkedProducts.length > 0 && (
+          <div className="mb-8">
+            <p className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              Produits liés ({linkedProducts.length})
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {linkedProducts.map((p) => (
+                <div key={p.id} className="border border-purple-100 rounded-2xl overflow-hidden group hover:shadow-lg hover:shadow-purple-100/50 transition-all bg-white">
+                  <div className="aspect-square bg-gradient-to-br from-purple-50 to-violet-50 relative overflow-hidden">
+                    {p.image_url ? (
+                      <img loading="lazy" src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-purple-200" />
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setProductCollection(p.id, null)}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 hover:bg-red-50 text-muted-foreground hover:text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                      title="Détacher de la collection"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    {p.publish_status !== "published" && (
+                      <span className="absolute top-2 left-2 text-[8px] font-display font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                        Brouillon
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3.5">
+                    <p className="text-xs font-display font-semibold text-foreground truncate">{p.name || "Produit"}</p>
+                    <p className="text-[10px] font-body text-muted-foreground">{p.category || ""}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Product link picker */}
+        {showLinkPicker && (
+          <ProductLinkPicker
+            products={brandProducts}
+            collectionId={selectedCollection.id}
+            collectionName={selectedCollection.name}
+            onToggle={setProductCollection}
+            onClose={() => setShowLinkPicker(false)}
+          />
+        )}
 
         {/* Approved products grid */}
         {products.length > 0 && (
@@ -476,11 +568,18 @@ function CollectionForm({
   const { user } = useAuth();
   const [name, setName] = useState(existing?.name ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
+  const [designer, setDesigner] = useState((existing as any)?.designer ?? "");
+  const [year, setYear] = useState<string>((existing as any)?.year ? String((existing as any).year) : "");
   const [coverUrl, setCoverUrl] = useState(existing?.cover_image_url ?? "");
   const [coverPreview, setCoverPreview] = useState(existing?.cover_image_url ?? "");
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [galleryUrls, setGalleryUrls] = useState<string[]>((existing as any)?.gallery_urls ?? []);
+  const [environmentUrls, setEnvironmentUrls] = useState<string[]>((existing as any)?.environment_urls ?? []);
+  const [uploadingKind, setUploadingKind] = useState<"product" | "environment" | null>(null);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const environmentRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -489,6 +588,43 @@ function CollectionForm({
     const reader = new FileReader();
     reader.onload = () => setCoverPreview(reader.result as string);
     reader.readAsDataURL(file);
+  };
+
+  // Multi-file upload for the product / environment galleries.
+  const handleGalleryChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    kind: "product" | "environment",
+  ) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (!files.length || !user) return;
+    setUploadingKind(kind);
+    try {
+      const uploaded: string[] = [];
+      for (const file of files) {
+        const vErr = validateImageUpload(file, { maxSizeMB: 5 });
+        if (vErr) { toast.error(`${file.name} : ${vErr}`); continue; }
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `collections/${partnerId}/${kind}/${Date.now()}-${uploaded.length}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("partner-assets")
+          .upload(path, file, { contentType: file.type });
+        if (uploadError) { toast.error(`Upload échoué : ${file.name}`); continue; }
+        const { data: urlData } = supabase.storage.from("partner-assets").getPublicUrl(path);
+        uploaded.push(urlData.publicUrl);
+      }
+      if (uploaded.length) {
+        if (kind === "product") setGalleryUrls((prev) => [...prev, ...uploaded]);
+        else setEnvironmentUrls((prev) => [...prev, ...uploaded]);
+      }
+    } finally {
+      setUploadingKind(null);
+    }
+  };
+
+  const removeGalleryUrl = (url: string, kind: "product" | "environment") => {
+    if (kind === "product") setGalleryUrls((prev) => prev.filter((u) => u !== url));
+    else setEnvironmentUrls((prev) => prev.filter((u) => u !== url));
   };
 
   const handleSave = async () => {
@@ -529,7 +665,11 @@ function CollectionForm({
           .update({
             name: name.trim(),
             description: description.trim() || null,
+            designer: designer.trim() || null,
+            year: year ? parseInt(year, 10) : null,
             cover_image_url: finalCoverUrl || null,
+            gallery_urls: galleryUrls,
+            environment_urls: environmentUrls,
           })
           .eq("id", existing.id);
         if (error) throw error;
@@ -550,7 +690,11 @@ function CollectionForm({
             partner_id: partnerId,
             name: name.trim(),
             description: description.trim() || null,
+            designer: designer.trim() || null,
+            year: year ? parseInt(year, 10) : null,
             cover_image_url: finalCoverUrl || null,
+            gallery_urls: galleryUrls,
+            environment_urls: environmentUrls,
             display_order: nextOrder,
           });
         if (error) {
@@ -640,6 +784,60 @@ function CollectionForm({
             />
           </div>
 
+          {/* Designer + Year */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                Designer
+              </label>
+              <input
+                value={designer}
+                onChange={(e) => setDesigner(e.target.value)}
+                placeholder="ex: Patricia Urquiola"
+                className="w-full bg-card border border-border rounded-sm px-3 py-2.5 text-sm font-body outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                Année
+              </label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1900}
+                max={2100}
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                placeholder="2026"
+                className="w-full bg-card border border-border rounded-sm px-3 py-2.5 text-sm font-body outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Product gallery */}
+          <GallerySection
+            title="Photos produit"
+            hint="Visuels packshot / studio des pièces de la collection"
+            urls={galleryUrls}
+            uploading={uploadingKind === "product"}
+            inputRef={galleryRef}
+            onAddClick={() => galleryRef.current?.click()}
+            onChange={(e) => handleGalleryChange(e, "product")}
+            onRemove={(url) => removeGalleryUrl(url, "product")}
+          />
+
+          {/* Environment gallery */}
+          <GallerySection
+            title="Photos d'ambiance"
+            hint="Mises en situation : terrasses, lieux, projets installés"
+            urls={environmentUrls}
+            uploading={uploadingKind === "environment"}
+            inputRef={environmentRef}
+            onAddClick={() => environmentRef.current?.click()}
+            onChange={(e) => handleGalleryChange(e, "environment")}
+            onRemove={(url) => removeGalleryUrl(url, "environment")}
+          />
+
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
@@ -658,6 +856,176 @@ function CollectionForm({
               {existing ? "Enregistrer" : "Créer la collection"}
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Reusable gallery uploader (product / environment) ───────────────────────
+
+function GallerySection({
+  title,
+  hint,
+  urls,
+  uploading,
+  inputRef,
+  onAddClick,
+  onChange,
+  onRemove,
+}: {
+  title: string;
+  hint: string;
+  urls: string[];
+  uploading: boolean;
+  inputRef: React.RefObject<HTMLInputElement>;
+  onAddClick: () => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemove: (url: string) => void;
+}) {
+  return (
+    <div>
+      <label className="text-[10px] font-display font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+        {title}
+      </label>
+      <p className="text-[10px] font-body text-muted-foreground mb-2">{hint}</p>
+      <div className="grid grid-cols-4 gap-2">
+        {urls.map((url) => (
+          <div key={url} className="relative aspect-square rounded-lg overflow-hidden group border border-border">
+            <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onRemove(url)}
+              className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/60 text-white text-xs leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+              aria-label="Retirer la photo"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={onAddClick}
+          disabled={uploading}
+          className="aspect-square rounded-lg border-2 border-dashed border-purple-200 hover:border-purple-400 transition-colors flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-purple-50 to-violet-50 disabled:opacity-60"
+        >
+          {uploading ? (
+            <Loader2 className="h-5 w-5 text-purple-400 animate-spin" />
+          ) : (
+            <>
+              <Upload className="h-5 w-5 text-purple-300" />
+              <span className="text-[9px] font-body text-muted-foreground">Ajouter</span>
+            </>
+          )}
+        </button>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={onChange}
+      />
+    </div>
+  );
+}
+
+// ── Product link picker (attach existing catalogue products) ────────────────
+
+function ProductLinkPicker({
+  products,
+  collectionId,
+  collectionName,
+  onToggle,
+  onClose,
+}: {
+  products: Array<{
+    id: string; name: string; image_url: string | null;
+    category: string | null; collection_id: string | null; publish_status: string | null;
+  }>;
+  collectionId: string;
+  collectionName: string;
+  onToggle: (productId: string, collectionId: string | null) => void;
+  onClose: () => void;
+}) {
+  const [search, setSearch] = useState("");
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? products.filter((p) => p.name?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q))
+    : products;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4" onClick={onClose}>
+      <div
+        className="bg-card w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <div>
+            <h3 className="font-display text-sm font-bold text-foreground">Lier des produits</h3>
+            <p className="text-[10px] font-body text-muted-foreground">vers « {collectionName} » — sans doublon</p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="p-3 border-b border-border">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un produit…"
+            className="w-full bg-background border border-border rounded-sm px-3 py-2 text-sm font-body outline-none focus:ring-1 focus:ring-purple-500"
+          />
+        </div>
+
+        <div className="overflow-y-auto p-3 space-y-2">
+          {filtered.length === 0 && (
+            <p className="text-xs font-body text-muted-foreground text-center py-8">Aucun produit dans votre catalogue.</p>
+          )}
+          {filtered.map((p) => {
+            const inThis = p.collection_id === collectionId;
+            const inOther = !!p.collection_id && !inThis;
+            return (
+              <div key={p.id} className="flex items-center gap-3 p-2 rounded-lg border border-border">
+                <div className="w-12 h-12 rounded-md bg-muted overflow-hidden flex-shrink-0 flex items-center justify-center">
+                  {p.image_url ? (
+                    <img loading="lazy" src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-display font-semibold text-foreground truncate">{p.name || "Produit"}</p>
+                  <p className="text-[10px] font-body text-muted-foreground truncate">
+                    {p.category || "—"}{inOther && " · déjà dans une autre collection"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => onToggle(p.id, inThis ? null : collectionId)}
+                  className={
+                    inThis
+                      ? "text-[10px] font-display font-semibold px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 hover:bg-red-50 hover:text-red-600 transition-colors flex-shrink-0"
+                      : "text-[10px] font-display font-semibold px-3 py-1.5 rounded-full text-white flex-shrink-0 transition-opacity hover:opacity-90"
+                  }
+                  style={inThis ? undefined : { background: "linear-gradient(135deg, #7C3AED, #6D28D9)" }}
+                >
+                  {inThis ? "Lié ✓" : inOther ? "Déplacer ici" : "Lier"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="p-3 border-t border-border">
+          <button
+            onClick={onClose}
+            className="w-full text-sm font-display font-semibold text-white rounded-full py-2.5 transition-opacity hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)" }}
+          >
+            Terminé
+          </button>
         </div>
       </div>
     </div>
