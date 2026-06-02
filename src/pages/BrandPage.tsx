@@ -698,10 +698,10 @@ export default function BrandPage() {
   );
 }
 
-// ── Collection detail modal ─────────────────────────────────────────────────
-// Opens on card click — keeps the brand page clean (cover grid) while showing
-// the full story (designer, year, description, linked products, photo galleries)
-// only on demand.
+// ── Collection detail — full-screen editorial takeover ──────────────────────
+// Opens on card click. Inspired by how furniture brands present a collection
+// (e.g. isimar.es): immersive hero → story → metadata → full-width lifestyle
+// gallery → product grid (linked products) → product gallery → CTA.
 
 function CollectionDetailModal({
   coll,
@@ -719,120 +719,173 @@ function CollectionDetailModal({
   const productPhotos: string[] = (coll.gallery_urls || []).filter(Boolean);
   const ambiancePhotos: string[] = (coll.environment_urls || []).filter(Boolean);
 
+  // Lock background scroll + close on Escape while the takeover is open.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [onClose]);
+
+  const meta = [
+    { label: t("brand.metaCollection", "Collection"), value: coll.name },
+    coll.designer ? { label: t("brand.designedBy", "Design"), value: coll.designer } : null,
+    coll.year ? { label: t("brand.metaYear", "Année"), value: String(coll.year) } : null,
+  ].filter(Boolean) as { label: string; value: string }[];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-6 overflow-y-auto" onClick={onClose}>
-      <div
-        className="bg-white w-full sm:max-w-4xl sm:rounded-3xl rounded-none min-h-screen sm:min-h-0 sm:my-auto overflow-hidden shadow-2xl relative"
-        onClick={(e) => e.stopPropagation()}
+    <div className="fixed inset-0 z-50 bg-white overflow-y-auto overscroll-contain">
+      {/* Close — sticky over content */}
+      <button
+        onClick={onClose}
+        className="fixed top-4 right-4 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+        aria-label={t("common.close", "Fermer")}
       >
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 h-9 w-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
-          aria-label="Fermer"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <X className="h-5 w-5" />
+      </button>
 
-        {/* Hero */}
-        <div className="relative aspect-[16/9] sm:aspect-[21/9] bg-muted">
-          {coll.cover_image_url ? (
-            <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
-              <FolderOpen className="h-12 w-12 text-muted-foreground/30" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-            <div className="flex items-end gap-3 flex-wrap">
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">{coll.name}</h2>
-              {coll.year ? (
-                <span className="text-xs font-display font-semibold text-white/90 bg-white/15 backdrop-blur-sm px-2.5 py-1 rounded-full mb-1">{coll.year}</span>
-              ) : null}
-            </div>
-            {coll.designer ? (
-              <p className="text-sm font-body text-white/80 mt-1">{t("brand.designedBy", "Design")} : {coll.designer}</p>
-            ) : null}
+      {/* ── Hero ── */}
+      <div className="relative h-[58vh] sm:h-[74vh] bg-muted">
+        {coll.cover_image_url ? (
+          <img src={coll.cover_image_url} alt={coll.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
+            <FolderOpen className="h-16 w-16 text-muted-foreground/20" />
           </div>
-        </div>
-
-        {/* Body */}
-        <div className="p-6 sm:p-8 space-y-8">
-          {coll.description ? (
-            <p className="text-sm font-body text-muted-foreground leading-relaxed max-w-2xl">{coll.description}</p>
-          ) : null}
-
-          {/* Linked products */}
-          {products.length > 0 && (
-            <div>
-              <h3 className="text-[11px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                {t("brand.products", "Produits")} ({products.length})
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {products.map((item: any) => (
-                  <a key={item.id} href={`/products/${item.id}`} className="group">
-                    <div className="aspect-square rounded-xl overflow-hidden bg-muted mb-2">
-                      {item.image_url ? (
-                        <img loading="lazy" src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">{t("brand.noPhoto")}</div>
-                      )}
-                    </div>
-                    <p className="text-xs font-display font-semibold text-foreground truncate group-hover:text-[#D4603A] transition-colors">{item.name || "Produit"}</p>
-                  </a>
-                ))}
-              </div>
-            </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/20" />
+        <div className="absolute inset-0 flex flex-col items-center justify-end text-center pb-12 sm:pb-16 px-6">
+          <p className="text-[11px] font-display font-semibold uppercase tracking-[0.25em] text-white/70 mb-3">
+            {t("brand.collection", "Collection")}
+          </p>
+          <h2 className="font-display text-4xl sm:text-6xl font-bold text-white tracking-tight">{coll.name}</h2>
+          {(coll.designer || coll.year) && (
+            <p className="text-sm font-body text-white/80 mt-4">
+              {coll.designer ? `${t("brand.designedBy", "Design")} : ${coll.designer}` : ""}
+              {coll.designer && coll.year ? " · " : ""}
+              {coll.year || ""}
+            </p>
           )}
-
-          {/* Product gallery */}
-          {productPhotos.length > 0 && (
-            <div>
-              <h3 className="text-[11px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                {t("brand.productPhotos", "Photos produit")}
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {productPhotos.map((url, i) => (
-                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-lg overflow-hidden bg-muted block group">
-                    <img loading="lazy" src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Ambiance gallery */}
-          {ambiancePhotos.length > 0 && (
-            <div>
-              <h3 className="text-[11px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                {t("brand.ambiancePhotos", "Photos d'ambiance")}
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {ambiancePhotos.map((url, i) => (
-                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="aspect-[4/3] rounded-lg overflow-hidden bg-muted block group">
-                    <img loading="lazy" src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {products.length === 0 && productPhotos.length === 0 && ambiancePhotos.length === 0 && !coll.description && (
-            <p className="text-sm font-body text-muted-foreground text-center py-6">{t("brand.collectionEmpty", "Cette collection sera bientôt enrichie.")}</p>
-          )}
-
-          {/* Brief CTA */}
-          <div className="pt-2 border-t border-border">
-            <button
-              onClick={onBrief}
-              className="inline-flex items-center gap-2 text-sm font-display font-semibold text-white bg-[#D4603A] hover:bg-[#B84E2E] px-6 py-3 rounded-full transition-colors"
-            >
-              {t("brand.submitBriefForCollection")} <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
         </div>
       </div>
+
+      {/* ── Story ── */}
+      {coll.description ? (
+        <section className="py-14 sm:py-20 px-6">
+          <p className="max-w-2xl mx-auto text-center text-base sm:text-lg font-body text-foreground/80 leading-relaxed">
+            {coll.description}
+          </p>
+        </section>
+      ) : (
+        <div className="pt-14" />
+      )}
+
+      {/* ── Metadata strip ── */}
+      {meta.length > 0 && (
+        <div className="border-y border-border bg-[#FAF7F4]">
+          <div className="max-w-3xl mx-auto px-6 py-7 flex flex-wrap items-center justify-center gap-x-12 gap-y-5 text-center">
+            {meta.map((m) => (
+              <div key={m.label}>
+                <p className="text-[10px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-1">{m.label}</p>
+                <p className="text-sm font-display font-bold text-foreground">{m.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Lifestyle / ambiance gallery (full-width) ── */}
+      {ambiancePhotos.length > 0 && (
+        <section className="py-12 sm:py-16">
+          <div className="space-y-4 sm:space-y-6">
+            {ambiancePhotos.map((url, i) => (
+              <a
+                key={i}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full overflow-hidden bg-muted group"
+              >
+                <img
+                  src={url}
+                  alt=""
+                  className="w-full h-[40vh] sm:h-[68vh] object-cover group-hover:scale-[1.02] transition-transform duration-700"
+                />
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Products in the collection ── */}
+      {products.length > 0 && (
+        <section className="py-12 sm:py-16 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-10">
+              <h3 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{t("brand.theCollection", "La collection")}</h3>
+              <p className="text-sm font-body text-muted-foreground mt-2">
+                {products.length} {products.length !== 1 ? t("brand.pieces", "pièces") : t("brand.piece", "pièce")}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+              {products.map((item: any) => (
+                <a key={item.id} href={`/products/${item.id}`} className="group text-center">
+                  <div className="aspect-square overflow-hidden bg-[#FAF7F4] mb-3 rounded-sm">
+                    {item.image_url ? (
+                      <img loading="lazy" src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">{t("brand.noPhoto")}</div>
+                    )}
+                  </div>
+                  <p className="text-sm font-display font-semibold text-foreground group-hover:text-[#D4603A] transition-colors">{item.name || "Produit"}</p>
+                  {item.category ? <p className="text-[11px] font-body text-muted-foreground mt-0.5">{item.category}</p> : null}
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Product gallery (studio shots) ── */}
+      {productPhotos.length > 0 && (
+        <section className="py-8 sm:py-12 px-6">
+          <div className="max-w-6xl mx-auto">
+            <h3 className="text-[11px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-5 text-center">
+              {t("brand.productPhotos", "Photos produit")}
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {productPhotos.map((url, i) => (
+                <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="aspect-square overflow-hidden bg-muted block group rounded-sm">
+                  <img loading="lazy" src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {products.length === 0 && productPhotos.length === 0 && ambiancePhotos.length === 0 && !coll.description && (
+        <p className="text-sm font-body text-muted-foreground text-center py-16 px-6">
+          {t("brand.collectionEmpty", "Cette collection sera bientôt enrichie.")}
+        </p>
+      )}
+
+      {/* ── Editorial CTA ── */}
+      <section className="bg-[#1C1A17] py-16 sm:py-24 px-6 text-center">
+        <h3 className="font-display text-2xl sm:text-4xl font-bold text-white max-w-2xl mx-auto leading-tight">
+          {coll.name}
+        </h3>
+        <p className="text-sm font-body text-white/60 mt-4 mb-8 max-w-md mx-auto">
+          {t("brand.collectionCtaSubtitle", "Un projet hôtellerie-restauration en tête ? Décrivez-le, la marque vous répond.")}
+        </p>
+        <button
+          onClick={onBrief}
+          className="inline-flex items-center gap-2 text-sm font-display font-semibold text-white bg-[#D4603A] hover:bg-[#B84E2E] px-8 py-3.5 rounded-full transition-colors"
+        >
+          {t("brand.submitBriefForCollection")} <ArrowRight className="h-4 w-4" />
+        </button>
+      </section>
     </div>
   );
 }
