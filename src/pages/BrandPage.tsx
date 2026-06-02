@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, User } from "lucide-react";
+import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, User, X } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -105,8 +105,8 @@ export default function BrandPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const highlightCollection = searchParams.get("collection");
-  const collectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [briefOffer, setBriefOffer] = useState<CollectionOffer | null>(null);
+  const [openCollection, setOpenCollection] = useState<any | null>(null);
 
   // Fetch brand partner
   const { data: brand, isLoading: brandLoading } = useQuery({
@@ -203,14 +203,14 @@ export default function BrandPage() {
   // linked via products.collection_id (no more fragile text-name matching).
   const collectionNames = brandCollections.map((c: any) => c.name);
 
-  // Scroll to highlighted collection
+  // Deep-link ?collection=<name> opens that collection's detail modal directly.
   useEffect(() => {
-    if (highlightCollection && collectionRefs.current[highlightCollection]) {
-      setTimeout(() => {
-        collectionRefs.current[highlightCollection]?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 300);
+    if (highlightCollection && brandCollections.length) {
+      const match = brandCollections.find((c: any) => c.name === highlightCollection);
+      if (match) setOpenCollection(match);
     }
-  }, [highlightCollection, collectionNames.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightCollection, brandCollections.length]);
 
   // Dummy product for ProjectBriefModal
   const briefProduct = briefOffer?.product
@@ -546,64 +546,49 @@ export default function BrandPage() {
           <p className="text-sm font-body text-muted-foreground mb-10">{t("brand.collectionSubtitle")}</p>
 
           {brandCollections.length > 0 ? (
-            <div className="space-y-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {brandCollections.map((coll: any) => {
                 const items = collectionProducts.filter((p: any) => p.collection_id === coll.id);
-                const ambiance: string[] = [...(coll.gallery_urls || []), ...(coll.environment_urls || [])];
-                const isHighlighted = highlightCollection === coll.name;
+                const photoCount = (coll.gallery_urls?.length || 0) + (coll.environment_urls?.length || 0);
                 return (
-                  <div
+                  <button
                     key={coll.id}
-                    ref={(el) => { collectionRefs.current[coll.name] = el; }}
-                    className={`rounded-2xl p-6 transition-all ${isHighlighted ? "ring-2 ring-[#D4603A] bg-[#FAF7F4]" : "bg-card border border-border"}`}
+                    onClick={() => setOpenCollection(coll)}
+                    className="group text-left rounded-2xl overflow-hidden border border-border bg-card hover:shadow-xl hover:shadow-black/[0.06] hover:-translate-y-0.5 transition-all duration-300"
                   >
-                    {coll.cover_image_url && (
-                      <div className="aspect-[21/9] rounded-xl overflow-hidden bg-muted mb-4">
-                        <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex items-baseline gap-3 flex-wrap mb-0.5">
-                      <h3 className="font-display text-lg font-bold text-foreground">{coll.name}</h3>
-                      {coll.year ? <span className="text-xs font-body text-muted-foreground">{coll.year}</span> : null}
-                    </div>
-                    {coll.designer ? (
-                      <p className="text-xs font-body text-muted-foreground mb-2">{t("brand.designedBy", "Design")} : {coll.designer}</p>
-                    ) : null}
-                    {coll.description ? (
-                      <p className="text-sm font-body text-muted-foreground mb-4 max-w-2xl leading-relaxed">{coll.description}</p>
-                    ) : <div className="mb-4" />}
-
-                    {items.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {items.slice(0, 8).map((item: any) => (
-                          <a key={item.id} href={`/products/${item.id}`} className="group">
-                            <div className="aspect-square rounded-xl overflow-hidden bg-muted mb-2">
-                              {item.image_url ? (
-                                <img loading="lazy" src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">{t("brand.noPhoto")}</div>
-                              )}
-                            </div>
-                            <p className="text-xs font-display font-semibold text-foreground truncate">{item.name || "Produit"}</p>
-                          </a>
-                        ))}
-                      </div>
-                    )}
-
-                    {ambiance.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                        {ambiance.slice(0, 8).map((url: string, i: number) => (
-                          <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                            <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
+                    <div className="aspect-[4/3] relative overflow-hidden bg-muted">
+                      {coll.cover_image_url ? (
+                        <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
+                          <FolderOpen className="h-10 w-10 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-5">
+                        <div className="flex items-end justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="font-display text-lg font-bold text-white truncate">{coll.name}</h3>
+                            {coll.designer ? (
+                              <p className="text-xs font-body text-white/80 truncate">{t("brand.designedBy", "Design")} : {coll.designer}</p>
+                            ) : null}
                           </div>
-                        ))}
+                          {coll.year ? (
+                            <span className="flex-shrink-0 text-[11px] font-display font-semibold text-white/90 bg-white/15 backdrop-blur-sm px-2 py-0.5 rounded-full">{coll.year}</span>
+                          ) : null}
+                        </div>
                       </div>
-                    )}
-
-                    <button onClick={() => setBriefOffer({ collection_name: coll.name } as any)} className="mt-6 inline-flex items-center gap-2 text-sm font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors">
-                      {t("brand.submitBriefForCollection")} <ArrowRight className="h-4 w-4" />
-                    </button>
-                  </div>
+                    </div>
+                    <div className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-[11px] font-body text-muted-foreground">
+                        <span className="inline-flex items-center gap-1"><Package className="h-3.5 w-3.5" /> {items.length} {items.length !== 1 ? "produits" : "produit"}</span>
+                        {photoCount > 0 && <span>· {photoCount} photo{photoCount !== 1 ? "s" : ""}</span>}
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-xs font-display font-semibold text-[#D4603A] group-hover:gap-2 transition-all">
+                        {t("brand.discover", "Découvrir")} <ArrowRight className="h-3.5 w-3.5" />
+                      </span>
+                    </div>
+                  </button>
                 );
               })}
             </div>
@@ -685,6 +670,21 @@ export default function BrandPage() {
 
       <Footer />
 
+      {/* Collection detail modal */}
+      {openCollection && (
+        <CollectionDetailModal
+          coll={openCollection}
+          products={collectionProducts.filter((p: any) => p.collection_id === openCollection.id)}
+          onClose={() => setOpenCollection(null)}
+          onBrief={() => {
+            const name = openCollection.name;
+            setOpenCollection(null);
+            setBriefOffer({ collection_name: name } as any);
+          }}
+          t={t}
+        />
+      )}
+
       {/* Brief Modal */}
       {briefOffer && briefProduct && briefOfferForModal && (
         <ProjectBriefModal
@@ -695,5 +695,144 @@ export default function BrandPage() {
         />
       )}
     </>
+  );
+}
+
+// ── Collection detail modal ─────────────────────────────────────────────────
+// Opens on card click — keeps the brand page clean (cover grid) while showing
+// the full story (designer, year, description, linked products, photo galleries)
+// only on demand.
+
+function CollectionDetailModal({
+  coll,
+  products,
+  onClose,
+  onBrief,
+  t,
+}: {
+  coll: any;
+  products: any[];
+  onClose: () => void;
+  onBrief: () => void;
+  t: any; // i18next TFunction — widened to avoid overload-signature mismatch
+}) {
+  const productPhotos: string[] = (coll.gallery_urls || []).filter(Boolean);
+  const ambiancePhotos: string[] = (coll.environment_urls || []).filter(Boolean);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-6 overflow-y-auto" onClick={onClose}>
+      <div
+        className="bg-white w-full sm:max-w-4xl sm:rounded-3xl rounded-none min-h-screen sm:min-h-0 sm:my-auto overflow-hidden shadow-2xl relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 h-9 w-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+          aria-label="Fermer"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* Hero */}
+        <div className="relative aspect-[16/9] sm:aspect-[21/9] bg-muted">
+          {coll.cover_image_url ? (
+            <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
+              <FolderOpen className="h-12 w-12 text-muted-foreground/30" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+            <div className="flex items-end gap-3 flex-wrap">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">{coll.name}</h2>
+              {coll.year ? (
+                <span className="text-xs font-display font-semibold text-white/90 bg-white/15 backdrop-blur-sm px-2.5 py-1 rounded-full mb-1">{coll.year}</span>
+              ) : null}
+            </div>
+            {coll.designer ? (
+              <p className="text-sm font-body text-white/80 mt-1">{t("brand.designedBy", "Design")} : {coll.designer}</p>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 sm:p-8 space-y-8">
+          {coll.description ? (
+            <p className="text-sm font-body text-muted-foreground leading-relaxed max-w-2xl">{coll.description}</p>
+          ) : null}
+
+          {/* Linked products */}
+          {products.length > 0 && (
+            <div>
+              <h3 className="text-[11px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                {t("brand.products", "Produits")} ({products.length})
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {products.map((item: any) => (
+                  <a key={item.id} href={`/products/${item.id}`} className="group">
+                    <div className="aspect-square rounded-xl overflow-hidden bg-muted mb-2">
+                      {item.image_url ? (
+                        <img loading="lazy" src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">{t("brand.noPhoto")}</div>
+                      )}
+                    </div>
+                    <p className="text-xs font-display font-semibold text-foreground truncate group-hover:text-[#D4603A] transition-colors">{item.name || "Produit"}</p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Product gallery */}
+          {productPhotos.length > 0 && (
+            <div>
+              <h3 className="text-[11px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                {t("brand.productPhotos", "Photos produit")}
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {productPhotos.map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-lg overflow-hidden bg-muted block group">
+                    <img loading="lazy" src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Ambiance gallery */}
+          {ambiancePhotos.length > 0 && (
+            <div>
+              <h3 className="text-[11px] font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                {t("brand.ambiancePhotos", "Photos d'ambiance")}
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {ambiancePhotos.map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="aspect-[4/3] rounded-lg overflow-hidden bg-muted block group">
+                    <img loading="lazy" src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {products.length === 0 && productPhotos.length === 0 && ambiancePhotos.length === 0 && !coll.description && (
+            <p className="text-sm font-body text-muted-foreground text-center py-6">{t("brand.collectionEmpty", "Cette collection sera bientôt enrichie.")}</p>
+          )}
+
+          {/* Brief CTA */}
+          <div className="pt-2 border-t border-border">
+            <button
+              onClick={onBrief}
+              className="inline-flex items-center gap-2 text-sm font-display font-semibold text-white bg-[#D4603A] hover:bg-[#B84E2E] px-6 py-3 rounded-full transition-colors"
+            >
+              {t("brand.submitBriefForCollection")} <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
