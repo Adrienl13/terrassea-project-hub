@@ -795,25 +795,45 @@ function CollectionDetailModal({
         </div>
       )}
 
-      {/* ── Lifestyle / ambiance gallery (full-width) ── */}
+      {/* ── La collection en situation (editorial lifestyle showcase) ── */}
       {ambiancePhotos.length > 0 && (
-        <section className="py-12 sm:py-16">
-          <div className="space-y-4 sm:space-y-6">
-            {ambiancePhotos.map((url, i) => (
-              <a
-                key={i}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full overflow-hidden bg-muted group"
-              >
-                <img
-                  src={url}
-                  alt=""
-                  className="w-full h-[40vh] sm:h-[68vh] object-cover group-hover:scale-[1.02] transition-transform duration-700"
-                />
-              </a>
-            ))}
+        <section className="py-14 sm:py-20">
+          <div className="max-w-3xl mx-auto px-6 text-center mb-10 sm:mb-14">
+            <p className="text-[11px] font-display font-semibold uppercase tracking-[0.25em] text-[#D4603A] mb-3">
+              {t("brand.inSituEyebrow", "En situation")}
+            </p>
+            <h3 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+              {t("brand.collectionInSitu", "La collection dans vos espaces")}
+            </h3>
+            <p className="text-sm font-body text-muted-foreground mt-3 leading-relaxed">
+              {t("brand.inSituSubtitle", "Projetez la collection dans différents lieux et ambiances — terrasses, restaurants, rooftops, hôtels.")}
+            </p>
+          </div>
+
+          {/* Rhythm: a full-width hero image, then a two-up pair, repeating. */}
+          <div className="space-y-3 sm:space-y-5">
+            {(() => {
+              const groups: string[][] = [];
+              for (let i = 0; i < ambiancePhotos.length; i += 3) groups.push(ambiancePhotos.slice(i, i + 3));
+              return groups.map((g, gi) => (
+                <div key={gi} className="space-y-3 sm:space-y-5">
+                  {/* Hero of the group — full-width */}
+                  <a href={g[0]} target="_blank" rel="noopener noreferrer" className="block w-full overflow-hidden bg-muted group">
+                    <img src={g[0]} alt="" className="w-full h-[42vh] sm:h-[72vh] object-cover group-hover:scale-[1.02] transition-transform duration-700" />
+                  </a>
+                  {/* Pair — two-up (or full-width if a lone trailing image) */}
+                  {g.length > 1 && (
+                    <div className={`grid gap-3 sm:gap-5 ${g.length === 3 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+                      {g.slice(1).map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="block overflow-hidden bg-muted group">
+                          <img src={url} alt="" className={`w-full object-cover group-hover:scale-[1.02] transition-transform duration-700 ${g.length === 3 ? "h-[34vh] sm:h-[52vh]" : "h-[42vh] sm:h-[60vh]"}`} />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ));
+            })()}
           </div>
         </section>
       )}
