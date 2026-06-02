@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, User, X } from "lucide-react";
+import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, User, X, Sparkles } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -354,73 +354,112 @@ export default function BrandPage() {
         </section>
       )}
 
-      {/* ═══ Section 3 — Savoir-faire & Galerie ═══ */}
-      <section className="bg-[#FAF7F4] py-16">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start max-w-5xl mx-auto">
-            {/* Left — Story */}
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground mb-6">{t("brand.originExpertise")}</h2>
-              {brand.description && (
-                <p className="text-base font-body text-muted-foreground leading-relaxed mb-8">{brand.description}</p>
-              )}
+      {/* ═══ Section 3 — Origine & savoir-faire ═══ */}
+      <section className="bg-[#FAF7F4] py-16 sm:py-24">
+        <div className="container mx-auto px-6 max-w-6xl">
+          {/* Header */}
+          <div className="max-w-2xl mb-12 sm:mb-16">
+            <p className="text-[11px] font-display font-semibold uppercase tracking-[0.25em] text-[#D4603A] mb-3">
+              {t("brand.heritageEyebrow", "Maison & savoir-faire")}
+            </p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground">{t("brand.originExpertise")}</h2>
+          </div>
 
-              {brand.country && (
-                <div className="flex items-center gap-2 text-sm font-body text-muted-foreground mb-4">
-                  <MapPin className="h-4 w-4 text-muted-foreground/60" /> {brand.country}{brand.city ? `, ${brand.city}` : ""}
-                </div>
-              )}
-
-              {brand.certifications && brand.certifications.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {brand.certifications.map((c) => (
-                    <span key={c} className="inline-flex items-center gap-1.5 text-xs font-display font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      <Award className="h-3 w-3" /> {c}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {brand.specialties && brand.specialties.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {brand.specialties.map((s) => (
-                    <span key={s} className="text-xs font-display font-semibold px-3 py-1.5 rounded-full bg-white border border-border text-foreground">{s}</span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Right — Gallery */}
+          {/* Editorial: portrait image + story & identity */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* Image */}
             <div>
               {galleryImages.length > 1 ? (
                 <Carousel className="w-full">
                   <CarouselContent>
                     {galleryImages.map((url, i) => (
                       <CarouselItem key={i}>
-                        <div className="aspect-[4/3] rounded-2xl overflow-hidden">
+                        <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-xl shadow-black/[0.08]">
                           <img loading="lazy" src={url} alt={`${brand.name} — ${i + 1}`} className="w-full h-full object-cover" />
                         </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious className="-left-4" />
-                  <CarouselNext className="-right-4" />
+                  <CarouselPrevious className="left-3 bg-white/90" />
+                  <CarouselNext className="right-3 bg-white/90" />
                 </Carousel>
-              ) : galleryImages.length === 1 ? (
-                <div className="aspect-[4/3] rounded-2xl overflow-hidden">
-                  <img loading="lazy" src={galleryImages[0]} alt={brand.name} className="w-full h-full object-cover" />
-                </div>
-              ) : brand.cover_photo_url ? (
-                <div className="aspect-[4/3] rounded-2xl overflow-hidden">
-                  <img loading="lazy" src={brand.cover_photo_url} alt={brand.name} className="w-full h-full object-cover" />
-                </div>
               ) : (
-                <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-[#F5F0EB] to-[#E8E0D8] flex items-center justify-center">
-                  <span className="font-display text-6xl font-bold text-foreground/10">{brand.name[0]}</span>
+                <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-xl shadow-black/[0.08]">
+                  {galleryImages[0] || brand.cover_photo_url ? (
+                    <img loading="lazy" src={galleryImages[0] || brand.cover_photo_url!} alt={brand.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#F5F0EB] to-[#E8E0D8] flex items-center justify-center">
+                      <span className="font-display text-7xl font-bold text-foreground/10">{brand.name[0]}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+
+            {/* Story + identity */}
+            <div>
+              {brand.description && (
+                <p className="text-base sm:text-lg font-body text-foreground/75 leading-relaxed first-letter:text-5xl first-letter:font-display first-letter:font-bold first-letter:text-[#D4603A] first-letter:float-left first-letter:leading-[0.85] first-letter:mr-2.5 first-letter:mt-1">
+                  {brand.description}
+                </p>
+              )}
+
+              {/* Identity card */}
+              {(brand.country || brand.founded_year || (brand.certifications && brand.certifications.length > 0)) && (
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-6 mt-10 pt-8 border-t border-border">
+                  {brand.country && (
+                    <div>
+                      <dt className="text-[10px] font-display font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-[#D4603A]" /> {t("brand.factOrigin", "Origine")}
+                      </dt>
+                      <dd className="text-sm font-display font-bold text-foreground">{brand.country}{brand.city ? `, ${brand.city}` : ""}</dd>
+                    </div>
+                  )}
+                  {brand.founded_year && (
+                    <div>
+                      <dt className="text-[10px] font-display font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5 text-[#D4603A]" /> {t("brand.factSince", "Depuis")}
+                      </dt>
+                      <dd className="text-sm font-display font-bold text-foreground">{brand.founded_year}</dd>
+                    </div>
+                  )}
+                  {brand.certifications && brand.certifications.length > 0 && (
+                    <div className="col-span-2">
+                      <dt className="text-[10px] font-display font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-2 flex items-center gap-1.5">
+                        <Award className="h-3.5 w-3.5 text-[#D4603A]" /> {t("brand.factCertifications", "Certifications")}
+                      </dt>
+                      <dd className="flex flex-wrap gap-2">
+                        {brand.certifications.map((c) => (
+                          <span key={c} className="inline-flex items-center gap-1.5 text-xs font-display font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <Award className="h-3 w-3" /> {c}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+            </div>
           </div>
+
+          {/* Savoir-faire cards */}
+          {brand.specialties && brand.specialties.length > 0 && (
+            <div className="mt-16 sm:mt-20">
+              <h3 className="text-center font-display text-xl sm:text-2xl font-bold text-foreground mb-8">
+                {t("brand.ourKnowHow", "Notre savoir-faire")}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {brand.specialties.map((s) => (
+                  <div key={s} className="bg-white rounded-2xl border border-border p-5 flex items-center gap-3.5 hover:shadow-md hover:shadow-black/[0.04] transition-shadow">
+                    <div className="h-10 w-10 rounded-xl bg-[#D4603A]/10 flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="h-4 w-4 text-[#D4603A]" />
+                    </div>
+                    <span className="text-sm font-display font-semibold text-foreground">{s}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
