@@ -140,6 +140,35 @@ export default function BrandPage() {
     enabled: !!brand?.id,
   });
 
+  // Real collections (source of truth) + their linked products (collection_id).
+  const { data: brandCollections = [] } = useQuery({
+    queryKey: ["brand-page-collections", brand?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("brand_collections")
+        .select("id, name, designer, year, description, cover_image_url, gallery_urls, environment_urls, display_order")
+        .eq("partner_id", brand!.id)
+        .eq("is_active", true)
+        .order("display_order");
+      return (data ?? []) as any[];
+    },
+    enabled: !!brand?.id,
+  });
+
+  const { data: collectionProducts = [] } = useQuery({
+    queryKey: ["brand-page-collection-products", brand?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("id, name, image_url, collection_id")
+        .eq("partner_id", brand!.id)
+        .not("collection_id", "is", null)
+        .eq("publish_status", "published");
+      return (data ?? []) as any[];
+    },
+    enabled: !!brand?.id,
+  });
+
   // Fetch brand references (project portfolio)
   const { data: references = [] } = useQuery({
     queryKey: ["brand-page-references", brand?.id],
@@ -170,8 +199,9 @@ export default function BrandPage() {
 
   const [expandedRef, setExpandedRef] = useState<string | null>(null);
 
-  const collections = groupBy(offers.filter((o) => o.collection_name), "collection_name");
-  const collectionNames = Object.keys(collections);
+  // Collections now come from brand_collections (source of truth); products are
+  // linked via products.collection_id (no more fragile text-name matching).
+  const collectionNames = brandCollections.map((c: any) => c.name);
 
   // Scroll to highlighted collection
   useEffect(() => {
@@ -515,33 +545,62 @@ export default function BrandPage() {
           </div>
           <p className="text-sm font-body text-muted-foreground mb-10">{t("brand.collectionSubtitle")}</p>
 
-          {collectionNames.length > 0 ? (
+          {brandCollections.length > 0 ? (
             <div className="space-y-12">
-              {collectionNames.map((collName) => {
-                const items = collections[collName];
-                const isHighlighted = highlightCollection === collName;
+              {brandCollections.map((coll: any) => {
+                const items = collectionProducts.filter((p: any) => p.collection_id === coll.id);
+                const ambiance: string[] = [...(coll.gallery_urls || []), ...(coll.environment_urls || [])];
+                const isHighlighted = highlightCollection === coll.name;
                 return (
                   <div
-                    key={collName}
-                    ref={(el) => { collectionRefs.current[collName] = el; }}
+                    key={coll.id}
+                    ref={(el) => { collectionRefs.current[coll.name] = el; }}
                     className={`rounded-2xl p-6 transition-all ${isHighlighted ? "ring-2 ring-[#D4603A] bg-[#FAF7F4]" : "bg-card border border-border"}`}
                   >
-                    <h3 className="font-display text-lg font-bold text-foreground mb-4">{collName}</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {items.slice(0, 8).map((item) => (
-                        <div key={item.id} className="group">
-                          <div className="aspect-square rounded-xl overflow-hidden bg-muted mb-2">
-                            {item.product?.image_url ? (
-                              <img loading="lazy" src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">{t("brand.noPhoto")}</div>
-                            )}
-                          </div>
-                          <p className="text-xs font-display font-semibold text-foreground truncate">{item.product?.name || "Produit"}</p>
-                        </div>
-                      ))}
+                    {coll.cover_image_url && (
+                      <div className="aspect-[21/9] rounded-xl overflow-hidden bg-muted mb-4">
+                        <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <div className="flex items-baseline gap-3 flex-wrap mb-0.5">
+                      <h3 className="font-display text-lg font-bold text-foreground">{coll.name}</h3>
+                      {coll.year ? <span className="text-xs font-body text-muted-foreground">{coll.year}</span> : null}
                     </div>
-                    <button onClick={() => setBriefOffer(items[0] || null)} className="mt-6 inline-flex items-center gap-2 text-sm font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors">
+                    {coll.designer ? (
+                      <p className="text-xs font-body text-muted-foreground mb-2">{t("brand.designedBy", "Design")} : {coll.designer}</p>
+                    ) : null}
+                    {coll.description ? (
+                      <p className="text-sm font-body text-muted-foreground mb-4 max-w-2xl leading-relaxed">{coll.description}</p>
+                    ) : <div className="mb-4" />}
+
+                    {items.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {items.slice(0, 8).map((item: any) => (
+                          <a key={item.id} href={`/products/${item.id}`} className="group">
+                            <div className="aspect-square rounded-xl overflow-hidden bg-muted mb-2">
+                              {item.image_url ? (
+                                <img loading="lazy" src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">{t("brand.noPhoto")}</div>
+                              )}
+                            </div>
+                            <p className="text-xs font-display font-semibold text-foreground truncate">{item.name || "Produit"}</p>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+
+                    {ambiance.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                        {ambiance.slice(0, 8).map((url: string, i: number) => (
+                          <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                            <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <button onClick={() => setBriefOffer({ collection_name: coll.name } as any)} className="mt-6 inline-flex items-center gap-2 text-sm font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors">
                       {t("brand.submitBriefForCollection")} <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
