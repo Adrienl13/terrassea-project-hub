@@ -153,7 +153,7 @@ export default function AdminBrandEditor() {
           </Link>
           <span className="text-muted-foreground">/</span>
           {partner.logo_url ? (
-            <img loading="lazy" src={partner.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+            <img loading="lazy" src={partner.logo_url} alt="" className="w-9 h-9 rounded-lg object-contain bg-white border border-border p-1" />
           ) : (
             <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
               <Crown className="h-4 w-4 text-purple-500" />

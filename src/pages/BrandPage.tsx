@@ -292,7 +292,9 @@ export default function BrandPage() {
           </Link>
           <div className="flex items-end gap-6">
             {brand.logo_url && (
-              <img loading="lazy" src={brand.logo_url} alt={brand.name} className="h-20 w-20 rounded-2xl object-contain bg-white/10 backdrop-blur-sm p-3 border border-white/10" />
+              <div className="h-20 flex items-center justify-center bg-white rounded-2xl px-4 shadow-lg shadow-black/20 shrink-0">
+                <img loading="lazy" src={brand.logo_url} alt={brand.name} className="max-h-12 w-auto max-w-[180px] object-contain" />
+              </div>
             )}
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-3">
@@ -702,7 +704,9 @@ export default function BrandPage() {
       <section className="bg-[#1C1A17] py-16">
         <div className="container mx-auto px-6 text-center">
           {brand.logo_url && (
-            <img loading="lazy" src={brand.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-white/10 p-1.5 mx-auto mb-5" />
+            <div className="inline-flex items-center justify-center bg-white rounded-xl px-3 h-12 mb-5 shadow-md">
+              <img loading="lazy" src={brand.logo_url} alt="" className="max-h-8 w-auto max-w-[150px] object-contain" />
+            </div>
           )}
           <h2 className="font-display text-2xl md:text-3xl font-bold text-white mb-3">
             {t("brand.outdoorProject")}

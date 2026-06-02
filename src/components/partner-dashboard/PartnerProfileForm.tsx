@@ -585,7 +585,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
             <img
               src={form.logo_url}
               alt="Logo"
-              className="w-16 h-16 rounded-xl border border-border object-cover"
+              className="w-16 h-16 rounded-xl border border-border object-contain bg-white p-1.5"
             />
           ) : (
             <div className="w-16 h-16 rounded-xl border border-dashed border-border flex items-center justify-center bg-muted">
