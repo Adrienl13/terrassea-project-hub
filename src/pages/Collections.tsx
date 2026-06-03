@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, MapPin, Sparkles, Package, Award } from "lucide-react";
+import { ArrowRight, Sparkles, Package, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Max collection covers shown per brand before a "+N" tile links to the brand page.
@@ -63,6 +63,7 @@ export default function Collections() {
   const [brandData, setBrandData] = useState<Record<string, BrandCollections>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   // ── Load brands on mount ─────────────────────────────────────────────────
   useEffect(() => {
@@ -121,6 +122,11 @@ export default function Collections() {
   }, [brands, fetchCollections]);
 
   // ── Render ───────────────────────────────────────────────────────────────
+  const q = query.trim().toLowerCase();
+  const visibleBrands = q
+    ? brands.filter((b) => b.name.toLowerCase().includes(q) || (b.country ?? "").toLowerCase().includes(q))
+    : brands;
+
   return (
     <>
       <SEO
@@ -180,148 +186,101 @@ export default function Collections() {
           </div>
         </section>
       ) : (
-        brands.map((brand, brandIdx) => {
-          const data = brandData[brand.id];
-          const collItems = data ? data.items : [];
-          const flag = countryFlag(brand.country_code);
-          const heroImg = brand.hero_image_url || brand.cover_photo_url;
-          const isEven = brandIdx % 2 === 0;
+        <section className="py-12 bg-[#FAF7F4]">
+          <div className="container mx-auto px-6 max-w-6xl">
+            {/* Search — helps discovery as the directory grows */}
+            {brands.length > 6 ? (
+              <div className="relative max-w-md mb-8">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("brand.searchBrands", "Rechercher une marque, un pays…")}
+                  className="w-full bg-white border border-border rounded-full pl-11 pr-4 py-2.5 text-sm font-body outline-none focus:ring-1 focus:ring-[#D4603A] focus:border-[#D4603A] transition-all"
+                />
+              </div>
+            ) : null}
 
-          return (
-            <section
-              key={brand.id}
-              className={isEven ? "bg-[#FAF7F4] py-16 md:py-24" : "bg-white py-16 md:py-24"}
-            >
-              <div className="container mx-auto px-6 max-w-6xl">
-                {/* ── Brand header ─────────────────────────────────────────── */}
-                <div className={"flex flex-col md:flex-row gap-8 md:gap-16 items-start " + (isEven ? "" : "md:flex-row-reverse")}>
-                  {/* Brand image / logo block */}
-                  <div className="w-full md:w-2/5 shrink-0">
-                    {heroImg ? (
-                      <div className="aspect-[4/3] rounded-2xl overflow-hidden">
-                        <img loading="lazy" src={heroImg} alt={brand.name} className="w-full h-full object-cover" />
-                      </div>
-                    ) : (
-                      <div className="aspect-[4/3] rounded-2xl bg-[#1C1A17] flex items-center justify-center relative overflow-hidden">
-                        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M0 20L20 0l20 20-20 20z' fill-opacity='.05'/%3E%3C/g%3E%3C/svg%3E\")" }} />
-                        {brand.logo_url ? (
-                          <img loading="lazy" src={brand.logo_url} alt={brand.name} className="h-20 w-20 object-contain opacity-80" />
-                        ) : (
-                          <span className="font-display text-5xl font-bold text-white/20">{brand.name.charAt(0)}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Brand info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-4">
-                      {brand.logo_url && heroImg ? (
-                        <img loading="lazy" src={brand.logo_url} alt="" className="h-10 w-10 rounded-lg object-contain bg-muted p-1" />
-                      ) : null}
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-                            {brand.name}
-                          </h2>
-                          {brand.is_founding && brand.founding_tier ? (
-                            <FoundingBadge tier={brand.founding_tier as FoundingTier} size="sm" />
-                          ) : null}
+            {/* Compact brand directory grid — scales to many brands */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {visibleBrands.map((brand) => {
+                const data = brandData[brand.id];
+                const collItems = data ? data.items : [];
+                const flag = countryFlag(brand.country_code);
+                const heroImg = brand.hero_image_url || brand.cover_photo_url;
+                const thumbs = collItems.filter((c) => c.cover_image_url).slice(0, 3);
+                return (
+                  <Link
+                    key={brand.id}
+                    to={"/brands/" + brand.slug}
+                    className="group flex flex-col rounded-2xl overflow-hidden border border-border bg-white hover:shadow-lg hover:shadow-black/[0.06] hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {/* Image header */}
+                    <div className="aspect-[16/10] relative bg-muted overflow-hidden">
+                      {heroImg ? (
+                        <img loading="lazy" src={heroImg} alt={brand.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#1C1A17]">
+                          {brand.logo_url ? (
+                            <img loading="lazy" src={brand.logo_url} alt={brand.name} className="h-14 w-auto max-w-[60%] object-contain opacity-90" />
+                          ) : (
+                            <span className="font-display text-4xl font-bold text-white/20">{brand.name.charAt(0)}</span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          {flag ? <span className="text-sm">{flag}</span> : null}
-                          {brand.country ? (
-                            <span className="text-xs font-body text-muted-foreground flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {brand.country}
-                            </span>
-                          ) : null}
-                          {brand.founded_year ? (
-                            <span className="text-xs font-body text-muted-foreground">
-                              {t("brand.since", { year: brand.founded_year })}
-                            </span>
-                          ) : null}
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                      {brand.is_founding && brand.founding_tier ? (
+                        <div className="absolute top-3 right-3">
+                          <FoundingBadge tier={brand.founding_tier as FoundingTier} size="sm" />
+                        </div>
+                      ) : null}
+                      {heroImg && brand.logo_url ? (
+                        <div className="absolute top-3 left-3 h-9 bg-white rounded-lg px-2 flex items-center shadow-sm">
+                          <img loading="lazy" src={brand.logo_url} alt="" className="max-h-6 w-auto max-w-[80px] object-contain" />
+                        </div>
+                      ) : null}
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h2 className="font-display text-xl font-bold text-white leading-tight truncate">{brand.name}</h2>
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-body text-white/80">
+                          {flag ? <span>{flag}</span> : null}
+                          {brand.country ? <span>{brand.country}</span> : null}
+                          {brand.founded_year ? <span className="text-white/50">· {brand.founded_year}</span> : null}
                         </div>
                       </div>
                     </div>
 
-                    {brand.description ? (
-                      <p className="text-sm font-body text-muted-foreground leading-relaxed mb-6 max-w-lg">
-                        {brand.description}
-                      </p>
-                    ) : null}
-
-                    {/* Tags: specialties + certifications */}
-                    {(brand.specialties?.length || brand.certifications?.length) ? (
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        {(brand.specialties ?? []).map((s) => (
-                          <span key={s} className="text-[10px] font-body px-3 py-1 rounded-full bg-foreground/5 text-muted-foreground border border-border">
-                            {s}
-                          </span>
-                        ))}
-                        {(brand.certifications ?? []).map((c) => (
-                          <span key={c} className="text-[10px] font-body px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 flex items-center gap-1">
-                            <Award className="h-2.5 w-2.5" />{c}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    {/* Collection count */}
-                    <div className="flex items-center gap-4 text-xs font-body text-muted-foreground mb-5">
-                      <span className="flex items-center gap-1.5">
-                        <Package className="h-3.5 w-3.5" />
+                    {/* Footer: collection count + mini cover previews */}
+                    <div className="px-4 py-3 flex items-center justify-between gap-2">
+                      <span className="text-xs font-display font-semibold text-foreground">
                         {t("brand.collectionCount", { count: collItems.length })}
                       </span>
+                      {thumbs.length > 0 ? (
+                        <div className="flex items-center -space-x-2">
+                          {thumbs.map((c) => (
+                            <img key={c.id} loading="lazy" src={c.cover_image_url!} alt="" className="h-7 w-7 rounded-md object-cover ring-2 ring-white" />
+                          ))}
+                          {collItems.length > 3 ? (
+                            <span className="h-7 min-w-7 px-1 rounded-md bg-foreground/5 ring-2 ring-white flex items-center justify-center text-[10px] font-display font-bold text-foreground">+{collItems.length - 3}</span>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-display font-semibold text-[#D4603A] group-hover:gap-1.5 transition-all">
+                          {t("brand.discoverBrand", "Découvrir")} <ArrowRight className="h-3.5 w-3.5" />
+                        </span>
+                      )}
                     </div>
+                  </Link>
+                );
+              })}
+            </div>
 
-                    {/* Preview cover tiles, capped — adapts to the number of collections */}
-                    {collItems.length > 0 ? (
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-6">
-                        {collItems.slice(0, PREVIEW_CAP).map((coll) => (
-                          <Link
-                            key={coll.id}
-                            to={"/brands/" + brand.slug + "?collection=" + encodeURIComponent(coll.name)}
-                            className="group relative block aspect-square rounded-lg overflow-hidden bg-muted"
-                          >
-                            {coll.cover_image_url ? (
-                              <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                            ) : (
-                              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-stone-100 to-stone-300">
-                                <span className="font-display text-lg font-bold text-stone-400/60">{coll.name.charAt(0)}</span>
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
-                            <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-display font-semibold text-white leading-tight line-clamp-2">{coll.name}</span>
-                          </Link>
-                        ))}
-                        {collItems.length > PREVIEW_CAP ? (
-                          <Link
-                            to={"/brands/" + brand.slug}
-                            className="flex items-center justify-center aspect-square rounded-lg bg-foreground/5 border border-border hover:border-foreground/30 hover:bg-foreground/[0.07] transition-colors"
-                          >
-                            <span className="text-sm font-display font-bold text-foreground">+{collItems.length - PREVIEW_CAP}</span>
-                          </Link>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <p className="text-[11px] font-body text-muted-foreground mb-6 italic">{t("brand.comingSoon", "Collections à venir")}</p>
-                    )}
-
-                    {/* Discover link */}
-                    <Link
-                      to={"/brands/" + brand.slug}
-                      className="inline-flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
-                    >
-                      {t("brand.discoverBrand", "Découvrir la marque")} <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-
-              </div>
-            </section>
-          );
-        })
+            {visibleBrands.length === 0 ? (
+              <p className="text-sm font-body text-muted-foreground text-center py-12">
+                {t("brand.noBrandFound", "Aucune marque ne correspond à votre recherche.")}
+              </p>
+            ) : null}
+          </div>
+        </section>
       )}
 
       {/* ── Bottom CTA ────────────────────────────────────────────────────── */}

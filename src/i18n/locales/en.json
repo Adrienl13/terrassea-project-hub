@@ -4278,7 +4278,9 @@
     "newCollectionPlaceholder": "Name of the new collection",
     "backToList": "← Choose an existing collection",
     "discoverCollection": "Discover the collection",
-    "discoverBrand": "Discover the brand"
+    "discoverBrand": "Discover the brand",
+    "searchBrands": "Search a brand, a country…",
+    "noBrandFound": "No brand matches your search."
   },
   "brief": {
     "submitTitle": "Submit a project brief",

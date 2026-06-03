@@ -4278,7 +4278,9 @@
     "newCollectionPlaceholder": "Nome della nuova collezione",
     "backToList": "← Scegli una collezione esistente",
     "discoverCollection": "Scopri la collezione",
-    "discoverBrand": "Scopri il brand"
+    "discoverBrand": "Scopri il brand",
+    "searchBrands": "Cerca un brand, un paese…",
+    "noBrandFound": "Nessun brand corrisponde alla ricerca."
   },
   "brief": {
     "submitTitle": "Invia un brief di progetto",
