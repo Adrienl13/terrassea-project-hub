@@ -111,6 +111,14 @@ export default function BrandPage() {
   const [openCollection, setOpenCollection] = useState<any | null>(null);
   const [cgvLoading, setCgvLoading] = useState(false);
 
+  // Final CTA: brief flow if the brand has offers, otherwise reach out directly
+  // (email if available, else scroll to the contact & addresses section).
+  const handleContactCta = () => {
+    if (offers.length > 0) { setBriefOffer(offers[0]); return; }
+    if (brand?.contact_email) { window.location.href = `mailto:${brand.contact_email}`; return; }
+    document.getElementById("brand-contact")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const handleViewCgv = async (cgvId: string) => {
     setCgvLoading(true);
     const { data, error } = await supabase.functions.invoke("get-signed-cgv-url", {
@@ -714,7 +722,7 @@ export default function BrandPage() {
 
       {/* ═══ Section 5 — Contact / Adresses ═══ */}
       {(hasContact || addressList.length > 0) && (
-        <section className="py-10 bg-[#FAF7F4]">
+        <section id="brand-contact" className="py-10 bg-[#FAF7F4] scroll-mt-20">
           <div className="container mx-auto px-6 max-w-5xl">
             <h2 className="font-display text-lg font-bold text-foreground mb-5 flex items-center gap-2">
               <MapPin className="h-4 w-4 text-[#D4603A]" /> {t("brand.contactAddresses", "Contact & adresses")}
@@ -808,10 +816,10 @@ export default function BrandPage() {
             {t("brand.teamContact")}
           </p>
           <button
-            onClick={() => setBriefOffer(offers[0] || null)}
+            onClick={handleContactCta}
             className="px-8 py-3 font-display font-semibold text-sm bg-[#D4603A] text-white rounded-full hover:opacity-90 transition-opacity"
           >
-            {offers.length > 0 ? t("brand.submitBrief") : "Nous contacter"} &rarr;
+            {offers.length > 0 ? t("brand.submitBrief") : t("brand.contactUs", "Nous contacter")} &rarr;
           </button>
 
           {brandCgv && (
