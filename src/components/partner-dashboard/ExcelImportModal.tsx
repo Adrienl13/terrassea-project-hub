@@ -11,6 +11,7 @@ import {
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
 import { useEffectiveCommission } from "@/hooks/usePricingMode";
 import { compressImage } from "@/lib/imageCompress";
+import { keepOriginalForSignature } from "@/lib/keepOriginal";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -752,6 +753,7 @@ export default function ExcelImportModal({
       const rawBlob = await res.blob();
       // Compress before upload (bulk imports = thousands of photos).
       const srcFile = new File([rawBlob], `${productName || "image"}.${rawBlob.type.split("/")[1] || "jpg"}`, { type: rawBlob.type });
+      await keepOriginalForSignature(srcFile, partnerIdProp, "product");
       const blob = await compressImage(srcFile);
       const ext = blob.type.split("/")[1] || "jpg";
       const slug = productName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").slice(0, 50);

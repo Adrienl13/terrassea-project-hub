@@ -12,6 +12,7 @@ import {
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
 import { useEffectiveCommission } from "@/hooks/usePricingMode";
 import { compressImage } from "@/lib/imageCompress";
+import { keepOriginalForSignature } from "@/lib/keepOriginal";
 import VariantsSection from "./VariantsSection";
 import ProductCertifications from "./ProductCertifications";
 import type { DimensionVariant } from "@/lib/products";
@@ -397,6 +398,7 @@ export default function AddProductForm({
   ): Promise<string[]> => {
     const urls: string[] = [];
     for (const { file, preview } of files) {
+      await keepOriginalForSignature(file, partnerId, "product");
       const compressed = await compressImage(file);
       const ext = compressed.name.split(".").pop() || "jpg";
       const path = `products/${user!.id}/${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
@@ -507,6 +509,7 @@ export default function AddProductForm({
       // Upload image to Supabase storage if we have a file
       let finalImageUrl = form.image_url;
       if (imageFile) {
+        await keepOriginalForSignature(imageFile, partnerId, "product");
         const compressed = await compressImage(imageFile);
         const ext = compressed.name.split(".").pop() || "jpg";
         const path = `products/${user!.id}/${Date.now()}.${ext}`;

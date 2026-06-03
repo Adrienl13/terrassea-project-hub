@@ -12,6 +12,7 @@ import {
 import { PARTNER_TYPES } from "@/lib/partnerConstants";
 import { validateImageUpload } from "@/lib/validateUpload";
 import { compressImage } from "@/lib/imageCompress";
+import { keepOriginalForSignature } from "@/lib/keepOriginal";
 import { SUPPORTED_COUNTRIES } from "@/lib/countries";
 
 // Single source of truth for countries (Dette 38 DRY, 2026-05-06). The form
@@ -221,6 +222,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     const vErr = validateImageUpload(file, { maxSizeMB: 5 });
     if (vErr) { toast.error(vErr); return; }
     setLoading(true);
+    await keepOriginalForSignature(file, partnerId, field === "hero_image_url" ? "hero" : "cover");
     const c = await compressImage(file);
     const ext = c.name.split(".").pop() || "jpg";
     const path = `${pathPrefix}/${partnerId}.${ext}`;
@@ -242,6 +244,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     for (const file of files.slice(0, remaining)) {
       const vErr = validateImageUpload(file, { maxSizeMB: 5 });
       if (vErr) { toast.error(vErr); continue; }
+      await keepOriginalForSignature(file, partnerId, "gallery");
       const c = await compressImage(file);
       const ext = c.name.split(".").pop() || "jpg";
       const path = `brand-gallery/${partnerId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;

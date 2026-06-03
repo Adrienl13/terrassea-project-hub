@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { validateImageUpload } from "@/lib/validateUpload";
 import { compressImage } from "@/lib/imageCompress";
+import { keepOriginalForSignature } from "@/lib/keepOriginal";
 import {
   Plus, ArrowLeft, Pencil, Trash2, Image as ImageIcon, Upload,
   Package, FolderOpen, Crown, Sparkles, Loader2, Clock, X, Save,
@@ -604,6 +605,7 @@ function CollectionForm({
       for (const file of files) {
         const vErr = validateImageUpload(file, { maxSizeMB: 5 });
         if (vErr) { toast.error(`${file.name} : ${vErr}`); continue; }
+        await keepOriginalForSignature(file, partnerId, kind);
         const c = await compressImage(file);
         const ext = c.name.split(".").pop() || "jpg";
         const path = `collections/${partnerId}/${kind}/${Date.now()}-${uploaded.length}.${ext}`;
@@ -641,6 +643,7 @@ function CollectionForm({
       if (coverFile && user) {
         const vErr = validateImageUpload(coverFile, { maxSizeMB: 5 });
         if (vErr) { toast.error(vErr); setSaving(false); return; }
+        await keepOriginalForSignature(coverFile, partnerId, "cover");
         const c = await compressImage(coverFile);
         const ext = c.name.split(".").pop() || "jpg";
         const path = `collections/${partnerId}/${Date.now()}.${ext}`;
