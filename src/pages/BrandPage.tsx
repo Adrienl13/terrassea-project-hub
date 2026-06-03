@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, X, Sparkles, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { getOptimizedImageUrl } from "@/utils/imageOptimization";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -346,7 +347,7 @@ export default function BrandPage() {
         className="relative min-h-[60vh] flex items-end"
         style={{
           background: brand.hero_image_url
-            ? `linear-gradient(to top, rgba(28,26,23,0.92) 0%, rgba(28,26,23,0.4) 50%, rgba(28,26,23,0.15) 100%), url(${brand.hero_image_url}) center/cover no-repeat`
+            ? `linear-gradient(to top, rgba(28,26,23,0.92) 0%, rgba(28,26,23,0.4) 50%, rgba(28,26,23,0.15) 100%), url(${getOptimizedImageUrl(brand.hero_image_url, { width: 1600 })}) center/cover no-repeat`
             : "linear-gradient(135deg, #1C1A17 0%, #2A2520 100%)",
         }}
       >
@@ -444,7 +445,7 @@ export default function BrandPage() {
                     {galleryImages.map((url, i) => (
                       <CarouselItem key={i}>
                         <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-xl shadow-black/[0.08]">
-                          <img loading="lazy" src={url} alt={`${brand.name} — ${i + 1}`} className="w-full h-full object-cover" />
+                          <img loading="lazy" src={getOptimizedImageUrl(url, { width: 900 })} alt={`${brand.name} — ${i + 1}`} className="w-full h-full object-cover" />
                         </div>
                       </CarouselItem>
                     ))}
@@ -455,7 +456,7 @@ export default function BrandPage() {
               ) : (
                 <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-xl shadow-black/[0.08]">
                   {galleryImages[0] || brand.cover_photo_url ? (
-                    <img loading="lazy" src={galleryImages[0] || brand.cover_photo_url!} alt={brand.name} className="w-full h-full object-cover" />
+                    <img loading="lazy" src={getOptimizedImageUrl(galleryImages[0] || brand.cover_photo_url!, { width: 900 })} alt={brand.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-[#F5F0EB] to-[#E8E0D8] flex items-center justify-center">
                       <span className="font-display text-7xl font-bold text-foreground/10">{brand.name[0]}</span>
@@ -584,7 +585,7 @@ export default function BrandPage() {
                     <button onClick={() => setExpandedRef(isExpanded ? null : ref.id)} className="w-full text-left">
                       <div className={`relative overflow-hidden ${isExpanded ? "h-64" : "h-48"}`}>
                         {cover ? (
-                          <img loading="lazy" src={cover} alt={ref.title} className="w-full h-full object-cover" />
+                          <img loading="lazy" src={getOptimizedImageUrl(cover, { width: 700 })} alt={ref.title} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
                             <Package className="h-10 w-10 text-amber-300" />
@@ -613,7 +614,7 @@ export default function BrandPage() {
                           <div className="grid grid-cols-3 gap-2 mb-6">
                             {ref.photos.slice(1).map((url, i) => (
                               <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden">
-                                <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />
+                                <img loading="lazy" src={getOptimizedImageUrl(url, { width: 500 })} alt="" className="w-full h-full object-cover" />
                               </div>
                             ))}
                           </div>
@@ -630,7 +631,7 @@ export default function BrandPage() {
                                 <Link key={p.id} to={urlForProduct(p, p.owner_brand_slug)} className="group border border-border rounded-xl overflow-hidden hover:border-[#D4603A] hover:shadow-sm transition-all">
                                   <div className="aspect-square bg-muted overflow-hidden">
                                     {p.image_url ? (
-                                      <img loading="lazy" src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                      <img loading="lazy" src={getOptimizedImageUrl(p.image_url, { width: 300 })} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                     ) : (
                                       <div className="w-full h-full flex items-center justify-center"><Package className="h-6 w-6 text-muted-foreground/30" /></div>
                                     )}
@@ -674,7 +675,7 @@ export default function BrandPage() {
                   className="group relative block w-full overflow-hidden rounded-2xl bg-muted text-left aspect-[4/5]"
                 >
                   {coll.cover_image_url ? (
-                    <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-[600ms] ease-out" />
+                    <img loading="lazy" src={getOptimizedImageUrl(coll.cover_image_url, { width: 700 })} alt={coll.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-[600ms] ease-out" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
                       <FolderOpen className="h-10 w-10 text-muted-foreground/30" />
@@ -902,7 +903,7 @@ function CollectionDetailModal({
       {/* ── Hero ── */}
       <div className="relative h-[58vh] sm:h-[74vh] bg-muted">
         {coll.cover_image_url ? (
-          <img src={coll.cover_image_url} alt={coll.name} className="w-full h-full object-cover" />
+          <img src={getOptimizedImageUrl(coll.cover_image_url, { width: 1400 })} alt={coll.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
             <FolderOpen className="h-16 w-16 text-muted-foreground/20" />
@@ -975,14 +976,14 @@ function CollectionDetailModal({
                 <div key={gi} className="space-y-3 sm:space-y-5">
                   {/* Hero of the group — full-width */}
                   <a href={g[0]} target="_blank" rel="noopener noreferrer" className="block w-full overflow-hidden bg-muted group">
-                    <img src={g[0]} alt="" className="w-full h-[42vh] sm:h-[72vh] object-cover group-hover:scale-[1.02] transition-transform duration-700" />
+                    <img src={getOptimizedImageUrl(g[0], { width: 1600 })} alt="" className="w-full h-[42vh] sm:h-[72vh] object-cover group-hover:scale-[1.02] transition-transform duration-700" />
                   </a>
                   {/* Pair — two-up (or full-width if a lone trailing image) */}
                   {g.length > 1 && (
                     <div className={`grid gap-3 sm:gap-5 ${g.length === 3 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
                       {g.slice(1).map((url, i) => (
                         <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="block overflow-hidden bg-muted group">
-                          <img src={url} alt="" className={`w-full object-cover group-hover:scale-[1.02] transition-transform duration-700 ${g.length === 3 ? "h-[34vh] sm:h-[52vh]" : "h-[42vh] sm:h-[60vh]"}`} />
+                          <img src={getOptimizedImageUrl(url, { width: 1000 })} alt="" className={`w-full object-cover group-hover:scale-[1.02] transition-transform duration-700 ${g.length === 3 ? "h-[34vh] sm:h-[52vh]" : "h-[42vh] sm:h-[60vh]"}`} />
                         </a>
                       ))}
                     </div>
@@ -1009,7 +1010,7 @@ function CollectionDetailModal({
                 <a key={item.id} href={`/products/${item.id}`} className="group text-center">
                   <div className="aspect-square overflow-hidden bg-[#FAF7F4] mb-3 rounded-sm">
                     {item.image_url ? (
-                      <img loading="lazy" src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img loading="lazy" src={getOptimizedImageUrl(item.image_url, { width: 500 })} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-body">{t("brand.noPhoto")}</div>
                     )}
@@ -1033,7 +1034,7 @@ function CollectionDetailModal({
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {productPhotos.map((url, i) => (
                 <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="aspect-square overflow-hidden bg-muted block group rounded-sm">
-                  <img loading="lazy" src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img loading="lazy" src={getOptimizedImageUrl(url, { width: 700 })} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </a>
               ))}
             </div>

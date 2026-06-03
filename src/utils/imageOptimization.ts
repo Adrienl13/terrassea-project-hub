@@ -1,103 +1,86 @@
 // ============================================================================
 // Image optimization helpers — Supabase Storage Render API
 //
-// 🚨 STATUS 2026-05-15 : DÉSACTIVÉ TEMPORAIREMENT (no-op explicite).
+// STATUS 2026-06-03 : RÉACTIVÉ avec la formule validée.
 //
-// Smoke test live a révélé que les images ProductDetail (BAHIA 001, COSTA RICA
-// 004, BAHAMAS 001) étaient COUPÉES sur les côtés en Free tier. La Render
-// Image API recadre les images au lieu de retourner l'original dégradé.
+// Historique : désactivé le 2026-05-15 car un appel `width` seul renvoyait une
+// image NON proportionnelle (hauteur d'origine conservée → image écrasée, le
+// fameux « coupé »). Vérifié 2026-06-03 : le rendu correct exige une BOUNDING
+// BOX (width + height) + `resize=contain`, qui préserve exactement le ratio
+// sans recadrer ni déformer (testé : 6402×6534 → 588×600, 8,96 Mo → 26 Ko).
 //
-// Le helper passe en no-op : retourne l'URL originale telle quelle. Le payload
-// est plus lourd (pas de webp / pas de redimensionnement) mais le visuel est
-// correct, ce qui prime pendant la phase démarchage Salone active.
+// Garde-fou : si un appelant ne passe que `width`, on force `height = width`
+// (boîte carrée) + `contain` → toujours proportionnel, jamais étiré.
 //
-// Réactivation prévue lors de l'activation Supabase Pro (Dette 99 escaladée
-// P2 → P0). Le code original est préservé en bas de ce fichier en commentaire
-// pour roll-forward sans archéologie git.
-//
-// Origin : Dette 97 — Mobile Performance Lot 2 (2026-05-14, commit f877947).
-// Désactivation : Dette 99 / fix urgent 2026-05-15.
+// Les originaux ne sont jamais modifiés (transformation à la livraison,
+// réversible). SVG / data: / blob: / URLs non-Supabase passent inchangés.
 // Reference : docs/strategy/MOBILE_PERFORMANCE_AUDIT.md
 // ============================================================================
 
 export interface OptimizationOptions {
-  /** Target width in pixels. Ignoré en mode no-op. */
+  /** Largeur de la boîte (px). */
   width?: number;
-  /** Target height in pixels. Ignoré en mode no-op. */
+  /** Hauteur de la boîte (px). Par défaut = width (boîte carrée). */
   height?: number;
-  /** Quality 1-100. Ignoré en mode no-op. */
+  /** Qualité 1-100. */
   quality?: number;
-  /** Output format. Ignoré en mode no-op. */
+  /** Format de sortie. */
   format?: "webp" | "jpg" | "origin";
-  /** Resize mode. Ignoré en mode no-op. */
+  /** Mode de redimensionnement. `contain` = ajuste DANS la boîte (pas de crop). */
   resize?: "cover" | "contain" | "fill";
 }
 
+const SUPABASE_OBJECT_PATH = "/storage/v1/object/";
+const SUPABASE_RENDER_PATH = "/storage/v1/render/image/";
+
+function isTransformable(url: string): boolean {
+  // Only Supabase Storage objects can go through the Render API.
+  if (!url.includes(SUPABASE_OBJECT_PATH)) return false;
+  // Vector / inline / blob images: leave untouched.
+  if (/\.svg(\?|$)/i.test(url)) return false;
+  if (url.startsWith("data:") || url.startsWith("blob:")) return false;
+  return true;
+}
+
 /**
- * NO-OP : retourne l'URL originale telle quelle (Free tier safe).
- * Retourne '' si input null/undefined/empty (safe pour <img src="" />).
+ * Returns a resized/WebP version of a Supabase Storage image URL.
+ * Empty string for null/undefined (safe for <img src="" />).
+ * Non-Supabase / SVG / blob URLs are returned unchanged.
  */
 export function getOptimizedImageUrl(
   url: string | null | undefined,
-  _options: OptimizationOptions = {},
+  options: OptimizationOptions = {},
 ): string {
-  return url ?? "";
+  if (!url) return "";
+  if (!isTransformable(url)) return url;
+
+  const { width = 800, height, quality = 75, format = "webp", resize = "contain" } = options;
+  const renderUrl = url.replace(SUPABASE_OBJECT_PATH, SUPABASE_RENDER_PATH);
+
+  const params = new URLSearchParams();
+  params.set("width", String(width));
+  // Bounding box: default height to width so a width-only caller still gets a
+  // proportional (contain) result instead of a stretched image.
+  params.set("height", String(height ?? width));
+  params.set("resize", resize);
+  params.set("quality", String(quality));
+  if (format !== "origin") params.set("format", format);
+
+  return `${renderUrl}?${params.toString()}`;
 }
 
 /**
- * NO-OP : retourne '' systématiquement. Les callers qui passent ce résultat
- * au prop `srcSet` doivent gérer la chaîne vide proprement (omission de
- * l'attribut). Les composants qui passent déjà un fallback `src` correct
- * affichent l'image originale sans dégradation visuelle.
+ * Responsive srcSet across widths (for retina / large screens). Each width is
+ * a square bounding box (contain), so any aspect ratio stays proportional.
+ * Returns '' for non-transformable URLs (caller should omit the attribute).
  */
 export function getResponsiveSrcSet(
-  _url: string | null | undefined,
-  _widths: number[] = [400, 800, 1200],
-  _options: Omit<OptimizationOptions, "width"> = {},
+  url: string | null | undefined,
+  widths: number[] = [400, 800, 1200],
+  options: Omit<OptimizationOptions, "width"> = {},
 ): string {
-  return "";
+  if (!url || !isTransformable(url)) return "";
+  return widths
+    .map((width) => `${getOptimizedImageUrl(url, { ...options, width })} ${width}w`)
+    .join(", ");
 }
-
-// ============================================================================
-// === CODE ORIGINAL — À RÉACTIVER POST-SUPABASE PRO (Dette 99) ===============
-// ============================================================================
-//
-// export function getOptimizedImageUrl(
-//   url: string | null | undefined,
-//   options: OptimizationOptions = {},
-// ): string {
-//   if (!url) return "";
-//
-//   // Skip non-Supabase URLs (external CDN, placeholder paths, etc.).
-//   if (!url.includes("/storage/v1/object/")) {
-//     return url;
-//   }
-//
-//   const { width = 800, height, quality = 80, format = "webp", resize } = options;
-//
-//   // Convert object URL → render URL.
-//   const renderUrl = url.replace("/storage/v1/object/", "/storage/v1/render/image/");
-//
-//   const params = new URLSearchParams();
-//   params.set("width", String(width));
-//   if (height != null) params.set("height", String(height));
-//   params.set("quality", String(quality));
-//   if (format !== "origin") params.set("format", format);
-//   if (resize) params.set("resize", resize);
-//
-//   return `${renderUrl}?${params.toString()}`;
-// }
-//
-// export function getResponsiveSrcSet(
-//   url: string | null | undefined,
-//   widths: number[] = [400, 800, 1200],
-//   options: Omit<OptimizationOptions, "width"> = {},
-// ): string {
-//   if (!url || !url.includes("/storage/v1/object/")) return "";
-//
-//   return widths
-//     .map((width) => `${getOptimizedImageUrl(url, { ...options, width })} ${width}w`)
-//     .join(", ");
-// }
-//
-// ============================================================================

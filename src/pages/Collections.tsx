@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import FoundingBadge from "@/components/common/FoundingBadge";
 import type { FoundingTier } from "@/hooks/useFoundingScore";
+import { getOptimizedImageUrl } from "@/utils/imageOptimization";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -145,7 +146,7 @@ export default function Collections() {
       >
         <div className="aspect-[16/10] relative bg-muted overflow-hidden">
           {heroImg ? (
-            <img loading="lazy" src={heroImg} alt={brand.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <img loading="lazy" src={getOptimizedImageUrl(heroImg, { width: 700 })} alt={brand.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1C1A17]">
               {brand.logo_url ? (
@@ -183,7 +184,7 @@ export default function Collections() {
           {thumbs.length > 0 ? (
             <div className="flex items-center -space-x-2">
               {thumbs.map((c) => (
-                <img key={c.id} loading="lazy" src={c.cover_image_url!} alt="" className="h-7 w-7 rounded-md object-cover ring-2 ring-white" />
+                <img key={c.id} loading="lazy" src={getOptimizedImageUrl(c.cover_image_url, { width: 120 })} alt="" className="h-7 w-7 rounded-md object-cover ring-2 ring-white" />
               ))}
               {collItems.length > 3 ? (
                 <span className="h-7 min-w-7 px-1 rounded-md bg-foreground/5 ring-2 ring-white flex items-center justify-center text-[10px] font-display font-bold text-foreground">+{collItems.length - 3}</span>
