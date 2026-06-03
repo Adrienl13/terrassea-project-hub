@@ -662,51 +662,32 @@ export default function BrandPage() {
           <p className="text-sm font-body text-muted-foreground mb-10">{t("brand.collectionSubtitle")}</p>
 
           {brandCollections.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {brandCollections.map((coll: any) => {
-                const items = collectionProducts.filter((p: any) => p.collection_id === coll.id);
-                const photoCount = (coll.gallery_urls?.length || 0) + (coll.environment_urls?.length || 0);
-                return (
-                  <button
-                    key={coll.id}
-                    onClick={() => setOpenCollection(coll)}
-                    className="group text-left rounded-2xl overflow-hidden border border-border bg-card hover:shadow-xl hover:shadow-black/[0.06] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    <div className="aspect-[4/3] relative overflow-hidden bg-muted">
-                      {coll.cover_image_url ? (
-                        <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
-                          <FolderOpen className="h-10 w-10 text-muted-foreground/30" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-5">
-                        <div className="flex items-end justify-between gap-2">
-                          <div className="min-w-0">
-                            <h3 className="font-display text-lg font-bold text-white truncate">{coll.name}</h3>
-                            {coll.designer ? (
-                              <p className="text-xs font-body text-white/80 truncate">{t("brand.designedBy", "Design")} : {coll.designer}</p>
-                            ) : null}
-                          </div>
-                          {coll.year ? (
-                            <span className="flex-shrink-0 text-[11px] font-display font-semibold text-white/90 bg-white/15 backdrop-blur-sm px-2 py-0.5 rounded-full">{coll.year}</span>
-                          ) : null}
-                        </div>
-                      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {brandCollections.map((coll: any) => (
+                <button
+                  key={coll.id}
+                  onClick={() => setOpenCollection(coll)}
+                  className="group relative block w-full overflow-hidden rounded-2xl bg-muted text-left aspect-[4/5]"
+                >
+                  {coll.cover_image_url ? (
+                    <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-[600ms] ease-out" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
+                      <FolderOpen className="h-10 w-10 text-muted-foreground/30" />
                     </div>
-                    <div className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-[11px] font-body text-muted-foreground">
-                        <span className="inline-flex items-center gap-1"><Package className="h-3.5 w-3.5" /> {items.length} {items.length !== 1 ? "produits" : "produit"}</span>
-                        {photoCount > 0 && <span>· {photoCount} photo{photoCount !== 1 ? "s" : ""}</span>}
-                      </div>
-                      <span className="inline-flex items-center gap-1 text-xs font-display font-semibold text-[#D4603A] group-hover:gap-2 transition-all">
-                        {t("brand.discover", "Découvrir")} <ArrowRight className="h-3.5 w-3.5" />
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent group-hover:from-black/85 transition-colors duration-300" />
+                  {coll.year ? (
+                    <span className="absolute top-4 right-4 text-[10px] font-display font-semibold uppercase tracking-wider text-white/85 bg-white/15 backdrop-blur-sm px-2 py-0.5 rounded-full">{coll.year}</span>
+                  ) : null}
+                  <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
+                    <h3 className="font-display text-xl sm:text-2xl font-bold text-white leading-tight">{coll.name}</h3>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-white/0 mt-1.5 -translate-y-1 group-hover:text-white/95 group-hover:translate-y-0 transition-all duration-300">
+                      {t("brand.discoverCollection", "Découvrir la collection")} <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </button>
+              ))}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-border rounded-2xl">

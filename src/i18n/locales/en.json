@@ -972,7 +972,10 @@
     "user": "User"
   },
   "cd": {
-    "proService": { "title": "My Pro Service projects", "openHub": "Open hub" },
+    "proService": {
+      "title": "My Pro Service projects",
+      "openHub": "Open hub"
+    },
     "welcome": "Welcome back, {{name}}!",
     "welcomeSubtitle": "Here's an overview of your projects and sourcing activity.",
     "seasonalTip": "Spring season is approaching — start planning your outdoor space now.",
@@ -4213,7 +4216,7 @@
     "showCollections": "View collections",
     "hideCollections": "Hide collections",
     "collectionsOf": "{{name}} collections",
-    "discover": "Discover {{name}}",
+    "discover": "Discover",
     "briefAccess": "Pricing on project request · Response within 72h",
     "areYouBrand": "Are you a brand?",
     "joinDescription": "Join our selection of partner brands and showcase your collections to a qualified network of hospitality professionals.",
@@ -4228,7 +4231,6 @@
     "collectionSubtitle": "Curated selection for premium hospitality and fine dining.",
     "noPhoto": "No photo",
     "submitBriefForCollection": "Submit a brief for this collection",
-    "discover": "Discover",
     "designedBy": "Design",
     "collection": "Collection",
     "metaCollection": "Collection",
@@ -4274,7 +4276,8 @@
     "noCollection": "No collection",
     "newCollection": "New collection",
     "newCollectionPlaceholder": "Name of the new collection",
-    "backToList": "← Choose an existing collection"
+    "backToList": "← Choose an existing collection",
+    "discoverCollection": "Discover the collection"
   },
   "brief": {
     "submitTitle": "Submit a project brief",

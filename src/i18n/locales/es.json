@@ -972,7 +972,10 @@
     "user": "Usuario"
   },
   "cd": {
-    "proService": { "title": "Mis proyectos Pro Service", "openHub": "Abrir el hub" },
+    "proService": {
+      "title": "Mis proyectos Pro Service",
+      "openHub": "Abrir el hub"
+    },
     "welcome": "¡Hola {{name}}!",
     "welcomeSubtitle": "Aquí tienes un resumen de tus proyectos y tu actividad de sourcing.",
     "seasonalTip": "La temporada de primavera se acerca — es el momento ideal para preparar tu terraza.",
@@ -4213,7 +4216,7 @@
     "showCollections": "Ver colecciones",
     "hideCollections": "Ocultar colecciones",
     "collectionsOf": "Colecciones {{name}}",
-    "discover": "Descubrir {{name}}",
+    "discover": "Descubrir",
     "briefAccess": "Precios bajo solicitud de proyecto · Respuesta en 72h",
     "areYouBrand": "¿Eres una marca?",
     "joinDescription": "Únete a nuestra selección de marcas asociadas y presenta tus colecciones a una red cualificada de profesionales CHR.",
@@ -4228,7 +4231,6 @@
     "collectionSubtitle": "Selección para la hostelería y restauración de alta gama.",
     "noPhoto": "Sin foto",
     "submitBriefForCollection": "Enviar un brief para esta colección",
-    "discover": "Descubrir",
     "designedBy": "Diseño",
     "collection": "Colección",
     "metaCollection": "Colección",
@@ -4274,7 +4276,8 @@
     "noCollection": "Sin colección",
     "newCollection": "Nueva colección",
     "newCollectionPlaceholder": "Nombre de la nueva colección",
-    "backToList": "← Elegir una colección existente"
+    "backToList": "← Elegir una colección existente",
+    "discoverCollection": "Descubrir la colección"
   },
   "brief": {
     "submitTitle": "Enviar un brief de proyecto",
