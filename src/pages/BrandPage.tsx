@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, User, X, Sparkles, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, X, Sparkles, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
@@ -714,80 +714,72 @@ export default function BrandPage() {
 
       {/* ═══ Section 5 — Contact / Adresses ═══ */}
       {(hasContact || addressList.length > 0) && (
-        <section className="py-16 sm:py-20 bg-[#FAF7F4]">
+        <section className="py-10 bg-[#FAF7F4]">
           <div className="container mx-auto px-6 max-w-5xl">
-            <div className="text-center mb-10 sm:mb-12">
-              <p className="text-[11px] font-display font-semibold uppercase tracking-[0.25em] text-[#D4603A] mb-3">
-                {t("brand.getInTouch", "Échangeons")}
-              </p>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground">{t("brand.contactAddresses", "Contact & adresses")}</h2>
-            </div>
+            <h2 className="font-display text-lg font-bold text-foreground mb-5 flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-[#D4603A]" /> {t("brand.contactAddresses", "Contact & adresses")}
+            </h2>
 
-            <div className={`grid gap-6 ${hasContact && addressList.length > 0 ? "lg:grid-cols-3" : "grid-cols-1"}`}>
-              {/* Contact panel — dark accent so it stands apart from the address cards */}
+            <div className={`grid gap-3 ${hasContact && addressList.length > 0 ? "lg:grid-cols-3" : "grid-cols-1"}`}>
+              {/* Contact — compact dark panel */}
               {hasContact && (
-                <div className="bg-[#1C1A17] text-white rounded-3xl p-7 flex flex-col">
-                  <h3 className="font-display text-xs font-bold uppercase tracking-[0.18em] text-white/50 mb-5 flex items-center gap-2">
-                    <User className="h-3.5 w-3.5" /> {t("brand.contact", "Contact")}
+                <div className="bg-[#1C1A17] text-white rounded-xl p-4">
+                  <h3 className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-white/45 mb-2.5">
+                    {t("brand.contact", "Contact")}
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-1.5">
                     {brand.contact_name && (
-                      <p className="font-display text-lg font-bold text-white">{brand.contact_name}</p>
+                      <p className="font-display text-sm font-bold text-white">{brand.contact_name}</p>
                     )}
                     {brand.contact_email && (
-                      <a href={`mailto:${brand.contact_email}`} className="flex items-center gap-2.5 text-sm font-body text-white/80 hover:text-[#E8845F] transition-colors break-all">
-                        <Mail className="h-4 w-4 flex-shrink-0 text-[#D4603A]" /> {brand.contact_email}
+                      <a href={`mailto:${brand.contact_email}`} className="flex items-center gap-2 text-xs font-body text-white/75 hover:text-[#E8845F] transition-colors break-all">
+                        <Mail className="h-3.5 w-3.5 flex-shrink-0 text-[#D4603A]" /> {brand.contact_email}
                       </a>
                     )}
                     {brand.contact_phone && (
-                      <a href={`tel:${brand.contact_phone}`} className="flex items-center gap-2.5 text-sm font-body text-white/80 hover:text-[#E8845F] transition-colors">
-                        <Phone className="h-4 w-4 flex-shrink-0 text-[#D4603A]" /> {brand.contact_phone}
+                      <a href={`tel:${brand.contact_phone}`} className="flex items-center gap-2 text-xs font-body text-white/75 hover:text-[#E8845F] transition-colors">
+                        <Phone className="h-3.5 w-3.5 flex-shrink-0 text-[#D4603A]" /> {brand.contact_phone}
                       </a>
                     )}
                     {websiteDomain && websiteHref && (
-                      <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm font-body text-white/80 hover:text-[#E8845F] transition-colors">
-                        <Globe className="h-4 w-4 flex-shrink-0 text-[#D4603A]" /> {websiteDomain}
+                      <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-body text-white/75 hover:text-[#E8845F] transition-colors">
+                        <Globe className="h-3.5 w-3.5 flex-shrink-0 text-[#D4603A]" /> {websiteDomain}
                       </a>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Addresses — uniform cards with a pin badge + directions link */}
+              {/* Addresses — compact cards */}
               {addressList.length > 0 && (
                 <div className={hasContact ? "lg:col-span-2" : ""}>
-                  {addressList.length > 1 && (
-                    <h3 className="font-display text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-4">
-                      {t("brand.ourAddresses", "Nos adresses")} <span className="text-foreground/40">· {addressList.length}</span>
-                    </h3>
-                  )}
-                  <div className={`grid gap-4 ${addressList.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+                  <div className={`grid gap-3 ${addressList.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
                     {addressList.map((loc, i) => {
                       const cityLine = [loc.city, loc.country].filter(Boolean).join(", ");
                       const title = loc.label || cityLine || t("brand.location", "Localisation");
                       const mapQuery = encodeURIComponent([loc.label, loc.address, cityLine].filter(Boolean).join(", "));
                       return (
-                        <div key={i} className="group bg-white rounded-2xl border border-border p-5 flex gap-4 hover:shadow-md hover:shadow-black/[0.04] transition-shadow">
-                          <div className="h-10 w-10 rounded-xl bg-[#D4603A]/10 flex items-center justify-center flex-shrink-0">
-                            <MapPin className="h-4 w-4 text-[#D4603A]" />
-                          </div>
+                        <div key={i} className="bg-white rounded-xl border border-border p-3.5 flex gap-3">
+                          <MapPin className="h-4 w-4 text-[#D4603A] flex-shrink-0 mt-0.5" />
                           <div className="min-w-0 flex-1">
-                            <h4 className="font-display text-sm font-bold text-foreground truncate">{title}</h4>
+                            <div className="flex items-baseline justify-between gap-2">
+                              <h4 className="font-display text-xs font-bold text-foreground truncate">{title}</h4>
+                              {mapQuery && (
+                                <a
+                                  href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] flex-shrink-0 transition-colors"
+                                >
+                                  {t("brand.directions", "Itinéraire")}
+                                </a>
+                              )}
+                            </div>
                             {cityLine && loc.label && (
-                              <p className="text-xs font-display font-semibold text-foreground/60 mt-0.5">{cityLine}</p>
+                              <p className="text-[11px] font-body text-foreground/55">{cityLine}</p>
                             )}
                             {loc.address && (
-                              <p className="text-sm font-body text-muted-foreground mt-1.5 leading-relaxed whitespace-pre-line">{loc.address}</p>
-                            )}
-                            {mapQuery && (
-                              <a
-                                href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-[11px] font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] mt-2.5 transition-colors"
-                              >
-                                {t("brand.directions", "Itinéraire")} <ArrowRight className="h-3 w-3" />
-                              </a>
+                              <p className="text-[11px] font-body text-muted-foreground mt-0.5 leading-snug whitespace-pre-line">{loc.address}</p>
                             )}
                           </div>
                         </div>
