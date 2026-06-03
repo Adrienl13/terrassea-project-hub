@@ -24,6 +24,7 @@ import {
   TIER_CONFIG,
   type PartnerTier,
 } from "@/hooks/usePartnerAnalytics";
+import { useEffectiveCommission } from "@/hooks/usePricingMode";
 
 // ── Props ──────────────────────────────────────────────────────────────────────
 
@@ -120,8 +121,8 @@ export default function PartnerAnalyticsDashboard({ partnerId, tier }: Props) {
   const hasPrestige = tier === "brand_member" || tier === "brand_network";
   const hasCsvExport = tierCfg.hasCsvExport;
 
-  // Commission calculations
-  const commissionRate = tierCfg.commission;
+  // Commission calculations — launch-aware (founding program flat rate overrides plan)
+  const commissionRate = useEffectiveCommission(tier);
   const thisMonthRevenue = analytics?.totalRevenue ?? 0;
   const thisMonthCommission = Math.round(thisMonthRevenue * (commissionRate / 100));
   const monthlyTarget = tier === "brand_network" ? 8000 : tier === "brand_member" ? 5000 : tier === "elite" ? 2000 : tier === "growth" ? 500 : 200;

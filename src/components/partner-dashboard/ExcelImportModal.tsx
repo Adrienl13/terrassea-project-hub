@@ -9,6 +9,7 @@ import {
   ImagePlus, Link2, Image as ImageIcon, Zap, Bot, ArrowLeft,
 } from "lucide-react";
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
+import { useEffectiveCommission } from "@/hooks/usePricingMode";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -160,6 +161,7 @@ export default function ExcelImportModal({
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const config = PLAN_CONFIG[plan];
+  const commissionRate = useEffectiveCommission(plan);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const directFileInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -1040,7 +1042,7 @@ export default function ExcelImportModal({
               >
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <strong>Commission {config.label} : {config.commission}%</strong> — Indiquez vos prix HT, la commission sera ajoutée automatiquement.
+                  <strong>Commission {config.label} : {commissionRate}%</strong> — Indiquez vos prix HT, la commission sera ajoutée automatiquement.
                 </span>
               </div>
             </div>
@@ -1090,7 +1092,7 @@ export default function ExcelImportModal({
               >
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <strong>Commission {config.label} : {config.commission}%</strong> — Indiquez vos prix HT, la commission sera ajoutée automatiquement.
+                  <strong>Commission {config.label} : {commissionRate}%</strong> — Indiquez vos prix HT, la commission sera ajoutée automatiquement.
                 </span>
               </div>
             </div>
@@ -1141,7 +1143,7 @@ export default function ExcelImportModal({
               >
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <strong>Commission {config.label} : {config.commission}%</strong> — Indiquez vos prix HT, la commission sera ajoutée automatiquement.
+                  <strong>Commission {config.label} : {commissionRate}%</strong> — Indiquez vos prix HT, la commission sera ajoutée automatiquement.
                 </span>
               </div>
             </div>

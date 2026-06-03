@@ -10,6 +10,7 @@ import {
   ImagePlus, Zap, Lock, Send, Pencil, Trash2, Info, MessageSquare,
 } from "lucide-react";
 import { type PartnerPlan, PLAN_CONFIG, CommissionReminder, UpgradeCTA } from "./PartnerSections";
+import { useEffectiveCommission } from "@/hooks/usePricingMode";
 
 const AddProductForm = lazy(() => import("./AddProductForm"));
 const ExcelImportModal = lazy(() => import("./ExcelImportModal"));
@@ -127,6 +128,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
   const queryClient = useQueryClient();
   const { profile } = useAuth();
   const config = PLAN_CONFIG[plan];
+  const commissionRate = useEffectiveCommission(plan);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [showExcelImport, setShowExcelImport] = useState(false);
@@ -172,7 +174,7 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
         image: prod.image_url || fallbackImage || undefined,
         category: prod.category ?? undefined,
         price: prod.price_min ?? 0,
-        commissionRate: config.commission,
+        commissionRate: commissionRate,
         views: 0,
         quotes: 0,
         stock: ({ available: "En stock", in_stock: "En stock", low_stock: "Stock faible", out_of_stock: "Rupture", on_order: "En commande", production: "En production" } as Record<string, string>)[prod.stock_status ?? ""] ?? prod.stock_status ?? "—",
@@ -337,9 +339,9 @@ export function PartnerCatalogueSection({ plan, partnerId, profileCompleted = tr
       <div className="flex items-start gap-3 px-4 py-3 rounded-sm border" style={{ background: config.bg, borderColor: config.border }}>
         <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" style={{ color: config.color }} />
         <div className="text-[10px] font-body leading-relaxed" style={{ color: config.color }}>
-          <strong>Commission {config.label} : {config.commission}%</strong>
+          <strong>Commission {config.label} : {commissionRate}%</strong>
           <br />
-          Les prix ci-dessous sont vos prix HT. La commission Terrassea de {config.commission}% est ajoutée au prix présenté au client.
+          Les prix ci-dessous sont vos prix HT. La commission Terrassea de {commissionRate}% est ajoutée au prix présenté au client.
         </div>
       </div>
 

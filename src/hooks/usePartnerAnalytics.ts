@@ -93,7 +93,7 @@ export const TIER_CONFIG: Record<PartnerTier, TierConfig> = {
   },
   brand_member: {
     key: "brand_member", name: "Brand Member", nameKey: "partnerTiers.brandMember",
-    monthlyPrice: 799, annualPrice: 8150, commission: 2, engagement: "12_months",
+    monthlyPrice: 799, annualPrice: 8150, commission: 0, engagement: "12_months",
     maxProducts: 999, maxCategories: null, featuredProducts: 0,
     searchPriority: "maximum",
     hasAdvancedAnalytics: true, hasPremiumAnalytics: true,
@@ -108,7 +108,7 @@ export const TIER_CONFIG: Record<PartnerTier, TierConfig> = {
   },
   brand_network: {
     key: "brand_network", name: "Brand Network", nameKey: "partnerTiers.brandNetwork",
-    monthlyPrice: 1299, annualPrice: 13250, commission: 1.5, engagement: "12_months",
+    monthlyPrice: 1299, annualPrice: 13250, commission: 0, engagement: "12_months",
     maxProducts: 999, maxCategories: null, featuredProducts: 0,
     searchPriority: "maximum",
     hasAdvancedAnalytics: true, hasPremiumAnalytics: true,

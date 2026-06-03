@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useConversations } from "@/hooks/useConversations";
-import { usePricingMode } from "@/hooks/usePricingMode";
+import { usePricingMode, useEffectiveCommission } from "@/hooks/usePricingMode";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -55,7 +55,7 @@ export const PLAN_CONFIG = {
     color: "#7C3AED",
     bg: "#F5F3FF",
     border: "#C4B5FD",
-    commission: 2,
+    commission: 0,
     maxProducts: 999,
     price: "799€/mois",
     icon: Crown,
@@ -65,7 +65,7 @@ export const PLAN_CONFIG = {
     color: "#6D28D9",
     bg: "#EDE9FE",
     border: "#A78BFA",
-    commission: 1.5,
+    commission: 0,
     maxProducts: 999,
     price: "1299€/mois",
     icon: Crown,
@@ -312,6 +312,7 @@ export function PartnerPerformanceSection({ plan }: { plan: PartnerPlan }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const config = PLAN_CONFIG[plan];
+  const commissionRate = useEffectiveCommission(plan);
   const isElite = plan === "elite" || plan === "brand_member" || plan === "brand_network";
 
   const handleExportCSV = () => {
@@ -367,21 +368,21 @@ export function PartnerPerformanceSection({ plan }: { plan: PartnerPlan }) {
         <p className="font-display font-semibold text-xs text-foreground mb-3 flex items-center gap-2">
           {t('pd.perf.commTracking')}
           <span className="text-[9px] font-display font-bold px-2 py-0.5 rounded-full" style={{ background: config.bg, color: config.color }}>
-            {config.commission}%
+            {commissionRate}%
           </span>
         </p>
         <div className="border border-border rounded-sm divide-y divide-border">
           <div className="flex items-center justify-between px-4 py-2.5">
             <span className="text-[10px] font-body text-muted-foreground">{t('pd.perf.thisMonth')}</span>
-            <span className="text-xs font-display font-semibold text-foreground">€{(8200 * config.commission / 100).toFixed(0)}</span>
+            <span className="text-xs font-display font-semibold text-foreground">€{(8200 * commissionRate / 100).toFixed(0)}</span>
           </div>
           <div className="flex items-center justify-between px-4 py-2.5">
             <span className="text-[10px] font-body text-muted-foreground">{t('pd.perf.lastMonth')}</span>
-            <span className="text-xs font-display font-semibold text-foreground">€{(7100 * config.commission / 100).toFixed(0)}</span>
+            <span className="text-xs font-display font-semibold text-foreground">€{(7100 * commissionRate / 100).toFixed(0)}</span>
           </div>
           <div className="flex items-center justify-between px-4 py-2.5">
             <span className="text-[10px] font-body text-muted-foreground">{t('pd.perf.total')}</span>
-            <span className="text-xs font-display font-semibold text-foreground">€{(32400 * config.commission / 100).toFixed(0)}</span>
+            <span className="text-xs font-display font-semibold text-foreground">€{(32400 * commissionRate / 100).toFixed(0)}</span>
           </div>
         </div>
       </div>

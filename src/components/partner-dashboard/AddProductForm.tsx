@@ -10,6 +10,7 @@ import {
   Plus, Trash2, Layers, ShieldCheck,
 } from "lucide-react";
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
+import { useEffectiveCommission } from "@/hooks/usePricingMode";
 import VariantsSection from "./VariantsSection";
 import ProductCertifications from "./ProductCertifications";
 import type { DimensionVariant } from "@/lib/products";
@@ -199,6 +200,7 @@ export default function AddProductForm({
   const { user } = useAuth();
   const { submitProduct, isSubmitting } = useProductSubmission();
   const config = PLAN_CONFIG[plan];
+  const commissionRate = useEffectiveCommission(plan);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const envInputRef = useRef<HTMLInputElement>(null);
@@ -729,7 +731,7 @@ export default function AddProductForm({
     </div>
   );
 
-  const commissionAmount = form.price_min ? form.price_min * (config.commission / 100) : 0;
+  const commissionAmount = form.price_min ? form.price_min * (commissionRate / 100) : 0;
   const clientPrice = form.price_min ? form.price_min + commissionAmount : 0;
 
   const SECTION_TABS = [
@@ -1249,9 +1251,9 @@ export default function AddProductForm({
               >
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" style={{ color: config.color }} />
                 <div className="text-[10px] font-body leading-relaxed" style={{ color: config.color }}>
-                  <strong>Plan {config.label} — Commission {config.commission}%</strong>
+                  <strong>Plan {config.label} — Commission {commissionRate}%</strong>
                   <br />
-                  Indiquez votre prix HT. La commission Terrassea de {config.commission}% sera ajoutée au prix présenté au client.
+                  Indiquez votre prix HT. La commission Terrassea de {commissionRate}% sera ajoutée au prix présenté au client.
                 </div>
               </div>
 
@@ -1399,7 +1401,7 @@ export default function AddProductForm({
                   {renderInput("Prix minimum HT", "price_min", "number", true, "0", "€")}
                   {form.price_min != null && form.price_min > 0 && (
                     <p className="text-[9px] font-body text-amber-600 mt-1">
-                      +{config.commission}% comm. ≈ €{commissionAmount.toFixed(0)} → Client : <strong>€{clientPrice.toFixed(0)}</strong>
+                      +{commissionRate}% comm. ≈ €{commissionAmount.toFixed(0)} → Client : <strong>€{clientPrice.toFixed(0)}</strong>
                     </p>
                   )}
                 </div>
@@ -1407,7 +1409,7 @@ export default function AddProductForm({
                   {renderInput("Prix maximum HT", "price_max", "number", false, "Optionnel", "€")}
                   {form.price_max != null && form.price_max > 0 && (
                     <p className="text-[9px] font-body text-amber-600 mt-1">
-                      → Client : <strong>€{(form.price_max + form.price_max * config.commission / 100).toFixed(0)}</strong>
+                      → Client : <strong>€{(form.price_max + form.price_max * commissionRate / 100).toFixed(0)}</strong>
                     </p>
                   )}
                 </div>
