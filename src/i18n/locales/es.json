@@ -4280,7 +4280,11 @@
     "discoverCollection": "Descubrir la colección",
     "discoverBrand": "Descubrir la marca",
     "searchBrands": "Buscar una marca, un país…",
-    "noBrandFound": "Ninguna marca coincide con tu búsqueda."
+    "noBrandFound": "Ninguna marca coincide con tu búsqueda.",
+    "tierMaisons": "Casas insignia",
+    "tierManufactures": "Fabricantes asociados",
+    "maisonSignature": "Casa insignia",
+    "manufacturePartner": "Fabricante asociado"
   },
   "brief": {
     "submitTitle": "Enviar un brief de proyecto",

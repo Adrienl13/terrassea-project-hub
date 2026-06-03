@@ -4295,7 +4295,11 @@
     "discoverCollection": "Découvrir la collection",
     "discoverBrand": "Découvrir la marque",
     "searchBrands": "Rechercher une marque, un pays…",
-    "noBrandFound": "Aucune marque ne correspond à votre recherche."
+    "noBrandFound": "Aucune marque ne correspond à votre recherche.",
+    "tierMaisons": "Maisons signature",
+    "tierManufactures": "Manufactures partenaires",
+    "maisonSignature": "Maison signature",
+    "manufacturePartner": "Manufacture partenaire"
   },
   "brief": {
     "submitTitle": "Soumettre un brief projet",

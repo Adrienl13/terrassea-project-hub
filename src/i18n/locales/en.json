@@ -4280,7 +4280,11 @@
     "discoverCollection": "Discover the collection",
     "discoverBrand": "Discover the brand",
     "searchBrands": "Search a brand, a country…",
-    "noBrandFound": "No brand matches your search."
+    "noBrandFound": "No brand matches your search.",
+    "tierMaisons": "Signature houses",
+    "tierManufactures": "Partner manufacturers",
+    "maisonSignature": "Signature house",
+    "manufacturePartner": "Partner manufacturer"
   },
   "brief": {
     "submitTitle": "Submit a project brief",

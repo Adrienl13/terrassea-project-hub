@@ -23,6 +23,18 @@ export default function AdminBrandEditor() {
   const [activeTab, setActiveTab] = useState<EditorTab>("profile");
   const [inviting, setInviting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [savingTier, setSavingTier] = useState(false);
+
+  const handleTierChange = async (tier: string) => {
+    if (!partnerId) return;
+    setSavingTier(true);
+    const { error } = await supabase.from("partners").update({ showcase_tier: tier } as any).eq("id", partnerId);
+    setSavingTier(false);
+    if (error) { toast.error("Erreur : " + (error.message || "")); return; }
+    toast.success(tier === "signature" ? "Niveau vitrine : Maison signature" : "Niveau vitrine : Manufacture partenaire");
+    queryClient.invalidateQueries({ queryKey: ["admin-brand-edit", partnerId] });
+    queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
+  };
 
   const { data: partner, isLoading } = useQuery({
     queryKey: ["admin-brand-edit", partnerId],
@@ -30,11 +42,12 @@ export default function AdminBrandEditor() {
       if (!partnerId) return null;
       const { data, error } = await supabase
         .from("partners")
-        .select("id, name, slug, logo_url, plan, partner_mode, partner_type, profile_completed, contact_email, user_id, is_founding, founding_tier, founding_joined_at, founding_total_points")
+        .select("id, name, slug, logo_url, plan, partner_mode, partner_type, profile_completed, contact_email, user_id, is_founding, founding_tier, founding_joined_at, founding_total_points, showcase_tier")
         .eq("id", partnerId)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      // showcase_tier is a fresh column not yet in the generated Supabase types.
+      return data as any;
     },
     enabled: !!partnerId,
   });
@@ -245,6 +258,25 @@ export default function AdminBrandEditor() {
           </div>
         </div>
       )}
+
+      {/* Showcase tier — manual editorial curation (signature maison vs partner manufacture) */}
+      <div className="flex items-center gap-3 flex-wrap rounded-xl border border-border bg-muted/30 px-4 py-3">
+        <div className="flex-1 min-w-[200px]">
+          <p className="text-xs font-display font-semibold text-foreground">Niveau vitrine</p>
+          <p className="text-[11px] font-body text-muted-foreground">
+            Pilote la présentation publique sur /collections. « Maison signature » = mise en avant éditoriale ; « Manufacture partenaire » = présence catalogue.
+          </p>
+        </div>
+        <select
+          value={(partner as any).showcase_tier ?? "manufacture"}
+          onChange={(e) => handleTierChange(e.target.value)}
+          disabled={savingTier}
+          className="text-xs font-body border border-border rounded-lg px-3 py-2 bg-white outline-none focus:border-purple-500 disabled:opacity-50"
+        >
+          <option value="signature">Maison signature</option>
+          <option value="manufacture">Manufacture partenaire</option>
+        </select>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-border overflow-x-auto">

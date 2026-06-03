@@ -45,6 +45,7 @@ interface BrandPartner {
   is_founding: boolean | null;
   founding_tier: string | null;
   founding_tier_rank: number | null;
+  showcase_tier: string | null;
 }
 
 interface BrandReferenceItem {
@@ -368,6 +369,9 @@ export default function BrandPage() {
               </div>
               {tagline && <p className="text-sm font-body text-white/60 mt-2 max-w-xl">{tagline}.</p>}
               <div className="flex flex-wrap items-center gap-4 mt-4">
+                <span className="text-[10px] font-display font-semibold uppercase tracking-[0.15em] text-white/75 bg-white/10 px-2.5 py-0.5 rounded-full">
+                  {brand.showcase_tier === "signature" ? t("brand.maisonSignature", "Maison signature") : t("brand.manufacturePartner", "Manufacture partenaire")}
+                </span>
                 {flag && brand.country && (
                   <span className="flex items-center gap-1.5 text-xs font-body text-white/70">
                     <MapPin className="h-3 w-3" /> {flag} {brand.country}{brand.city ? `, ${brand.city}` : ""}

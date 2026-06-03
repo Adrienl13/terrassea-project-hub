@@ -32,6 +32,7 @@ interface BrandPartner {
   is_founding: boolean | null;
   founding_tier: string | null;
   founding_tier_rank: number | null;
+  showcase_tier: string | null;
 }
 
 interface CollItem {
@@ -72,7 +73,7 @@ export default function Collections() {
       try {
         const { data, error: err } = await supabase
           .from("partners")
-          .select("id, slug, name, logo_url, country, country_code, description, partner_mode, hero_image_url, cover_photo_url, founded_year, specialties, certifications, priority_order, is_founding, founding_tier, founding_tier_rank")
+          .select("id, slug, name, logo_url, country, country_code, description, partner_mode, hero_image_url, cover_photo_url, founded_year, specialties, certifications, priority_order, is_founding, founding_tier, founding_tier_rank, showcase_tier")
           .in("partner_mode", ["brand_member", "brand_network"])
           .eq("is_active", true)
           .order("founding_tier_rank", { ascending: false, nullsFirst: false })
@@ -81,7 +82,8 @@ export default function Collections() {
 
         if (cancelled) return;
         if (err) { setError(err.message); setLoading(false); return; }
-        setBrands(data ?? []);
+        // showcase_tier is a fresh column not yet in the generated Supabase types.
+        setBrands((data ?? []) as unknown as BrandPartner[]);
         setLoading(false);
       } catch (e) {
         if (!cancelled) { setError(e instanceof Error ? e.message : "Erreur inconnue"); setLoading(false); }
@@ -126,6 +128,76 @@ export default function Collections() {
   const visibleBrands = q
     ? brands.filter((b) => b.name.toLowerCase().includes(q) || (b.country ?? "").toLowerCase().includes(q))
     : brands;
+  const maisons = visibleBrands.filter((b) => b.showcase_tier === "signature");
+  const manufactures = visibleBrands.filter((b) => b.showcase_tier !== "signature");
+
+  const renderBrandCard = (brand: BrandPartner) => {
+    const data = brandData[brand.id];
+    const collItems = data ? data.items : [];
+    const flag = countryFlag(brand.country_code);
+    const heroImg = brand.hero_image_url || brand.cover_photo_url;
+    const thumbs = collItems.filter((c) => c.cover_image_url).slice(0, 3);
+    return (
+      <Link
+        key={brand.id}
+        to={"/brands/" + brand.slug}
+        className="group flex flex-col rounded-2xl overflow-hidden border border-border bg-white hover:shadow-lg hover:shadow-black/[0.06] hover:-translate-y-0.5 transition-all duration-300"
+      >
+        <div className="aspect-[16/10] relative bg-muted overflow-hidden">
+          {heroImg ? (
+            <img loading="lazy" src={heroImg} alt={brand.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-[#1C1A17]">
+              {brand.logo_url ? (
+                <img loading="lazy" src={brand.logo_url} alt={brand.name} className="h-14 w-auto max-w-[60%] object-contain opacity-90" />
+              ) : (
+                <span className="font-display text-4xl font-bold text-white/20">{brand.name.charAt(0)}</span>
+              )}
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+          {brand.is_founding && brand.founding_tier ? (
+            <div className="absolute top-3 right-3">
+              <FoundingBadge tier={brand.founding_tier as FoundingTier} size="sm" />
+            </div>
+          ) : null}
+          {heroImg && brand.logo_url ? (
+            <div className="absolute top-3 left-3 h-9 bg-white rounded-lg px-2 flex items-center shadow-sm">
+              <img loading="lazy" src={brand.logo_url} alt="" className="max-h-6 w-auto max-w-[80px] object-contain" />
+            </div>
+          ) : null}
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <h2 className="font-display text-xl font-bold text-white leading-tight truncate">{brand.name}</h2>
+            <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-body text-white/80">
+              {flag ? <span>{flag}</span> : null}
+              {brand.country ? <span>{brand.country}</span> : null}
+              {brand.founded_year ? <span className="text-white/50">· {brand.founded_year}</span> : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 py-3 flex items-center justify-between gap-2">
+          <span className="text-xs font-display font-semibold text-foreground">
+            {t("brand.collectionCount", { count: collItems.length })}
+          </span>
+          {thumbs.length > 0 ? (
+            <div className="flex items-center -space-x-2">
+              {thumbs.map((c) => (
+                <img key={c.id} loading="lazy" src={c.cover_image_url!} alt="" className="h-7 w-7 rounded-md object-cover ring-2 ring-white" />
+              ))}
+              {collItems.length > 3 ? (
+                <span className="h-7 min-w-7 px-1 rounded-md bg-foreground/5 ring-2 ring-white flex items-center justify-center text-[10px] font-display font-bold text-foreground">+{collItems.length - 3}</span>
+              ) : null}
+            </div>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-xs font-display font-semibold text-[#D4603A] group-hover:gap-1.5 transition-all">
+              {t("brand.discoverBrand", "Découvrir")} <ArrowRight className="h-3.5 w-3.5" />
+            </span>
+          )}
+        </div>
+      </Link>
+    );
+  };
 
   return (
     <>
@@ -201,78 +273,30 @@ export default function Collections() {
               </div>
             ) : null}
 
-            {/* Compact brand directory grid — scales to many brands */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {visibleBrands.map((brand) => {
-                const data = brandData[brand.id];
-                const collItems = data ? data.items : [];
-                const flag = countryFlag(brand.country_code);
-                const heroImg = brand.hero_image_url || brand.cover_photo_url;
-                const thumbs = collItems.filter((c) => c.cover_image_url).slice(0, 3);
-                return (
-                  <Link
-                    key={brand.id}
-                    to={"/brands/" + brand.slug}
-                    className="group flex flex-col rounded-2xl overflow-hidden border border-border bg-white hover:shadow-lg hover:shadow-black/[0.06] hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {/* Image header */}
-                    <div className="aspect-[16/10] relative bg-muted overflow-hidden">
-                      {heroImg ? (
-                        <img loading="lazy" src={heroImg} alt={brand.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#1C1A17]">
-                          {brand.logo_url ? (
-                            <img loading="lazy" src={brand.logo_url} alt={brand.name} className="h-14 w-auto max-w-[60%] object-contain opacity-90" />
-                          ) : (
-                            <span className="font-display text-4xl font-bold text-white/20">{brand.name.charAt(0)}</span>
-                          )}
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                      {brand.is_founding && brand.founding_tier ? (
-                        <div className="absolute top-3 right-3">
-                          <FoundingBadge tier={brand.founding_tier as FoundingTier} size="sm" />
-                        </div>
-                      ) : null}
-                      {heroImg && brand.logo_url ? (
-                        <div className="absolute top-3 left-3 h-9 bg-white rounded-lg px-2 flex items-center shadow-sm">
-                          <img loading="lazy" src={brand.logo_url} alt="" className="max-h-6 w-auto max-w-[80px] object-contain" />
-                        </div>
-                      ) : null}
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h2 className="font-display text-xl font-bold text-white leading-tight truncate">{brand.name}</h2>
-                        <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-body text-white/80">
-                          {flag ? <span>{flag}</span> : null}
-                          {brand.country ? <span>{brand.country}</span> : null}
-                          {brand.founded_year ? <span className="text-white/50">· {brand.founded_year}</span> : null}
-                        </div>
-                      </div>
-                    </div>
+            {/* Two curated strata: signature maisons first, then partner manufactures */}
+            {maisons.length > 0 ? (
+              <div className="mb-12">
+                <div className="flex items-baseline gap-3 mb-5">
+                  <h2 className="font-display text-lg font-bold text-foreground">{t("brand.tierMaisons", "Maisons signature")}</h2>
+                  <span className="text-xs font-body text-muted-foreground">{maisons.length}</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {maisons.map(renderBrandCard)}
+                </div>
+              </div>
+            ) : null}
 
-                    {/* Footer: collection count + mini cover previews */}
-                    <div className="px-4 py-3 flex items-center justify-between gap-2">
-                      <span className="text-xs font-display font-semibold text-foreground">
-                        {t("brand.collectionCount", { count: collItems.length })}
-                      </span>
-                      {thumbs.length > 0 ? (
-                        <div className="flex items-center -space-x-2">
-                          {thumbs.map((c) => (
-                            <img key={c.id} loading="lazy" src={c.cover_image_url!} alt="" className="h-7 w-7 rounded-md object-cover ring-2 ring-white" />
-                          ))}
-                          {collItems.length > 3 ? (
-                            <span className="h-7 min-w-7 px-1 rounded-md bg-foreground/5 ring-2 ring-white flex items-center justify-center text-[10px] font-display font-bold text-foreground">+{collItems.length - 3}</span>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-display font-semibold text-[#D4603A] group-hover:gap-1.5 transition-all">
-                          {t("brand.discoverBrand", "Découvrir")} <ArrowRight className="h-3.5 w-3.5" />
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+            {manufactures.length > 0 ? (
+              <div>
+                <div className="flex items-baseline gap-3 mb-5">
+                  <h2 className="font-display text-lg font-bold text-foreground">{t("brand.tierManufactures", "Manufactures partenaires")}</h2>
+                  <span className="text-xs font-body text-muted-foreground">{manufactures.length}</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {manufactures.map(renderBrandCard)}
+                </div>
+              </div>
+            ) : null}
 
             {visibleBrands.length === 0 ? (
               <p className="text-sm font-body text-muted-foreground text-center py-12">
