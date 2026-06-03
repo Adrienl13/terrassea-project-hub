@@ -353,15 +353,15 @@ export default function BrandPage() {
           <Link to="/collections" className="inline-flex items-center gap-1.5 text-xs font-body text-white/50 hover:text-white mb-8 transition-colors">
             <ArrowLeft className="h-3.5 w-3.5" /> {t("brand.backToCollections")}
           </Link>
-          <div className="flex items-end gap-6">
+          <div className="flex items-end gap-4 sm:gap-6">
             {brand.logo_url && (
-              <div className="h-20 flex items-center justify-center bg-white rounded-2xl px-4 shadow-lg shadow-black/20 shrink-0">
-                <img loading="lazy" src={brand.logo_url} alt={brand.name} className="max-h-12 w-auto max-w-[180px] object-contain" />
+              <div className="h-16 sm:h-20 flex items-center justify-center bg-white rounded-2xl px-3 sm:px-4 shadow-lg shadow-black/20 shrink-0">
+                <img loading="lazy" src={brand.logo_url} alt={brand.name} className="max-h-10 sm:max-h-12 w-auto max-w-[120px] sm:max-w-[180px] object-contain" />
               </div>
             )}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-3">
-                <h1 className="font-display text-4xl md:text-5xl font-bold text-white tracking-tight">{brand.name}</h1>
+                <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight break-words">{brand.name}</h1>
                 {brand.is_founding && brand.founding_tier ? (
                   <FoundingBadge tier={brand.founding_tier as FoundingTier} />
                 ) : null}
