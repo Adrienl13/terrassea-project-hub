@@ -4222,7 +4222,7 @@
     "joinDescription": "Unisciti alla nostra selezione di marchi partner e presenta le tue collezioni a una rete qualificata di professionisti CHR.",
     "becomePartner": "Diventa marchio partner",
     "noBrands": "Nessun marchio disponibile al momento.",
-    "comingSoon": "Collezioni in arrivo.",
+    "comingSoon": "Collezioni in arrivo",
     "notFound": "Marchio non trovato",
     "notFoundDescription": "Questo marchio non esiste o non è disponibile.",
     "backToCollections": "Torna alle collezioni",
@@ -4277,7 +4277,8 @@
     "newCollection": "Nuova collezione",
     "newCollectionPlaceholder": "Nome della nuova collezione",
     "backToList": "← Scegli una collezione esistente",
-    "discoverCollection": "Scopri la collezione"
+    "discoverCollection": "Scopri la collezione",
+    "discoverBrand": "Scopri il brand"
   },
   "brief": {
     "submitTitle": "Invia un brief di progetto",

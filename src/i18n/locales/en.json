@@ -4222,7 +4222,7 @@
     "joinDescription": "Join our selection of partner brands and showcase your collections to a qualified network of hospitality professionals.",
     "becomePartner": "Become a partner brand",
     "noBrands": "No brands available at the moment.",
-    "comingSoon": "Collections coming soon.",
+    "comingSoon": "Collections coming soon",
     "notFound": "Brand not found",
     "notFoundDescription": "This brand does not exist or is not available.",
     "backToCollections": "Back to collections",
@@ -4277,7 +4277,8 @@
     "newCollection": "New collection",
     "newCollectionPlaceholder": "Name of the new collection",
     "backToList": "← Choose an existing collection",
-    "discoverCollection": "Discover the collection"
+    "discoverCollection": "Discover the collection",
+    "discoverBrand": "Discover the brand"
   },
   "brief": {
     "submitTitle": "Submit a project brief",

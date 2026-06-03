@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, MapPin, Sparkles, Package, Award, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, MapPin, Sparkles, Package, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+// Max collection covers shown per brand before a "+N" tile links to the brand page.
+const PREVIEW_CAP = 7;
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -31,18 +34,16 @@ interface BrandPartner {
   founding_tier_rank: number | null;
 }
 
-interface CollectionOffer {
-  collection_name: string | null;
-  product: {
-    image_url: string | null;
-    name: string;
-    category: string | null;
-  } | null;
+interface CollItem {
+  id: string;
+  name: string;
+  cover_image_url: string | null;
+  designer: string | null;
+  year: number | null;
 }
 
 interface BrandCollections {
-  grouped: Record<string, CollectionOffer[]>;
-  totalProducts: number;
+  items: CollItem[];
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -54,24 +55,12 @@ function countryFlag(code: string | null | undefined): string {
   );
 }
 
-function groupByCollection(offers: CollectionOffer[]): Record<string, CollectionOffer[]> {
-  const result: Record<string, CollectionOffer[]> = {};
-  for (const offer of offers) {
-    const key = offer.collection_name;
-    if (!key) continue;
-    if (!result[key]) result[key] = [];
-    result[key].push(offer);
-  }
-  return result;
-}
-
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function Collections() {
   const { t } = useTranslation();
   const [brands, setBrands] = useState<BrandPartner[]>([]);
   const [brandData, setBrandData] = useState<Record<string, BrandCollections>>({});
-  const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,23 +90,22 @@ export default function Collections() {
     return () => { cancelled = true; };
   }, []);
 
-  // ── Fetch all collections for all brands ─────────────────────────────────
+  // ── Fetch collections for all brands (source of truth = brand_collections) ─
   const fetchCollections = useCallback(async (brandId: string) => {
     try {
       const { data, error: err } = await supabase
-        .from("product_offers")
-        .select("collection_name, product:product_id(image_url, name, category)")
+        .from("brand_collections")
+        .select("id, name, cover_image_url, designer, year, display_order")
         .eq("partner_id", brandId)
         .eq("is_active", true)
-        .not("collection_name", "is", null);
+        .order("display_order", { ascending: true });
 
       if (err) { console.error("[Collections] fetch error:", err.message); return; }
 
-      const offers = (data ?? []) as CollectionOffer[];
-      const grouped = groupByCollection(offers);
       setBrandData((prev) => ({
         ...prev,
-        [brandId]: { grouped, totalProducts: offers.length },
+        // designer/year are fresh columns not yet in the generated Supabase types.
+        [brandId]: { items: (data ?? []) as unknown as CollItem[] },
       }));
     } catch (e) {
       console.error("[Collections] fetch error:", e);
@@ -166,16 +154,9 @@ export default function Collections() {
             <div className="w-px h-8 bg-white/10" />
             <div className="text-center">
               <p className="font-display text-2xl font-bold text-white">
-                {String(Object.values(brandData).reduce((acc, d) => acc + Object.keys(d.grouped).length, 0))}
+                {String(Object.values(brandData).reduce((acc, d) => acc + d.items.length, 0))}
               </p>
               <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{t("brand.collectionsCount")}</p>
-            </div>
-            <div className="w-px h-8 bg-white/10" />
-            <div className="text-center">
-              <p className="font-display text-2xl font-bold text-white">
-                {String(Object.values(brandData).reduce((acc, d) => acc + d.totalProducts, 0))}
-              </p>
-              <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{t("brand.productsCount")}</p>
             </div>
           </div>
         </div>
@@ -201,8 +182,7 @@ export default function Collections() {
       ) : (
         brands.map((brand, brandIdx) => {
           const data = brandData[brand.id];
-          const collections = data ? data.grouped : {};
-          const collNames = Object.keys(collections);
+          const collItems = data ? data.items : [];
           const flag = countryFlag(brand.country_code);
           const heroImg = brand.hero_image_url || brand.cover_photo_url;
           const isEven = brandIdx % 2 === 0;
@@ -287,138 +267,57 @@ export default function Collections() {
                       </div>
                     ) : null}
 
-                    {/* Stats + mini collection previews */}
+                    {/* Collection count */}
                     <div className="flex items-center gap-4 text-xs font-body text-muted-foreground mb-5">
                       <span className="flex items-center gap-1.5">
                         <Package className="h-3.5 w-3.5" />
-                        {t("brand.collectionCount", { count: collNames.length })}
+                        {t("brand.collectionCount", { count: collItems.length })}
                       </span>
-                      {data ? (
-                        <span>{t("brand.productCount", { count: data.totalProducts })}</span>
-                      ) : null}
                     </div>
 
-                    {/* Mini preview thumbnails — always visible */}
-                    {collNames.length > 0 ? (
-                      <div className="flex gap-2 mb-6">
-                        {collNames.map((collName) => {
-                          const items = collections[collName] ?? [];
-                          const thumb = items.find((i) => i.product?.image_url)?.product?.image_url ?? null;
-                          return (
-                            <Link
-                              key={collName}
-                              to={"/brands/" + brand.slug + "?collection=" + encodeURIComponent(collName)}
-                              className="group flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-background hover:border-foreground/30 transition-colors"
-                            >
-                              {thumb ? (
-                                <img loading="lazy" src={thumb} alt="" className="h-5 w-5 rounded-full object-cover" />
-                              ) : (
-                                <div className="h-5 w-5 rounded-full bg-gradient-to-br from-stone-200 to-stone-300 flex items-center justify-center">
-                                  <span className="text-[7px] font-bold text-stone-500">{collName.charAt(0)}</span>
-                                </div>
-                              )}
-                              <span className="text-[11px] font-display font-semibold text-foreground">{collName}</span>
-                            </Link>
-                          );
-                        })}
+                    {/* Preview cover tiles, capped — adapts to the number of collections */}
+                    {collItems.length > 0 ? (
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-6">
+                        {collItems.slice(0, PREVIEW_CAP).map((coll) => (
+                          <Link
+                            key={coll.id}
+                            to={"/brands/" + brand.slug + "?collection=" + encodeURIComponent(coll.name)}
+                            className="group relative block aspect-square rounded-lg overflow-hidden bg-muted"
+                          >
+                            {coll.cover_image_url ? (
+                              <img loading="lazy" src={coll.cover_image_url} alt={coll.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-stone-100 to-stone-300">
+                                <span className="font-display text-lg font-bold text-stone-400/60">{coll.name.charAt(0)}</span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+                            <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-display font-semibold text-white leading-tight line-clamp-2">{coll.name}</span>
+                          </Link>
+                        ))}
+                        {collItems.length > PREVIEW_CAP ? (
+                          <Link
+                            to={"/brands/" + brand.slug}
+                            className="flex items-center justify-center aspect-square rounded-lg bg-foreground/5 border border-border hover:border-foreground/30 hover:bg-foreground/[0.07] transition-colors"
+                          >
+                            <span className="text-sm font-display font-bold text-foreground">+{collItems.length - PREVIEW_CAP}</span>
+                          </Link>
+                        ) : null}
                       </div>
-                    ) : null}
-
-                    {/* Expand / Collapse + Discover link */}
-                    <div className="flex items-center gap-4">
-                      {collNames.length > 0 && (
-                        <button
-                          onClick={() => setExpandedBrand((prev) => (prev === brand.id ? null : brand.id))}
-                          className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] transition-colors"
-                        >
-                          {expandedBrand === brand.id ? t("brand.hideCollections") : t("brand.showCollections")}
-                          {expandedBrand === brand.id ? (
-                            <ChevronUp className="h-3.5 w-3.5" />
-                          ) : (
-                            <ChevronDown className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      )}
-                      <Link
-                        to={"/brands/" + brand.slug}
-                        className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-foreground hover:text-[#D4603A] transition-colors"
-                      >
-                        {t("brand.discoverBrand", "Découvrir")} <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
-                    {collNames.length === 0 && (
-                      <p className="text-[10px] font-body text-muted-foreground mt-2 italic">Collections à venir</p>
+                    ) : (
+                      <p className="text-[11px] font-body text-muted-foreground mb-6 italic">{t("brand.comingSoon", "Collections à venir")}</p>
                     )}
+
+                    {/* Discover link */}
+                    <Link
+                      to={"/brands/" + brand.slug}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+                    >
+                      {t("brand.discoverBrand", "Découvrir la marque")} <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </div>
                 </div>
 
-                {/* ── Expanded collections grid ───────────────────────────── */}
-                {expandedBrand === brand.id && collNames.length > 0 ? (
-                  <div className="mt-10 pt-10 border-t border-border">
-                    <h3 className="font-display text-sm font-bold text-foreground uppercase tracking-wider mb-6">
-                      {t("brand.collectionsOf", { name: brand.name })}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {collNames.map((collName) => {
-                        const items = collections[collName] ?? [];
-                        const heroImage = items.find((i) => i.product?.image_url)?.product?.image_url ?? null;
-                        const categories = [...new Set(items.map((i) => i.product?.category).filter(Boolean))];
-
-                        return (
-                          <Link
-                            key={collName}
-                            to={"/brands/" + brand.slug + "?collection=" + encodeURIComponent(collName)}
-                            className="group block"
-                          >
-                            <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3 relative">
-                              {heroImage ? (
-                                <img
-                                  src={heroImage}
-                                  alt={collName}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300 flex items-center justify-center">
-                                  <span className="font-display text-3xl font-bold text-stone-400/50">{collName.charAt(0)}</span>
-                                </div>
-                              )}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                              <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                                <ArrowRight className="h-3.5 w-3.5 text-foreground" />
-                              </div>
-                            </div>
-                            <h4 className="font-display text-base font-bold text-foreground group-hover:text-[#D4603A] transition-colors">
-                              {collName}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[10px] font-body text-muted-foreground">
-                                {t("brand.productCount", { count: items.length })}
-                              </span>
-                              {categories.length > 0 ? (
-                                <span className="text-[10px] font-body text-muted-foreground">
-                                  {"\u00b7 " + categories.slice(0, 2).join(", ")}
-                                </span>
-                              ) : null}
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-
-                    <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <Link
-                        to={"/brands/" + brand.slug}
-                        className="inline-flex items-center gap-2 px-6 py-3 font-display font-semibold text-sm bg-foreground text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
-                      >
-                        {t("brand.discover", { name: brand.name })}
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                      <span className="text-[10px] font-body text-muted-foreground">
-                        {t("brand.briefAccess")}
-                      </span>
-                    </div>
-                  </div>
-                ) : null}
               </div>
             </section>
           );
