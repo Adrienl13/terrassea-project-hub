@@ -11,6 +11,7 @@ import {
 
 import { PARTNER_TYPES } from "@/lib/partnerConstants";
 import { validateImageUpload } from "@/lib/validateUpload";
+import { compressImage } from "@/lib/imageCompress";
 import { SUPPORTED_COUNTRIES } from "@/lib/countries";
 
 // Single source of truth for countries (Dette 38 DRY, 2026-05-06). The form
@@ -220,9 +221,10 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     const vErr = validateImageUpload(file, { maxSizeMB: 5 });
     if (vErr) { toast.error(vErr); return; }
     setLoading(true);
-    const ext = file.name.split(".").pop() || "jpg";
+    const c = await compressImage(file);
+    const ext = c.name.split(".").pop() || "jpg";
     const path = `${pathPrefix}/${partnerId}.${ext}`;
-    const { error } = await supabase.storage.from("partner-assets").upload(path, file, { upsert: true });
+    const { error } = await supabase.storage.from("partner-assets").upload(path, c, { upsert: true, contentType: c.type });
     if (error) { toast.error("Upload failed"); setLoading(false); return; }
     const { data: urlData } = supabase.storage.from("partner-assets").getPublicUrl(path);
     setForm((prev) => ({ ...prev, [field]: urlData.publicUrl }));
@@ -240,9 +242,10 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     for (const file of files.slice(0, remaining)) {
       const vErr = validateImageUpload(file, { maxSizeMB: 5 });
       if (vErr) { toast.error(vErr); continue; }
-      const ext = file.name.split(".").pop() || "jpg";
+      const c = await compressImage(file);
+      const ext = c.name.split(".").pop() || "jpg";
       const path = `brand-gallery/${partnerId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
-      const { error } = await supabase.storage.from("partner-assets").upload(path, file, { contentType: file.type });
+      const { error } = await supabase.storage.from("partner-assets").upload(path, c, { contentType: c.type });
       if (!error) {
         const { data: urlData } = supabase.storage.from("partner-assets").getPublicUrl(path);
         newUrls.push(urlData.publicUrl);

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { PLAN_CONFIG, type PartnerPlan } from "./PartnerSections";
 import { useEffectiveCommission } from "@/hooks/usePricingMode";
+import { compressImage } from "@/lib/imageCompress";
 import VariantsSection from "./VariantsSection";
 import ProductCertifications from "./ProductCertifications";
 import type { DimensionVariant } from "@/lib/products";
@@ -396,11 +397,12 @@ export default function AddProductForm({
   ): Promise<string[]> => {
     const urls: string[] = [];
     for (const { file, preview } of files) {
-      const ext = file.name.split(".").pop() || "jpg";
+      const compressed = await compressImage(file);
+      const ext = compressed.name.split(".").pop() || "jpg";
       const path = `products/${user!.id}/${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("product-images")
-        .upload(path, file, { contentType: file.type });
+        .upload(path, compressed, { contentType: compressed.type });
       if (uploadError) {
         urls.push(preview);
       } else {
@@ -505,11 +507,12 @@ export default function AddProductForm({
       // Upload image to Supabase storage if we have a file
       let finalImageUrl = form.image_url;
       if (imageFile) {
-        const ext = imageFile.name.split(".").pop() || "jpg";
+        const compressed = await compressImage(imageFile);
+        const ext = compressed.name.split(".").pop() || "jpg";
         const path = `products/${user!.id}/${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from("product-images")
-          .upload(path, imageFile, { contentType: imageFile.type });
+          .upload(path, compressed, { contentType: compressed.type });
 
         if (uploadError) {
           // If bucket doesn't exist, use the preview as URL placeholder
