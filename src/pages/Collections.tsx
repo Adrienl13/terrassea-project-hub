@@ -152,7 +152,7 @@ export default function Collections() {
           <p className="text-base md:text-lg font-body text-white/50 max-w-2xl leading-relaxed">
             {t("brand.heroDescription")}
           </p>
-          <div className="flex items-center gap-6 mt-8">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-4 mt-8">
             <div className="text-center">
               <p className="font-display text-2xl font-bold text-white">{String(brands.length)}</p>
               <p className="text-[10px] font-body text-white/40 uppercase tracking-wider">{t("brand.brandsCount")}</p>

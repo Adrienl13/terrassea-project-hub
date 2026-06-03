@@ -888,7 +888,7 @@ function GallerySection({
         {title}
       </label>
       <p className="text-[10px] font-body text-muted-foreground mb-2">{hint}</p>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
         {urls.map((url) => (
           <div key={url} className="relative aspect-square rounded-lg overflow-hidden group border border-border">
             <img loading="lazy" src={url} alt="" className="w-full h-full object-cover" />

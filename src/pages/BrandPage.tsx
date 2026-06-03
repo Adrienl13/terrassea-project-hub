@@ -909,7 +909,7 @@ function CollectionDetailModal({
           <p className="text-[11px] font-display font-semibold uppercase tracking-[0.25em] text-white/70 mb-3">
             {t("brand.collection", "Collection")}
           </p>
-          <h2 className="font-display text-4xl sm:text-6xl font-bold text-white tracking-tight">{coll.name}</h2>
+          <h2 className="font-display text-3xl sm:text-6xl font-bold text-white tracking-tight break-words leading-tight max-w-full">{coll.name}</h2>
           {(coll.designer || coll.year) && (
             <p className="text-sm font-body text-white/80 mt-4">
               {coll.designer ? `${t("brand.designedBy", "Design")} : ${coll.designer}` : ""}
@@ -936,7 +936,7 @@ function CollectionDetailModal({
       {/* ── Metadata strip ── */}
       {meta.length > 0 && (
         <div className="border-y border-border bg-[#FAF7F4]">
-          <div className="max-w-3xl mx-auto px-6 py-7 flex flex-wrap items-center justify-center gap-x-12 gap-y-5 text-center">
+          <div className="max-w-3xl mx-auto px-6 py-7 flex flex-wrap items-center justify-center gap-x-8 sm:gap-x-12 gap-y-5 text-center">
             {meta.map((m) => (
               <div key={m.label}>
                 <p className="text-[10px] font-display font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-1">{m.label}</p>
