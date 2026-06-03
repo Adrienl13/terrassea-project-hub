@@ -312,6 +312,19 @@ export default function BrandPage() {
   const extraLocations = Array.isArray(brand.locations)
     ? brand.locations.filter((l) => l && (l.label || l.address || l.city || l.country))
     : [];
+  // Unified, uniform list of all brand addresses (primary showroom first).
+  const addressList: { label: string; address: string; city: string; country: string }[] = [
+    ...(brand.showroom_address
+      ? [{ label: t("brand.mainShowroom", "Showroom principal"), address: brand.showroom_address, city: brand.city || "", country: brand.country || "" }]
+      : []),
+    ...extraLocations.map((l) => ({
+      label: (l.label || "").trim(),
+      address: (l.address || "").trim(),
+      city: (l.city || "").trim(),
+      country: (l.country || "").trim(),
+    })),
+  ];
+  const hasContact = !!(brand.contact_name || brand.contact_email || brand.contact_phone);
   const hasKeyFigures = yearsExperience || collectionNames.length > 0 || offers.length > 0 || (brand.delivery_countries && brand.delivery_countries.length > 0);
 
   return (
@@ -700,60 +713,89 @@ export default function BrandPage() {
       </section>
 
       {/* ═══ Section 5 — Contact / Adresses ═══ */}
-      {(brand.contact_name || brand.contact_email || brand.showroom_address || extraLocations.length > 0) && (
-        <section className="py-16 bg-[#FAF7F4]">
-          <div className="container mx-auto px-6 max-w-3xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{t("brand.contactAddresses", "Contact & adresses")}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Contact card */}
-              {(brand.contact_name || brand.contact_email) && (
-                <div className="border border-border rounded-2xl p-6 bg-white">
-                  <h3 className="font-display text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" /> Contact
+      {(hasContact || addressList.length > 0) && (
+        <section className="py-16 sm:py-20 bg-[#FAF7F4]">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="text-center mb-10 sm:mb-12">
+              <p className="text-[11px] font-display font-semibold uppercase tracking-[0.25em] text-[#D4603A] mb-3">
+                {t("brand.getInTouch", "Échangeons")}
+              </p>
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground">{t("brand.contactAddresses", "Contact & adresses")}</h2>
+            </div>
+
+            <div className={`grid gap-6 ${hasContact && addressList.length > 0 ? "lg:grid-cols-3" : "grid-cols-1"}`}>
+              {/* Contact panel — dark accent so it stands apart from the address cards */}
+              {hasContact && (
+                <div className="bg-[#1C1A17] text-white rounded-3xl p-7 flex flex-col">
+                  <h3 className="font-display text-xs font-bold uppercase tracking-[0.18em] text-white/50 mb-5 flex items-center gap-2">
+                    <User className="h-3.5 w-3.5" /> {t("brand.contact", "Contact")}
                   </h3>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {brand.contact_name && (
-                      <p className="text-sm font-body text-foreground">{brand.contact_name}</p>
+                      <p className="font-display text-lg font-bold text-white">{brand.contact_name}</p>
                     )}
                     {brand.contact_email && (
-                      <a href={`mailto:${brand.contact_email}`} className="flex items-center gap-2 text-sm font-body text-[#D4603A] hover:underline">
-                        <Mail className="h-3.5 w-3.5" /> {brand.contact_email}
+                      <a href={`mailto:${brand.contact_email}`} className="flex items-center gap-2.5 text-sm font-body text-white/80 hover:text-[#E8845F] transition-colors break-all">
+                        <Mail className="h-4 w-4 flex-shrink-0 text-[#D4603A]" /> {brand.contact_email}
                       </a>
                     )}
                     {brand.contact_phone && (
-                      <a href={`tel:${brand.contact_phone}`} className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground">
-                        <Phone className="h-3.5 w-3.5" /> {brand.contact_phone}
+                      <a href={`tel:${brand.contact_phone}`} className="flex items-center gap-2.5 text-sm font-body text-white/80 hover:text-[#E8845F] transition-colors">
+                        <Phone className="h-4 w-4 flex-shrink-0 text-[#D4603A]" /> {brand.contact_phone}
+                      </a>
+                    )}
+                    {websiteDomain && websiteHref && (
+                      <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm font-body text-white/80 hover:text-[#E8845F] transition-colors">
+                        <Globe className="h-4 w-4 flex-shrink-0 text-[#D4603A]" /> {websiteDomain}
                       </a>
                     )}
                   </div>
                 </div>
               )}
-              {/* Primary showroom card */}
-              {brand.showroom_address && (
-                <div className="border border-border rounded-2xl p-6 bg-white">
-                  <h3 className="font-display text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" /> {t("brand.mainShowroom", "Showroom principal")}
-                  </h3>
-                  <p className="text-sm font-body text-muted-foreground whitespace-pre-line">{brand.showroom_address}</p>
+
+              {/* Addresses — uniform cards with a pin badge + directions link */}
+              {addressList.length > 0 && (
+                <div className={hasContact ? "lg:col-span-2" : ""}>
+                  {addressList.length > 1 && (
+                    <h3 className="font-display text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-4">
+                      {t("brand.ourAddresses", "Nos adresses")} <span className="text-foreground/40">· {addressList.length}</span>
+                    </h3>
+                  )}
+                  <div className={`grid gap-4 ${addressList.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+                    {addressList.map((loc, i) => {
+                      const cityLine = [loc.city, loc.country].filter(Boolean).join(", ");
+                      const title = loc.label || cityLine || t("brand.location", "Localisation");
+                      const mapQuery = encodeURIComponent([loc.label, loc.address, cityLine].filter(Boolean).join(", "));
+                      return (
+                        <div key={i} className="group bg-white rounded-2xl border border-border p-5 flex gap-4 hover:shadow-md hover:shadow-black/[0.04] transition-shadow">
+                          <div className="h-10 w-10 rounded-xl bg-[#D4603A]/10 flex items-center justify-center flex-shrink-0">
+                            <MapPin className="h-4 w-4 text-[#D4603A]" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-display text-sm font-bold text-foreground truncate">{title}</h4>
+                            {cityLine && loc.label && (
+                              <p className="text-xs font-display font-semibold text-foreground/60 mt-0.5">{cityLine}</p>
+                            )}
+                            {loc.address && (
+                              <p className="text-sm font-body text-muted-foreground mt-1.5 leading-relaxed whitespace-pre-line">{loc.address}</p>
+                            )}
+                            {mapQuery && (
+                              <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[11px] font-display font-semibold text-[#D4603A] hover:text-[#B84E2E] mt-2.5 transition-colors"
+                              >
+                                {t("brand.directions", "Itinéraire")} <ArrowRight className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
-              {/* Additional locations */}
-              {extraLocations.map((loc, i) => {
-                const cityLine = [loc.city, loc.country].filter(Boolean).join(", ");
-                return (
-                  <div key={i} className="border border-border rounded-2xl p-6 bg-white">
-                    <h3 className="font-display text-sm font-bold text-foreground mb-2 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-[#D4603A]" /> {loc.label?.trim() || cityLine || t("brand.location", "Localisation")}
-                    </h3>
-                    {cityLine && loc.label?.trim() && (
-                      <p className="text-xs font-display font-semibold text-foreground/70 mb-1">{cityLine}</p>
-                    )}
-                    {loc.address?.trim() && (
-                      <p className="text-sm font-body text-muted-foreground whitespace-pre-line">{loc.address}</p>
-                    )}
-                  </div>
-                );
-              })}
             </div>
           </div>
         </section>
