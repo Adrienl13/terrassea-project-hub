@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, X, Sparkles, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { getOptimizedImageUrl } from "@/utils/imageOptimization";
+import { SmartImg } from "@/components/common/SmartImg";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -675,7 +676,7 @@ export default function BrandPage() {
                   className="group relative block w-full overflow-hidden rounded-2xl bg-muted text-left aspect-[4/5]"
                 >
                   {coll.cover_image_url ? (
-                    <img loading="lazy" src={getOptimizedImageUrl(coll.cover_image_url, { width: 700 })} alt={coll.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-[600ms] ease-out" />
+                    <SmartImg src={coll.cover_image_url} box={700} alt={coll.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-[600ms] ease-out" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
                       <FolderOpen className="h-10 w-10 text-muted-foreground/30" />

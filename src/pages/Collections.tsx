@@ -12,6 +12,7 @@ import SEO from "@/components/SEO";
 import FoundingBadge from "@/components/common/FoundingBadge";
 import type { FoundingTier } from "@/hooks/useFoundingScore";
 import { getOptimizedImageUrl } from "@/utils/imageOptimization";
+import { SmartImg } from "@/components/common/SmartImg";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -146,7 +147,7 @@ export default function Collections() {
       >
         <div className="aspect-[16/10] relative bg-muted overflow-hidden">
           {heroImg ? (
-            <img loading="lazy" src={getOptimizedImageUrl(heroImg, { width: 700 })} alt={brand.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <SmartImg src={heroImg} box={700} alt={brand.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1C1A17]">
               {brand.logo_url ? (
@@ -253,9 +254,20 @@ export default function Collections() {
       ) : null}
 
       {loading ? (
-        <section className="py-16 md:py-24 bg-[#FAF7F4]">
-          <div className="flex items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-foreground border-t-transparent" />
+        <section className="py-12 bg-[#FAF7F4]">
+          <div className="container mx-auto px-6 max-w-6xl">
+            {/* Skeleton grid — instant structure so the page never looks blank/broken */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-2xl overflow-hidden border border-border bg-white">
+                  <div className="aspect-[16/10] bg-muted animate-pulse" />
+                  <div className="px-4 py-3 flex items-center justify-between">
+                    <div className="h-3 w-24 rounded bg-muted animate-pulse" />
+                    <div className="h-7 w-16 rounded bg-muted animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       ) : (
