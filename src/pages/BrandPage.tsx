@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, User, X, Sparkles } from "lucide-react";
+import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, User, X, Sparkles, FileText } from "lucide-react";
+import { toast } from "sonner";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -37,6 +38,7 @@ interface BrandPartner {
   delivery_countries: string[] | null;
   video_url: string | null;
   showroom_address: string | null;
+  locations: { label?: string; address?: string; city?: string; country?: string }[] | null;
   contact_name: string | null;
   contact_email: string | null;
   contact_phone: string | null;
@@ -107,6 +109,20 @@ export default function BrandPage() {
   const highlightCollection = searchParams.get("collection");
   const [briefOffer, setBriefOffer] = useState<CollectionOffer | null>(null);
   const [openCollection, setOpenCollection] = useState<any | null>(null);
+  const [cgvLoading, setCgvLoading] = useState(false);
+
+  const handleViewCgv = async (cgvId: string) => {
+    setCgvLoading(true);
+    const { data, error } = await supabase.functions.invoke("get-signed-cgv-url", {
+      body: { partner_cgv_id: cgvId },
+    });
+    setCgvLoading(false);
+    if (error || !data?.url) {
+      toast.error(t("brand.cgvError", "Impossible d'ouvrir les conditions de vente pour le moment."));
+      return;
+    }
+    window.open(data.url, "_blank", "noopener,noreferrer");
+  };
 
   // Fetch brand partner
   const { data: brand, isLoading: brandLoading } = useQuery({
@@ -119,7 +135,8 @@ export default function BrandPage() {
         .in("partner_mode", ["brand_member", "brand_network"])
         .single();
       if (error) throw error;
-      return data as BrandPartner;
+      // `locations` is a fresh column not yet in the generated Supabase types.
+      return data as unknown as BrandPartner;
     },
     enabled: !!slug,
   });
@@ -151,6 +168,23 @@ export default function BrandPage() {
         .eq("is_active", true)
         .order("display_order");
       return (data ?? []) as any[];
+    },
+    enabled: !!brand?.id,
+  });
+
+  // Active (published) sales terms for this brand, if any.
+  const { data: brandCgv } = useQuery({
+    queryKey: ["brand-active-cgv", brand?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("partner_cgv")
+        .select("id, title, version, effective_date")
+        .eq("partner_id", brand!.id)
+        .eq("status", "active")
+        .order("version", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data as { id: string; title: string | null; version: number; effective_date: string | null } | null;
     },
     enabled: !!brand?.id,
   });
@@ -270,6 +304,14 @@ export default function BrandPage() {
   const tagline = brand.description ? brand.description.split(/[.!?]/)[0] : null;
   const galleryImages = brand.gallery_urls?.filter(Boolean) || [];
   const websiteDomain = brand.website ? brand.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/.*/, "") : null;
+  // Ensure the href is absolute — a stored value like "www.isimar.es" without a
+  // scheme is otherwise treated as a relative path and navigates within the app.
+  const websiteHref = brand.website
+    ? (/^https?:\/\//i.test(brand.website) ? brand.website : `https://${brand.website}`)
+    : null;
+  const extraLocations = Array.isArray(brand.locations)
+    ? brand.locations.filter((l) => l && (l.label || l.address || l.city || l.country))
+    : [];
   const hasKeyFigures = yearsExperience || collectionNames.length > 0 || offers.length > 0 || (brand.delivery_countries && brand.delivery_countries.length > 0);
 
   return (
@@ -315,8 +357,8 @@ export default function BrandPage() {
                     <Calendar className="h-3 w-3" /> Depuis {brand.founded_year}
                   </span>
                 )}
-                {websiteDomain && (
-                  <a href={brand.website!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-body text-white/70 hover:text-white transition-colors">
+                {websiteDomain && websiteHref && (
+                  <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-body text-white/70 hover:text-white transition-colors">
                     <Globe className="h-3 w-3" /> {websiteDomain} <ExternalLink className="h-2.5 w-2.5" />
                   </a>
                 )}
@@ -657,11 +699,11 @@ export default function BrandPage() {
         </div>
       </section>
 
-      {/* ═══ Section 5 — Contact / Showroom ═══ */}
-      {(brand.contact_name || brand.contact_email || brand.showroom_address) && (
+      {/* ═══ Section 5 — Contact / Adresses ═══ */}
+      {(brand.contact_name || brand.contact_email || brand.showroom_address || extraLocations.length > 0) && (
         <section className="py-16 bg-[#FAF7F4]">
           <div className="container mx-auto px-6 max-w-3xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">Contact & Showroom</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{t("brand.contactAddresses", "Contact & adresses")}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Contact card */}
               {(brand.contact_name || brand.contact_email) && (
@@ -686,15 +728,32 @@ export default function BrandPage() {
                   </div>
                 </div>
               )}
-              {/* Showroom card */}
+              {/* Primary showroom card */}
               {brand.showroom_address && (
                 <div className="border border-border rounded-2xl p-6 bg-white">
                   <h3 className="font-display text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" /> Showroom
+                    <MapPin className="h-4 w-4 text-muted-foreground" /> {t("brand.mainShowroom", "Showroom principal")}
                   </h3>
                   <p className="text-sm font-body text-muted-foreground whitespace-pre-line">{brand.showroom_address}</p>
                 </div>
               )}
+              {/* Additional locations */}
+              {extraLocations.map((loc, i) => {
+                const cityLine = [loc.city, loc.country].filter(Boolean).join(", ");
+                return (
+                  <div key={i} className="border border-border rounded-2xl p-6 bg-white">
+                    <h3 className="font-display text-sm font-bold text-foreground mb-2 flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-[#D4603A]" /> {loc.label?.trim() || cityLine || t("brand.location", "Localisation")}
+                    </h3>
+                    {cityLine && loc.label?.trim() && (
+                      <p className="text-xs font-display font-semibold text-foreground/70 mb-1">{cityLine}</p>
+                    )}
+                    {loc.address?.trim() && (
+                      <p className="text-sm font-body text-muted-foreground whitespace-pre-line">{loc.address}</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -720,6 +779,19 @@ export default function BrandPage() {
           >
             {offers.length > 0 ? t("brand.submitBrief") : "Nous contacter"} &rarr;
           </button>
+
+          {brandCgv && (
+            <div className="mt-6">
+              <button
+                onClick={() => handleViewCgv(brandCgv.id)}
+                disabled={cgvLoading}
+                className="inline-flex items-center gap-2 text-xs font-body text-white/60 hover:text-white transition-colors disabled:opacity-50"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                {cgvLoading ? t("brand.cgvLoading", "Ouverture…") : t("brand.viewCgv", "Voir les conditions de vente")}
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

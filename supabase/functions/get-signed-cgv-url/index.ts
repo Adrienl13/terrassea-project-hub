@@ -2,28 +2,22 @@
 // get-signed-cgv-url — Edge Function
 //
 // Génère une signed URL Supabase Storage (TTL court) pour consulter le PDF
-// d'une CGV partner. Auth requise + permission check (admin OR owner partner).
+// d'une CGV partner.
+//   - statut 'active'   : PUBLIC (un acheteur doit pouvoir lire les CGV d'une
+//                         marque avant de s'engager) — aucune auth requise.
+//   - statut 'archived' : restreint (admin OU partner propriétaire).
 //
 // Phase 3 viewer + Dette 105 + Dette 103 (resolves both).
 //
 // Body: { partner_cgv_id: uuid, ttl_seconds?: number }
 // Returns: { url: string, expires_at: string, ttl_seconds: number }
 //
-// Permissions :
-//   - admin (RPC public.is_admin() via user-auth client)
-//   - owner partner (partners.user_id = auth.uid() AND deleted_at IS NULL,
-//     via service-role lookup pour bypass RLS partage)
-//
-// Statut autorisé : 'active' OU 'archived' (la CGV archivée reste consultable
-// pour preuves d'acceptations passées).
-//
 // TTL : default 60s (pattern Stripe), min 30s, max 3600s.
 //
-// Audit cgv_url_grants (Dette 103) : chaque grant est journalisé immuable —
-// sha256 de la URL signée (la URL elle-même ne doit pas être stockée en
-// clair), ip + user_agent extraits des headers, expires_at calculé.
-// L'échec d'insert audit n'invalide pas le grant pour ne pas casser le flow
-// buyer en cas d'incident temporaire (log warning, return URL quand même).
+// Audit cgv_url_grants (Dette 103) : journalisé uniquement pour un appelant
+// identifié (les consultations publiques anonymes d'une CGV 'active' ne sont
+// pas journalisées par utilisateur). L'échec d'insert audit n'invalide pas le
+// grant (log warning, return URL quand même).
 // ============================================================================
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -72,7 +66,6 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return json({ error: "Auth required" }, 401);
 
   let body: { partner_cgv_id?: string; ttl_seconds?: number };
   try {
@@ -90,17 +83,6 @@ Deno.serve(async (req: Request) => {
     Math.max(Math.floor(body.ttl_seconds ?? DEFAULT_TTL), 30),
     MAX_TTL,
   );
-
-  // Client user-auth pour identifier l'appelant + appeler is_admin()
-  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-  });
-
-  const { data: userData, error: userErr } = await userClient.auth.getUser();
-  if (userErr || !userData?.user) {
-    return json({ error: "Invalid auth" }, 401);
-  }
-  const userId = userData.user.id;
 
   // Service-role client pour bypass RLS (récup row + sign URL)
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -121,25 +103,46 @@ Deno.serve(async (req: Request) => {
     return json({ error: "CGV not viewable in current status" }, 403);
   }
 
-  // Permission check : admin via RPC OR owner partner via service-role lookup
-  let authorized = false;
-
-  try {
-    const { data: isAdminResult } = await userClient.rpc("is_admin");
-    if (isAdminResult === true) authorized = true;
-  } catch (e) {
-    console.warn("[get-signed-cgv-url] is_admin rpc failed", e);
+  // Identify the caller IF a token is provided (optional for public 'active' CGV).
+  let userId: string | null = null;
+  let isAdmin = false;
+  if (authHeader) {
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData } = await userClient.auth.getUser();
+    if (userData?.user) {
+      userId = userData.user.id;
+      try {
+        const { data: isAdminResult } = await userClient.rpc("is_admin");
+        if (isAdminResult === true) isAdmin = true;
+      } catch (e) {
+        console.warn("[get-signed-cgv-url] is_admin rpc failed", e);
+      }
+    }
   }
 
+  // Authorization :
+  //   - 'active' CGV (published terms) = PUBLIC : a buyer must be able to read a
+  //     brand's sales terms before engaging, so no auth is required.
+  //   - 'archived' CGV = restricted to admin OR the owner partner (kept only as
+  //     proof of past acceptances, not for public browsing).
+  let authorized = cgvRow.status === "active";
+
   if (!authorized) {
-    const { data: partnerRow } = await adminClient
-      .from("partners")
-      .select("id")
-      .eq("id", cgvRow.partner_id)
-      .eq("user_id", userId)
-      .is("deleted_at", null)
-      .maybeSingle();
-    if (partnerRow?.id) authorized = true;
+    if (!userId) return json({ error: "Auth required" }, 401);
+    if (isAdmin) {
+      authorized = true;
+    } else {
+      const { data: partnerRow } = await adminClient
+        .from("partners")
+        .select("id")
+        .eq("id", cgvRow.partner_id)
+        .eq("user_id", userId)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (partnerRow?.id) authorized = true;
+    }
   }
 
   if (!authorized) {
@@ -158,9 +161,8 @@ Deno.serve(async (req: Request) => {
 
   const expiresAt = new Date(Date.now() + ttl * 1000).toISOString();
 
-  // Dette 103 — journal d'audit immuable. Échec d'insert = log warn seulement,
-  // ne bloque pas le grant (defense in depth ≠ panne fonctionnelle).
-  try {
+  // Dette 103 — journal d'audit immuable, uniquement pour un appelant identifié.
+  if (userId) try {
     const signedUrlHash = await sha256Hex(signed.signedUrl);
     const ipAddress = extractIp(req);
     const userAgent = req.headers.get("user-agent") ?? null;

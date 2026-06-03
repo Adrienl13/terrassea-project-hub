@@ -73,9 +73,17 @@ interface FormData {
   gallery_urls: string[];
   video_url: string;
   showroom_address: string;
+  locations: BrandLocation[];
   contact_name_display: string;
   contact_email_display: string;
   contact_phone_display: string;
+}
+
+interface BrandLocation {
+  label: string;
+  address: string;
+  city: string;
+  country: string;
 }
 
 export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes }: PartnerProfileFormProps) {
@@ -110,6 +118,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     gallery_urls: [],
     video_url: "",
     showroom_address: "",
+    locations: [],
     contact_name_display: "",
     contact_email_display: "",
     contact_phone_display: "",
@@ -146,6 +155,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
           gallery_urls: (data as any).gallery_urls || [],
           video_url: (data as any).video_url || "",
           showroom_address: (data as any).showroom_address || "",
+          locations: Array.isArray((data as any).locations) ? (data as any).locations : [],
           contact_name_display: data.contact_name || "",
           contact_email_display: data.contact_email || "",
           contact_phone_display: data.contact_phone || "",
@@ -289,6 +299,14 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
       gallery_urls: form.gallery_urls.length > 0 ? form.gallery_urls : null,
       video_url: form.video_url.trim() || null,
       showroom_address: form.showroom_address.trim() || null,
+      locations: form.locations
+        .map((l) => ({
+          label: (l.label || "").trim(),
+          address: (l.address || "").trim(),
+          city: (l.city || "").trim(),
+          country: (l.country || "").trim(),
+        }))
+        .filter((l) => l.label || l.address || l.city || l.country),
       contact_name: form.contact_name_display.trim() || null,
       contact_email: form.contact_email_display.trim() || null,
       contact_phone: form.contact_phone_display.trim() || null,
@@ -759,7 +777,7 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
 
           {/* Showroom address */}
           <div>
-            <label className={labelClass}>Adresse du showroom (optionnel)</label>
+            <label className={labelClass}>Adresse du showroom principal (optionnel)</label>
             <textarea
               value={form.showroom_address}
               onChange={(e) => setForm((p) => ({ ...p, showroom_address: e.target.value }))}
@@ -767,6 +785,65 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
               rows={2}
               placeholder="ex: 12 rue de la Paix, 75002 Paris"
             />
+          </div>
+
+          {/* Additional locations */}
+          <div>
+            <label className={labelClass}>Autres localisations (showrooms, bureaux, usines…)</label>
+            <p className="text-[10px] font-body text-muted-foreground mb-3">
+              Ajoutez chaque lieu : un intitulé, la ville, le pays et l'adresse. Affichés sur votre page marque.
+            </p>
+            <div className="space-y-3">
+              {form.locations.map((loc, i) => (
+                <div key={i} className="border border-border rounded-xl p-3 space-y-2 relative bg-muted/30">
+                  <button
+                    type="button"
+                    onClick={() => setForm((p) => ({ ...p, locations: p.locations.filter((_, idx) => idx !== i) }))}
+                    className="absolute top-2 right-2 h-6 w-6 rounded-full bg-white border border-border text-muted-foreground hover:text-red-500 hover:border-red-200 flex items-center justify-center transition-colors"
+                    aria-label="Retirer cette localisation"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pr-8">
+                    <input
+                      type="text"
+                      value={loc.label}
+                      onChange={(e) => setForm((p) => { const l = [...p.locations]; l[i] = { ...l[i], label: e.target.value }; return { ...p, locations: l }; })}
+                      className={inputClass}
+                      placeholder="Intitulé (ex: Showroom Milan)"
+                    />
+                    <input
+                      type="text"
+                      value={loc.city}
+                      onChange={(e) => setForm((p) => { const l = [...p.locations]; l[i] = { ...l[i], city: e.target.value }; return { ...p, locations: l }; })}
+                      className={inputClass}
+                      placeholder="Ville"
+                    />
+                    <input
+                      type="text"
+                      value={loc.country}
+                      onChange={(e) => setForm((p) => { const l = [...p.locations]; l[i] = { ...l[i], country: e.target.value }; return { ...p, locations: l }; })}
+                      className={inputClass}
+                      placeholder="Pays"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={loc.address}
+                    onChange={(e) => setForm((p) => { const l = [...p.locations]; l[i] = { ...l[i], address: e.target.value }; return { ...p, locations: l }; })}
+                    className={inputClass}
+                    placeholder="Adresse (rue, code postal)"
+                  />
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm((p) => ({ ...p, locations: [...p.locations, { label: "", address: "", city: "", country: "" }] }))}
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-display font-semibold text-foreground border border-border rounded-full px-3 py-1.5 hover:border-foreground/30 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" /> Ajouter une localisation
+            </button>
           </div>
 
           {/* Contact info */}
