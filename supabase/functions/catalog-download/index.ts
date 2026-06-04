@@ -114,21 +114,65 @@ async function notifyPartner(admin: Admin, p: NotifyArgs): Promise<{ emailTo: st
   diag.emailTo = to;
   if (!to) return diag;
 
-  const rows: string[] = [
-    `Nom : ${p.leadName || "—"}`,
-    `Email : ${p.leadEmail}`,
-    ...(p.leadCompany ? [`Société : ${p.leadCompany}`] : []),
-    `Catalogue : ${p.catalogTitle || "—"}`,
+  const e = escapeHtml;
+  const fields: Array<[string, string]> = [
+    ["Nom", p.leadName || "—"],
+    ["Email", p.leadEmail],
+    ...(p.leadCompany ? [["Société", p.leadCompany] as [string, string]] : []),
+    ["Catalogue", p.catalogTitle || "—"],
   ];
-  const subject = `Nouveau lead — ${what}`;
+  const subject = `Nouveau lead — ${what} · ${who}`;
   const body_text =
-    `Bonne nouvelle ! Un visiteur vient de télécharger ${what} sur votre page Terrassea.\n\n` +
-    `${rows.join("\n")}\n\n` +
-    `Répondez directement à cet email pour assurer le suivi du prospect.`;
-  const body_html =
-    `<p>Bonne nouvelle ! Un visiteur vient de télécharger « ${escapeHtml(what)} » sur votre page Terrassea.</p>` +
-    `<ul>${rows.map((r) => `<li>${escapeHtml(r)}</li>`).join("")}</ul>` +
-    `<p>Répondez directement à cet email pour assurer le suivi du prospect.</p>`;
+    `TERRASSEA HUB — Nouveau lead\n\n` +
+    `Bonjour${p.partnerName ? " " + p.partnerName : ""}, un visiteur intéressé vient de télécharger « ${what} » sur votre page Terrassea HUB.\n\n` +
+    fields.map(([k, v]) => `• ${k} : ${v}`).join("\n") +
+    `\n\nRépondez directement à cet email pour assurer le suivi du prospect (il est adressé à ${p.leadEmail}).\n\n` +
+    `— Terrassea HUB · The AI marketplace for hospitality projects`;
+
+  // Branded HTML email (TerrasseaHUB palette: #1C1A17 / #D4603A / #FAF7F4).
+  // Table layout + inline styles for broad email-client compatibility.
+  const detailRows = fields.map(([k, v], i) => {
+    const bb = i < fields.length - 1 ? "border-bottom:1px solid #E8E0D8;" : "";
+    const val = k === "Email"
+      ? `<a href="mailto:${e(v)}" style="color:#D4603A;text-decoration:none;">${e(v)}</a>`
+      : e(v);
+    return `<tr><td style="padding:11px 0;${bb}font:11px Arial,Helvetica,sans-serif;color:#8A8178;text-transform:uppercase;letter-spacing:1px;width:110px;vertical-align:top;">${e(k)}</td><td style="padding:11px 0;${bb}font:15px Arial,Helvetica,sans-serif;color:#1C1A17;font-weight:bold;">${val}</td></tr>`;
+  }).join("");
+
+  const body_html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#FAF7F4;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Nouveau lead pour « ${e(what)} » — ${e(who)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAF7F4;padding:28px 0;">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(28,26,23,0.06);">
+      <tr><td style="background:#1C1A17;padding:24px 32px;">
+        <span style="font:bold 20px Georgia,'Times New Roman',serif;color:#ffffff;letter-spacing:0.5px;">TERRASSEA<span style="color:#D4603A;">HUB</span></span>
+      </td></tr>
+      <tr><td style="height:3px;background:#D4603A;line-height:3px;font-size:0;">&nbsp;</td></tr>
+      <tr><td style="padding:38px 32px 28px;">
+        <p style="margin:0 0 10px;font:bold 11px Arial,Helvetica,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#D4603A;">Nouveau lead</p>
+        <h1 style="margin:0 0 18px;font:bold 25px Georgia,'Times New Roman',serif;color:#1C1A17;line-height:1.25;">Un prospect a téléchargé votre catalogue</h1>
+        <p style="margin:0 0 26px;font:15px/1.65 Arial,Helvetica,sans-serif;color:#4A4540;">Bonjour${p.partnerName ? " " + e(p.partnerName) : ""}, un visiteur intéressé vient de télécharger <strong style="color:#1C1A17;">« ${e(what)} »</strong> sur votre page Terrassea&nbsp;HUB. Voici ses coordonnées&nbsp;:</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAF7F4;border:1px solid #E8E0D8;border-radius:10px;">
+          <tr><td style="padding:6px 20px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${detailRows}</table>
+          </td></tr>
+        </table>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:30px 0 6px;"><tr>
+          <td style="border-radius:999px;background:#D4603A;">
+            <a href="mailto:${e(p.leadEmail)}" style="display:inline-block;padding:14px 30px;font:bold 14px Arial,Helvetica,sans-serif;color:#ffffff;text-decoration:none;border-radius:999px;">Répondre au prospect →</a>
+          </td>
+        </tr></table>
+        <p style="margin:16px 0 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#8A8178;">Vous pouvez aussi répondre directement à cet email — il est déjà adressé à ${e(p.leadEmail)}.</p>
+      </td></tr>
+      <tr><td style="background:#FAF7F4;border-top:1px solid #E8E0D8;padding:24px 32px;">
+        <p style="margin:0 0 5px;font:bold 14px Georgia,'Times New Roman',serif;color:#1C1A17;">Terrassea<span style="color:#D4603A;">HUB</span></p>
+        <p style="margin:0;font:12px/1.5 Arial,Helvetica,sans-serif;color:#9A938B;">The AI marketplace for hospitality projects</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
 
   const emailRes = await fetch(`${SUPABASE_URL}/functions/v1/send-notification-email`, {
     method: "POST",
