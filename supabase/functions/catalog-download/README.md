@@ -36,17 +36,33 @@ renvoie une **signed URL** éphémère vers le PDF stocké dans le bucket privé
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 ## Tables / storage touched
-- **Reads** `public.partners.documents` (résout le catalogue ciblé).
+- **Reads** `public.partners` (`name, contact_email, user_id, documents` —
+  résout le catalogue ciblé + destinataire de la notification).
 - **Inserts** `public.catalog_leads` (seul écrivain autorisé : service_role —
   INSERT révoqué pour anon/authenticated par RLS).
+- **Inserts** `public.notifications` (notification in-app au partenaire — best
+  effort).
 - **Signs** un objet du bucket privé `partner-catalogs` (chemin
   `{partner_id}/{catalog_id}.pdf`).
+
+## Notification partenaire (best effort)
+Après l'enregistrement du lead et la génération de l'URL signée, la fonction
+prévient le partenaire :
+- **in-app** : ligne dans `notifications` pour le propriétaire (`partners.user_id`).
+- **email** : via la fonction `send-notification-email` (Bearer service_role),
+  envoyé à `partners.contact_email` (fallback : email du compte propriétaire).
+  `reply_to` = email du prospect pour un suivi direct.
+
+Ces notifications sont **best effort** : toute erreur est loggée mais n'empêche
+JAMAIS le visiteur de recevoir son lien de téléchargement. L'email respecte le
+toggle global `platform_settings.notification_email_enabled` (skip propre si off).
 
 ## Notes
 - TTL signed URL = 300 s. Un échec d'insert lead **bloque** l'accès (pas de
   download silencieux non journalisé).
 - Pas d'auth requise : la protection vient de la validation serveur + du fait
   que le path n'est pas devinable et que la signed URL expire vite.
+- Dépend de `send-notification-email` (déjà déployée) pour l'envoi email.
 
 ## Re-deploy
 ```bash

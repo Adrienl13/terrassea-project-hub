@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SEO from "@/components/SEO";
@@ -9,8 +9,12 @@ import { useFavouritePartners } from "@/hooks/useFavouritesDB";
 import { ml } from "@/lib/i18nFields";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import CatalogDownload from "@/components/common/CatalogDownload";
+import { extractCatalogs } from "@/lib/catalogDocs";
 import { motion } from "framer-motion";
+
+// Lazy: the download UI (Dialog + form) only loads for partners that actually
+// have a catalog — most pages never pay for it.
+const CatalogDownload = lazy(() => import("@/components/common/CatalogDownload"));
 import {
   ArrowLeft, ArrowRight, Lock, Package, Globe,
   Calendar, Award, MapPin, Star, ChevronLeft, ChevronRight as ChevronRightIcon,
@@ -382,12 +386,16 @@ export default function PartnerDetail() {
                 )}
               </div>
 
-              {/* Product catalogs (PDF, lead-gated) */}
-              <CatalogDownload
-                partnerId={partner.id}
-                partnerName={partner.name}
-                documents={(partner as any).documents}
-              />
+              {/* Product catalogs (PDF, lead-gated) — lazy, only when present */}
+              {extractCatalogs((partner as any).documents).length > 0 && (
+                <Suspense fallback={null}>
+                  <CatalogDownload
+                    partnerId={partner.id}
+                    partnerName={partner.name}
+                    documents={(partner as any).documents}
+                  />
+                </Suspense>
+              )}
 
               {/* Anonymity notice */}
               <div className="flex items-start gap-4 bg-muted/30 border border-border rounded-xl p-5">

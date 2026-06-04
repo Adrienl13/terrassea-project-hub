@@ -11,7 +11,7 @@ import {
 
 import { PARTNER_TYPES } from "@/lib/partnerConstants";
 import { validateImageUpload, validatePdfUpload } from "@/lib/validateUpload";
-import type { CatalogDoc } from "@/components/common/CatalogDownload";
+import type { CatalogDoc } from "@/lib/catalogDocs";
 import { compressImage } from "@/lib/imageCompress";
 import { keepOriginalForSignature } from "@/lib/keepOriginal";
 import { SUPPORTED_COUNTRIES } from "@/lib/countries";

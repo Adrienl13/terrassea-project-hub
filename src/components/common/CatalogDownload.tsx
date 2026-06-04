@@ -6,32 +6,7 @@ import { FileText, Download, Loader2 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
-
-/**
- * Catalog metadata stored in `partners.documents` (jsonb). Shared shape between
- * the public download component and the partner upload form so the two never
- * drift. The PDF itself lives in the private `partner-catalogs` bucket and is
- * only reachable through a signed URL issued by the `catalog-download` Edge
- * Function after a lead is captured.
- */
-export interface CatalogDoc {
-  id: string;
-  kind: "catalog";
-  title: string;
-  path: string;
-  filename: string;
-  size?: number;
-  uploaded_at?: string;
-}
-
-/** Narrow an opaque jsonb `documents` array down to catalog entries. */
-export function extractCatalogs(documents: unknown): CatalogDoc[] {
-  if (!Array.isArray(documents)) return [];
-  return documents.filter(
-    (d): d is CatalogDoc =>
-      !!d && typeof d === "object" && (d as CatalogDoc).kind === "catalog" && !!(d as CatalogDoc).id && !!(d as CatalogDoc).path,
-  );
-}
+import { extractCatalogs, type CatalogDoc } from "@/lib/catalogDocs";
 
 function triggerDownload(url: string) {
   const a = document.createElement("a");

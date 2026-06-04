@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -6,7 +6,9 @@ import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Pack
 import { toast } from "sonner";
 import { getOptimizedImageUrl } from "@/utils/imageOptimization";
 import { SmartImg } from "@/components/common/SmartImg";
-import CatalogDownload, { extractCatalogs } from "@/components/common/CatalogDownload";
+import { extractCatalogs } from "@/lib/catalogDocs";
+// Lazy: download UI loads only when the brand actually has a catalog.
+const CatalogDownload = lazy(() => import("@/components/common/CatalogDownload"));
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -712,11 +714,13 @@ export default function BrandPage() {
       {extractCatalogs((brand as any).documents).length > 0 && (
         <section className="py-10 bg-[#FAF7F4]">
           <div className="container mx-auto px-6 max-w-5xl">
-            <CatalogDownload
-              partnerId={brand.id}
-              partnerName={brand.name}
-              documents={(brand as any).documents}
-            />
+            <Suspense fallback={null}>
+              <CatalogDownload
+                partnerId={brand.id}
+                partnerName={brand.name}
+                documents={(brand as any).documents}
+              />
+            </Suspense>
           </div>
         </section>
       )}

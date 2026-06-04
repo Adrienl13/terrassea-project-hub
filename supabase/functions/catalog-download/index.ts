@@ -63,6 +63,80 @@ function clean(v: unknown, max = 200): string | null {
   return t.length ? t : null;
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+// deno-lint-ignore no-explicit-any
+type Admin = any;
+
+interface NotifyArgs {
+  partnerId: string;
+  userId: string | null;
+  partnerName: string | null;
+  contactEmail: string | null;
+  catalogTitle: string | null;
+  leadName: string | null;
+  leadEmail: string;
+  leadCompany: string | null;
+}
+
+// Best-effort notification to the partner (in-app + email). Never throws into
+// the request path — a failed notification must not block the visitor's download.
+async function notifyPartner(admin: Admin, p: NotifyArgs): Promise<void> {
+  const who = p.leadName || p.leadEmail;
+  const what = p.catalogTitle || "votre catalogue";
+
+  // 1. In-app notification for the partner owner.
+  if (p.userId) {
+    await admin.from("notifications").insert({
+      user_id: p.userId,
+      title: "Nouveau lead catalogue",
+      body: `${who} a téléchargé « ${what} ».`,
+      type: "info",
+      link: "/account",
+    });
+  }
+
+  // 2. Email — prefer the partner's public contact email, fall back to the
+  //    owner's account email.
+  let to = p.contactEmail;
+  if (!to && p.userId) {
+    try {
+      const { data } = await admin.auth.admin.getUserById(p.userId);
+      to = data?.user?.email ?? null;
+    } catch { /* ignore */ }
+  }
+  if (!to) return;
+
+  const rows: string[] = [
+    `Nom : ${p.leadName || "—"}`,
+    `Email : ${p.leadEmail}`,
+    ...(p.leadCompany ? [`Société : ${p.leadCompany}`] : []),
+    `Catalogue : ${p.catalogTitle || "—"}`,
+  ];
+  const subject = `Nouveau lead — ${what}`;
+  const body_text =
+    `Bonne nouvelle ! Un visiteur vient de télécharger ${what} sur votre page Terrassea.\n\n` +
+    `${rows.join("\n")}\n\n` +
+    `Répondez directement à cet email pour assurer le suivi du prospect.`;
+  const body_html =
+    `<p>Bonne nouvelle ! Un visiteur vient de télécharger « ${escapeHtml(what)} » sur votre page Terrassea.</p>` +
+    `<ul>${rows.map((r) => `<li>${escapeHtml(r)}</li>`).join("")}</ul>` +
+    `<p>Répondez directement à cet email pour assurer le suivi du prospect.</p>`;
+
+  await fetch(`${SUPABASE_URL}/functions/v1/send-notification-email`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+    body: JSON.stringify({ to, subject, body_html, body_text, reply_to: p.leadEmail }),
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -89,7 +163,7 @@ Deno.serve(async (req: Request) => {
   // Resolve the catalog entry from partners.documents (path never trusted client-side).
   const { data: partner, error: partnerErr } = await admin
     .from("partners")
-    .select("id, documents")
+    .select("id, name, contact_email, user_id, documents")
     .eq("id", partnerId)
     .maybeSingle();
 
@@ -133,6 +207,22 @@ Deno.serve(async (req: Request) => {
   if (signErr || !signed?.signedUrl) {
     console.error("[catalog-download] sign error", signErr);
     return json({ error: "Failed to generate download link" }, 500);
+  }
+
+  // Notify the partner of the new lead — best effort, never blocks the download.
+  try {
+    await notifyPartner(admin, {
+      partnerId,
+      userId: partner.user_id ?? null,
+      partnerName: partner.name ?? null,
+      contactEmail: partner.contact_email ?? null,
+      catalogTitle: catalog.title ?? null,
+      leadName: name,
+      leadEmail: email,
+      leadCompany: company,
+    });
+  } catch (e) {
+    console.warn("[catalog-download] partner notification failed", e);
   }
 
   return json({
