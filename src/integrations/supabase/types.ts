@@ -664,6 +664,56 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_leads: {
+        Row: {
+          catalog_id: string
+          catalog_title: string | null
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          ip_address: unknown | null
+          locale: string | null
+          name: string | null
+          partner_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          catalog_id: string
+          catalog_title?: string | null
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: unknown | null
+          locale?: string | null
+          name?: string | null
+          partner_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          catalog_id?: string
+          catalog_title?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: unknown | null
+          locale?: string | null
+          name?: string | null
+          partner_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_leads_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cgv_acceptances: {
         Row: {
           acceptance_type: string
@@ -2984,6 +3034,7 @@ export type Database = {
           description_es: string | null
           description_fr: string | null
           description_it: string | null
+          documents: Json | null
           founded_year: number | null
           founding_joined_at: string | null
           founding_tier: string | null
@@ -3040,6 +3091,7 @@ export type Database = {
           description_es?: string | null
           description_fr?: string | null
           description_it?: string | null
+          documents?: Json | null
           founded_year?: number | null
           founding_joined_at?: string | null
           founding_tier?: string | null
@@ -3096,6 +3148,7 @@ export type Database = {
           description_es?: string | null
           description_fr?: string | null
           description_it?: string | null
+          documents?: Json | null
           founded_year?: number | null
           founding_joined_at?: string | null
           founding_tier?: string | null

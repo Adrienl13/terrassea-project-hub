@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 
 import { PARTNER_TYPES } from "@/lib/partnerConstants";
-import { validateImageUpload } from "@/lib/validateUpload";
+import { validateImageUpload, validatePdfUpload } from "@/lib/validateUpload";
+import type { CatalogDoc } from "@/components/common/CatalogDownload";
 import { compressImage } from "@/lib/imageCompress";
 import { keepOriginalForSignature } from "@/lib/keepOriginal";
 import { SUPPORTED_COUNTRIES } from "@/lib/countries";
@@ -97,6 +98,11 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingCatalog, setUploadingCatalog] = useState(false);
+  const [newCatalogTitle, setNewCatalogTitle] = useState("");
+  const [catalogs, setCatalogs] = useState<CatalogDoc[]>([]);
+  // Non-catalog entries in partners.documents are preserved untouched on save.
+  const otherDocsRef = useRef<unknown[]>([]);
   const [customSpecialty, setCustomSpecialty] = useState("");
   const [customCertification, setCustomCertification] = useState("");
   const [form, setForm] = useState<FormData>({
@@ -162,6 +168,10 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
           contact_email_display: data.contact_email || "",
           contact_phone_display: data.contact_phone || "",
         });
+
+        const allDocs: unknown[] = Array.isArray((data as any).documents) ? (data as any).documents : [];
+        setCatalogs(allDocs.filter((d: any) => d?.kind === "catalog") as CatalogDoc[]);
+        otherDocsRef.current = allDocs.filter((d: any) => d?.kind !== "catalog");
       }
     };
     load();
@@ -258,6 +268,77 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
     setUploadingGallery(false);
     if (newUrls.length > 0) toast.success(`${newUrls.length} photo(s) ajoutée(s)`);
     e.target.value = "";
+  };
+
+  // ── Catalogues PDF (partners.documents jsonb) ──────────────────────────────
+  // Persisted directly to the `documents` column, decoupled from the profile
+  // submit flow so adding a catalog never re-triggers admin review. Non-catalog
+  // documents are preserved via otherDocsRef.
+  const persistCatalogs = async (next: CatalogDoc[]): Promise<boolean> => {
+    const documents = [...otherDocsRef.current, ...next];
+    const { error } = await supabase
+      .from("partners")
+      .update({ documents: documents as any })
+      .eq("id", partnerId);
+    if (error) {
+      toast.error(t("partnerProfile.catalogSaveError", "Échec de l'enregistrement du catalogue."));
+      return false;
+    }
+    return true;
+  };
+
+  const handleCatalogUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const title = newCatalogTitle.trim();
+    if (!title) {
+      toast.error(t("partnerProfile.catalogTitleFirst", "Donnez d'abord un titre au catalogue."));
+      e.target.value = "";
+      return;
+    }
+    const vErr = validatePdfUpload(file, { maxSizeMB: 25 });
+    if (vErr) { toast.error(vErr); e.target.value = ""; return; }
+
+    setUploadingCatalog(true);
+    const id = crypto.randomUUID();
+    const path = `${partnerId}/${id}.pdf`;
+    const { error } = await supabase.storage
+      .from("partner-catalogs")
+      .upload(path, file, { contentType: "application/pdf", upsert: true });
+
+    if (error) {
+      toast.error(t("partnerProfile.uploadError", "Upload failed. You can add the catalog later."));
+      setUploadingCatalog(false);
+      e.target.value = "";
+      return;
+    }
+
+    const doc: CatalogDoc = {
+      id, kind: "catalog", title, path,
+      filename: file.name, size: file.size, uploaded_at: new Date().toISOString(),
+    };
+    const next = [...catalogs, doc];
+    if (await persistCatalogs(next)) {
+      setCatalogs(next);
+      setNewCatalogTitle("");
+      toast.success(t("partnerProfile.catalogAdded", "Catalogue ajouté."));
+    } else {
+      // Roll back the orphaned upload if the DB write failed.
+      await supabase.storage.from("partner-catalogs").remove([path]);
+    }
+    setUploadingCatalog(false);
+    e.target.value = "";
+  };
+
+  const handleCatalogRemove = async (id: string) => {
+    const target = catalogs.find((c) => c.id === id);
+    const next = catalogs.filter((c) => c.id !== id);
+    // Persist the metadata removal first; only then drop the file so a failed
+    // DB write never leaves a dangling reference to a deleted object.
+    if (!(await persistCatalogs(next))) return;
+    if (target) await supabase.storage.from("partner-catalogs").remove([target.path]);
+    setCatalogs(next);
+    toast.success(t("partnerProfile.catalogRemoved", "Catalogue supprimé."));
   };
 
   const toggleSpecialty = (s: string) =>
@@ -881,6 +962,59 @@ export default function PartnerProfileForm({ partnerId, onCompleted, reviewNotes
           </div>
         </div>
       )}
+
+      {/* Catalogues PDF téléchargeables (lead-gated) — tous types de partenaires.
+          Persisté indépendamment du submit (pas de re-validation admin). */}
+      <div className="border border-border rounded-xl p-5 space-y-3">
+        <div>
+          <h3 className="font-display font-bold text-sm flex items-center gap-2 text-foreground">
+            <FileText className="h-4 w-4 text-[#D4603A]" /> Catalogues PDF
+          </h3>
+          <p className="text-[10px] font-body text-muted-foreground mt-1">
+            Téléchargeables sur votre page publique. Ajoutez-en plusieurs (par gamme de produits). Les visiteurs intéressés laissent leur contact avant de télécharger. PDF, max 25 Mo. Enregistrement immédiat.
+          </p>
+        </div>
+
+        {catalogs.length > 0 && (
+          <div className="space-y-2">
+            {catalogs.map((c) => (
+              <div key={c.id} className="flex items-center gap-3 border border-border rounded-lg px-3 py-2.5">
+                <FileText className="h-4 w-4 text-[#D4603A] flex-shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-display font-semibold text-xs text-foreground truncate">{c.title}</span>
+                  <span className="block text-[10px] font-body text-muted-foreground truncate">
+                    {c.filename}{typeof c.size === "number" ? ` · ${(c.size / 1024 / 1024).toFixed(1)} Mo` : ""}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleCatalogRemove(c.id)}
+                  className="w-7 h-7 rounded-full bg-muted text-muted-foreground flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition-colors flex-shrink-0"
+                  title="Supprimer"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            value={newCatalogTitle}
+            onChange={(e) => setNewCatalogTitle(e.target.value)}
+            className={`${inputClass} flex-1`}
+            placeholder="Titre du catalogue (ex: Catalogue Outdoor 2026)"
+          />
+          <label className={`flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-all whitespace-nowrap ${uploadingCatalog ? "opacity-60 pointer-events-none" : "border-purple-300 hover:border-purple-500 hover:bg-purple-50"}`}>
+            {uploadingCatalog
+              ? <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
+              : <><Upload className="h-4 w-4 text-purple-400" /><span className="text-xs font-display font-semibold text-muted-foreground">Ajouter un PDF</span></>}
+            <input type="file" accept="application/pdf,.pdf" className="hidden" onChange={handleCatalogUpload} disabled={uploadingCatalog} />
+          </label>
+        </div>
+      </div>
 
       {/* Submit */}
       <div className="flex justify-center pt-2 pb-8">

@@ -1,4 +1,19 @@
 {
+  "catalog": {
+    "sectionTitle": "Catálogos de productos",
+    "sectionSubtitle": "Descargue el catálogo PDF que le interese.",
+    "dialogTitle": "Descargar el catálogo",
+    "dialogDesc": "Déjenos sus datos para acceder al PDF.",
+    "fieldName": "Nombre",
+    "fieldEmail": "Email",
+    "fieldCompany": "Empresa",
+    "downloadCta": "Descargar el PDF",
+    "preparing": "Preparando…",
+    "privacyNote": "Sus datos se transmiten a la marca para dar seguimiento a su solicitud.",
+    "invalidEmail": "Introduzca un email válido.",
+    "downloadStarted": "Descarga iniciada. ¡Gracias por su interés!",
+    "downloadError": "La descarga ha fallado. Inténtelo de nuevo en un momento."
+  },
   "nav": {
     "explore": "Explorar",
     "products": "Productos",

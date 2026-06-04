@@ -9,6 +9,7 @@ import { useFavouritePartners } from "@/hooks/useFavouritesDB";
 import { ml } from "@/lib/i18nFields";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CatalogDownload from "@/components/common/CatalogDownload";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Lock, Package, Globe,
@@ -380,6 +381,13 @@ export default function PartnerDetail() {
                   />
                 )}
               </div>
+
+              {/* Product catalogs (PDF, lead-gated) */}
+              <CatalogDownload
+                partnerId={partner.id}
+                partnerName={partner.name}
+                documents={(partner as any).documents}
+              />
 
               {/* Anonymity notice */}
               <div className="flex items-start gap-4 bg-muted/30 border border-border rounded-xl p-5">

@@ -1,4 +1,19 @@
 {
+  "catalog": {
+    "sectionTitle": "Product catalogs",
+    "sectionSubtitle": "Download the PDF catalog you're interested in.",
+    "dialogTitle": "Download the catalog",
+    "dialogDesc": "Leave your details to access the PDF.",
+    "fieldName": "Name",
+    "fieldEmail": "Email",
+    "fieldCompany": "Company",
+    "downloadCta": "Download the PDF",
+    "preparing": "Preparing…",
+    "privacyNote": "Your details are shared with the brand to follow up on your request.",
+    "invalidEmail": "Please enter a valid email.",
+    "downloadStarted": "Download started. Thank you for your interest!",
+    "downloadError": "The download failed. Please try again in a moment."
+  },
   "nav": {
     "explore": "Explore",
     "products": "Products",

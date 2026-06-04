@@ -1,4 +1,19 @@
 {
+  "catalog": {
+    "sectionTitle": "Catalogues produits",
+    "sectionSubtitle": "Téléchargez le catalogue PDF qui vous intéresse.",
+    "dialogTitle": "Télécharger le catalogue",
+    "dialogDesc": "Laissez-nous vos coordonnées pour accéder au PDF.",
+    "fieldName": "Nom",
+    "fieldEmail": "Email",
+    "fieldCompany": "Société",
+    "downloadCta": "Télécharger le PDF",
+    "preparing": "Préparation…",
+    "privacyNote": "Vos coordonnées sont transmises à la marque pour le suivi de votre demande.",
+    "invalidEmail": "Veuillez saisir un email valide.",
+    "downloadStarted": "Téléchargement lancé. Merci de votre intérêt !",
+    "downloadError": "Le téléchargement a échoué. Réessayez dans un instant."
+  },
   "nav": {
     "explore": "Explorer",
     "products": "Produits",
