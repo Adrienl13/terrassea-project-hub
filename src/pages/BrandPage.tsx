@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, X, Sparkles, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, Award, Calendar, ArrowRight, Globe, FolderOpen, Package, Truck, ExternalLink, Mail, Phone, Play, X, Sparkles, FileText, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { getOptimizedImageUrl } from "@/utils/imageOptimization";
 import { SmartImg } from "@/components/common/SmartImg";
@@ -480,8 +480,15 @@ export default function BrandPage() {
                   {galleryImages[0] || brand.cover_photo_url ? (
                     <img loading="lazy" src={getOptimizedImageUrl(galleryImages[0] || brand.cover_photo_url!, { width: 900 })} alt={brand.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#F5F0EB] to-[#E8E0D8] flex items-center justify-center">
-                      <span className="font-display text-7xl font-bold text-foreground/10">{brand.name[0]}</span>
+                    /* Empty slot — kept by design so the photo placement is defined
+                       from the start and future brands frame their visuals (portrait
+                       4:5) for this position. */
+                    <div className="relative w-full h-full bg-gradient-to-br from-[#F5F0EB] to-[#E8E0D8] flex flex-col items-center justify-center gap-3">
+                      <span className="absolute font-display text-[7rem] font-bold text-foreground/[0.06] select-none">{brand.name[0]}</span>
+                      <ImageIcon className="h-8 w-8 text-foreground/20" />
+                      <span className="text-[10px] font-display font-semibold uppercase tracking-[0.18em] text-foreground/30">
+                        {t("brand.photoSlot", "Photo · portrait 4:5")}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -675,7 +682,7 @@ export default function BrandPage() {
                   className="group relative block w-full overflow-hidden rounded-2xl bg-muted text-left aspect-[4/5]"
                 >
                   {coll.cover_image_url ? (
-                    <SmartImg src={coll.cover_image_url} box={700} alt={coll.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-[600ms] ease-out" />
+                    <SmartImg src={coll.cover_image_url} box={700} alt={coll.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform [transition-duration:600ms] ease-out" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#FAF7F4] to-muted">
                       <FolderOpen className="h-10 w-10 text-muted-foreground/30" />
