@@ -85,7 +85,9 @@ interface NotifyArgs {
 
 // Best-effort notification to the partner (in-app + email). Never throws into
 // the request path — a failed notification must not block the visitor's download.
-async function notifyPartner(admin: Admin, p: NotifyArgs): Promise<void> {
+// Returns a small diagnostic so callers can log the email outcome.
+async function notifyPartner(admin: Admin, p: NotifyArgs): Promise<{ emailTo: string | null; emailStatus: number | null; emailDetail: string | null }> {
+  const diag = { emailTo: null as string | null, emailStatus: null as number | null, emailDetail: null as string | null };
   const who = p.leadName || p.leadEmail;
   const what = p.catalogTitle || "votre catalogue";
 
@@ -109,7 +111,8 @@ async function notifyPartner(admin: Admin, p: NotifyArgs): Promise<void> {
       to = data?.user?.email ?? null;
     } catch { /* ignore */ }
   }
-  if (!to) return;
+  diag.emailTo = to;
+  if (!to) return diag;
 
   const rows: string[] = [
     `Nom : ${p.leadName || "—"}`,
@@ -127,7 +130,7 @@ async function notifyPartner(admin: Admin, p: NotifyArgs): Promise<void> {
     `<ul>${rows.map((r) => `<li>${escapeHtml(r)}</li>`).join("")}</ul>` +
     `<p>Répondez directement à cet email pour assurer le suivi du prospect.</p>`;
 
-  await fetch(`${SUPABASE_URL}/functions/v1/send-notification-email`, {
+  const emailRes = await fetch(`${SUPABASE_URL}/functions/v1/send-notification-email`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -135,6 +138,12 @@ async function notifyPartner(admin: Admin, p: NotifyArgs): Promise<void> {
     },
     body: JSON.stringify({ to, subject, body_html, body_text, reply_to: p.leadEmail }),
   });
+  diag.emailStatus = emailRes.status;
+  diag.emailDetail = (await emailRes.text()).slice(0, 500);
+  if (!emailRes.ok) {
+    console.error("[catalog-download] email send failed", diag.emailStatus, diag.emailDetail);
+  }
+  return diag;
 }
 
 Deno.serve(async (req: Request) => {
@@ -210,6 +219,9 @@ Deno.serve(async (req: Request) => {
   }
 
   // Notify the partner of the new lead — best effort, never blocks the download.
+  // notifyPartner returns a diagnostic and console.error's on email failure, so
+  // delivery problems are visible in the function logs without leaking detail
+  // to the public response.
   try {
     await notifyPartner(admin, {
       partnerId,
