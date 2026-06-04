@@ -28,7 +28,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import type { DBProduct } from "@/lib/products";
 import { urlForProduct } from "@/lib/productRoutes";
 import { useFavourites } from "@/contexts/FavouritesContext";
-import { getOptimizedImageUrl } from "@/utils/imageOptimization";
+import { SmartImg } from "@/components/common/SmartImg";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -583,11 +583,11 @@ function ProductGridCard({ product, onAdd, isBrandProduct }: { product: DBProduc
     >
       <Link to={urlForProduct(product, product.owner_brand_slug)} className="block">
         <div className="aspect-[4/5] overflow-hidden bg-white rounded-sm mb-3 relative">
-          <img
+          <SmartImg
             src={product.image_url || "/placeholder.svg"}
+            box={500}
             alt={localName}
-            className="w-full h-full object-contain p-3 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
-            loading="lazy"
+            className="w-full h-full object-contain p-3 mix-blend-multiply group-hover:scale-105 transition-[opacity,transform] duration-700"
             decoding="async"
             sizes="(max-width: 768px) 50vw, 25vw"
           />
@@ -676,11 +676,11 @@ function ProductListCard({ product, onAdd, isBrandProduct }: { product: DBProduc
     >
       <Link to={`/products/${product.id}`} className="flex-shrink-0">
         <div className="w-24 h-24 overflow-hidden bg-white rounded-sm">
-          <img
-            src={getOptimizedImageUrl(product.image_url, { width: 200, height: 200, resize: "contain" }) || "/placeholder.svg"}
+          <SmartImg
+            src={product.image_url || "/placeholder.svg"}
+            box={200}
             alt={localName}
             className="w-full h-full object-contain p-1 mix-blend-multiply"
-            loading="lazy"
           />
         </div>
       </Link>
