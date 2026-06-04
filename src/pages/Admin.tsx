@@ -9,7 +9,7 @@ import {
   ChevronDown, ChevronUp, Search, LayoutDashboard,
   Building2, UserCircle, MessageSquare, BarChart3, Settings,
   CreditCard, Inbox, Menu, ShoppingCart, Bot, ChevronLeft, LogOut, Merge, Landmark, Crown,
-  EyeOff, Trash2, ArrowUpDown, ChevronRight, Sparkles, Layers, ShieldCheck,
+  EyeOff, Trash2, ArrowUpDown, ChevronRight, Sparkles, Layers, ShieldCheck, Download,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,6 +40,7 @@ import AdminCertifications from "@/components/admin/AdminCertifications";
 import AdminApplications from "@/components/admin/AdminApplications";
 import AdminCGVOverview from "@/components/admin/AdminCGVOverview";
 import AdminFoundingOverview from "@/components/admin/AdminFoundingOverview";
+import AdminCatalogLeads from "@/components/admin/AdminCatalogLeads";
 import ProductMergeDialog from "@/components/admin/ProductMergeDialog";
 import CompatibleProductsEditor from "@/components/admin/CompatibleProductsEditor";
 import ProductImagesUpload from "@/components/admin/ProductImagesUpload";
@@ -56,7 +57,7 @@ import {
 // TYPES & CONSTANTS
 // ═══════════════════════════════════════════════════════════
 
-type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "product_reviews" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "concept_analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings" | "referentials_brands" | "referentials_certifications" | "cgv" | "founding";
+type Tab = "dashboard" | "users" | "partners" | "partner_visibility" | "subscriptions" | "ratings" | "product_reviews" | "messages" | "applications" | "quotes" | "orders" | "analytics" | "concept_analytics" | "pro_service" | "products" | "submissions" | "chatbot" | "financing" | "brands" | "ai_scanner" | "settings" | "referentials_brands" | "referentials_certifications" | "cgv" | "founding" | "catalog_leads";
 
 type ProductFormData = Omit<DBProduct, "id"> & { id?: string; publish_status?: string };
 
@@ -1833,6 +1834,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
       { id: "products",    icon: Package,      label: "Produits",      badgeKey: "products" },
       { id: "partners",    icon: Building2,     label: "Partenaires", badgeKey: "partners" },
       { id: "cgv",         icon: FileText,      label: "Suivi CGV" },
+      { id: "catalog_leads", icon: Download,    label: "Leads catalogue" },
       { id: "founding",    icon: Crown,         label: "Founding cohorte" },
       { id: "submissions", icon: Inbox,         label: "Soumissions",   badgeKey: "submissions" },
       { id: "subscriptions", icon: Star,        label: "Abonnements" },
@@ -1895,6 +1897,7 @@ const TAB_TITLES: Record<Tab, string> = {
   ai_scanner: "AI Scanner",
   cgv: "Suivi CGV partenaires",
   founding: "Founding cohorte",
+  catalog_leads: "Leads — téléchargements de catalogue",
 };
 
 const Admin = () => {
@@ -2089,6 +2092,7 @@ const Admin = () => {
           {tab === "users"        && <AdminUsers />}
           {tab === "partners"     && <AdminPartners />}
           {tab === "cgv"          && <AdminCGVOverview />}
+          {tab === "catalog_leads" && <AdminCatalogLeads />}
           {tab === "founding"     && <AdminFoundingOverview />}
           {tab === "partner_visibility" && <AdminPartnerVisibility />}
           {tab === "subscriptions"      && <AdminSubscriptions />}
