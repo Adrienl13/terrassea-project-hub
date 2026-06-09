@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   ArrowRight, CheckCircle2, Sparkles, Clock, Shield, Users,
-  ChevronDown, Building2, Truck, Pencil,
+  Building2, Truck, Pencil,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -71,13 +71,6 @@ const PORTALS = [
   },
 ];
 
-const KEY_FIGURES = [
-  { value: "120+", labelKey: "proHub.landing.figProjects" },
-  { value: "45",   labelKey: "proHub.landing.figSuppliers" },
-  { value: "18",   labelKey: "proHub.landing.figArchitects" },
-  { value: "98%",  labelKey: "proHub.landing.figSatisfaction" },
-];
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 type Phase = "form" | "not_qualified" | "submitted";
@@ -87,7 +80,6 @@ export default function ProServiceLanding() {
   const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>("form");
   const [submitting, setSubmitting] = useState(false);
-  const [showOptional, setShowOptional] = useState(false);
 
   const FOR_WHO_YES = [
     { label: t("proService.forYes1"), sub: t("proService.forYes1Sub") },
@@ -197,22 +189,6 @@ export default function ProServiceLanding() {
               {t("proHub.landing.subtitle")}
             </p>
           </motion.div>
-
-          {/* Key figures */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-12">
-            {KEY_FIGURES.map((fig, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 * i }}
-                className="p-4 rounded-xl border border-border bg-card"
-              >
-                <p className="font-display text-2xl font-bold text-foreground">{fig.value}</p>
-                <p className="text-xs font-body text-muted-foreground mt-1">{t(fig.labelKey)}</p>
-              </motion.div>
-            ))}
-          </div>
 
           {/* 3 Portals */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
@@ -435,39 +411,32 @@ export default function ProServiceLanding() {
                     </div>
                   </div>
                 </div>
-                <button type="button" onClick={() => setShowOptional(!showOptional)}
-                  className="w-full flex items-center justify-between text-xs font-body text-muted-foreground hover:text-foreground transition-colors py-1">
-                  {t("proService.formFields.optionalDetails")}
-                  <ChevronDown className={`h-4 w-4 transition-transform ${showOptional ? "rotate-180" : ""}`} />
-                </button>
-                <AnimatePresence>
-                  {showOptional && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className={labelClass}>{t("proService.formFields.spaces")}</label>
-                          <input type="text" value={form.spaces} onChange={handle("spaces")} placeholder="Terrace, pool deck, garden" className={inputClass} />
-                        </div>
-                        <div>
-                          <label className={labelClass}>{t("proService.formFields.timeline")}</label>
-                          <input type="text" value={form.timeline} onChange={handle("timeline")} placeholder="Opening June 2026" className={inputClass} />
-                        </div>
-                      </div>
-                      <div>
-                        <label className={labelClass}>{t("proService.formFields.style")}</label>
-                        <input type="text" value={form.style} onChange={handle("style")} placeholder="Mediterranean, natural tones, rope & teak" className={inputClass} />
-                      </div>
-                      <div>
-                        <label className={labelClass}>{t("proService.formFields.constraints")}</label>
-                        <input type="text" value={form.constraints} onChange={handle("constraints")} placeholder="Wind-exposed terrace, stackable for winter storage" className={inputClass} />
-                      </div>
-                      <div>
-                        <label className={labelClass}>{t("proService.formFields.notes")}</label>
-                        <textarea value={form.notes} onChange={handle("notes")} placeholder="Anything else we should know..." rows={3} className={`${inputClass} rounded-2xl`} />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Détails du projet — affichés directement (formulaire complet). */}
+                <div className="space-y-4">
+                  <p className="text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground">{t("proService.formFields.optionalDetails")}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClass}>{t("proService.formFields.spaces")}</label>
+                      <input type="text" value={form.spaces} onChange={handle("spaces")} placeholder="Terrace, pool deck, garden" className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>{t("proService.formFields.timeline")}</label>
+                      <input type="text" value={form.timeline} onChange={handle("timeline")} placeholder="Opening June 2026" className={inputClass} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("proService.formFields.style")}</label>
+                    <input type="text" value={form.style} onChange={handle("style")} placeholder="Mediterranean, natural tones, rope & teak" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("proService.formFields.constraints")}</label>
+                    <input type="text" value={form.constraints} onChange={handle("constraints")} placeholder="Wind-exposed terrace, stackable for winter storage" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("proService.formFields.notes")}</label>
+                    <textarea value={form.notes} onChange={handle("notes")} placeholder="Anything else we should know..." rows={3} className={`${inputClass} rounded-2xl`} />
+                  </div>
+                </div>
                 <div>
                   <label className={labelClass}>{t("proService.formFields.siren")} *</label>
                   <input type="text" value={form.siren}
