@@ -28,14 +28,14 @@ function buildReviewEmailHtml(order: EligibleOrder, clientName: string): string 
       <div style="background:#F5F3F0;border-radius:6px;padding:12px 16px;margin-bottom:16px">
         <p style="font-size:12px;color:#333;margin:4px 0">Your feedback helps other hospitality professionals make better sourcing decisions and helps our partners improve their service.</p>
       </div>
-      <a href="https://terrassea.com/account?tab=orders&review=${order.id}" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">Leave a review</a>
+      <a href="https://terrasseahub.fr/account?tab=orders&review=${order.id}" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">Leave a review</a>
     </div>
     <p style="font-size:10px;color:#999;text-align:center;margin:16px 0 0">Terrassea - The outdoor hospitality sourcing platform</p>
   </div>`;
 }
 
 function buildReviewEmailText(order: EligibleOrder, clientName: string): string {
-  return `Hello ${clientName},\n\nYour order for ${order.product_name} was delivered on ${new Date(order.delivered_at).toLocaleDateString("en-GB")}. We'd love to hear how it went!\n\nLeave a review: https://terrassea.com/account?tab=orders&review=${order.id}\n\nTerrassea - The outdoor hospitality sourcing platform`;
+  return `Hello ${clientName},\n\nYour order for ${order.product_name} was delivered on ${new Date(order.delivered_at).toLocaleDateString("en-GB")}. We'd love to hear how it went!\n\nLeave a review: https://terrasseahub.fr/account?tab=orders&review=${order.id}\n\nTerrassea - The outdoor hospitality sourcing platform`;
 }
 
 Deno.serve(async (req: Request) => {

@@ -19,7 +19,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 //        in its headers JSON (use Vault for the secret value)
 // ============================================================================
 
-const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrassea.com";
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrasseahub.fr";
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",

@@ -9,7 +9,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
  * The original path is passed as ?path=/some/page
  */
 
-const BASE = "https://terrassea.com";
+const BASE = "https://terrasseahub.fr";
 const SITE_NAME = "TerrasseaHUB";
 const DEFAULT_DESC =
   "Europe's B2B marketplace for outdoor hospitality furniture. Chairs, tables, parasols, sun loungers from verified European manufacturers. 9 countries, 6 languages. Free quotes.";
@@ -28,7 +28,7 @@ const BOT_UA =
 // HTML-escape DB values before interpolating into the SSR output. Closes
 // red-team H9 (2026-05-16) stored XSS: a partner-controlled description,
 // product name, or slug rendered as raw HTML to bot/SEO crawlers executes
-// in the terrassea.com origin when the prerendered snapshot is opened in
+// in the terrasseahub.fr origin when the prerendered snapshot is opened in
 // an in-app browser (FB/LinkedIn preview, Google cache, AI search bot).
 function escapeHtml(s: unknown): string {
   if (s === null || s === undefined) return "";

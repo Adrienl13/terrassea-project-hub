@@ -335,7 +335,7 @@ const ProductDetail = () => {
         description={ml(product, "short_description") || `${localName} — professional outdoor furniture available on Terrassea. Compare supplier offers and request quotes.`}
         image={product.image_url || undefined}
         type="product"
-        url={`https://terrassea.com${urlForProduct(product, product.owner_brand_slug)}`}
+        url={`https://terrasseahub.fr${urlForProduct(product, product.owner_brand_slug)}`}
       />
       <ProductSchemaOrg
         product={product}

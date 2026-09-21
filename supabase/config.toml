@@ -1,1 +1,64 @@
 project_id = "gwgcfgeouropcighpztj"
+
+# verify_jwt par fonction — miroir de l'état prod relevé le 2026-09-21.
+# RÈGLE : tout deploy (CLI ou MCP) doit préserver ces valeurs.
+# - stripe-webhook DOIT rester false (signature Stripe = seule auth valide)
+# - les webhooks/crons (stock-sync, check-abandoned-carts, send-*) sont false :
+#   ils s'authentifient par secret dédié (EDGE_TRIGGER_SECRET / CRON_SECRET / Bearer service_role)
+# - analyze-terrace et record-founding-products-batch sont true (seule protection)
+# - stripe-checkout passé à true le 2026-09-21 (durcissement : les appels
+#   passent par supabase.functions.invoke avec le JWT user + auth in-function)
+
+[functions.analyze-terrace]
+verify_jwt = true
+
+[functions.record-founding-products-batch]
+verify_jwt = true
+
+[functions.analyze-csv-products]
+verify_jwt = false
+
+[functions.analyze-product-image]
+verify_jwt = false
+
+[functions.auto-workflow]
+verify_jwt = false
+
+[functions.catalog-download]
+verify_jwt = false
+
+[functions.chatbot]
+verify_jwt = false
+
+[functions.check-abandoned-carts]
+verify_jwt = false
+
+[functions.enrich-products]
+verify_jwt = false
+
+[functions.get-signed-cgv-url]
+verify_jwt = false
+
+[functions.invite-brand-partner]
+verify_jwt = false
+
+[functions.merge-descriptions]
+verify_jwt = false
+
+[functions.send-notification-email]
+verify_jwt = false
+
+[functions.send-quote-notification]
+verify_jwt = false
+
+[functions.send-review-request]
+verify_jwt = false
+
+[functions.stock-sync-webhook]
+verify_jwt = false
+
+[functions.stripe-checkout]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false

@@ -54,7 +54,7 @@ describe("buildProductSchema — legacy single Product (no variants)", () => {
     const result = buildProductSchema(stubProduct(), [], "Tribù", 3);
     expect(result["@context"]).toBe("https://schema.org");
     expect(result["@type"]).toBe("Product");
-    expect(result.url).toBe("https://terrassea.com/products/tribu/angel-001");
+    expect(result.url).toBe("https://terrasseahub.fr/products/tribu/angel-001");
     expect(result.name).toBe("ANGEL 001");
     expect(result.brand).toEqual({ "@type": "Brand", name: "Tribù" });
     expect((result.offers as Record<string, unknown>).lowPrice).toBe("199.00");
@@ -68,7 +68,7 @@ describe("buildProductSchema — legacy single Product (no variants)", () => {
       [],
       null,
     );
-    expect(result.url).toBe(`https://terrassea.com/products/${PRODUCT_ID}`);
+    expect(result.url).toBe(`https://terrasseahub.fr/products/${PRODUCT_ID}`);
     expect(result.brand).toBeUndefined();
   });
 

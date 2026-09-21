@@ -67,7 +67,7 @@ The buying process on TerrasseaHUB works as follows:
 
 The supplier onboarding and selling process:
 
-1. **Register** — Visit https://terrassea.com/become-partner and create a supplier account.
+1. **Register** — Visit https://terrasseahub.fr/become-partner and create a supplier account.
 2. **Choose a Plan** — Select a subscription plan (Starter is free) that fits your business.
 3. **Upload Catalogue** — Add products manually, via CSV import, or through API integration. Include photos, specifications, pricing, and stock levels.
 4. **Receive Leads** — Get notified when buyers request quotes for products in your catalogue.
@@ -144,7 +144,7 @@ French (FR), English (EN), Italian (IT), Spanish (ES), German (DE), Dutch (NL)
 - **Founded:** 2025
 - **Founder:** Adrien Laniez
 - **Contact email:** contact@terrassea.com
-- **Website:** https://terrassea.com
+- **Website:** https://terrasseahub.fr
 
 ### Social Media
 - LinkedIn: https://www.linkedin.com/company/terrassea
@@ -177,37 +177,37 @@ Yes. Supplier identities remain anonymous during the comparison and quoting phas
 The platform is available in 6 languages: French, English, Italian, Spanish, German, and Dutch.
 
 **How do I become a supplier on TerrasseaHUB?**
-Visit https://terrassea.com/become-partner to register and choose a plan. You can start with the free Starter plan and upgrade at any time.
+Visit https://terrasseahub.fr/become-partner to register and choose a plan. You can start with the free Starter plan and upgrade at any time.
 
 ---
 
 ## All Site URLs
 
 ### Main Pages
-- Homepage: https://terrassea.com/
-- Product Catalogue: https://terrassea.com/products
-- Become a Partner: https://terrassea.com/become-partner
-- Inspirations: https://terrassea.com/inspirations
-- Resources: https://terrassea.com/resources
-- Partners Directory: https://terrassea.com/partners
-- Collections: https://terrassea.com/collections
-- Pro Service: https://terrassea.com/pro-service
+- Homepage: https://terrasseahub.fr/
+- Product Catalogue: https://terrasseahub.fr/products
+- Become a Partner: https://terrasseahub.fr/become-partner
+- Inspirations: https://terrasseahub.fr/inspirations
+- Resources: https://terrasseahub.fr/resources
+- Partners Directory: https://terrasseahub.fr/partners
+- Collections: https://terrasseahub.fr/collections
+- Pro Service: https://terrasseahub.fr/pro-service
 
 ### Product Categories
-- Chairs: https://terrassea.com/products?category=chairs
-- Tables: https://terrassea.com/products?category=tables
-- Parasols: https://terrassea.com/products?category=parasols
-- Sun Loungers: https://terrassea.com/products?category=sun-loungers
-- Sofas: https://terrassea.com/products?category=sofas
-- Bar Stools: https://terrassea.com/products?category=bar-stools
-- Accessories: https://terrassea.com/products?category=accessories
+- Chairs: https://terrasseahub.fr/products?category=chairs
+- Tables: https://terrasseahub.fr/products?category=tables
+- Parasols: https://terrasseahub.fr/products?category=parasols
+- Sun Loungers: https://terrasseahub.fr/products?category=sun-loungers
+- Sofas: https://terrasseahub.fr/products?category=sofas
+- Bar Stools: https://terrasseahub.fr/products?category=bar-stools
+- Accessories: https://terrasseahub.fr/products?category=accessories
 
 ### Legal Pages
-- Legal Notice: https://terrassea.com/mentions-legales
-- Terms of Sale (CGV): https://terrassea.com/cgv
-- Terms of Use (CGU): https://terrassea.com/cgu
-- Privacy Policy: https://terrassea.com/confidentialite
+- Legal Notice: https://terrasseahub.fr/mentions-legales
+- Terms of Sale (CGV): https://terrasseahub.fr/cgv
+- Terms of Use (CGU): https://terrasseahub.fr/cgu
+- Privacy Policy: https://terrasseahub.fr/confidentialite
 
 ### For LLMs
-- Summary: https://terrassea.com/llms.txt
-- Full reference: https://terrassea.com/llms-full.txt
+- Summary: https://terrasseahub.fr/llms.txt
+- Full reference: https://terrasseahub.fr/llms-full.txt
