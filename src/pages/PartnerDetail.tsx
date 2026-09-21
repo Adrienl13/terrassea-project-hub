@@ -235,7 +235,7 @@ export default function PartnerDetail() {
         title={`${partner.name} — Outdoor Furniture Supplier`}
         description={ml(partner, "description") || `${partner.name} — verified outdoor furniture supplier on Terrassea. Discover their catalog and request quotes.`}
         image={partner.logo_url || undefined}
-        url={`https://terrassea.com/partners/${partner.slug}`}
+        url={`https://terrasseahub.fr/partners/${partner.slug}`}
       />
       <Header />
 

@@ -21,8 +21,8 @@ After an admin creates a brand row in the `partners` table (via the
 | `SUPABASE_URL` | Project URL |
 | `SUPABASE_ANON_KEY` | For the user-auth client that validates the caller's JWT and admin status |
 | `SUPABASE_SERVICE_ROLE_KEY` | For the auth admin API (createUser, listUsers, generateLink), the bearer used to call send-notification-email, and RLS-bypassing inserts on user_profiles / partners / brand_users |
-| `ALLOWED_ORIGIN` | CORS origin allow-list. Defaults to `https://terrassea.com` |
-| `SITE_URL` *(optional)* | Base URL for the reset-password redirect. Defaults to `https://terrassea.com`. The `<SITE_URL>/reset-password` path should be in the project's Auth → Redirect URLs allowlist (RecoveryGuard self-heals a Site-URL fallback otherwise). |
+| `ALLOWED_ORIGIN` | CORS origin allow-list. Defaults to `https://terrasseahub.fr` |
+| `SITE_URL` *(optional)* | Base URL for the reset-password redirect. Defaults to `https://terrasseahub.fr`. The `<SITE_URL>/reset-password` path should be in the project's Auth → Redirect URLs allowlist (RecoveryGuard self-heals a Site-URL fallback otherwise). |
 
 > The branded email's delivery (provider, `RESEND_API_KEY`, from-address) is owned by **`send-notification-email`** + `platform_settings` — this function only builds the HTML/text and hands it over.
 

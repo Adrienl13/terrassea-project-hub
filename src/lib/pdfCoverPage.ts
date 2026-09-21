@@ -280,7 +280,7 @@ export async function addCoverPageToPdf(
   });
 
   y -= 16;
-  page.drawText("terrassea.com  ·  contact@terrassea.com", {
+  page.drawText("terrasseahub.fr  ·  contact@terrassea.com", {
     x: 50, y,
     size: 9,
     font: fontRegular,

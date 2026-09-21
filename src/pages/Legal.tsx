@@ -26,7 +26,7 @@ const Legal = () => {
             <section>
               <h2>1. Éditeur du site</h2>
               <p>
-                Le site <strong>terrassea.com</strong> (ci-après « le Site ») est édité par :
+                Le site <strong>terrasseahub.fr</strong> (ci-après « le Site ») est édité par :
               </p>
               <ul className="list-none space-y-1 pl-0">
                 <li><strong>Raison sociale :</strong> Pros Import EURL</li>

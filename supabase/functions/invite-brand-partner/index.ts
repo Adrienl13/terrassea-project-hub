@@ -32,7 +32,7 @@
 //
 // Required secrets : SUPABASE_URL, SUPABASE_ANON_KEY,
 // SUPABASE_SERVICE_ROLE_KEY, ALLOWED_ORIGIN. Optional : SITE_URL
-// (defaults to https://terrassea.com) — base for the reset-password
+// (defaults to https://terrasseahub.fr) — base for the reset-password
 // redirect. The branded email itself is delivered by
 // send-notification-email (which owns RESEND_API_KEY / provider config).
 //
@@ -50,13 +50,13 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // CORS origin allow-list. The Access-Control-Allow-Origin header MUST echo the
-// caller's exact Origin — a single fixed value (e.g. https://terrassea.com)
+// caller's exact Origin — a single fixed value (e.g. https://terrasseahub.fr)
 // breaks www / Vercel / preview domains : the browser blocks the request and
 // supabase-js throws "Failed to send a request to the Edge Function" (the
 // OPTIONS preflight logs 204 but the POST never leaves the browser). We reflect
 // the Origin only when it matches a trusted host. Auth is by Bearer JWT (not
 // cookies), so reflecting the origin is not a credential-leak vector.
-const FALLBACK_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrassea.com";
+const FALLBACK_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrasseahub.fr";
 
 function resolveCorsOrigin(origin: string | null): string {
   if (!origin) return FALLBACK_ORIGIN;
@@ -64,6 +64,8 @@ function resolveCorsOrigin(origin: string | null): string {
     const { hostname, protocol } = new URL(origin);
     const protoOk = protocol === "https:" || protocol === "http:";
     const trusted =
+      hostname === "terrasseahub.fr" ||
+      hostname.endsWith(".terrasseahub.fr") ||
       hostname === "terrassea.com" ||
       hostname.endsWith(".terrassea.com") ||
       hostname.endsWith(".vercel.app") ||
@@ -206,7 +208,7 @@ Deno.serve(async (req) => {
   // 3. Generate a password-setup (recovery) action link WITHOUT sending
   //    Supabase's default email. This call also returns the user record, so it
   //    doubles as our existing-user lookup (avoids the buggy listUsers endpoint).
-  const SITE_URL = (Deno.env.get("SITE_URL") || "https://terrassea.com").replace(/\/+$/, "");
+  const SITE_URL = (Deno.env.get("SITE_URL") || "https://terrasseahub.fr").replace(/\/+$/, "");
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
     type: "recovery",
     email,

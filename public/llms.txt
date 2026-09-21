@@ -53,10 +53,10 @@ All plans include access to qualified B2B leads from the hospitality sector.
 
 ## Key URLs
 
-- Homepage: https://terrassea.com/
-- Product Catalogue: https://terrassea.com/products
-- Become a Partner: https://terrassea.com/become-partner
-- Inspirations: https://terrassea.com/inspirations
+- Homepage: https://terrasseahub.fr/
+- Product Catalogue: https://terrasseahub.fr/products
+- Become a Partner: https://terrasseahub.fr/become-partner
+- Inspirations: https://terrasseahub.fr/inspirations
 - Contact: contact@terrassea.com
 
 ## FAQ
@@ -83,8 +83,8 @@ Yes. Supplier identities remain anonymous during the comparison and quoting phas
 The platform is available in 6 languages: French, English, Italian, Spanish, German, and Dutch.
 
 **How do I become a supplier on TerrasseaHUB?**
-Visit https://terrassea.com/become-partner to register and choose a plan. You can start with the free Starter plan and upgrade at any time.
+Visit https://terrasseahub.fr/become-partner to register and choose a plan. You can start with the free Starter plan and upgrade at any time.
 
 ---
 
-For the full detailed version, see: https://terrassea.com/llms-full.txt
+For the full detailed version, see: https://terrasseahub.fr/llms-full.txt

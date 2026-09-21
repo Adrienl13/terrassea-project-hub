@@ -16,7 +16,7 @@ export interface ReviewStats {
   review_count: number | null;
 }
 
-const SITE_URL = "https://terrassea.com";
+const SITE_URL = "https://terrasseahub.fr";
 
 function variantToProduct(
   variant: DBProductVariant,

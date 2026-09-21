@@ -8,7 +8,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
  * Cached for 1 hour via Cache-Control headers.
  */
 
-const BASE = "https://terrassea.com";
+const BASE = "https://terrasseahub.fr";
 
 // ── Static pages ─────────────────────────────────────────────────────
 

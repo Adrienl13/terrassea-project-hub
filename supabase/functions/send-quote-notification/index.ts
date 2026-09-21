@@ -57,7 +57,7 @@ function quoteConfirmationClient(r: any): string {
         ${quantity ? `<p style="font-size:12px;color:#333;margin:4px 0"><strong>Quantity:</strong> ${quantity} units</p>` : ""}
         ${total ? `<p style="font-size:12px;color:#333;margin:4px 0"><strong>Indicative total:</strong> ${total}</p>` : ""}
       </div>
-      <a href="https://terrassea.com/products" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">Continue browsing →</a>
+      <a href="https://terrasseahub.fr/products" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">Continue browsing →</a>
     </div>
     <p style="font-size:10px;color:#999;text-align:center;margin:16px 0 0">Terrassea — The outdoor hospitality sourcing platform</p>
   </div>`;
@@ -87,7 +87,7 @@ function quoteAlertAdmin(r: any): string {
       <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:16px">
         ${rows.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:6px 8px;color:#999;border-bottom:1px solid #f0f0f0">${k}</td><td style="padding:6px 8px;color:#333;border-bottom:1px solid #f0f0f0">${v}</td></tr>`).join("")}
       </table>
-      <a href="https://terrassea.com/admin" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">View in Admin →</a>
+      <a href="https://terrasseahub.fr/admin" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">View in Admin →</a>
     </div>
   </div>`;
 }
@@ -110,7 +110,7 @@ function applicationConfirmationClient(r: any): string {
       </div>
       <p style="font-size:11px;color:#999;line-height:1.5">If approved, you start on <strong>Starter</strong> — free until your 3rd confirmed order. Growth (€199/month) activates automatically.</p>
     </div>
-    <p style="font-size:10px;color:#999;text-align:center;margin:16px 0 0">Terrassea · terrassea.com</p>
+    <p style="font-size:10px;color:#999;text-align:center;margin:16px 0 0">Terrassea · terrasseahub.fr</p>
   </div>`;
 }
 
@@ -137,7 +137,7 @@ function applicationAlertAdmin(r: any): string {
         ${rows.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:6px 8px;color:#999;border-bottom:1px solid #f0f0f0">${k}</td><td style="padding:6px 8px;color:#333;border-bottom:1px solid #f0f0f0">${v}</td></tr>`).join("")}
       </table>
       ${messageBlock}
-      <a href="https://terrassea.com/admin" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">Review in Admin →</a>
+      <a href="https://terrasseahub.fr/admin" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">Review in Admin →</a>
     </div>
   </div>`;
 }
@@ -155,9 +155,9 @@ function partnerApprovedEmail(r: any): string {
         <p style="font-size:12px;color:#085041;font-weight:600;margin:0 0 8px">Your next steps</p>
         <p style="font-size:12px;color:#085041;line-height:1.8;margin:0">1. Set up your partner profile<br>2. Upload your catalogue (up to 30 products)<br>3. Respond to quote requests within 48h<br>4. 3rd confirmed order → automatic Growth upgrade (€199/month, 5% commission)</p>
       </div>
-      <a href="https://terrassea.com/account" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">Access your partner dashboard →</a>
+      <a href="https://terrasseahub.fr/account" style="display:inline-block;background:#1a1a1a;color:white;text-decoration:none;font-size:12px;font-weight:600;padding:10px 24px;border-radius:20px">Access your partner dashboard →</a>
     </div>
-    <p style="font-size:10px;color:#999;text-align:center;margin:16px 0 0">Terrassea · terrassea.com</p>
+    <p style="font-size:10px;color:#999;text-align:center;margin:16px 0 0">Terrassea · terrasseahub.fr</p>
   </div>`;
 }
 

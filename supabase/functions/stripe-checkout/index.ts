@@ -5,7 +5,7 @@ const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrassea.com";
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://terrasseahub.fr";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
     const { orderId, successUrl, cancelUrl } = await req.json();
 
     // Validate redirect URLs to prevent open redirect attacks
-    const ALLOWED_HOSTS = ["terrassea.com", "www.terrassea.com", "localhost"];
+    const ALLOWED_HOSTS = ["terrasseahub.fr", "www.terrasseahub.fr", "terrassea.com", "www.terrassea.com", "localhost"];
     const isValidUrl = (url: string | undefined): boolean => {
       if (!url) return true; // optional
       try {
@@ -131,8 +131,8 @@ Deno.serve(async (req: Request) => {
       "customer_email": order.client_email,
       "metadata[order_id]": orderId,
       "metadata[platform]": "terrassea",
-      "success_url": successUrl || "https://terrassea.com/account?section=orders&payment=success",
-      "cancel_url": cancelUrl || "https://terrassea.com/account?section=orders&payment=cancelled",
+      "success_url": successUrl || "https://terrasseahub.fr/account?section=orders&payment=success",
+      "cancel_url": cancelUrl || "https://terrasseahub.fr/account?section=orders&payment=cancelled",
     });
 
     if (session.error) {

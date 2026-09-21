@@ -1,7 +1,7 @@
 # ============================================================
 # TerrasseaHUB — robots.txt
 # Europe's B2B Marketplace for Outdoor Hospitality Furniture
-# For LLM-readable site summary, see: https://terrassea.com/llms.txt
+# For LLM-readable site summary, see: https://terrasseahub.fr/llms.txt
 # ============================================================
 
 # --- AI / LLM crawlers ---
@@ -82,4 +82,4 @@ Disallow: /mood-board
 Disallow: /api/
 Disallow: /auth
 
-Sitemap: https://terrassea.com/sitemap.xml
+Sitemap: https://terrasseahub.fr/sitemap.xml

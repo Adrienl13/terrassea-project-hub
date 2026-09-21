@@ -15,7 +15,7 @@ Both the feature flag and the cron secret must be configured before this functio
 | `CRON_SECRET` | Random 32+ char string. Required in `Authorization: Bearer <CRON_SECRET>` header. |
 | `SUPABASE_URL` | DB API URL. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Bypasses RLS to read/write the tables below. |
-| `ALLOWED_ORIGIN` (optional) | CORS origin override. Defaults to `https://terrassea.com`. |
+| `ALLOWED_ORIGIN` (optional) | CORS origin override. Defaults to `https://terrasseahub.fr`. |
 
 **Re-enable procedure**
 1. Generate a long random `CRON_SECRET` (e.g. `openssl rand -hex 32`).
