@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
     const { orderId, successUrl, cancelUrl } = await req.json();
 
     // Validate redirect URLs to prevent open redirect attacks
-    const ALLOWED_HOSTS = ["terrasseahub.fr", "www.terrasseahub.fr", "terrassea.com", "www.terrassea.com", "localhost"];
+    const ALLOWED_HOSTS = ["terrasseahub.fr", "www.terrasseahub.fr", "localhost"];
     const isValidUrl = (url: string | undefined): boolean => {
       if (!url) return true; // optional
       try {

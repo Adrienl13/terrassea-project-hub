@@ -66,8 +66,6 @@ function resolveCorsOrigin(origin: string | null): string {
     const trusted =
       hostname === "terrasseahub.fr" ||
       hostname.endsWith(".terrasseahub.fr") ||
-      hostname === "terrassea.com" ||
-      hostname.endsWith(".terrassea.com") ||
       hostname.endsWith(".vercel.app") ||
       hostname.endsWith(".lovable.app") ||
       hostname.endsWith(".lovableproject.com") ||
